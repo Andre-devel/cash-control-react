@@ -115,40 +115,40 @@ Each feature phase follows the same internal structure: API service layer → Zo
 ### Phase 2.1 — Profile API & Hooks
 
 **Implementation Tasks:**
-- [ ] Create `src/features/profile/api/profile.api.ts`:
+- [x] Create `src/features/profile/api/profile.api.ts`:
   - `GET /api/v1/users/me` → `getProfile()`
   - `PUT /api/v1/users/me` → `updateProfile(data)`
   - `GET /api/v1/users/me/consents` → `getConsentHistory()`
-- [ ] Create `src/features/profile/schemas/update-profile.schema.ts` (Zod: `displayName`)
-- [ ] Create `src/features/profile/hooks/use-profile.ts` (TanStack Query — `useQuery`)
-- [ ] Create `src/features/profile/hooks/use-update-profile.ts` (TanStack Query — `useMutation`)
+- [x] Create `src/features/profile/schemas/update-profile.schema.ts` (Zod: `displayName`)
+- [x] Create `src/features/profile/hooks/use-profile.ts` (TanStack Query — `useQuery`)
+- [x] Create `src/features/profile/hooks/use-update-profile.ts` (TanStack Query — `useMutation`)
 
 **Acceptance Criteria:**
-- [ ] `useProfile` returns the authenticated user's profile data
-- [ ] `useUpdateProfile` invalidates the profile query cache on success
+- [x] `useProfile` returns the authenticated user's profile data
+- [x] `useUpdateProfile` invalidates the profile query cache on success
 
 ---
 
 ### Phase 2.2 — Profile Pages & Components
 
 **Implementation Tasks:**
-- [ ] Build `ProfilePage` with:
+- [x] Build `ProfilePage` with:
   - Pre-populated form (`displayName`) using React Hook Form + Zod resolver
   - Loading skeleton while fetching
   - Submit button loading/disabled state
   - Success toast on update
   - Inline validation errors
-- [ ] Build `ConsentHistorySection` listing consent records from `GET /api/v1/users/me/consents`
-- [ ] Add profile navigation entry to the protected layout sidebar/header
+- [x] Build `ConsentHistorySection` listing consent records from `GET /api/v1/users/me/consents`
+- [x] Add profile navigation entry to the protected layout sidebar/header
 
 **Acceptance Criteria:**
-- [ ] Form pre-populates with current `displayName` on load
-- [ ] Successful update shows a toast and reflects the new name without page reload
-- [ ] Consent history renders a list or empty state
+- [x] Form pre-populates with current `displayName` on load
+- [x] Successful update shows a toast and reflects the new name without page reload
+- [x] Consent history renders a list or empty state
 
 **Automated Tests:**
-- [ ] Unit: `update-profile.schema` rejects empty `displayName`
-- [ ] Integration: profile form → submit → toast rendered, cache invalidated
+- [x] Unit: `update-profile.schema` rejects empty `displayName`
+- [x] Integration: profile form → submit → toast rendered, cache invalidated
 
 ---
 

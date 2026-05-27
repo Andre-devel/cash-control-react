@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { rolesHandlers } from '@/test/handlers/roles.handlers'
+import type { UserProfile, ConsentRecord } from '@/features/profile/types'
 
 function makeTestToken(): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64')
@@ -18,8 +19,47 @@ function makeTestToken(): string {
 
 export const MOCK_TOKEN = makeTestToken()
 
+export const MOCK_PROFILE: UserProfile = {
+  id: 'user-123',
+  name: 'Test User',
+  email: 'user@example.com',
+  preferences: {},
+  createdAt: '2026-01-01T00:00:00Z',
+}
+
+export const MOCK_CONSENTS: ConsentRecord[] = [
+  {
+    id: 'consent-1',
+    type: 'TERMS_OF_SERVICE',
+    status: 'ACCEPTED',
+    date: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'consent-2',
+    type: 'PRIVACY_POLICY',
+    status: 'ACCEPTED',
+    date: '2026-01-01T00:00:00Z',
+  },
+]
+
+export const profileHandlers = [
+  http.get('*/users/me', () => {
+    return HttpResponse.json(MOCK_PROFILE)
+  }),
+
+  http.put('*/users/me', async ({ request }) => {
+    const body = (await request.json()) as { name: string }
+    return HttpResponse.json({ ...MOCK_PROFILE, name: body.name })
+  }),
+
+  http.get('*/users/me/consents', () => {
+    return HttpResponse.json(MOCK_CONSENTS)
+  }),
+]
+
 export const handlers = [
   ...rolesHandlers,
+  ...profileHandlers,
 
   http.post('*/auth/login', async ({ request }) => {
     const body = (await request.json()) as { email: string; password: string }
