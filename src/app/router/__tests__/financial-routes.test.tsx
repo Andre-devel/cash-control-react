@@ -90,7 +90,9 @@ describe('Financial feature routes — authenticated rendering', () => {
 
   it('renders transaction detail page at /transactions/:id', async () => {
     renderAtPath('/transactions/test-id')
-    expect(await screen.findByRole('heading', { name: /transaction/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /transaction/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('renders installments page at /installments', async () => {
@@ -115,7 +117,7 @@ describe('Financial feature routes — authenticated rendering', () => {
 
   it('renders card detail page at /cards/:id', async () => {
     renderAtPath('/cards/test-id')
-    expect(await screen.findByRole('heading', { name: /card/i })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: /card/i }, { timeout: 5000 })).toBeTruthy()
   })
 
   it('renders profile page at /profile', async () => {

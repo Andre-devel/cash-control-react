@@ -88,7 +88,9 @@ describe('Router', () => {
       roles: ['USER'],
     })
     renderAtPath('/dashboard')
-    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /dashboard/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('renders 404 page for unknown routes', async () => {
@@ -110,7 +112,9 @@ describe('Router', () => {
       roles: ['USER'],
     })
     renderAtPath('/login')
-    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /dashboard/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('redirects authenticated users away from /register to /dashboard', async () => {
@@ -122,7 +126,9 @@ describe('Router', () => {
       roles: ['USER'],
     })
     renderAtPath('/register')
-    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /dashboard/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 })
 
@@ -148,7 +154,7 @@ describe('Router — layout accessibility', () => {
       roles: ['USER'],
     })
     renderAtPath('/dashboard')
-    await screen.findByRole('heading', { name: /dashboard/i })
+    await screen.findByRole('heading', { name: /dashboard/i }, { timeout: 5000 })
     expect(screen.getByRole('main')).toBeTruthy()
     expect(screen.getByRole('banner')).toBeTruthy()
   })

@@ -79,7 +79,11 @@ export const handlers = [
     const body = (await request.json()) as { email: string; password: string }
 
     if (body.email === 'user@example.com' && body.password === 'password123') {
-      return HttpResponse.json({ token: MOCK_TOKEN })
+      return HttpResponse.json({
+        accessToken: MOCK_TOKEN,
+        tokenType: 'Bearer',
+        expiresInSeconds: 900,
+      })
     }
 
     return HttpResponse.json(

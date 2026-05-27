@@ -147,7 +147,15 @@ describe('use-login', () => {
       'sig',
     ].join('.')
 
-    server.use(http.post('*/auth/login', () => HttpResponse.json({ token: minimalToken })))
+    server.use(
+      http.post('*/auth/login', () =>
+        HttpResponse.json({
+          accessToken: minimalToken,
+          tokenType: 'Bearer',
+          expiresInSeconds: 900,
+        }),
+      ),
+    )
 
     const { result } = renderHook(() => useLogin(), { wrapper: Wrapper })
 
@@ -171,7 +179,15 @@ describe('use-login', () => {
       'sig',
     ].join('.')
 
-    server.use(http.post('*/auth/login', () => HttpResponse.json({ token: malformedToken })))
+    server.use(
+      http.post('*/auth/login', () =>
+        HttpResponse.json({
+          accessToken: malformedToken,
+          tokenType: 'Bearer',
+          expiresInSeconds: 900,
+        }),
+      ),
+    )
 
     const { result } = renderHook(() => useLogin(), { wrapper: Wrapper })
 

@@ -564,7 +564,7 @@ Each feature phase follows the same internal structure: API service layer → Zo
 ### Phase 10.1 — MSW Handlers & Test Fixtures
 
 **Implementation Tasks:**
-- [ ] Extend the MSW handler set in `src/test/` with handlers for all financial endpoints:
+- [x] Extend the MSW handler set in `src/test/` with handlers for all financial endpoints:
   - Accounts: list, create, edit, delete, archive, adjust, transfer
   - Transactions: list (paginated), create, edit, delete, pay, cancel, attachments
   - Installments: create series, edit series, settle
@@ -572,19 +572,19 @@ Each feature phase follows the same internal structure: API service layer → Zo
   - Categories: list (tree), create, edit, hide, suggest
   - Cards: list, create, invoice, charge, pay invoice
   - Dashboard: overview, all charts, all widgets
-- [ ] Create typed test fixture factories for each domain response shape
-- [ ] All monetary fixtures must use decimal strings (never floats)
+- [x] Create typed test fixture factories for each domain response shape
+- [x] All monetary fixtures must use decimal strings (never floats)
 
 **Acceptance Criteria:**
-- [ ] All MSW handlers return properly typed response fixtures
-- [ ] No test makes a real network request
+- [x] All MSW handlers return properly typed response fixtures
+- [x] No test makes a real network request
 
 ---
 
 ### Phase 10.2 — Feature Integration Tests
 
 **Implementation Tasks:**
-- [ ] Write integration tests per feature covering at minimum:
+- [x] Write integration tests per feature covering at minimum:
   - **Accounts:** create → list, archive → hidden from default view, delete with `409` → error message shown
   - **Transactions:** create → list, filter by type → filtered results, pay → status updates
   - **Installments:** create series → transactions appear in list, settle → cache invalidated
@@ -592,11 +592,11 @@ Each feature phase follows the same internal structure: API service layer → Zo
   - **Categories:** create → tree, hide → excluded from picker, suggest → pre-fills picker
   - **Cards:** create → list, charge → invoice updated, pay invoice → remaining balance updates
   - **Dashboard:** overview renders, chart renders with data, widget error boundary isolates failure
-- [ ] All monetary assertions compare decimal strings (never parsed floats)
+- [x] All monetary assertions compare decimal strings (never parsed floats)
 
 **Acceptance Criteria:**
-- [ ] `pnpm test --coverage` passes with ≥ 80% line coverage per feature module
-- [ ] Auth integration tests from Phase 8 (auth template) remain green
+- [x] `pnpm test --coverage` passes with ≥ 80% line coverage per feature module
+- [x] Auth integration tests from Phase 8 (auth template) remain green
 
 **Automated Tests:**
 - [ ] CI step runs `pnpm test --coverage` and fails on coverage regression below 80%
@@ -679,17 +679,17 @@ Each feature phase follows the same internal structure: API service layer → Zo
 
 ## Testing Checklist
 
-- [ ] `src/features/` ≥ 80% line coverage per module
-- [ ] All financial CRUD flows covered by integration tests using MSW (no real network)
-- [ ] All create/edit schemas tested: required fields, type validation, decimal string format, enum values
-- [ ] Pagination and filter persistence tested for the transaction list
-- [ ] Cache invalidation verified: mutations trigger correct query re-fetches
-- [ ] `409 CONFLICT` error handling tested for account deletion with linked data
-- [ ] Same-account transfer validation tested
-- [ ] Installment count ≥ 2 validation tested
-- [ ] Invoice over-payment validation tested
-- [ ] Dashboard widget error boundary isolation tested
-- [ ] Auth flows from the auth template remain green after all new phases
+- [x] `src/features/` ≥ 80% line coverage per module
+- [x] All financial CRUD flows covered by integration tests using MSW (no real network)
+- [x] All create/edit schemas tested: required fields, type validation, decimal string format, enum values
+- [x] Pagination and filter persistence tested for the transaction list
+- [x] Cache invalidation verified: mutations trigger correct query re-fetches
+- [x] `409 CONFLICT` error handling tested for account deletion with linked data
+- [x] Same-account transfer validation tested
+- [x] Installment count ≥ 2 validation tested
+- [x] Invoice over-payment validation tested
+- [x] Dashboard widget error boundary isolation tested
+- [x] Auth flows from the auth template remain green after all new phases
 
 ---
 
