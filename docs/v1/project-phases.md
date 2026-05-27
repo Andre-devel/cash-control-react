@@ -276,7 +276,7 @@ Each feature phase follows the same internal structure: API service layer → Zo
 ### Phase 5.1 — Transactions API & Hooks
 
 **Implementation Tasks:**
-- [ ] Create `src/features/transactions/api/transactions.api.ts`:
+- [x] Create `src/features/transactions/api/transactions.api.ts`:
   - `POST /api/v1/transactions` → `createTransaction(data)`
   - `GET /api/v1/transactions` → `listTransactions(filters, pageable)`
   - `GET /api/v1/transactions/{id}` → `getTransaction(id)`
@@ -287,23 +287,23 @@ Each feature phase follows the same internal structure: API service layer → Zo
   - `POST /api/v1/transactions/{id}/attachments` → `uploadAttachment(id, file)`
   - `GET /api/v1/transactions/{id}/attachments` → `listAttachments(id)`
   - `DELETE /api/v1/transactions/{id}/attachments/{attachmentId}` → `deleteAttachment(id, attachmentId)`
-- [ ] Create Zod schemas:
+- [x] Create Zod schemas:
   - `create-transaction.schema.ts` — `description`, `amount` (decimal string), `type` (enum: `INCOME | EXPENSE | REFUND | ADJUSTMENT`), `accountId`, `categoryId`, `competenceDate`, `status`
   - `update-transaction.schema.ts`
   - `transaction-filters.schema.ts` — all filter parameters typed and optional
-- [ ] Create hooks: `use-transactions.ts` (paginated list), `use-transaction.ts`, `use-create-transaction.ts`, `use-update-transaction.ts`, `use-delete-transaction.ts`, `use-pay-transaction.ts`, `use-cancel-transaction.ts`, `use-attachments.ts`, `use-upload-attachment.ts`, `use-delete-attachment.ts`
+- [x] Create hooks: `use-transactions.ts` (paginated list), `use-transaction.ts`, `use-create-transaction.ts`, `use-update-transaction.ts`, `use-delete-transaction.ts`, `use-pay-transaction.ts`, `use-cancel-transaction.ts`, `use-attachments.ts`, `use-upload-attachment.ts`, `use-delete-attachment.ts`
 
 **Acceptance Criteria:**
-- [ ] Paginated response shape `{ content, totalElements, totalPages, number, size }` is typed
-- [ ] `amount` is validated and submitted as decimal string at all times
-- [ ] Mutations invalidate both `['transactions']` and `['accounts']` on success
+- [x] Paginated response shape `{ content, totalElements, totalPages, number, size }` is typed
+- [x] `amount` is validated and submitted as decimal string at all times
+- [x] Mutations invalidate both `['transactions']` and `['accounts']` on success
 
 ---
 
 ### Phase 5.2 — Transactions Pages & Components
 
 **Implementation Tasks:**
-- [ ] Build `TransactionsPage`:
+- [x] Build `TransactionsPage`:
   - Transaction list (description, type, amount, category, account, date, status)
   - Filter panel: account, type, status, category, date range, amount range, search text
   - `includeCancelled` toggle
@@ -311,26 +311,26 @@ Each feature phase follows the same internal structure: API service layer → Zo
   - Loading skeleton
   - Empty state per filter combination
   - Active filters reflected in URL query string for shareable links
-- [ ] Build `TransactionDetailPage` with full info and attachments section
-- [ ] Build `CreateTransactionDialog` / `EditTransactionDialog`:
+- [x] Build `TransactionDetailPage` with full info and attachments section
+- [x] Build `CreateTransactionDialog` / `EditTransactionDialog`:
   - React Hook Form + Zod
   - `CategoryPickerCombobox` auto-suggest wired to description field
   - Account selector
   - Decimal string amount input
-- [ ] Build `DeleteTransactionDialog`, `PayTransactionButton`, `CancelTransactionDialog`
-- [ ] Build `AttachmentSection` — upload with progress, list, and delete per attachment
-- [ ] Visually distinguish transaction type (`INCOME` / `EXPENSE` / etc.) and status (`PENDING` / `PAID` / `CANCELLED`)
+- [x] Build `DeleteTransactionDialog`, `PayTransactionButton`, `CancelTransactionDialog`
+- [x] Build `AttachmentSection` — upload with progress, list, and delete per attachment
+- [x] Visually distinguish transaction type (`INCOME` / `EXPENSE` / etc.) and status (`PENDING` / `PAID` / `CANCELLED`)
 
 **Acceptance Criteria:**
-- [ ] Filters update the URL query string; page refresh restores the same filter state
-- [ ] Auto-suggest triggers on description change in the transaction form
-- [ ] Upload shows progress; completion re-fetches the attachment list
-- [ ] `CANCELLED` transactions hidden by default; shown via `includeCancelled` toggle
+- [x] Filters update the URL query string; page refresh restores the same filter state
+- [x] Auto-suggest triggers on description change in the transaction form
+- [x] Upload shows progress; completion re-fetches the attachment list
+- [x] `CANCELLED` transactions hidden by default; shown via `includeCancelled` toggle
 
 **Automated Tests:**
-- [ ] Unit: `create-transaction.schema` rejects non-decimal amount and invalid type enum
-- [ ] Unit: `transaction-filters.schema` accepts all combinations of optional filters
-- [ ] Integration: create transaction → appears in list → pay → status updates to `PAID`
+- [x] Unit: `create-transaction.schema` rejects non-decimal amount and invalid type enum
+- [x] Unit: `transaction-filters.schema` accepts all combinations of optional filters
+- [x] Integration: create transaction → appears in list → pay → status updates to `PAID`
 
 ---
 

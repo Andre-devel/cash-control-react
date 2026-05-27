@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw'
 import { rolesHandlers } from '@/test/handlers/roles.handlers'
 import { accountsHandlers } from '@/test/handlers/accounts.handlers'
 import { categoriesHandlers } from '@/test/handlers/categories.handlers'
+import { transactionsHandlers } from '@/test/handlers/transactions.handlers'
 import type { UserProfile, ConsentRecord } from '@/features/profile/types'
 
 function makeTestToken(): string {
@@ -64,6 +65,7 @@ export const handlers = [
   ...profileHandlers,
   ...accountsHandlers,
   ...categoriesHandlers,
+  ...transactionsHandlers,
 
   http.post('*/auth/login', async ({ request }) => {
     const body = (await request.json()) as { email: string; password: string }

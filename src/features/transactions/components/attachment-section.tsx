@@ -1,0 +1,193 @@
+import { useRef, useState, type ChangeEvent } from 'react'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { useAttachments } from '@/features/transactions/hooks/use-attachments'
+import { useUploadAttachment } from '@/features/transactions/hooks/use-upload-attachment'
+import { useDeleteAttachment } from '@/features/transactions/hooks/use-delete-attachment'
+import type { Attachment } from '@/features/transactions/types'
+
+const MAX_FILE_SIZE_MB = 10
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'application/pdf', 'image/gif', 'image/webp']
+
+interface DeleteAttachmentDialogProps {
+  attachment: Attachment | null
+  open: boolean
+  transactionId: string
+  onClose: () => void
+}
+
+function DeleteAttachmentDialog({
+  attachment,
+  open,
+  transactionId,
+  onClose,
+}: DeleteAttachmentDialogProps) {
+  const { mutate: deleteAttachment, isPending } = useDeleteAttachment(transactionId)
+
+  function handleConfirm() {
+    if (!attachment) return
+    deleteAttachment(attachment.id, { onSuccess: onClose })
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete Attachment</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete{' '}
+            <span className="font-semibold">{attachment?.fileName}</span>?
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isPending}
+            aria-busy={isPending}
+            onClick={handleConfirm}
+          >
+            {isPending ? 'Deleting…' : 'Delete'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+interface AttachmentSectionProps {
+  transactionId: string
+}
+
+export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
+  const { data: attachments = [], isLoading } = useAttachments(transactionId)
+  const { mutate: upload, isPending: uploading, progress } = useUploadAttachment(transactionId)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [clientError, setClientError] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Attachment | null>(null)
+
+  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setClientError(null)
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setClientError('Unsupported file type. Accepted: JPEG, PNG, PDF, GIF, WebP.')
+      e.target.value = ''
+      return
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setClientError(`File is too large. Maximum size is ${MAX_FILE_SIZE_MB} MB.`)
+      e.target.value = ''
+      return
+    }
+
+    upload(file, {
+      onSuccess: () => {
+        e.target.value = ''
+      },
+    })
+  }
+
+  return (
+    <section aria-label="Attachments" className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold">Attachments</h3>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="min-h-[44px]"
+          disabled={uploading}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          Upload
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ACCEPTED_TYPES.join(',')}
+          className="hidden"
+          aria-label="Upload attachment"
+          onChange={handleFileChange}
+        />
+      </div>
+
+      {clientError && (
+        <p className="text-sm text-destructive" role="alert">
+          {clientError}
+        </p>
+      )}
+
+      {uploading && (
+        <div className="space-y-1" aria-live="polite" aria-label="Upload progress">
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-200"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">{progress}% uploaded</p>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="space-y-2" aria-busy="true" aria-label="Loading attachments">
+          {[1, 2].map((i) => (
+            <div key={i} className="h-9 rounded bg-muted animate-pulse" />
+          ))}
+        </div>
+      ) : attachments.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No attachments yet.</p>
+      ) : (
+        <ul className="space-y-2" aria-label="Attachment list">
+          {attachments.map((att) => (
+            <li
+              key={att.id}
+              className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2"
+            >
+              <a
+                href={att.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm truncate hover:underline"
+              >
+                {att.fileName}
+              </a>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="shrink-0 text-destructive hover:text-destructive"
+                aria-label={`Delete ${att.fileName}`}
+                onClick={() => setDeleteTarget(att)}
+              >
+                Delete
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <DeleteAttachmentDialog
+        attachment={deleteTarget}
+        open={deleteTarget !== null}
+        transactionId={transactionId}
+        onClose={() => setDeleteTarget(null)}
+      />
+    </section>
+  )
+}
