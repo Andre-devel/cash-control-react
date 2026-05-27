@@ -391,7 +391,7 @@ Each feature phase follows the same internal structure: API service layer → Zo
 ### Phase 7.1 — Recurrences API & Hooks
 
 **Implementation Tasks:**
-- [ ] Create `src/features/recurrences/api/recurrences.api.ts`:
+- [x] Create `src/features/recurrences/api/recurrences.api.ts`:
   - `POST /api/v1/recurrences` → `createRecurrence(data)`
   - `GET /api/v1/recurrences` → `listRecurrences()`
   - `GET /api/v1/recurrences/{id}` → `getRecurrence(id)`
@@ -399,37 +399,37 @@ Each feature phase follows the same internal structure: API service layer → Zo
   - `POST /api/v1/recurrences/{id}/pause` → `pauseRecurrence(id)`
   - `POST /api/v1/recurrences/{id}/resume` → `resumeRecurrence(id)`
   - `DELETE /api/v1/recurrences/{id}` → `deleteRecurrence(id, strategy)`
-- [ ] Create Zod schemas:
+- [x] Create Zod schemas:
   - `create-recurrence.schema.ts` — `description`, `amount` (decimal string), `frequency` (enum: `DAILY | WEEKLY | BIWEEKLY | MONTHLY | QUARTERLY | YEARLY`), `accountId`, `categoryId`, `startDate`, `type`
   - `delete-recurrence.schema.ts` — `strategy` (enum: `FUTURE_ONLY | ALL`)
-- [ ] Create hooks: `use-recurrences.ts`, `use-create-recurrence.ts`, `use-update-recurrence.ts`, `use-pause-recurrence.ts`, `use-resume-recurrence.ts`, `use-delete-recurrence.ts`
+- [x] Create hooks: `use-recurrences.ts`, `use-create-recurrence.ts`, `use-update-recurrence.ts`, `use-pause-recurrence.ts`, `use-resume-recurrence.ts`, `use-delete-recurrence.ts`
 
 **Acceptance Criteria:**
-- [ ] `frequency` enum validated at the schema level
-- [ ] Delete mutation passes `strategy` as a query parameter
-- [ ] Pause/resume mutations invalidate `['recurrences']` on success
+- [x] `frequency` enum validated at the schema level
+- [x] Delete mutation passes `strategy` as a query parameter
+- [x] Pause/resume mutations invalidate `['recurrences']` on success
 
 ---
 
 ### Phase 7.2 — Recurrences Pages & Components
 
 **Implementation Tasks:**
-- [ ] Build `RecurrencesPage`:
+- [x] Build `RecurrencesPage`:
   - Rule cards with description, amount, frequency, next execution date, status badge (active/paused)
   - Loading skeleton
   - Empty state with CTA
-- [ ] Build `CreateRecurrenceDialog` / `EditRecurrenceDialog`
-- [ ] Build `DeleteRecurrenceDialog` with strategy selector (`FUTURE_ONLY` / `ALL`) and clear impact explanation
-- [ ] Pause/resume toggle button per rule card
+- [x] Build `CreateRecurrenceDialog` / `EditRecurrenceDialog`
+- [x] Build `DeleteRecurrenceDialog` with strategy selector (`FUTURE_ONLY` / `ALL`) and clear impact explanation
+- [x] Pause/resume toggle button per rule card
 
 **Acceptance Criteria:**
-- [ ] Delete dialog clearly explains the difference between `FUTURE_ONLY` and `ALL`
-- [ ] Paused rules are visually distinct from active rules
-- [ ] Pause/resume updates the status badge without a page reload
+- [x] Delete dialog clearly explains the difference between `FUTURE_ONLY` and `ALL`
+- [x] Paused rules are visually distinct from active rules
+- [x] Pause/resume updates the status badge without a page reload
 
 **Automated Tests:**
-- [ ] Unit: `create-recurrence.schema` rejects invalid frequency enum and non-decimal amount
-- [ ] Integration: create rule → appears in list → pause → status badge updates
+- [x] Unit: `create-recurrence.schema` rejects invalid frequency enum and non-decimal amount
+- [x] Integration: create rule → appears in list → pause → status badge updates
 
 ---
 
