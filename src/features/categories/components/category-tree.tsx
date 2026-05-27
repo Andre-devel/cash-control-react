@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { CategoryNode, type CategoryTreeNode } from './category-node'
 import type { Category } from '@/features/categories/types'
 
@@ -30,7 +30,7 @@ interface CategoryTreeProps {
   onUnarchive: (category: Category) => void
 }
 
-export function CategoryTree({
+export const CategoryTree = memo(function CategoryTree({
   categories,
   onEdit,
   onHide,
@@ -55,4 +55,4 @@ export function CategoryTree({
       ))}
     </div>
   )
-}
+})

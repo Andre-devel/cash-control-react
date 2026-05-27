@@ -63,14 +63,20 @@ export function CardTile({ card, onEdit, onArchive }: CardTileProps) {
         </div>
 
         <div className="flex flex-wrap gap-1">
-          <Button variant="outline" size="sm" className="text-xs min-h-[36px]" asChild>
-            <Link to={ROUTES.CARD_DETAIL.replace(':id', card.id)}>View</Link>
+          <Button variant="outline" size="sm" className="text-xs min-h-[44px]" asChild>
+            <Link
+              to={ROUTES.CARD_DETAIL.replace(':id', card.id)}
+              aria-label={`View details for ${card.name}`}
+            >
+              View
+            </Link>
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="text-xs min-h-[36px]"
+            className="text-xs min-h-[44px]"
             onClick={() => onEdit(card)}
+            aria-label={`Edit ${card.name}`}
           >
             Edit
           </Button>
@@ -78,7 +84,7 @@ export function CardTile({ card, onEdit, onArchive }: CardTileProps) {
             <Button
               variant="outline"
               size="sm"
-              className="text-xs min-h-[36px]"
+              className="text-xs min-h-[44px]"
               onClick={() => onArchive(card)}
               aria-label={`Archive ${card.name}`}
             >

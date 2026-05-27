@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Transaction } from '@/features/transactions/types'
@@ -37,7 +38,7 @@ interface TransactionRowProps {
   onView: (t: Transaction) => void
 }
 
-export function TransactionRow({
+export const TransactionRow = memo(function TransactionRow({
   transaction,
   onEdit,
   onDelete,
@@ -126,4 +127,4 @@ export function TransactionRow({
       </div>
     </div>
   )
-}
+})

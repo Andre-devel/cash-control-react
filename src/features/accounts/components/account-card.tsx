@@ -65,16 +65,18 @@ export function AccountCard({
           <Button
             variant="outline"
             size="sm"
-            className="text-xs min-h-[36px]"
+            className="text-xs min-h-[44px]"
             onClick={() => onEdit(account)}
+            aria-label={`Edit ${account.name}`}
           >
             Edit
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="text-xs min-h-[36px]"
+            className="text-xs min-h-[44px]"
             onClick={() => onAdjust(account)}
+            aria-label={`Adjust balance of ${account.name}`}
           >
             Adjust
           </Button>
@@ -82,8 +84,9 @@ export function AccountCard({
             <Button
               variant="outline"
               size="sm"
-              className="text-xs min-h-[36px]"
+              className="text-xs min-h-[44px]"
               onClick={() => onTransfer(account)}
+              aria-label={`Transfer from ${account.name}`}
             >
               Transfer
             </Button>
@@ -92,8 +95,9 @@ export function AccountCard({
             <Button
               variant="outline"
               size="sm"
-              className="text-xs min-h-[36px]"
+              className="text-xs min-h-[44px]"
               onClick={() => onUnarchive(account)}
+              aria-label={`Restore ${account.name}`}
             >
               Restore
             </Button>
@@ -101,8 +105,9 @@ export function AccountCard({
             <Button
               variant="outline"
               size="sm"
-              className="text-xs min-h-[36px]"
+              className="text-xs min-h-[44px]"
               onClick={() => onArchive(account)}
+              aria-label={`Archive ${account.name}`}
             >
               Archive
             </Button>
@@ -110,8 +115,9 @@ export function AccountCard({
           <Button
             variant="outline"
             size="sm"
-            className="text-xs text-destructive hover:text-destructive min-h-[36px]"
+            className="text-xs text-destructive hover:text-destructive min-h-[44px]"
             onClick={() => onDelete(account)}
+            aria-label={`Delete ${account.name}`}
           >
             Delete
           </Button>

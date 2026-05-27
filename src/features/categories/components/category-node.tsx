@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import type { Category } from '@/features/categories/types'
 
@@ -15,7 +16,7 @@ interface CategoryNodeProps {
   onUnarchive: (category: Category) => void
 }
 
-export function CategoryNode({
+export const CategoryNode = memo(function CategoryNode({
   node,
   depth = 0,
   onEdit,
@@ -124,4 +125,4 @@ export function CategoryNode({
       )}
     </div>
   )
-}
+})

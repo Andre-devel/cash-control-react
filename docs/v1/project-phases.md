@@ -612,33 +612,33 @@ Each feature phase follows the same internal structure: API service layer → Zo
 ### Phase 11.1 — Bundle Analysis
 
 **Implementation Tasks:**
-- [ ] Run `vite build --report` and inspect `stats.html` for all feature chunks
-- [ ] Confirm each financial feature route is a separate code-split chunk
-- [ ] Verify the chart library is not included in the main bundle (lazy-loaded with the dashboard chunk only)
-- [ ] Apply `React.memo` / `useMemo` / `useCallback` only where profiling shows unnecessary re-renders in list-heavy views (transactions list, category tree)
+- [x] Run `vite build --report` and inspect `stats.html` for all feature chunks
+- [x] Confirm each financial feature route is a separate code-split chunk
+- [x] Verify the chart library is not included in the main bundle (lazy-loaded with the dashboard chunk only)
+- [x] Apply `React.memo` / `useMemo` / `useCallback` only where profiling shows unnecessary re-renders in list-heavy views (transactions list, category tree)
 
 **Acceptance Criteria:**
-- [ ] Main bundle (initial JS) remains under 150 KB gzipped
-- [ ] Each financial feature route appears as a separate named chunk
-- [ ] Dashboard chunk (chart library included) does not load until the dashboard route is visited
+- [x] Main bundle (initial JS) remains under 150 KB gzipped
+- [x] Each financial feature route appears as a separate named chunk
+- [x] Dashboard chunk (chart library included) does not load until the dashboard route is visited
 
 ---
 
 ### Phase 11.2 — Accessibility & Responsive Audit
 
 **Implementation Tasks:**
-- [ ] Keyboard-navigate all primary flows: create account, create transaction, pay invoice, view dashboard
-- [ ] Verify visible focus indicators on all interactive elements including chart controls and filter panels
-- [ ] Test all filter panels, dialogs, and forms at 375px — no horizontal overflow
-- [ ] Verify WCAG AA contrast ratios for all new components in both light and dark modes
-- [ ] Confirm all confirmation dialogs and toast notifications are announced to screen readers
-- [ ] Touch target size ≥ 44×44 px on all mobile-breakpoint interactive elements
+- [x] Keyboard-navigate all primary flows: create account, create transaction, pay invoice, view dashboard
+- [x] Verify visible focus indicators on all interactive elements including chart controls and filter panels
+- [x] Test all filter panels, dialogs, and forms at 375px — no horizontal overflow
+- [x] Verify WCAG AA contrast ratios for all new components in both light and dark modes
+- [x] Confirm all confirmation dialogs and toast notifications are announced to screen readers
+- [x] Touch target size ≥ 44×44 px on all mobile-breakpoint interactive elements
 
 **Acceptance Criteria:**
-- [ ] All primary financial flows are fully operable via keyboard only
-- [ ] No WCAG AA contrast failures in light or dark mode for any new component
-- [ ] No horizontal scrollbar at 375px viewport on any financial page
-- [ ] All monetary input fields have accessible labels and error messaging
+- [x] All primary financial flows are fully operable via keyboard only
+- [x] No WCAG AA contrast failures in light or dark mode for any new component
+- [x] No horizontal scrollbar at 375px viewport on any financial page
+- [x] All monetary input fields have accessible labels and error messaging
 
 ---
 

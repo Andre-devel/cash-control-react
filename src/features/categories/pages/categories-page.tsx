@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useHideCategory } from '@/features/categories/hooks/use-hide-category'
@@ -40,7 +40,20 @@ export default function CategoriesPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Category | null>(null)
 
-  const allCategories = categories ?? []
+  const allCategories = useMemo(() => categories ?? [], [categories])
+  const activeCategories = useMemo(() => allCategories.filter((c) => !c.archived), [allCategories])
+
+  const handleEdit = useCallback((category: Category) => setEditTarget(category), [])
+  const handleHide = useCallback((category: Category) => hideCategory(category.id), [hideCategory])
+  const handleShow = useCallback((category: Category) => showCategory(category.id), [showCategory])
+  const handleArchive = useCallback(
+    (category: Category) => archiveCategory(category.id),
+    [archiveCategory],
+  )
+  const handleUnarchive = useCallback(
+    (category: Category) => unarchiveCategory(category.id),
+    [unarchiveCategory],
+  )
 
   return (
     <div className="space-y-8">
@@ -95,15 +108,15 @@ export default function CategoriesPage() {
       ) : (
         <CategoryTree
           categories={allCategories}
-          onEdit={(category) => setEditTarget(category)}
-          onHide={(category) => hideCategory(category.id)}
-          onShow={(category) => showCategory(category.id)}
-          onArchive={(category) => archiveCategory(category.id)}
-          onUnarchive={(category) => unarchiveCategory(category.id)}
+          onEdit={handleEdit}
+          onHide={handleHide}
+          onShow={handleShow}
+          onArchive={handleArchive}
+          onUnarchive={handleUnarchive}
         />
       )}
 
-      <CategorizationRulesSection categories={allCategories.filter((c) => !c.archived)} />
+      <CategorizationRulesSection categories={activeCategories} />
 
       <CreateCategoryDialog open={createOpen} onClose={() => setCreateOpen(false)} />
 

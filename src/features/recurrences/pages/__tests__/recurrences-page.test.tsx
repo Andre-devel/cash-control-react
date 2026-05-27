@@ -174,7 +174,7 @@ describe('RecurrencesPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_RECURRENCE_1.description))
 
-      const pauseButtons = screen.getAllByRole('button', { name: /pause recurrence/i })
+      const pauseButtons = screen.getAllByRole('button', { name: /^pause /i })
       await user.click(pauseButtons[0])
 
       await waitFor(() => {
@@ -190,7 +190,7 @@ describe('RecurrencesPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_RECURRENCE_2.description))
 
-      const resumeButton = screen.getByRole('button', { name: /resume recurrence/i })
+      const resumeButton = screen.getByRole('button', { name: /^resume /i })
       await user.click(resumeButton)
 
       await waitFor(() => {

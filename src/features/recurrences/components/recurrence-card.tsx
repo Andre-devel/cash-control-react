@@ -88,8 +88,9 @@ export function RecurrenceCard({
           <Button
             variant="outline"
             size="sm"
-            className="text-xs min-h-[36px]"
+            className="text-xs min-h-[44px]"
             onClick={() => onEdit(recurrence)}
+            aria-label={`Edit ${recurrence.description}`}
           >
             Edit
           </Button>
@@ -97,9 +98,9 @@ export function RecurrenceCard({
             <Button
               variant="outline"
               size="sm"
-              className="text-xs min-h-[36px]"
+              className="text-xs min-h-[44px]"
               onClick={() => onResume(recurrence)}
-              aria-label="Resume recurrence"
+              aria-label={`Resume ${recurrence.description}`}
             >
               Resume
             </Button>
@@ -107,9 +108,9 @@ export function RecurrenceCard({
             <Button
               variant="outline"
               size="sm"
-              className="text-xs min-h-[36px]"
+              className="text-xs min-h-[44px]"
               onClick={() => onPause(recurrence)}
-              aria-label="Pause recurrence"
+              aria-label={`Pause ${recurrence.description}`}
             >
               Pause
             </Button>
@@ -117,8 +118,9 @@ export function RecurrenceCard({
           <Button
             variant="outline"
             size="sm"
-            className="text-xs text-destructive hover:text-destructive min-h-[36px]"
+            className="text-xs text-destructive hover:text-destructive min-h-[44px]"
             onClick={() => onDelete(recurrence)}
+            aria-label={`Delete ${recurrence.description}`}
           >
             Delete
           </Button>

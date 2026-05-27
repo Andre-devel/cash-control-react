@@ -39,7 +39,11 @@ export function TransactionFilterPanel({
   }
 
   return (
-    <div className="rounded-md border border-border p-4 space-y-3">
+    <div
+      className="rounded-md border border-border p-4 space-y-3"
+      role="search"
+      aria-label="Filter transactions"
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted-foreground" htmlFor="filter-search">

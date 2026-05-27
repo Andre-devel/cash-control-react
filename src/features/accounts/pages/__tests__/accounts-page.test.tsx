@@ -187,8 +187,8 @@ describe('AccountsPage', () => {
 
       await waitFor(() => expect(screen.getByText(MOCK_ACCOUNT_1.name)).toBeTruthy())
 
-      // Exclude the "Show Archived" toggle — click only the card-level "Archive" button
-      const archiveButtons = screen.getAllByRole('button', { name: /^archive$/i })
+      // Exclude the "Show Archived" toggle — click only the card-level "Archive {name}" buttons
+      const archiveButtons = screen.getAllByRole('button', { name: /^archive /i })
       await user.click(archiveButtons[0])
 
       await waitFor(() => screen.getByRole('dialog'))
@@ -206,7 +206,7 @@ describe('AccountsPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_ACCOUNT_1.name))
 
-      const deleteButtons = screen.getAllByRole('button', { name: /^delete$/i })
+      const deleteButtons = screen.getAllByRole('button', { name: /^delete /i })
       await user.click(deleteButtons[0])
 
       await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
@@ -230,7 +230,7 @@ describe('AccountsPage', () => {
       renderWithProviders(<AccountsPage />)
 
       await waitFor(() => screen.getByText(MOCK_ACCOUNT_1.name))
-      const deleteButtons = screen.getAllByRole('button', { name: /^delete$/i })
+      const deleteButtons = screen.getAllByRole('button', { name: /^delete /i })
       await user.click(deleteButtons[0])
       await waitFor(() => screen.getByRole('dialog'))
 

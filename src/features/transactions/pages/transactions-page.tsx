@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useTransactions } from '@/features/transactions/hooks/use-transactions'
@@ -92,11 +92,24 @@ export default function TransactionsPage() {
     setSearchParams({}, { replace: true })
   }, [setSearchParams])
 
-  const handlePageChange = (page: number) => {
-    setSearchParams(paramsToSearchParams({ ...filters, page }), { replace: true })
-  }
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setSearchParams(paramsToSearchParams({ ...filters, page }), { replace: true })
+    },
+    [filters, setSearchParams],
+  )
 
-  const transactions = pageData?.content ?? []
+  const handlePay = useCallback((t: Transaction) => payTransaction(t.id), [payTransaction])
+  const handleView = useCallback(
+    (t: Transaction) => void navigate(ROUTES.TRANSACTION_DETAIL.replace(':id', t.id)),
+    [navigate],
+  )
+
+  const handleToggleIncludeCancelled = useCallback(() => {
+    handleFiltersChange({ ...filters, includeCancelled: !filters.includeCancelled })
+  }, [filters, handleFiltersChange])
+
+  const transactions = useMemo(() => pageData?.content ?? [], [pageData])
   const totalPages = pageData?.totalPages ?? 0
   const currentPage = filters.page ?? 0
 
@@ -109,9 +122,7 @@ export default function TransactionsPage() {
             variant="outline"
             size="sm"
             className="min-h-[44px]"
-            onClick={() =>
-              handleFiltersChange({ ...filters, includeCancelled: !filters.includeCancelled })
-            }
+            onClick={handleToggleIncludeCancelled}
             aria-pressed={filters.includeCancelled}
           >
             {filters.includeCancelled ? 'Hide Cancelled' : 'Show Cancelled'}
@@ -159,9 +170,9 @@ export default function TransactionsPage() {
               transaction={transaction}
               onEdit={setEditTarget}
               onDelete={setDeleteTarget}
-              onPay={(t) => payTransaction(t.id)}
+              onPay={handlePay}
               onCancel={setCancelTarget}
-              onView={(t) => void navigate(ROUTES.TRANSACTION_DETAIL.replace(':id', t.id))}
+              onView={handleView}
             />
           ))}
         </div>
@@ -174,10 +185,11 @@ export default function TransactionsPage() {
             size="sm"
             disabled={currentPage === 0}
             onClick={() => handlePageChange(currentPage - 1)}
+            aria-label="Previous page"
           >
             Previous
           </Button>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-muted-foreground" aria-live="polite">
             Page {currentPage + 1} of {totalPages}
           </span>
           <Button
@@ -185,6 +197,7 @@ export default function TransactionsPage() {
             size="sm"
             disabled={currentPage >= totalPages - 1}
             onClick={() => handlePageChange(currentPage + 1)}
+            aria-label="Next page"
           >
             Next
           </Button>

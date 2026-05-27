@@ -88,6 +88,7 @@ export function InstallmentSeriesCard({
             size="sm"
             className="min-h-[44px] text-xs"
             onClick={() => onEditSeries(series)}
+            aria-label={`Edit series: ${series.description}`}
           >
             Edit Series
           </Button>
@@ -97,6 +98,7 @@ export function InstallmentSeriesCard({
             size="sm"
             className="min-h-[44px] text-xs"
             onClick={() => onEditInstallment(series)}
+            aria-label={`Edit Installment: ${series.description}`}
           >
             Edit Installment
           </Button>
@@ -108,6 +110,7 @@ export function InstallmentSeriesCard({
                 size="sm"
                 className="min-h-[44px] text-xs"
                 onClick={() => onAdvance(series)}
+                aria-label={`Advance installment: ${series.description}`}
               >
                 Advance
               </Button>
@@ -117,6 +120,7 @@ export function InstallmentSeriesCard({
                 size="sm"
                 className="min-h-[44px] text-xs text-destructive hover:text-destructive"
                 onClick={() => onSettle(series)}
+                aria-label={`Settle early: ${series.description}`}
               >
                 Settle Early
               </Button>

@@ -256,7 +256,7 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const advanceButtons = screen.getAllByRole('button', { name: /^advance$/i })
+    const advanceButtons = screen.getAllByRole('button', { name: /^advance/i })
     await user.click(advanceButtons[0])
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
