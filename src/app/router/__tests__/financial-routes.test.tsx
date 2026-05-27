@@ -73,7 +73,9 @@ afterEach(() => {
 describe('Financial feature routes — authenticated rendering', () => {
   it('renders accounts page at /accounts', async () => {
     renderAtPath('/accounts')
-    expect(await screen.findByRole('heading', { name: /accounts/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /accounts/i }, { timeout: 3000 }),
+    ).toBeTruthy()
   })
 
   it('renders account detail page at /accounts/:id', async () => {

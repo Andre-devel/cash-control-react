@@ -161,7 +161,7 @@ Each feature phase follows the same internal structure: API service layer → Zo
 ### Phase 3.1 — Accounts API & Hooks
 
 **Implementation Tasks:**
-- [ ] Create `src/features/accounts/api/accounts.api.ts`:
+- [x] Create `src/features/accounts/api/accounts.api.ts`:
   - `POST /api/v1/accounts` → `createAccount(data)`
   - `GET /api/v1/accounts` → `listAccounts(params)`
   - `GET /api/v1/accounts/{id}` → `getAccount(id)`
@@ -172,46 +172,46 @@ Each feature phase follows the same internal structure: API service layer → Zo
   - `POST /api/v1/accounts/{id}/adjust` → `adjustBalance(id, data)`
   - `POST /api/v1/accounts/transfers` → `createTransfer(data)`
   - `DELETE /api/v1/accounts/transfers/{groupId}` → `deleteTransfer(groupId)`
-- [ ] Create Zod schemas:
+- [x] Create Zod schemas:
   - `create-account.schema.ts` — `name`, `type` (enum: `CHECKING | SAVINGS | CASH | INVESTMENT | CREDIT | OTHER`), `currency`, `balance` (decimal string), `color`, `icon`
   - `update-account.schema.ts`
   - `adjust-balance.schema.ts` — `targetBalance` (decimal string), optional `note`
   - `create-transfer.schema.ts` — `fromAccountId`, `toAccountId` (must differ), `amount` (decimal string), `date`, `description`
-- [ ] Create hooks: `use-accounts.ts`, `use-account.ts`, `use-create-account.ts`, `use-update-account.ts`, `use-delete-account.ts`, `use-archive-account.ts`, `use-unarchive-account.ts`, `use-adjust-balance.ts`, `use-create-transfer.ts`, `use-delete-transfer.ts`
+- [x] Create hooks: `use-accounts.ts`, `use-account.ts`, `use-create-account.ts`, `use-update-account.ts`, `use-delete-account.ts`, `use-archive-account.ts`, `use-unarchive-account.ts`, `use-adjust-balance.ts`, `use-create-transfer.ts`, `use-delete-transfer.ts`
 
 **Acceptance Criteria:**
-- [ ] All hooks use the centralized Axios instance (never raw `fetch`)
-- [ ] All mutation hooks invalidate `['accounts']` query key on success
-- [ ] `create-transfer.schema` rejects when `fromAccountId === toAccountId`
-- [ ] All balance/amount fields validated as decimal strings
+- [x] All hooks use the centralized Axios instance (never raw `fetch`)
+- [x] All mutation hooks invalidate `['accounts']` query key on success
+- [x] `create-transfer.schema` rejects when `fromAccountId === toAccountId`
+- [x] All balance/amount fields validated as decimal strings
 
 ---
 
 ### Phase 3.2 — Accounts Pages & Components
 
 **Implementation Tasks:**
-- [ ] Build `AccountsPage`:
+- [x] Build `AccountsPage`:
   - Account card grid (name, type, balance, currency, color, icon)
   - Loading skeleton
   - Empty state with CTA to create first account
   - Toggle to show/hide archived accounts
-- [ ] Build `AccountDetailPage` with account info and filtered transaction list
-- [ ] Build `CreateAccountDialog` / `EditAccountDialog` (React Hook Form + Zod)
-- [ ] Build `DeleteAccountDialog` with confirmation and `409 CONFLICT` error handling
-- [ ] Build `ArchiveAccountDialog` with confirmation
-- [ ] Build `AdjustBalanceDialog` (decimal string target balance input)
-- [ ] Build `CreateTransferDialog` (source account, destination account, amount, date)
+- [x] Build `AccountDetailPage` with account info and filtered transaction list
+- [x] Build `CreateAccountDialog` / `EditAccountDialog` (React Hook Form + Zod)
+- [x] Build `DeleteAccountDialog` with confirmation and `409 CONFLICT` error handling
+- [x] Build `ArchiveAccountDialog` with confirmation
+- [x] Build `AdjustBalanceDialog` (decimal string target balance input)
+- [x] Build `CreateTransferDialog` (source account, destination account, amount, date)
 
 **Acceptance Criteria:**
-- [ ] Creating an account updates the list without page reload
-- [ ] Archiving removes it from the default view; unarchiving restores it
-- [ ] Delete with linked transactions shows an explanatory error suggesting archive
-- [ ] Transfer form disables selecting the same account as source and destination
+- [x] Creating an account updates the list without page reload
+- [x] Archiving removes it from the default view; unarchiving restores it
+- [x] Delete with linked transactions shows an explanatory error suggesting archive
+- [x] Transfer form disables selecting the same account as source and destination
 
 **Automated Tests:**
-- [ ] Unit: `create-account.schema` rejects non-decimal amount and invalid type enum
-- [ ] Unit: `create-transfer.schema` rejects same-account transfer
-- [ ] Integration: create account → appears in list → archive → disappears from default view
+- [x] Unit: `create-account.schema` rejects non-decimal amount and invalid type enum
+- [x] Unit: `create-transfer.schema` rejects same-account transfer
+- [x] Integration: create account → appears in list → archive → disappears from default view
 
 ---
 
