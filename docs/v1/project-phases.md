@@ -506,7 +506,7 @@ Each feature phase follows the same internal structure: API service layer → Zo
 ### Phase 9.1 — Dashboard API & Hooks
 
 **Implementation Tasks:**
-- [ ] Create `src/features/dashboard/api/dashboard.api.ts`:
+- [x] Create `src/features/dashboard/api/dashboard.api.ts`:
   - `GET /api/v1/dashboard/overview` → `getOverview()`
   - `GET /api/v1/dashboard/charts/categories` → `getCategoriesChart(from, to)`
   - `GET /api/v1/dashboard/charts/monthly` → `getMonthlyChart(months?)`
@@ -516,21 +516,21 @@ Each feature phase follows the same internal structure: API service layer → Zo
   - `GET /api/v1/dashboard/widgets/upcoming-invoices` → `getUpcomingInvoices()`
   - `GET /api/v1/dashboard/widgets/largest-expenses` → `getLargestExpenses(limit?)`
   - `GET /api/v1/dashboard/widgets/recent-transactions` → `getRecentTransactions(limit?)`
-- [ ] Define TypeScript response types for all dashboard shapes in `features/dashboard/types/`
-- [ ] Create one hook per endpoint with appropriate independent `staleTime` configuration
+- [x] Define TypeScript response types for all dashboard shapes in `features/dashboard/types/`
+- [x] Create one hook per endpoint with appropriate independent `staleTime` configuration
 
 **Acceptance Criteria:**
-- [ ] All dashboard queries use separate query keys to allow independent invalidation
-- [ ] Date range params use ISO 8601 `YYYY-MM-DD`; month params use `YYYY-MM`
-- [ ] All monetary values in response types are typed as `string` (decimal)
+- [x] All dashboard queries use separate query keys to allow independent invalidation
+- [x] Date range params use ISO 8601 `YYYY-MM-DD`; month params use `YYYY-MM`
+- [x] All monetary values in response types are typed as `string` (decimal)
 
 ---
 
 ### Phase 9.2 — Dashboard Pages & Components
 
 **Implementation Tasks:**
-- [ ] Install and configure a chart library (e.g., Recharts) imported only within the dashboard feature chunk
-- [ ] Build `DashboardPage` composed of independently fetched sections:
+- [x] Install and configure a chart library (e.g., Recharts) imported only within the dashboard feature chunk
+- [x] Build `DashboardPage` composed of independently fetched sections:
   - `OverviewSection` — total balance, monthly income/expenses, active accounts count
   - `CategoriesChartSection` — pie/donut chart with date range controls
   - `MonthlyChartSection` — grouped bar chart (income vs expense) with month count selector
@@ -540,18 +540,18 @@ Each feature phase follows the same internal structure: API service layer → Zo
   - `UpcomingInvoicesWidget` — invoice list linking to card detail page
   - `LargestExpensesWidget` — top expenses linking to transaction detail
   - `RecentTransactionsWidget` — transaction list linking to transaction detail
-- [ ] Each section/widget must have: independent loading skeleton, Error Boundary isolation, empty state
+- [x] Each section/widget must have: independent loading skeleton, Error Boundary isolation, empty state
 
 **Acceptance Criteria:**
-- [ ] A single failing API call does not crash the rest of the dashboard
-- [ ] All charts render empty states when no data exists for the selected period
-- [ ] Date/month controls update chart data without a page reload
-- [ ] Overdue bills in `UpcomingBillsWidget` are visually highlighted
-- [ ] Clicking entries in widgets navigates to the correct detail page
+- [x] A single failing API call does not crash the rest of the dashboard
+- [x] All charts render empty states when no data exists for the selected period
+- [x] Date/month controls update chart data without a page reload
+- [x] Overdue bills in `UpcomingBillsWidget` are visually highlighted
+- [x] Clicking entries in widgets navigates to the correct detail page
 
 **Automated Tests:**
-- [ ] Integration: overview section renders correctly with mocked API response
-- [ ] Integration: a failing widget renders an error fallback; other widgets remain unaffected
+- [x] Integration: overview section renders correctly with mocked API response
+- [x] Integration: a failing widget renders an error fallback; other widgets remain unaffected
 
 ---
 
