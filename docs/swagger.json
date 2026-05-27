@@ -1,0 +1,3739 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Java Auth Template API",
+    "description": "Production-ready authentication and authorization REST API built with Spring Boot and stateless JWT.\n\n## Authentication Flows\n\n**JWT Bearer**: Obtain a token via `POST /api/v1/auth/login`, then include it in the `Authorization: Bearer \u003Ctoken\u003E` header on protected requests.\n\n**OAuth2 Google**: Redirect-based flow. Initiate via `/oauth2/authorization/google`. After successful authentication, the JWT access token is returned in the redirect URL parameter.\n\n**Token Expiry**: Access tokens are short-lived (5–15 minutes). When a token expires, the client receives HTTP 401 and must re-authenticate via `POST /api/v1/auth/login`. No refresh token mechanism exists — re-authentication is always explicit.\n\n## Authorization Model\n\nThe system uses granular RBAC: users hold roles, roles carry permissions. All protected endpoints enforce permission checks server-side via Spring Security method-level authorization (`@PreAuthorize`). The required authority string must be present in the JWT `authorities` claim.\n",
+    "contact": {
+      "name": "Auth Module Team",
+      "email": "security@example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Roles",
+      "description": "Role management and role-permission assignment. Requires `role:create`, `role:update`, or `role:delete` authority."
+    },
+    {
+      "name": "User Role Assignment",
+      "description": "Assign and revoke roles on individual user accounts. Requires `role:update` authority."
+    },
+    {
+      "name": "Permissions",
+      "description": "Permission catalog management. Follows the `resource:action` naming convention."
+    },
+    {
+      "name": "Authentication",
+      "description": "Registration, login, logout, password management, and email verification flows"
+    },
+    {
+      "name": "User Permission Assignment",
+      "description": "Grant and revoke direct permissions on individual user accounts, bypassing role-level assignment. Requires `permission:grant` or `permission:revoke` authority."
+    },
+    {
+      "name": "Admin Security",
+      "description": "Administrative operations for credential invalidation and account lockout management. All endpoints require `auth:manage` authority."
+    },
+    {
+      "name": "Audit",
+      "description": "Read-only access to the security audit event log and summary statistics. Requires `audit:view` authority."
+    },
+    {
+      "name": "Users",
+      "description": "User profile management, admin user operations, and consent history"
+    }
+  ],
+  "paths": {
+    "/api/v1/users/{userId}/disable": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Disable user account (admin)",
+        "description": "Transitions the user to INACTIVE and invalidates all previously issued JWTs. Requires `user:update` permission.",
+        "operationId": "disableUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Target user UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "description": "Optional reason for disabling the account",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Account disabled; previously issued JWTs invalidated"
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `user:update` permission",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/activate": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Activate user account (admin)",
+        "description": "Transitions the user from INACTIVE to ACTIVE. Requires `user:update` permission.",
+        "operationId": "activateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Target user UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Account activated"
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `user:update` permission",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get own profile",
+        "description": "Returns the authenticated user's non-sensitive profile data.",
+        "operationId": "getOwnProfile",
+        "responses": {
+          "200": {
+            "description": "Profile returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update own profile",
+        "description": "Updates permitted profile fields for the authenticated user.",
+        "operationId": "updateOwnProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/roles/{roleId}": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Get role by ID",
+        "description": "Returns a single role by its UUID. Requires `role:create` or `role:update` authority.",
+        "operationId": "getRoleById",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "Role UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing required authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Update a role",
+        "description": "Updates the description of an existing role. System roles cannot be renamed. Requires `role:update` authority.",
+        "operationId": "updateRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "Role UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `role:update` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Delete a role",
+        "description": "Removes a role. System roles and roles currently assigned to users cannot be deleted. Requires `role:delete` authority.",
+        "operationId": "deleteRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "Role UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Role deleted"
+          },
+          "400": {
+            "description": "Role is in use or is a system role",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `role:delete` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "List users (admin)",
+        "description": "Returns a paginated list of users. Requires `user:read` permission.",
+        "operationId": "listUsers",
+        "parameters": [
+          {
+            "name": "statusId",
+            "in": "query",
+            "description": "Filter by account status UUID",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated user list returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseUserSummaryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `user:read` permission",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Admin create user",
+        "description": "Creates a new user account on behalf of an admin. Requires `user:create` permission.",
+        "operationId": "adminCreateUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminCreateUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "User created; activation email dispatched",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `user:create` permission",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already registered",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/roles": {
+      "post": {
+        "tags": [
+          "User Role Assignment"
+        ],
+        "summary": "Assign role to user",
+        "description": "Grants a role to the specified user. Idempotent — assigning a role the user already holds is a no-op. Requires `role:update` authority.",
+        "operationId": "assignRoleToUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Target user UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Role assigned"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `role:update` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User or role not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/permissions": {
+      "post": {
+        "tags": [
+          "User Permission Assignment"
+        ],
+        "summary": "Assign permission to user",
+        "description": "Grants a direct permission to the specified user, independent of role assignments. Idempotent. Requires `permission:grant` authority.",
+        "operationId": "assignPermissionToUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Target user UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignPermissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Permission assigned"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `permission:grant` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User or permission not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/roles": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "List roles",
+        "description": "Returns a paginated list of all roles. Requires `role:create` or `role:update` authority.",
+        "operationId": "listRoles",
+        "parameters": [
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated role list returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseRoleResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing required authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Create a role",
+        "description": "Creates a new named role. Requires `role:create` authority.",
+        "operationId": "createRole",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Role created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `role:create` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Role name already exists",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/roles/{roleId}/permissions": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "List permissions for role",
+        "description": "Returns all permissions assigned to the given role. Requires `role:create` or `role:update` authority.",
+        "operationId": "listRolePermissions",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "Role UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission list returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PermissionResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing required authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Assign permission to role",
+        "description": "Grants a permission to a role. Idempotent — assigning an already-granted permission is a no-op. Requires `permission:grant` authority.",
+        "operationId": "assignPermissionToRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "Role UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignPermissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Permission assigned"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `permission:grant` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role or permission not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/permissions": {
+      "get": {
+        "tags": [
+          "Permissions"
+        ],
+        "summary": "List permissions",
+        "description": "Returns a paginated list of all registered permissions. Requires `permission:grant` or `audit:view` authority.",
+        "operationId": "listPermissions",
+        "parameters": [
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated permission list returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponsePermissionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing required authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Permissions"
+        ],
+        "summary": "Create a permission",
+        "description": "Registers a new named permission in the system catalog. Requires `permission:grant` authority.",
+        "operationId": "createPermission",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePermissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Permission created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `permission:grant` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Permission name already exists",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Register a new account",
+        "description": "Creates a new user account in PENDING_VERIFICATION status. Dispatches a verification email. Anti-enumeration: response is identical whether or not the email already exists.",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Account created; verification email dispatched",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (invalid email, weak password, missing consent)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password/change": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Change password",
+        "description": "Changes the authenticated user's password. Requires the current password for verification. Updates `credentials_updated_at`, invalidating all previously issued JWTs.",
+        "operationId": "changePassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Password changed; previously issued JWTs invalidated"
+          },
+          "400": {
+            "description": "Validation error or wrong current password",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/password-reset/request": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Request password reset",
+        "description": "Initiates a password reset flow for the given email. Anti-enumeration: always returns HTTP 200 regardless of whether the email exists.",
+        "operationId": "initiatePasswordReset",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Reset email dispatched if the address exists and is active",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset/confirm": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Complete password reset",
+        "description": "Validates the reset token and sets a new password. Updates `credentials_updated_at`, invalidating all previously issued JWTs. Token is single-use and expires after the configured TTL.",
+        "operationId": "completePasswordReset",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetCompleteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid, expired, or already-consumed token",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Logout",
+        "description": "Records the AUTH_LOGOUT audit event. The client is responsible for discarding the JWT locally. No server-side session state is modified — the system is fully stateless.",
+        "operationId": "logout",
+        "responses": {
+          "204": {
+            "description": "Logout recorded"
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login with email and password",
+        "description": "Authenticates with email and password. Returns a short-lived JWT access token on success. Any failure (wrong credentials, locked account, unverified account) produces a generic HTTP 401. Response includes `Cache-Control: no-store`.",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication successful; JWT access token returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials, locked or unverified account",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/email/verify/resend": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Resend email verification",
+        "description": "Resends the email verification link for accounts in PENDING_VERIFICATION status. Anti-enumeration: always returns HTTP 200.",
+        "operationId": "resendVerification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Verification email dispatched if applicable",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/email/change": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Initiate email change",
+        "description": "Dispatches a verification email to the new address. The current email remains active until the new one is verified.",
+        "operationId": "initiateEmailChange",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailChangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Verification email dispatched to new address",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/security/unlock": {
+      "post": {
+        "tags": [
+          "Admin Security"
+        ],
+        "summary": "Unlock account",
+        "description": "Clears any active administrative or brute-force lock on the target user account. Requires `auth:manage` authority.",
+        "operationId": "unlockAccount",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForceReAuthRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Account unlocked"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `auth:manage` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Target user not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/security/lock": {
+      "post": {
+        "tags": [
+          "Admin Security"
+        ],
+        "summary": "Manually lock account",
+        "description": "Applies an administrative lock to the target user account, preventing authentication regardless of brute-force counters. Requires `auth:manage` authority.",
+        "operationId": "manualLockAccount",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualLockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Account locked"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `auth:manage` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Target user not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/security/force-reauth": {
+      "post": {
+        "tags": [
+          "Admin Security"
+        ],
+        "summary": "Force re-authentication",
+        "description": "Updates `credentials_updated_at` for the target user, immediately invalidating all previously issued JWTs. The user must re-authenticate to obtain a new token. Requires `auth:manage` authority.",
+        "operationId": "forceReAuthentication",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForceReAuthRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Re-authentication forced; all prior JWTs invalidated"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `auth:manage` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Target user not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{userId}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get user by ID (admin)",
+        "description": "Returns full user details for an admin lookup. Requires `user:read` permission.",
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Target user UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User details returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAdminResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `user:read` permission",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Soft-delete user account (admin)",
+        "description": "Sets `deleted_at` on the user record. No physical row removal. All previously issued JWTs are invalidated. Requires `user:delete` permission.",
+        "operationId": "softDeleteUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Target user UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Account soft-deleted; previously issued JWTs invalidated"
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `user:delete` permission",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/me/consents": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get own consent history",
+        "description": "Returns the authenticated user's data-processing consent records.",
+        "operationId": "getConsentHistory",
+        "responses": {
+          "200": {
+            "description": "Consent history returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserConsentResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get own profile",
+        "description": "Returns the authenticated user's non-sensitive profile data. Never returns password hash, raw tokens, or full IP history.",
+        "operationId": "getOwnProfile_1",
+        "responses": {
+          "200": {
+            "description": "Profile returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/email/verify": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Verify email address",
+        "description": "Activates the account by validating the email verification token. Transitions account from PENDING_VERIFICATION to ACTIVE.",
+        "operationId": "verifyEmail",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "description": "Email verification token from the verification email",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email verified; account activated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired token",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audit": {
+      "get": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Query audit log",
+        "description": "Returns a paginated, filtered list of audit events. Supports filtering by event type, actor, target user, outcome, and time range. Read-only. Requires `audit:view` authority.",
+        "operationId": "queryAuditLogs",
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AuditLogFilterRequest"
+            }
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated audit log returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseAuditLogResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `audit:view` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/audit/users/{userId}": {
+      "get": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Get user audit timeline",
+        "description": "Returns a chronological audit timeline for a specific user. Includes all events where the user was the actor or target. Read-only. Requires `audit:view` authority.",
+        "operationId": "getUserAuditTimeline",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Target user UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "pageable",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User audit timeline returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponseAuditLogResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `audit:view` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/audit/summary": {
+      "get": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Get security summary",
+        "description": "Returns aggregate security statistics: recent failure counts, locked accounts, and activity trends. Read-only. Requires `audit:view` authority.",
+        "operationId": "getSecuritySummary",
+        "responses": {
+          "200": {
+            "description": "Security summary returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecuritySummaryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `audit:view` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/roles/{roleId}": {
+      "delete": {
+        "tags": [
+          "User Role Assignment"
+        ],
+        "summary": "Revoke role from user",
+        "description": "Removes a role from the specified user. Idempotent — revoking a role the user does not hold is a no-op. Requires `role:update` authority.",
+        "operationId": "revokeRoleFromUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Target user UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "Role UUID to revoke",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Role revoked"
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `role:update` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User or role not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/permissions/{permissionId}": {
+      "delete": {
+        "tags": [
+          "User Permission Assignment"
+        ],
+        "summary": "Revoke permission from user",
+        "description": "Removes a direct permission from the specified user. Idempotent. Requires `permission:revoke` authority.",
+        "operationId": "revokePermissionFromUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Target user UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "permissionId",
+            "in": "path",
+            "description": "Permission UUID to revoke",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Permission revoked"
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `permission:revoke` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User or permission not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/roles/{roleId}/permissions/{permissionId}": {
+      "delete": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Revoke permission from role",
+        "description": "Removes a permission from a role. Idempotent — revoking a permission not held is a no-op. Requires `permission:revoke` authority.",
+        "operationId": "revokePermissionFromRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "Role UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "permissionId",
+            "in": "path",
+            "description": "Permission UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Permission revoked"
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `permission:revoke` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role or permission not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/permissions/{permissionId}": {
+      "delete": {
+        "tags": [
+          "Permissions"
+        ],
+        "summary": "Delete a permission",
+        "description": "Removes a permission from the catalog. Permissions currently assigned to roles or users cannot be deleted. Requires `permission:revoke` authority.",
+        "operationId": "deletePermission",
+        "parameters": [
+          {
+            "name": "permissionId",
+            "in": "path",
+            "description": "Permission UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Permission deleted"
+          },
+          "400": {
+            "description": "Permission is still in use",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing `permission:revoke` authority",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Permission not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/provider/{providerSlug}": {
+      "delete": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Unlink OAuth2 provider",
+        "description": "Removes the linked OAuth2 provider from the account. Blocked if the account has no local password set (prevents account lockout).",
+        "operationId": "unlinkProvider",
+        "parameters": [
+          {
+            "name": "providerSlug",
+            "in": "path",
+            "description": "Provider identifier, e.g. `google`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Provider unlinked"
+          },
+          "400": {
+            "description": "Cannot unlink — no local password set",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid JWT",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Provider not linked to this account",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "description": "Standard error response envelope returned on all non-2xx responses",
+        "properties": {
+          "errorCode": {
+            "type": "string",
+            "description": "Machine-readable error code",
+            "example": "VALIDATION_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message",
+            "example": "Request validation failed."
+          },
+          "correlationId": {
+            "type": "string",
+            "description": "Correlation ID for distributed tracing",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC timestamp of the error"
+          },
+          "fieldErrors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Field-level validation errors; only present on HTTP 400 validation failures"
+          }
+        }
+      },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          }
+        }
+      },
+      "UserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "maskedEmail": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "accountStatus": {
+            "type": "string"
+          },
+          "authOrigin": {
+            "type": "string"
+          },
+          "lastLoginAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "directPermissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UpdateRoleRequest": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "RoleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "systemRole": {
+            "type": "boolean"
+          },
+          "permissionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AdminCreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "minLength": 1
+          },
+          "roleIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "MessageResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AssignRoleRequest": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "roleId"
+        ]
+      },
+      "AssignPermissionRequest": {
+        "type": "object",
+        "properties": {
+          "permissionId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "permissionId"
+        ]
+      },
+      "CreateRoleRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreatePermissionRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "[a-z]+:[a-z]+"
+          },
+          "description": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "PermissionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "systemPerm": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "writeOnly": true
+          },
+          "consentAccepted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "PasswordResetRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "PasswordResetCompleteRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "newPassword",
+          "token"
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string"
+          },
+          "expiresInSeconds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ResendVerificationRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "EmailChangeRequest": {
+        "type": "object",
+        "properties": {
+          "newEmail": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "newEmail"
+        ]
+      },
+      "ForceReAuthRequest": {
+        "type": "object",
+        "properties": {
+          "targetUserId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "targetUserId"
+        ]
+      },
+      "ManualLockRequest": {
+        "type": "object",
+        "properties": {
+          "targetUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "reason",
+          "targetUserId"
+        ]
+      },
+      "Pageable": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PageResponseUserSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserSummaryResponse"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "UserSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "maskedEmail": {
+            "type": "string"
+          },
+          "accountStatus": {
+            "type": "string"
+          },
+          "authOrigin": {
+            "type": "string"
+          },
+          "lastLoginAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UserAdminResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "maskedEmail": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "accountStatus": {
+            "type": "string"
+          },
+          "authOrigin": {
+            "type": "string"
+          },
+          "lastLoginAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "directPermissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "failedLoginAttempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lockoutStatus": {
+            "type": "string"
+          },
+          "lockoutExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UserConsentResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "consentVersion": {
+            "type": "string"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revokedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PageResponseRoleResponse": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleResponse"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PageResponsePermissionResponse": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionResponse"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AuditLogFilterRequest": {
+        "type": "object",
+        "properties": {
+          "eventTypeSlug": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "outcomeSlug": {
+            "type": "string"
+          }
+        }
+      },
+      "AuditLogResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "actorUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ipAddressMasked": {
+            "type": "string"
+          },
+          "correlationId": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PageResponseAuditLogResponse": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditLogResponse"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SecuritySummaryResponse": {
+        "type": "object",
+        "properties": {
+          "lockedAccountsCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "failedAttemptsLast24h": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "forcedReAuthsLast24h": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "description": "JWT access token. Obtain via `POST /api/v1/auth/login`. Include as `Authorization: Bearer \u003Ctoken\u003E` on authenticated requests.",
+        "name": "bearerAuth",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
