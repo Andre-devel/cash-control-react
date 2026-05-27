@@ -224,7 +224,7 @@ Each feature phase follows the same internal structure: API service layer → Zo
 ### Phase 4.1 — Categories API & Hooks
 
 **Implementation Tasks:**
-- [ ] Create `src/features/categories/api/categories.api.ts`:
+- [x] Create `src/features/categories/api/categories.api.ts`:
   - `POST /api/v1/categories` → `createCategory(data)`
   - `GET /api/v1/categories` → `listCategories(params)`
   - `PUT /api/v1/categories/{id}` → `updateCategory(id, data)`
@@ -236,34 +236,34 @@ Each feature phase follows the same internal structure: API service layer → Zo
   - `POST /api/v1/categories/rules` → `createCategorizationRule(data)`
   - `GET /api/v1/categories/rules` → `listCategorizationRules()`
   - `DELETE /api/v1/categories/rules/{id}` → `deleteCategorizationRule(id)`
-- [ ] Create Zod schemas:
+- [x] Create Zod schemas:
   - `create-category.schema.ts` — `name`, `color`, `icon`, `type`, optional `parentId`
   - `create-categorization-rule.schema.ts` — `pattern`, `categoryId`
-- [ ] Create hooks: `use-categories.ts`, `use-create-category.ts`, `use-update-category.ts`, `use-suggest-category.ts`, `use-categorization-rules.ts`
+- [x] Create hooks: `use-categories.ts`, `use-create-category.ts`, `use-update-category.ts`, `use-suggest-category.ts`, `use-categorization-rules.ts`
 
 **Acceptance Criteria:**
-- [ ] `listCategories` returns data that can be assembled into a tree via `parentId`
-- [ ] `suggestCategory` is called with debounce to avoid excessive API requests
-- [ ] All mutation hooks invalidate `['categories']` query key on success
+- [x] `listCategories` returns data that can be assembled into a tree via `parentId`
+- [x] `suggestCategory` is called with debounce to avoid excessive API requests
+- [x] All mutation hooks invalidate `['categories']` query key on success
 
 ---
 
 ### Phase 4.2 — Categories Pages & Components
 
 **Implementation Tasks:**
-- [ ] Build `CategoriesPage` with hierarchical tree view and toggles for hidden/archived
-- [ ] Build `CreateCategoryDialog` / `EditCategoryDialog` with parent category selector
-- [ ] Build `CategoryPickerCombobox` — reusable picker component with search and auto-suggest integration, used in transaction and installment forms
-- [ ] Build `CategorizationRulesSection` listing rules with delete confirmation
+- [x] Build `CategoriesPage` with hierarchical tree view and toggles for hidden/archived
+- [x] Build `CreateCategoryDialog` / `EditCategoryDialog` with parent category selector
+- [x] Build `CategoryPickerCombobox` — reusable picker component with search and auto-suggest integration, used in transaction and installment forms
+- [x] Build `CategorizationRulesSection` listing rules with delete confirmation
 
 **Acceptance Criteria:**
-- [ ] Category tree renders parent/child hierarchy correctly
-- [ ] `CategoryPickerCombobox` triggers debounced `suggestCategory` when a description prop changes
-- [ ] Hidden categories are excluded from `CategoryPickerCombobox` by default
+- [x] Category tree renders parent/child hierarchy correctly
+- [x] `CategoryPickerCombobox` triggers debounced `suggestCategory` when a description prop changes
+- [x] Hidden categories are excluded from `CategoryPickerCombobox` by default
 
 **Automated Tests:**
-- [ ] Unit: `create-category.schema` rejects empty name
-- [ ] Integration: create category → appears in tree → hide → hidden from picker
+- [x] Unit: `create-category.schema` rejects empty name
+- [x] Integration: create category → appears in tree → hide → hidden from picker
 
 ---
 
