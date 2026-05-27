@@ -343,42 +343,42 @@ Each feature phase follows the same internal structure: API service layer → Zo
 ### Phase 6.1 — Installments API & Hooks
 
 **Implementation Tasks:**
-- [ ] Create `src/features/installments/api/installments.api.ts`:
+- [x] Create `src/features/installments/api/installments.api.ts`:
   - `POST /api/v1/installments` → `createInstallmentSeries(data)`
   - `PUT /api/v1/installments/series/{seriesId}` → `updateSeries(seriesId, data)`
   - `PUT /api/v1/installments/{transactionId}` → `updateInstallment(transactionId, data)`
   - `POST /api/v1/installments/series/{seriesId}/settle` → `settleSeries(seriesId)`
   - `POST /api/v1/installments/advance` → `advanceInstallments(data)`
-- [ ] Create Zod schemas:
+- [x] Create Zod schemas:
   - `create-installment.schema.ts` — `description`, `totalAmount` (decimal string), `installmentCount` (integer ≥ 2), `accountId`, `categoryId`, `firstDueDate`, `type`
   - `update-series.schema.ts`, `update-installment.schema.ts`
-- [ ] Create hooks: `use-create-installment.ts`, `use-update-series.ts`, `use-update-installment.ts`, `use-settle-series.ts`, `use-advance-installments.ts`
+- [x] Create hooks: `use-create-installment.ts`, `use-update-series.ts`, `use-update-installment.ts`, `use-settle-series.ts`, `use-advance-installments.ts`
 
 **Acceptance Criteria:**
-- [ ] `installmentCount` validated as integer ≥ 2 at the schema level
-- [ ] `totalAmount` and per-installment amounts typed as decimal strings throughout
-- [ ] Mutations invalidate `['transactions']` and `['accounts']` on success
+- [x] `installmentCount` validated as integer ≥ 2 at the schema level
+- [x] `totalAmount` and per-installment amounts typed as decimal strings throughout
+- [x] Mutations invalidate `['transactions']` and `['accounts']` on success
 
 ---
 
 ### Phase 6.2 — Installments Pages & Components
 
 **Implementation Tasks:**
-- [ ] Build `InstallmentsPage` listing active series with paid/total progress indicator
-- [ ] Build `CreateInstallmentDialog` with full form validation
-- [ ] Build `EditSeriesDialog` (applies to all remaining installments in the series)
-- [ ] Build `EditInstallmentDialog` (single installment; visually marked as individually edited)
-- [ ] Build `SettleSeriesDialog` — shows remaining count and total settlement amount
-- [ ] Build `AdvanceInstallmentsDialog` — shows installments to be advanced and new due dates
+- [x] Build `InstallmentsPage` listing active series with paid/total progress indicator
+- [x] Build `CreateInstallmentDialog` with full form validation
+- [x] Build `EditSeriesDialog` (applies to all remaining installments in the series)
+- [x] Build `EditInstallmentDialog` (single installment; visually marked as individually edited)
+- [x] Build `SettleSeriesDialog` — shows remaining count and total settlement amount
+- [x] Build `AdvanceInstallmentsDialog` — shows installments to be advanced and new due dates
 
 **Acceptance Criteria:**
-- [ ] Series creation shows a success toast with the number of installments created
-- [ ] Settlement dialog summarizes the financial impact before confirmation
-- [ ] Individually edited installments are visually distinguished from series defaults
+- [x] Series creation shows a success toast with the number of installments created
+- [x] Settlement dialog summarizes the financial impact before confirmation
+- [x] Individually edited installments are visually distinguished from series defaults
 
 **Automated Tests:**
-- [ ] Unit: `create-installment.schema` rejects `installmentCount < 2` and non-decimal amount
-- [ ] Integration: create series → installments appear in the transaction list
+- [x] Unit: `create-installment.schema` rejects `installmentCount < 2` and non-decimal amount
+- [x] Integration: create series → installments appear in the transaction list
 
 ---
 
