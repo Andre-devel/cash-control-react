@@ -49,7 +49,7 @@ Each feature phase follows the same internal structure: API service layer → Zo
 ### Phase 1.1 — Folder Structure Expansion
 
 **Implementation Tasks:**
-- [ ] Create feature directories under `src/features/`:
+- [x] Create feature directories under `src/features/`:
   ```
   features/accounts/     api/  components/  hooks/  pages/  schemas/  types/
   features/transactions/ api/  components/  hooks/  pages/  schemas/  types/
@@ -60,8 +60,8 @@ Each feature phase follows the same internal structure: API service layer → Zo
   features/dashboard/    api/  components/  hooks/  pages/  types/
   features/profile/      api/  components/  hooks/  pages/  schemas/  types/
   ```
-- [ ] Add barrel `index.ts` files at each public module boundary
-- [ ] Extend `src/app/router/routes.ts` with all new route constants:
+- [x] Add barrel `index.ts` files at each public module boundary
+- [x] Extend `src/app/router/routes.ts` with all new route constants:
   - `/dashboard` — Dashboard overview
   - `/accounts` — Account list
   - `/accounts/:id` — Account detail
@@ -75,34 +75,34 @@ Each feature phase follows the same internal structure: API service layer → Zo
   - `/profile` — User profile
 
 **Acceptance Criteria:**
-- [ ] All path alias imports (`@/features/accounts/...`) resolve without errors
-- [ ] No circular imports between feature modules
-- [ ] TypeScript compilation passes with zero errors after folder addition
+- [x] All path alias imports (`@/features/accounts/...`) resolve without errors
+- [x] No circular imports between feature modules
+- [x] TypeScript compilation passes with zero errors after folder addition
 
 **Automated Tests:**
-- [ ] TypeScript compilation validates all new import paths
+- [x] TypeScript compilation validates all new import paths
 
 ---
 
 ### Phase 1.2 — Route Registration & Lazy Loading
 
 **Implementation Tasks:**
-- [ ] Register all new routes in `createBrowserRouter` wrapped in `AuthGuard`
-- [ ] Lazy-load all route-level pages via `React.lazy` + `Suspense`:
+- [x] Register all new routes in `createBrowserRouter` wrapped in `AuthGuard`
+- [x] Lazy-load all route-level pages via `React.lazy` + `Suspense`:
   ```tsx
   const AccountsPage = lazy(() => import('@/features/accounts/pages/accounts-page'))
   const TransactionsPage = lazy(() => import('@/features/transactions/pages/transactions-page'))
   // ...
   ```
-- [ ] Add `<Suspense fallback={<PageSkeleton />}>` at the protected layout level
+- [x] Add `<Suspense fallback={<PageSkeleton />}>` at the protected layout level
 
 **Acceptance Criteria:**
-- [ ] Network tab shows each feature route loading as a separate code-split chunk
-- [ ] Navigating to any new route renders a loading skeleton, then the page
-- [ ] Unauthenticated access to any new route redirects to `/login`
+- [x] Network tab shows each feature route loading as a separate code-split chunk
+- [x] Navigating to any new route renders a loading skeleton, then the page
+- [x] Unauthenticated access to any new route redirects to `/login`
 
 **Automated Tests:**
-- [ ] Route rendering smoke test: each new route renders its page component without crashing
+- [x] Route rendering smoke test: each new route renders its page component without crashing
 
 ---
 

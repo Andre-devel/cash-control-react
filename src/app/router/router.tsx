@@ -17,6 +17,18 @@ const NotFoundPage = lazy(() => import('@/components/feedback/not-found-page'))
 const ForbiddenPage = lazy(() => import('@/components/feedback/forbidden-page'))
 const RolesPage = lazy(() => import('@/features/roles/pages/roles-page'))
 const RoleDetailPage = lazy(() => import('@/features/roles/pages/role-detail-page'))
+const AccountsPage = lazy(() => import('@/features/accounts/pages/accounts-page'))
+const AccountDetailPage = lazy(() => import('@/features/accounts/pages/account-detail-page'))
+const TransactionsPage = lazy(() => import('@/features/transactions/pages/transactions-page'))
+const TransactionDetailPage = lazy(
+  () => import('@/features/transactions/pages/transaction-detail-page'),
+)
+const InstallmentsPage = lazy(() => import('@/features/installments/pages/installments-page'))
+const RecurrencesPage = lazy(() => import('@/features/recurrences/pages/recurrences-page'))
+const CategoriesPage = lazy(() => import('@/features/categories/pages/categories-page'))
+const CardsPage = lazy(() => import('@/features/cards/pages/cards-page'))
+const CardDetailPage = lazy(() => import('@/features/cards/pages/card-detail-page'))
+const ProfilePage = lazy(() => import('@/features/profile/pages/profile-page'))
 
 function PageLoader() {
   return (
@@ -74,6 +86,86 @@ export const routeConfig: RouteObject[] = [
                 element: (
                   <Suspense fallback={<PageLoader />}>
                     <DashboardPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.ACCOUNTS,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <AccountsPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.ACCOUNT_DETAIL,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <AccountDetailPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.TRANSACTIONS,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <TransactionsPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.TRANSACTION_DETAIL,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <TransactionDetailPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.INSTALLMENTS,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <InstallmentsPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.RECURRENCES,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <RecurrencesPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.CATEGORIES,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <CategoriesPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.CARDS,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <CardsPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.CARD_DETAIL,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <CardDetailPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.PROFILE,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <ProfilePage />
                   </Suspense>
                 ),
               },
