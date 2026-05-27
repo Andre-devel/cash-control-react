@@ -1,4 +1,4 @@
-export { colors } from './colors'
+export { colors, palette } from './colors'
 export { fontFamily, fontSize } from './typography'
 export { spacing } from './spacing'
 export { boxShadow } from './shadows'

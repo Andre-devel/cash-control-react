@@ -34,12 +34,7 @@ export function resolveTheme(theme: Theme | null): ResolvedTheme {
 }
 
 export function applyTheme(theme: ResolvedTheme): void {
-  const root = document.documentElement
-  if (theme === 'dark') {
-    root.classList.add('dark')
-  } else {
-    root.classList.remove('dark')
-  }
+  document.documentElement.setAttribute('data-theme', theme)
 }
 
 export function initializeTheme(): void {

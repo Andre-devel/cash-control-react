@@ -1,7 +1,13 @@
+// 4pt spacing scale mirroring the --s-* CSS custom properties
 export const spacing = {
-  '4.5': '1.125rem',
-  '13': '3.25rem',
-  '15': '3.75rem',
-  '128': '32rem',
-  '144': '36rem',
+  '1': '4px',
+  '2': '8px',
+  '3': '12px',
+  '4': '16px',
+  '5': '20px',
+  '6': '24px',
+  '8': '32px',
+  '10': '40px',
+  '12': '48px',
+  '16': '64px',
 }

@@ -1,15 +1,15 @@
 export const fontFamily = {
-  sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-  mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+  sans: ['"Geist"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+  mono: ['"Geist Mono"', 'ui-monospace', '"SF Mono"', 'Menlo', 'monospace'],
 }
 
 export const fontSize = {
-  xs: ['0.75rem', { lineHeight: '1rem' }],
-  sm: ['0.875rem', { lineHeight: '1.25rem' }],
-  base: ['1rem', { lineHeight: '1.5rem' }],
-  lg: ['1.125rem', { lineHeight: '1.75rem' }],
-  xl: ['1.25rem', { lineHeight: '1.75rem' }],
-  '2xl': ['1.5rem', { lineHeight: '2rem' }],
-  '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
-  '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
+  xs: ['11px', { lineHeight: '1.4' }],
+  sm: ['12px', { lineHeight: '1.4' }],
+  base: ['13px', { lineHeight: '1.5' }],
+  lg: ['14px', { lineHeight: '1.5' }],
+  xl: ['16px', { lineHeight: '1.4' }],
+  '2xl': ['20px', { lineHeight: '1.3', letterSpacing: '-0.02em' }],
+  '3xl': ['26px', { lineHeight: '1.2', letterSpacing: '-0.02em' }],
+  '4xl': ['32px', { lineHeight: '1.1', letterSpacing: '-0.025em' }],
 }

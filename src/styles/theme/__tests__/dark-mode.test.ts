@@ -12,25 +12,25 @@ import {
 describe('dark-mode utilities', () => {
   beforeEach(() => {
     localStorage.clear()
-    document.documentElement.classList.remove('dark')
+    document.documentElement.removeAttribute('data-theme')
   })
 
   describe('applyTheme', () => {
-    it('adds dark class to <html> when theme is dark', () => {
+    it('sets data-theme="dark" on <html> when theme is dark', () => {
       applyTheme('dark')
-      expect(document.documentElement.classList.contains('dark')).toBe(true)
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
     })
 
-    it('removes dark class from <html> when theme is light', () => {
-      document.documentElement.classList.add('dark')
+    it('sets data-theme="light" on <html> when theme is light', () => {
+      applyTheme('dark')
       applyTheme('light')
-      expect(document.documentElement.classList.contains('dark')).toBe(false)
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
     })
 
-    it('is idempotent: applying dark twice does not break the class', () => {
+    it('is idempotent: applying dark twice keeps data-theme="dark"', () => {
       applyTheme('dark')
       applyTheme('dark')
-      expect(document.documentElement.classList.contains('dark')).toBe(true)
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
     })
   })
 
@@ -106,23 +106,22 @@ describe('dark-mode utilities', () => {
   })
 
   describe('initializeTheme', () => {
-    it('applies dark class when dark is persisted in localStorage', () => {
+    it('sets data-theme="dark" when dark is persisted in localStorage', () => {
       localStorage.setItem(THEME_STORAGE_KEY, 'dark')
       initializeTheme()
-      expect(document.documentElement.classList.contains('dark')).toBe(true)
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
     })
 
-    it('removes dark class when light is persisted in localStorage', () => {
-      document.documentElement.classList.add('dark')
+    it('sets data-theme="light" when light is persisted in localStorage', () => {
       localStorage.setItem(THEME_STORAGE_KEY, 'light')
       initializeTheme()
-      expect(document.documentElement.classList.contains('dark')).toBe(false)
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light')
     })
 
     it('applies a resolved theme when nothing is stored', () => {
       initializeTheme()
-      const hasDark = document.documentElement.classList.contains('dark')
-      expect(typeof hasDark).toBe('boolean')
+      const theme = document.documentElement.getAttribute('data-theme')
+      expect(['light', 'dark']).toContain(theme)
     })
   })
 

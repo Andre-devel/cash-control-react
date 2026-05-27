@@ -7,7 +7,7 @@ import { boxShadow } from './src/styles/theme/shadows'
 import { spacing } from './src/styles/theme/spacing'
 
 const config: Config = {
-  darkMode: ['class'],
+  darkMode: ['selector', '[data-theme="dark"]'],
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
