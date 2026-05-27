@@ -5,6 +5,7 @@ import { categoriesHandlers } from '@/test/handlers/categories.handlers'
 import { transactionsHandlers } from '@/test/handlers/transactions.handlers'
 import { installmentsHandlers } from '@/test/handlers/installments.handlers'
 import { recurrencesHandlers } from '@/test/handlers/recurrences.handlers'
+import { cardsHandlers } from '@/test/handlers/cards.handlers'
 import type { UserProfile, ConsentRecord } from '@/features/profile/types'
 
 function makeTestToken(): string {
@@ -70,6 +71,7 @@ export const handlers = [
   ...transactionsHandlers,
   ...installmentsHandlers,
   ...recurrencesHandlers,
+  ...cardsHandlers,
 
   http.post('*/auth/login', async ({ request }) => {
     const body = (await request.json()) as { email: string; password: string }

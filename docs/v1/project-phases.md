@@ -442,7 +442,7 @@ Each feature phase follows the same internal structure: API service layer → Zo
 ### Phase 8.1 — Cards API & Hooks
 
 **Implementation Tasks:**
-- [ ] Create `src/features/cards/api/cards.api.ts`:
+- [x] Create `src/features/cards/api/cards.api.ts`:
   - `POST /api/v1/cards` → `createCard(data)`
   - `GET /api/v1/cards` → `listCards()`
   - `PUT /api/v1/cards/{id}` → `updateCard(id, data)`
@@ -452,48 +452,48 @@ Each feature phase follows the same internal structure: API service layer → Zo
   - `POST /api/v1/cards/invoices/{invoiceId}/pay` → `payInvoice(invoiceId, data)`
   - `GET /api/v1/cards/{id}/limit` → `getLimitUsage(id)`
   - `GET /api/v1/cards/{id}/spending` → `getSpendingBreakdown(id, params)`
-- [ ] Create Zod schemas:
+- [x] Create Zod schemas:
   - `create-card.schema.ts` — `name`, `brand`, `lastFourDigits` (exactly 4 numeric chars), `creditLimit` (decimal string), `billingCycleDay` (1–31), `dueDay` (1–31), `color`
   - `record-charge.schema.ts` — `description`, `amount` (decimal string), `categoryId`, `date`
   - `pay-invoice.schema.ts` — `amount` (decimal string, must not exceed remaining), `accountId`
-- [ ] Create hooks: `use-cards.ts`, `use-card.ts`, `use-create-card.ts`, `use-update-card.ts`, `use-archive-card.ts`, `use-record-charge.ts`, `use-invoice.ts`, `use-pay-invoice.ts`, `use-limit-usage.ts`, `use-spending-breakdown.ts`
+- [x] Create hooks: `use-cards.ts`, `use-card.ts`, `use-create-card.ts`, `use-update-card.ts`, `use-archive-card.ts`, `use-record-charge.ts`, `use-invoice.ts`, `use-pay-invoice.ts`, `use-limit-usage.ts`, `use-spending-breakdown.ts`
 
 **Acceptance Criteria:**
-- [ ] `lastFourDigits` validated as exactly 4 numeric characters
-- [ ] `billingCycleDay` and `dueDay` validated as integers 1–31
-- [ ] `pay-invoice.schema` rejects payment amounts exceeding remaining balance
-- [ ] `getInvoice` uses `YYYY-MM` format for `referenceMonth`
+- [x] `lastFourDigits` validated as exactly 4 numeric characters
+- [x] `billingCycleDay` and `dueDay` validated as integers 1–31
+- [x] `pay-invoice.schema` rejects payment amounts exceeding remaining balance
+- [x] `getInvoice` uses `YYYY-MM` format for `referenceMonth`
 
 ---
 
 ### Phase 8.2 — Cards Pages & Components
 
 **Implementation Tasks:**
-- [ ] Build `CardsPage`:
+- [x] Build `CardsPage`:
   - Card tiles showing name, brand, last four digits, credit limit, status
   - Archived cards hidden by default
   - Empty state with CTA
-- [ ] Build `CardDetailPage`:
+- [x] Build `CardDetailPage`:
   - Invoice month navigator (previous/next month controls)
   - Invoice items list
   - Invoice payment status (total, paid, remaining)
   - Limit usage progress bar
   - Spending breakdown chart by category (date range selector)
-- [ ] Build `CreateCardDialog` / `EditCardDialog`
-- [ ] Build `RecordChargeDialog` with `CategoryPickerCombobox`
-- [ ] Build `PayInvoiceDialog` — full or partial amount input with account selector
-- [ ] Build `ArchiveCardDialog` with confirmation
+- [x] Build `CreateCardDialog` / `EditCardDialog`
+- [x] Build `RecordChargeDialog` with `CategoryPickerCombobox`
+- [x] Build `PayInvoiceDialog` — full or partial amount input with account selector
+- [x] Build `ArchiveCardDialog` with confirmation
 
 **Acceptance Criteria:**
-- [ ] Invoice month navigation requests the correct `referenceMonth` format (`YYYY-MM`)
-- [ ] Limit usage bar reflects used vs available credit accurately
-- [ ] Partial payment form validates against remaining amount before submission
-- [ ] Spending breakdown shows an empty state when no charges exist for the period
+- [x] Invoice month navigation requests the correct `referenceMonth` format (`YYYY-MM`)
+- [x] Limit usage bar reflects used vs available credit accurately
+- [x] Partial payment form validates against remaining amount before submission
+- [x] Spending breakdown shows an empty state when no charges exist for the period
 
 **Automated Tests:**
-- [ ] Unit: `create-card.schema` rejects `lastFourDigits` with non-numeric or wrong length
-- [ ] Unit: `pay-invoice.schema` rejects amount exceeding remaining balance
-- [ ] Integration: create card → record charge → charge appears in invoice
+- [x] Unit: `create-card.schema` rejects `lastFourDigits` with non-numeric or wrong length
+- [x] Unit: `pay-invoice.schema` rejects amount exceeding remaining balance
+- [x] Integration: create card → record charge → charge appears in invoice
 
 ---
 
