@@ -9,7 +9,7 @@ export const RECURRENCE_FREQUENCIES = [
   'YEARLY',
 ] as const
 
-export const RECURRENCE_TYPES = ['INCOME', 'EXPENSE', 'REFUND', 'ADJUSTMENT'] as const
+export const RECURRENCE_TYPES = ['INCOME', 'EXPENSE', 'REFUND'] as const
 
 const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/
 

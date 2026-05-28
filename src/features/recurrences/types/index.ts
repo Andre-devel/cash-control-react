@@ -8,7 +8,7 @@ export type RecurrenceFrequency =
 
 export type RecurrenceStatus = 'ACTIVE' | 'PAUSED'
 
-export type RecurrenceType = 'INCOME' | 'EXPENSE' | 'REFUND' | 'ADJUSTMENT'
+export type RecurrenceType = 'INCOME' | 'EXPENSE' | 'REFUND'
 
 export type DeleteRecurrenceStrategy = 'FUTURE_ONLY' | 'ALL'
 

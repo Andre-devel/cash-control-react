@@ -10,10 +10,10 @@ import { PayTransactionButton } from '@/features/transactions/components/pay-tra
 import { ROUTES } from '@/app/router/routes'
 
 const TYPE_LABELS: Record<string, string> = {
-  INCOME: 'Income',
-  EXPENSE: 'Expense',
-  REFUND: 'Refund',
-  ADJUSTMENT: 'Adjustment',
+  INCOME: 'Receita',
+  EXPENSE: 'Despesa',
+  REFUND: 'Reembolso',
+  TRANSFER: 'Transferência',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -137,10 +137,38 @@ export default function TransactionDetailPage() {
               </div>
             )}
             <div>
-              <p className="text-xs text-dim">Created</p>
+              <p className="text-xs text-dim">Criado em</p>
               <p className="text-sm">{new Date(transaction.createdAt).toLocaleDateString()}</p>
             </div>
+            {transaction.accountName && (
+              <div>
+                <p className="text-xs text-dim">Conta</p>
+                <p className="text-sm">{transaction.accountName}</p>
+              </div>
+            )}
+            {transaction.categoryName && (
+              <div>
+                <p className="text-xs text-dim">Categoria</p>
+                <p className="text-sm">{transaction.categoryName}</p>
+              </div>
+            )}
+            {transaction.isInstallment && (
+              <div>
+                <p className="text-xs text-dim">Parcela</p>
+                <p className="text-sm">
+                  {transaction.installmentNumber ?? '?'}/{transaction.installmentCount ?? '?'}
+                </p>
+              </div>
+            )}
           </div>
+          {transaction.notes && (
+            <div style={{ marginTop: 8 }}>
+              <p className="text-xs text-dim">Notas</p>
+              <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>
+                {transaction.notes}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

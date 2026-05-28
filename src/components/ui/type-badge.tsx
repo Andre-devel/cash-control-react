@@ -5,11 +5,10 @@ const TYPE_MAP = {
   EXPENSE: { kind: 'expense' as const, label: 'Despesa' },
   TRANSFER: { kind: 'info' as const, label: 'Transferência' },
   REFUND: { kind: 'info' as const, label: 'Reembolso' },
-  ADJUSTMENT: { kind: 'muted' as const, label: 'Ajuste' },
 }
 
 interface TypeBadgeProps {
-  type: 'INCOME' | 'EXPENSE' | 'TRANSFER' | 'REFUND' | 'ADJUSTMENT'
+  type: 'INCOME' | 'EXPENSE' | 'TRANSFER' | 'REFUND'
 }
 
 export function TypeBadge({ type }: TypeBadgeProps) {

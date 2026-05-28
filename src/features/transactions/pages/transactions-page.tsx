@@ -255,7 +255,7 @@ export default function TransactionsPage() {
     handleFiltersChange({ ...filters, includeCancelled: !filters.includeCancelled })
   }, [filters, handleFiltersChange])
 
-  const handlePay = useCallback((t: Transaction) => payTransaction(t.id), [payTransaction])
+  const handlePay = useCallback((t: Transaction) => payTransaction({ id: t.id }), [payTransaction])
   const handleView = useCallback(
     (t: Transaction) => void navigate(ROUTES.TRANSACTION_DETAIL.replace(':id', t.id)),
     [navigate],

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const TRANSACTION_TYPES = ['INCOME', 'EXPENSE', 'REFUND', 'ADJUSTMENT'] as const
+export const TRANSACTION_TYPES = ['INCOME', 'EXPENSE', 'REFUND'] as const
 export const TRANSACTION_STATUSES = ['PENDING', 'PAID', 'CANCELLED'] as const
 
 const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/

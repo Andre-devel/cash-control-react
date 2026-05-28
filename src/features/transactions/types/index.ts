@@ -1,4 +1,4 @@
-export type TransactionType = 'INCOME' | 'EXPENSE' | 'REFUND' | 'ADJUSTMENT' | 'TRANSFER'
+export type TransactionType = 'INCOME' | 'EXPENSE' | 'REFUND' | 'TRANSFER'
 export type TransactionStatus = 'PENDING' | 'PAID' | 'CANCELLED'
 
 export interface Transaction {
@@ -9,6 +9,30 @@ export interface Transaction {
   status: TransactionStatus
   accountId: string
   categoryId: string | null
+  competenceDate: string
+  paymentDate: string | null
+  createdAt: string
+  notes?: string
+  accountName?: string
+  categoryName?: string
+  isInstallment?: boolean
+  installmentNumber?: number
+  installmentCount?: number
+  installmentGroupId?: string
+  recurrenceId?: string
+  updatedAt?: string
+}
+
+export interface TransactionSummary {
+  id: string
+  description: string
+  amount: string
+  type: TransactionType
+  status: TransactionStatus
+  accountId: string
+  accountName?: string
+  categoryId: string | null
+  categoryName?: string
   competenceDate: string
   paymentDate: string | null
   createdAt: string
@@ -58,6 +82,17 @@ export interface CreateTransactionRequest {
   categoryId?: string
   competenceDate: string
   status: TransactionStatus
+  notes?: string
 }
 
-export type UpdateTransactionRequest = CreateTransactionRequest
+export interface UpdateTransactionRequest {
+  description: string
+  amount: string
+  categoryId?: string
+  competenceDate: string
+  notes?: string
+}
+
+export interface MarkAsPaidRequest {
+  paymentDate?: string
+}

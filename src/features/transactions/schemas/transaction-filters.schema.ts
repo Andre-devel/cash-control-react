@@ -3,9 +3,11 @@ import { TRANSACTION_TYPES, TRANSACTION_STATUSES } from './create-transaction.sc
 
 const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/
 
+export const TRANSACTION_FILTER_TYPES = [...TRANSACTION_TYPES, 'TRANSFER'] as const
+
 export const transactionFiltersSchema = z.object({
   accountId: z.string().optional(),
-  type: z.enum(TRANSACTION_TYPES).optional(),
+  type: z.enum(TRANSACTION_FILTER_TYPES).optional(),
   status: z.enum(TRANSACTION_STATUSES).optional(),
   categoryId: z.string().optional(),
   competenceDateFrom: z.string().optional(),

@@ -51,8 +51,12 @@ describe('transactionFiltersSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('accepts TRANSFER type for filtering', () => {
+    expect(transactionFiltersSchema.safeParse({ type: 'TRANSFER' }).success).toBe(true)
+  })
+
   it('rejects invalid transaction type enum', () => {
-    const result = transactionFiltersSchema.safeParse({ type: 'TRANSFER' })
+    const result = transactionFiltersSchema.safeParse({ type: 'ADJUSTMENT' })
     expect(result.success).toBe(false)
   })
 

@@ -5,31 +5,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
-import { Select } from '@/components/ui/select'
 import {
-  createTransactionSchema,
-  TRANSACTION_TYPES,
-  TRANSACTION_STATUSES,
-  type CreateTransactionFormValues,
-} from '@/features/transactions/schemas/create-transaction.schema'
+  updateTransactionSchema,
+  type UpdateTransactionFormValues,
+} from '@/features/transactions/schemas/update-transaction.schema'
 import { useUpdateTransaction } from '@/features/transactions/hooks/use-update-transaction'
 import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
-import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import type { Transaction } from '@/features/transactions/types'
-
-const TRANSACTION_TYPE_LABELS: Record<string, string> = {
-  INCOME: 'Receita',
-  EXPENSE: 'Despesa',
-  REFUND: 'Reembolso',
-  ADJUSTMENT: 'Ajuste',
-}
-
-const TRANSACTION_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Pendente',
-  PAID: 'Pago',
-  CANCELLED: 'Cancelado',
-}
 
 interface EditTransactionDialogProps {
   transaction: Transaction | null
@@ -40,18 +23,15 @@ interface EditTransactionDialogProps {
 export function EditTransactionDialog({ transaction, open, onClose }: EditTransactionDialogProps) {
   const { mutate: updateTransaction, isPending } = useUpdateTransaction()
   const { data: categories = [] } = useCategories()
-  const { data: accounts = [] } = useAccounts()
 
-  const form = useForm<CreateTransactionFormValues>({
-    resolver: zodResolver(createTransactionSchema),
+  const form = useForm<UpdateTransactionFormValues>({
+    resolver: zodResolver(updateTransactionSchema),
     defaultValues: {
       description: '',
       amount: '0.00',
-      type: 'EXPENSE',
-      accountId: '',
       categoryId: '',
       competenceDate: new Date().toISOString().split('T')[0],
-      status: 'PENDING',
+      notes: '',
     },
   })
 
@@ -62,20 +42,19 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
       form.reset({
         description: transaction.description,
         amount: transaction.amount,
-        type: transaction.type,
-        accountId: transaction.accountId,
         categoryId: transaction.categoryId ?? '',
         competenceDate: transaction.competenceDate,
-        status: transaction.status,
+        notes: transaction.notes ?? '',
       })
     }
   }, [transaction, form])
 
-  function onSubmit(data: CreateTransactionFormValues) {
+  function onSubmit(data: UpdateTransactionFormValues) {
     if (!transaction) return
     const payload = {
       ...data,
       categoryId: data.categoryId || undefined,
+      notes: data.notes || undefined,
     }
     updateTransaction(
       { id: transaction.id, data: payload },
@@ -148,27 +127,6 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
           <Input placeholder="Ex: 150.75" {...form.register('amount')} />
         </Field>
 
-        <Field label="Tipo" error={form.formState.errors.type?.message}>
-          <Select aria-label="Tipo" {...form.register('type')}>
-            {TRANSACTION_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {TRANSACTION_TYPE_LABELS[type]}
-              </option>
-            ))}
-          </Select>
-        </Field>
-
-        <Field label="Conta" required error={form.formState.errors.accountId?.message}>
-          <Select aria-label="Conta" {...form.register('accountId')}>
-            <option value="">Selecionar conta</option>
-            {accounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-
         <Controller
           control={form.control}
           name="categoryId"
@@ -193,14 +151,8 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
           <Input type="date" {...form.register('competenceDate')} />
         </Field>
 
-        <Field label="Status" error={form.formState.errors.status?.message}>
-          <Select aria-label="Status" {...form.register('status')}>
-            {TRANSACTION_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {TRANSACTION_STATUS_LABELS[status]}
-              </option>
-            ))}
-          </Select>
+        <Field label="Notas" error={form.formState.errors.notes?.message}>
+          <Input placeholder="Observações opcionais…" {...form.register('notes')} />
         </Field>
       </form>
     </Modal>

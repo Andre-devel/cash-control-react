@@ -18,7 +18,7 @@ export function PayTransactionButton({ transaction }: PayTransactionButtonProps)
       className="min-h-[44px]"
       disabled={isPending}
       aria-busy={isPending}
-      onClick={() => payTransaction(transaction.id)}
+      onClick={() => payTransaction({ id: transaction.id })}
     >
       {isPending ? (
         <>

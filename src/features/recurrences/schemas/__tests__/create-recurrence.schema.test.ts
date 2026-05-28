@@ -87,8 +87,16 @@ describe('createRecurrenceSchema', () => {
     }
   })
 
-  it.each(['INCOME', 'EXPENSE', 'REFUND', 'ADJUSTMENT'])('accepts type %s', (type) => {
+  it.each(['INCOME', 'EXPENSE', 'REFUND'])('accepts type %s', (type) => {
     expect(createRecurrenceSchema.safeParse({ ...VALID_INPUT, type }).success).toBe(true)
+  })
+
+  it('rejects ADJUSTMENT type (not a valid recurrence type)', () => {
+    const result = createRecurrenceSchema.safeParse({ ...VALID_INPUT, type: 'ADJUSTMENT' })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path[0] === 'type')).toBe(true)
+    }
   })
 
   it('rejects empty accountId', () => {

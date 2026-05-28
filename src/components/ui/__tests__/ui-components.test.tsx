@@ -511,11 +511,6 @@ describe('TypeBadge', () => {
     expect(screen.getByText('Reembolso')).toBeTruthy()
   })
 
-  it('renders ADJUSTMENT label', () => {
-    render(<TypeBadge type="ADJUSTMENT" />)
-    expect(screen.getByText('Ajuste')).toBeTruthy()
-  })
-
   it('INCOME badge has income kind class', () => {
     const { container } = render(<TypeBadge type="INCOME" />)
     expect(container.querySelector('.income')).toBeTruthy()

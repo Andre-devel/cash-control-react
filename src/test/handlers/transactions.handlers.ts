@@ -170,11 +170,16 @@ export const transactionsHandlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.post('*/transactions/:id/pay', ({ params }) => {
+  http.post('*/transactions/:id/pay', async ({ params, request }) => {
+    let paymentDate = new Date().toISOString().split('T')[0]
+    try {
+      const body = (await request.json()) as { paymentDate?: string }
+      if (body?.paymentDate) paymentDate = body.paymentDate
+    } catch {
+      // body may be empty
+    }
     transactionsStore = transactionsStore.map((t) =>
-      t.id === params.id
-        ? { ...t, status: 'PAID', paymentDate: new Date().toISOString().split('T')[0] }
-        : t,
+      t.id === params.id ? { ...t, status: 'PAID', paymentDate } : t,
     )
     const updated = transactionsStore.find((t) => t.id === params.id)
     return HttpResponse.json(updated)
@@ -204,7 +209,7 @@ export const transactionsHandlers = [
       createdAt: new Date().toISOString(),
     }
     attachmentsStore = [...attachmentsStore, created]
-    return HttpResponse.json(created, { status: 201 })
+    return HttpResponse.json([created], { status: 201 })
   }),
 
   http.delete('*/transactions/:id/attachments/:attachmentId', ({ params }) => {

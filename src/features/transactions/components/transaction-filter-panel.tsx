@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { TRANSACTION_TYPES, TRANSACTION_STATUSES } from '@/features/transactions/schemas'
+import { TRANSACTION_FILTER_TYPES, TRANSACTION_STATUSES } from '@/features/transactions/schemas'
 import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
 import type {
@@ -13,7 +13,7 @@ const TRANSACTION_TYPE_LABELS: Record<string, string> = {
   INCOME: 'Receita',
   EXPENSE: 'Despesa',
   REFUND: 'Reembolso',
-  ADJUSTMENT: 'Ajuste',
+  TRANSFER: 'Transferência',
 }
 
 const TRANSACTION_STATUS_LABELS: Record<string, string> = {
@@ -63,7 +63,7 @@ export function TransactionFilterPanel({
         onChange={(e) => update({ type: (e.target.value as TransactionType) || undefined })}
       >
         <option value="">Tipo</option>
-        {TRANSACTION_TYPES.map((t) => (
+        {TRANSACTION_FILTER_TYPES.map((t) => (
           <option key={t} value={t}>
             {TRANSACTION_TYPE_LABELS[t]}
           </option>

@@ -20,7 +20,6 @@ const TRANSACTION_TYPE_LABELS: Record<string, string> = {
   INCOME: 'Receita',
   EXPENSE: 'Despesa',
   REFUND: 'Reembolso',
-  ADJUSTMENT: 'Ajuste',
 }
 
 const TRANSACTION_STATUS_LABELS: Record<string, string> = {
@@ -79,7 +78,7 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
   return (
     <Modal
       title="Nova transação"
-      subtitle="Registre uma receita, despesa, reembolso ou ajuste"
+      subtitle="Registre uma receita, despesa ou reembolso"
       onClose={handleClose}
       wide
       footer={

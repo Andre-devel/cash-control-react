@@ -280,14 +280,14 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `TRANSFER` is a transaction type that appears in the transaction list (from the transfer creation endpoint)
 
 **Implementation Tasks:**
-- [ ] Remove `'ADJUSTMENT'` from `TransactionType` in `transactions/types/index.ts`
-- [ ] Add `'TRANSFER'` to `TransactionType` (backend generates TRANSFER transactions)
-- [ ] Same fix in `recurrences/types/index.ts` — `RecurrenceType` should not include `ADJUSTMENT`
-- [ ] Update any UI components that render `ADJUSTMENT` type badges
+- [x] Remove `'ADJUSTMENT'` from `TransactionType` in `transactions/types/index.ts`
+- [x] Add `'TRANSFER'` to `TransactionType` (backend generates TRANSFER transactions)
+- [x] Same fix in `recurrences/types/index.ts` — `RecurrenceType` should not include `ADJUSTMENT`
+- [x] Update any UI components that render `ADJUSTMENT` type badges
 
 **Acceptance Criteria:**
-- [ ] TypeScript compilation rejects any code that passes `'ADJUSTMENT'` as a `TransactionType`
-- [ ] `TRANSFER` type transactions render correctly in the transaction list
+- [x] TypeScript compilation rejects any code that passes `'ADJUSTMENT'` as a `TransactionType`
+- [x] `TRANSFER` type transactions render correctly in the transaction list
 
 ---
 
@@ -298,13 +298,13 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - The field name in the form is `files` (plural), not `file`
 
 **Implementation Tasks:**
-- [ ] In `transactions.api.ts`, change `formData.append('file', file)` → `formData.append('files', file)` in `uploadAttachment()`
-- [ ] Verify the upload returns `List<AttachmentResponse>` (array) — update return type from `Attachment` to `Attachment[]`
-- [ ] Update any components receiving the upload response to handle the array
+- [x] In `transactions.api.ts`, change `formData.append('file', file)` → `formData.append('files', file)` in `uploadAttachment()`
+- [x] Verify the upload returns `List<AttachmentResponse>` (array) — update return type from `Attachment` to `Attachment[]`
+- [x] Update any components receiving the upload response to handle the array
 
 **Acceptance Criteria:**
-- [ ] Uploading a single file returns HTTP 201 with an array containing one `AttachmentResponse`
-- [ ] No `400 Bad Request` on attachment upload due to wrong field name
+- [x] Uploading a single file returns HTTP 201 with an array containing one `AttachmentResponse`
+- [x] No `400 Bad Request` on attachment upload due to wrong field name
 
 ---
 
@@ -317,16 +317,16 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `MarkAsPaidRequest` accepts optional `{ paymentDate?: string }`
 
 **Implementation Tasks:**
-- [ ] Expand `Transaction` interface with: `notes?: string`, `accountName?: string`, `categoryName?: string`, `isInstallment?: boolean`, `installmentNumber?: number`, `installmentCount?: number`, `installmentGroupId?: string`, `recurrenceId?: string`, `updatedAt?: string`
-- [ ] Add `notes?: string` to `CreateTransactionRequest`
-- [ ] Update `payTransaction` to accept an optional `paymentDate?: string` body
-- [ ] Verify `EditTransactionRequest` (PUT) fields — backend likely accepts `description`, `amount`, `categoryId`, `competenceDate`, `notes`; update `UpdateTransactionRequest` accordingly
-- [ ] Create a separate `TransactionSummary` interface for paginated list items (subset of `Transaction`)
+- [x] Expand `Transaction` interface with: `notes?: string`, `accountName?: string`, `categoryName?: string`, `isInstallment?: boolean`, `installmentNumber?: number`, `installmentCount?: number`, `installmentGroupId?: string`, `recurrenceId?: string`, `updatedAt?: string`
+- [x] Add `notes?: string` to `CreateTransactionRequest`
+- [x] Update `payTransaction` to accept an optional `paymentDate?: string` body
+- [x] Verify `EditTransactionRequest` (PUT) fields — backend likely accepts `description`, `amount`, `categoryId`, `competenceDate`, `notes`; update `UpdateTransactionRequest` accordingly
+- [x] Create a separate `TransactionSummary` interface for paginated list items (subset of `Transaction`)
 
 **Acceptance Criteria:**
-- [ ] Transaction detail modal renders `notes` when present
-- [ ] Transaction list renders `accountName` and `categoryName` without extra API calls
-- [ ] Mark-as-paid supports setting `paymentDate`
+- [x] Transaction detail modal renders `notes` when present
+- [x] Transaction list renders `accountName` and `categoryName` without extra API calls
+- [x] Mark-as-paid supports setting `paymentDate`
 
 ---
 
@@ -586,8 +586,8 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - [x] Dashboard overview: all metric fields render without `undefined`
 - [x] Account balance adjust: sends `{ amount: "-50.00" }` (delta), not `{ targetBalance }`
 - [x] Archive account: response is the updated Account object, no extra refetch needed
-- [ ] Transaction type: `ADJUSTMENT` value rejected by TypeScript; `TRANSFER` renders correctly
-- [ ] Attachment upload: `files` field name; returns array; single file upload handled
+- [x] Transaction type: `ADJUSTMENT` value rejected by TypeScript; `TRANSFER` renders correctly
+- [x] Attachment upload: `files` field name; returns array; single file upload handled
 - [ ] Category picker: renders root + subcategory tree; system categories not editable
 - [ ] Advance installments: sends `{ transactionIds[], newDate }` not `{ seriesId, count }`
 - [ ] 409 conflict on duplicate name: inline form error, not generic toast

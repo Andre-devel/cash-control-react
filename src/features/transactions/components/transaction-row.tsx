@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 import { memo } from 'react'
-import { ArrowDownLeft, ArrowUpRight, RotateCcw, Minus } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, RotateCcw, ArrowLeftRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
 import { IconBubble } from '@/components/ui/icon-bubble'
@@ -42,7 +42,7 @@ const TX_TYPE_CONFIG: Record<string, { icon: BubbleIcon; color: string }> = {
   INCOME: { icon: asIcon(ArrowDownLeft), color: 'var(--income)' },
   EXPENSE: { icon: asIcon(ArrowUpRight), color: 'var(--expense)' },
   REFUND: { icon: asIcon(RotateCcw), color: 'var(--income)' },
-  ADJUSTMENT: { icon: asIcon(Minus), color: 'var(--text-muted)' },
+  TRANSFER: { icon: asIcon(ArrowLeftRight), color: 'var(--info)' },
 }
 
 interface TransactionRowProps {

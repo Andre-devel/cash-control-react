@@ -10,7 +10,7 @@ export function useUploadAttachment(transactionId: string) {
   const queryClient = useQueryClient()
   const [progress, setProgress] = useState(0)
 
-  const mutation = useMutation<Attachment, NormalizedError, File>({
+  const mutation = useMutation<Attachment[], NormalizedError, File>({
     mutationFn: (file) => uploadAttachment(transactionId, file, setProgress),
     onSuccess: () => {
       setProgress(0)

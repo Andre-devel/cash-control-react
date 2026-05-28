@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, RotateCcw, Minus } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
 import { IconBubble } from '@/components/ui/icon-bubble'
@@ -47,7 +47,6 @@ const TX_TYPE_CONFIG: Record<string, TxTypeConfig> = {
   EXPENSE: { icon: asIcon(ArrowUpRight), color: 'var(--expense)', label: 'Despesa' },
   TRANSFER: { icon: asIcon(ArrowLeftRight), color: 'var(--info)', label: 'Transferência' },
   REFUND: { icon: asIcon(RotateCcw), color: 'var(--income)', label: 'Reembolso' },
-  ADJUSTMENT: { icon: asIcon(Minus), color: 'var(--text-muted)', label: 'Ajuste' },
 }
 
 function TableSkeleton() {

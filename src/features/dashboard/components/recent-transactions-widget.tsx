@@ -4,11 +4,10 @@ import { useRecentTransactions } from '@/features/dashboard/hooks/use-recent-tra
 import { ROUTES } from '@/app/router/routes'
 
 const TYPE_LABELS: Record<string, string> = {
-  INCOME: 'Income',
-  EXPENSE: 'Expense',
-  REFUND: 'Refund',
-  ADJUSTMENT: 'Adjustment',
-  TRANSFER: 'Transfer',
+  INCOME: 'Receita',
+  EXPENSE: 'Despesa',
+  REFUND: 'Reembolso',
+  TRANSFER: 'Transferência',
 }
 
 function WidgetSkeleton() {

@@ -23,10 +23,9 @@ const FREQUENCY_LABELS: Record<string, string> = {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  INCOME: 'Income',
-  EXPENSE: 'Expense',
-  REFUND: 'Refund',
-  ADJUSTMENT: 'Adjustment',
+  INCOME: 'Receita',
+  EXPENSE: 'Despesa',
+  REFUND: 'Reembolso',
 }
 
 const DEFAULT_VALUES: CreateRecurrenceFormValues = {

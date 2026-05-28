@@ -6,6 +6,7 @@ import type {
   ListTransactionsParams,
   CreateTransactionRequest,
   UpdateTransactionRequest,
+  MarkAsPaidRequest,
 } from '@/features/transactions/types'
 
 export async function listTransactions(
@@ -39,8 +40,8 @@ export async function deleteTransaction(id: string): Promise<void> {
   await axiosInstance.delete(`/transactions/${id}`)
 }
 
-export async function payTransaction(id: string): Promise<Transaction> {
-  const response = await axiosInstance.post<Transaction>(`/transactions/${id}/pay`)
+export async function payTransaction(id: string, body?: MarkAsPaidRequest): Promise<Transaction> {
+  const response = await axiosInstance.post<Transaction>(`/transactions/${id}/pay`, body ?? {})
   return response.data
 }
 
@@ -58,10 +59,10 @@ export async function uploadAttachment(
   id: string,
   file: File,
   onProgress?: (percent: number) => void,
-): Promise<Attachment> {
+): Promise<Attachment[]> {
   const formData = new FormData()
-  formData.append('file', file)
-  const response = await axiosInstance.post<Attachment>(
+  formData.append('files', file)
+  const response = await axiosInstance.post<Attachment[]>(
     `/transactions/${id}/attachments`,
     formData,
     {

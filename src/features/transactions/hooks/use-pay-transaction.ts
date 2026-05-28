@@ -6,11 +6,17 @@ import { ACCOUNTS_QUERY_KEY } from '@/features/accounts/hooks/use-accounts'
 import type { Transaction } from '@/features/transactions/types'
 import type { NormalizedError } from '@/features/auth/types'
 
+export interface PayTransactionInput {
+  id: string
+  paymentDate?: string
+}
+
 export function usePayTransaction() {
   const queryClient = useQueryClient()
 
-  return useMutation<Transaction, NormalizedError, string>({
-    mutationFn: payTransaction,
+  return useMutation<Transaction, NormalizedError, PayTransactionInput>({
+    mutationFn: ({ id, paymentDate }) =>
+      payTransaction(id, paymentDate ? { paymentDate } : undefined),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
       void queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY })
