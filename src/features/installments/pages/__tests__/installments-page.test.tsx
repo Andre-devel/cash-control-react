@@ -37,12 +37,14 @@ afterEach(() => {
 describe('InstallmentsPage', () => {
   it('renders the page heading', async () => {
     renderWithProviders(<InstallmentsPage />)
-    await waitFor(() => expect(screen.getByRole('heading', { name: /installments/i })).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /parcelamentos/i })).toBeTruthy(),
+    )
   })
 
   it('shows a loading skeleton while fetching', () => {
     renderWithProviders(<InstallmentsPage />)
-    expect(screen.getByLabelText('Loading installments')).toBeTruthy()
+    expect(screen.getByLabelText('Carregando parcelamentos')).toBeTruthy()
   })
 
   it('renders the list of installment series after loading', async () => {
@@ -73,14 +75,14 @@ describe('InstallmentsPage', () => {
   it('shows empty state when no series exist', async () => {
     server.use(http.get('*/installments/series', () => HttpResponse.json([])))
     renderWithProviders(<InstallmentsPage />)
-    await waitFor(() => expect(screen.getByText(/no installment series found/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/nenhuma série/i)).toBeTruthy())
   })
 
   it('shows empty state with create CTA', async () => {
     server.use(http.get('*/installments/series', () => HttpResponse.json([])))
     renderWithProviders(<InstallmentsPage />)
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /create your first series/i })).toBeTruthy(),
+      expect(screen.getByRole('button', { name: /criar primeira série/i })).toBeTruthy(),
     )
   })
 
@@ -91,7 +93,7 @@ describe('InstallmentsPage', () => {
       ),
     )
     renderWithProviders(<InstallmentsPage />)
-    await waitFor(() => expect(screen.getByText(/failed to load installment series/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/falha ao carregar parcelamentos/i)).toBeTruthy())
   })
 
   it('error state has retry button', async () => {
@@ -101,14 +103,16 @@ describe('InstallmentsPage', () => {
       ),
     )
     renderWithProviders(<InstallmentsPage />)
-    await waitFor(() => expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /tentar novamente/i })).toBeTruthy(),
+    )
   })
 
-  it('New Series button opens create dialog', async () => {
+  it('Nova série button opens create dialog', async () => {
     const user = userEvent.setup()
     renderWithProviders(<InstallmentsPage />)
-    await waitFor(() => screen.getByRole('button', { name: /new series/i }))
-    await user.click(screen.getByRole('button', { name: /new series/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova série/i }))
+    await user.click(screen.getByRole('button', { name: /nova série/i }))
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /create installment series/i })).toBeTruthy()
   })
@@ -117,8 +121,8 @@ describe('InstallmentsPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<InstallmentsPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new series/i }))
-    await user.click(screen.getByRole('button', { name: /new series/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova série/i }))
+    await user.click(screen.getByRole('button', { name: /nova série/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     await user.clear(screen.getByRole('textbox', { name: /description/i }))
@@ -148,8 +152,8 @@ describe('InstallmentsPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<InstallmentsPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new series/i }))
-    await user.click(screen.getByRole('button', { name: /new series/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova série/i }))
+    await user.click(screen.getByRole('button', { name: /nova série/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     const descInput = screen.getByRole('textbox', { name: /description/i })
@@ -164,8 +168,8 @@ describe('InstallmentsPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<InstallmentsPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new series/i }))
-    await user.click(screen.getByRole('button', { name: /new series/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova série/i }))
+    await user.click(screen.getByRole('button', { name: /nova série/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     await user.clear(screen.getByRole('textbox', { name: /description/i }))
@@ -263,11 +267,11 @@ describe('InstallmentsPage', () => {
     expect(screen.getByRole('heading', { name: /advance installments/i })).toBeTruthy()
   })
 
-  it('New Series button meets 44px min height', async () => {
+  it('Nova série button uses primary design system style', async () => {
     renderWithProviders(<InstallmentsPage />)
-    await waitFor(() => screen.getByRole('button', { name: /new series/i }))
-    const btn = screen.getByRole('button', { name: /new series/i })
-    expect(btn.className).toContain('min-h-[44px]')
+    await waitFor(() => screen.getByRole('button', { name: /nova série/i }))
+    const btn = screen.getByRole('button', { name: /nova série/i })
+    expect(btn.className).toContain('btn-primary')
   })
 
   it('series with ACTIVE status shows action buttons', async () => {

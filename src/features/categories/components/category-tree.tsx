@@ -41,7 +41,7 @@ export const CategoryTree = memo(function CategoryTree({
   const tree = useMemo(() => buildTree(categories), [categories])
 
   return (
-    <div className="space-y-1" role="tree" aria-label="Category tree">
+    <div role="tree" aria-label="Category tree">
       {tree.map((node) => (
         <CategoryNode
           key={node.id}

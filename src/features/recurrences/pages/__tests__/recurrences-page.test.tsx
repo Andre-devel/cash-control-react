@@ -37,12 +37,12 @@ afterEach(() => {
 describe('RecurrencesPage', () => {
   it('renders the page heading', async () => {
     renderWithProviders(<RecurrencesPage />)
-    await waitFor(() => expect(screen.getByRole('heading', { name: /recurrences/i })).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('heading', { name: /recorrências/i })).toBeTruthy())
   })
 
   it('shows a loading skeleton while fetching', () => {
     renderWithProviders(<RecurrencesPage />)
-    expect(screen.getByLabelText('Loading recurrences')).toBeTruthy()
+    expect(screen.getByLabelText('Carregando recorrências')).toBeTruthy()
   })
 
   it('renders the list of recurrence rules after loading', async () => {
@@ -56,14 +56,14 @@ describe('RecurrencesPage', () => {
   it('shows empty state when no recurrences exist', async () => {
     server.use(http.get('*/recurrences', () => HttpResponse.json([])))
     renderWithProviders(<RecurrencesPage />)
-    await waitFor(() => expect(screen.getByText(/no recurrence rules found/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/nenhuma regra/i)).toBeTruthy())
   })
 
   it('shows empty state with create CTA', async () => {
     server.use(http.get('*/recurrences', () => HttpResponse.json([])))
     renderWithProviders(<RecurrencesPage />)
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /create your first rule/i })).toBeTruthy(),
+      expect(screen.getByRole('button', { name: /criar primeira regra/i })).toBeTruthy(),
     )
   })
 
@@ -74,7 +74,7 @@ describe('RecurrencesPage', () => {
       ),
     )
     renderWithProviders(<RecurrencesPage />)
-    await waitFor(() => expect(screen.getByText(/failed to load recurrence rules/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/falha ao carregar recorrências/i)).toBeTruthy())
   })
 
   it('error state has retry button', async () => {
@@ -84,14 +84,16 @@ describe('RecurrencesPage', () => {
       ),
     )
     renderWithProviders(<RecurrencesPage />)
-    await waitFor(() => expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /tentar novamente/i })).toBeTruthy(),
+    )
   })
 
-  it('New Rule button opens create dialog', async () => {
+  it('Nova regra button opens create dialog', async () => {
     const user = userEvent.setup()
     renderWithProviders(<RecurrencesPage />)
-    await waitFor(() => screen.getByRole('button', { name: /new rule/i }))
-    await user.click(screen.getByRole('button', { name: /new rule/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova regra/i }))
+    await user.click(screen.getByRole('button', { name: /nova regra/i }))
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /create recurrence rule/i })).toBeTruthy()
   })
@@ -100,8 +102,8 @@ describe('RecurrencesPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<RecurrencesPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new rule/i }))
-    await user.click(screen.getByRole('button', { name: /new rule/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova regra/i }))
+    await user.click(screen.getByRole('button', { name: /nova regra/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     await user.clear(screen.getByRole('textbox', { name: /description/i }))
@@ -128,8 +130,8 @@ describe('RecurrencesPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<RecurrencesPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new rule/i }))
-    await user.click(screen.getByRole('button', { name: /new rule/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova regra/i }))
+    await user.click(screen.getByRole('button', { name: /nova regra/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     const descInput = screen.getByRole('textbox', { name: /description/i })
@@ -144,8 +146,8 @@ describe('RecurrencesPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<RecurrencesPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new rule/i }))
-    await user.click(screen.getByRole('button', { name: /new rule/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova regra/i }))
+    await user.click(screen.getByRole('button', { name: /nova regra/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     await user.click(screen.getByRole('button', { name: /cancel/i }))
@@ -261,12 +263,12 @@ describe('RecurrencesPage', () => {
     })
   })
 
-  describe('New Rule button accessibility', () => {
-    it('New Rule button meets 44px min height', async () => {
+  describe('Nova regra button accessibility', () => {
+    it('Nova regra button uses primary design system style', async () => {
       renderWithProviders(<RecurrencesPage />)
-      await waitFor(() => screen.getByRole('button', { name: /new rule/i }))
-      const btn = screen.getByRole('button', { name: /new rule/i })
-      expect(btn.className).toContain('min-h-[44px]')
+      await waitFor(() => screen.getByRole('button', { name: /nova regra/i }))
+      const btn = screen.getByRole('button', { name: /nova regra/i })
+      expect(btn.className).toContain('btn-primary')
     })
   })
 })

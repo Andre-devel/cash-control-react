@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useHideCategory } from '@/features/categories/hooks/use-hide-category'
 import { useShowCategory } from '@/features/categories/hooks/use-show-category'
@@ -13,10 +15,16 @@ import type { Category } from '@/features/categories/types'
 
 function CategoriesSkeleton() {
   return (
-    <div className="space-y-2" aria-busy="true" aria-label="Loading categories">
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="h-10 rounded-md bg-muted animate-pulse" />
-      ))}
+    <div className="card" aria-busy="true" aria-label="Carregando categorias">
+      <div className="card-b" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="animate-pulse"
+            style={{ height: 44, borderRadius: 8, background: 'var(--surface-3)' }}
+          />
+        ))}
+      </div>
     </div>
   )
 }
@@ -56,35 +64,42 @@ export default function CategoriesPage() {
   )
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
-        <div className="flex items-center gap-2">
+    <div>
+      <div className="page-h">
+        <div>
+          <h1 className="title">Categorias</h1>
+          <div className="desc">
+            {isLoading
+              ? 'Carregando…'
+              : isError
+                ? '—'
+                : `${allCategories.length} ${allCategories.length === 1 ? 'categoria' : 'categorias'}`}
+          </div>
+        </div>
+        <div className="spacer" />
+        <div className="actions">
           <Button
-            variant="outline"
             size="sm"
-            className="min-h-[44px]"
+            variant="ghost"
             onClick={() => setShowHidden((v) => !v)}
             aria-pressed={showHidden}
           >
-            {showHidden ? 'Hide Hidden' : 'Show Hidden'}
+            {showHidden ? 'Ocultar ocultas' : 'Mostrar ocultas'}
           </Button>
           <Button
-            variant="outline"
             size="sm"
-            className="min-h-[44px]"
+            variant="ghost"
             onClick={() => setShowArchived((v) => !v)}
             aria-pressed={showArchived}
           >
-            {showArchived ? 'Hide Archived' : 'Show Archived'}
+            {showArchived ? 'Ocultar arquivadas' : 'Mostrar arquivadas'}
           </Button>
           <Button
-            size="sm"
-            className="min-h-[44px]"
+            variant="primary"
+            leading={<Plus size={14} />}
             onClick={() => setCreateOpen(true)}
-            aria-label="New Category"
           >
-            New Category
+            Nova categoria
           </Button>
         </div>
       </div>
@@ -92,28 +107,45 @@ export default function CategoriesPage() {
       {isLoading ? (
         <CategoriesSkeleton />
       ) : isError ? (
-        <div className="space-y-2" role="alert">
-          <p className="text-sm text-destructive">Failed to load categories.</p>
-          <Button variant="outline" size="sm" onClick={() => void refetch()}>
-            Retry
-          </Button>
+        <div className="card">
+          <div
+            className="card-b"
+            role="alert"
+            style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+          >
+            <p style={{ color: 'var(--expense)', fontSize: 14 }}>Falha ao carregar categorias.</p>
+            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
+              Tentar novamente
+            </Button>
+          </div>
         </div>
       ) : allCategories.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-          <p className="text-muted-foreground">No categories found.</p>
-          <Button size="sm" className="min-h-[44px]" onClick={() => setCreateOpen(true)}>
-            Create your first category
-          </Button>
-        </div>
-      ) : (
-        <CategoryTree
-          categories={allCategories}
-          onEdit={handleEdit}
-          onHide={handleHide}
-          onShow={handleShow}
-          onArchive={handleArchive}
-          onUnarchive={handleUnarchive}
+        <EmptyState
+          title="Nenhuma categoria encontrada"
+          desc="Crie sua primeira categoria para organizar suas transações."
+          action={
+            <Button
+              variant="primary"
+              leading={<Plus size={14} />}
+              onClick={() => setCreateOpen(true)}
+            >
+              Criar primeira categoria
+            </Button>
+          }
         />
+      ) : (
+        <div className="card" style={{ marginBottom: 24 }}>
+          <div className="card-b flush">
+            <CategoryTree
+              categories={allCategories}
+              onEdit={handleEdit}
+              onHide={handleHide}
+              onShow={handleShow}
+              onArchive={handleArchive}
+              onUnarchive={handleUnarchive}
+            />
+          </div>
+        </div>
       )}
 
       <CategorizationRulesSection categories={activeCategories} />

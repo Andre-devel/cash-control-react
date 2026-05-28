@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { useInstallmentSeries } from '@/features/installments/hooks/use-installment-series'
 import { InstallmentSeriesCard } from '@/features/installments/components/installment-series-card'
 import { CreateInstallmentDialog } from '@/features/installments/components/create-installment-dialog'
@@ -11,9 +13,27 @@ import type { InstallmentSeries } from '@/features/installments/types'
 
 function InstallmentsSkeleton() {
   return (
-    <div className="space-y-3" aria-busy="true" aria-label="Loading installments">
+    <div className="grid grid-3" aria-busy="true" aria-label="Carregando parcelamentos">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="h-32 rounded-md border border-border bg-muted animate-pulse" />
+        <div key={i} className="card">
+          <div
+            className="card-b animate-pulse"
+            style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+          >
+            <div
+              style={{ height: 16, width: '60%', background: 'var(--surface-3)', borderRadius: 4 }}
+            />
+            <div
+              style={{ height: 12, width: '40%', background: 'var(--surface-3)', borderRadius: 4 }}
+            />
+            <div
+              style={{ height: 8, width: '100%', background: 'var(--surface-3)', borderRadius: 4 }}
+            />
+            <div
+              style={{ height: 12, width: '30%', background: 'var(--surface-3)', borderRadius: 4 }}
+            />
+          </div>
+        </div>
       ))}
     </div>
   )
@@ -28,33 +48,66 @@ export default function InstallmentsPage() {
   const [settleTarget, setSettleTarget] = useState<InstallmentSeries | null>(null)
   const [advanceTarget, setAdvanceTarget] = useState<InstallmentSeries | null>(null)
 
+  const seriesList = series ?? []
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-bold tracking-tight">Installments</h1>
-        <Button size="sm" className="min-h-[44px]" onClick={() => setCreateOpen(true)}>
-          New Series
-        </Button>
+    <div>
+      <div className="page-h">
+        <div>
+          <h1 className="title">Parcelamentos</h1>
+          <div className="desc">
+            {isLoading
+              ? 'Carregando…'
+              : isError
+                ? '—'
+                : `${seriesList.length} ${seriesList.length === 1 ? 'série' : 'séries'}`}
+          </div>
+        </div>
+        <div className="spacer" />
+        <div className="actions">
+          <Button
+            variant="primary"
+            leading={<Plus size={14} />}
+            onClick={() => setCreateOpen(true)}
+          >
+            Nova série
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
         <InstallmentsSkeleton />
       ) : isError ? (
-        <div className="space-y-2" role="alert">
-          <p className="text-sm text-destructive">Failed to load installment series.</p>
-          <Button variant="outline" size="sm" onClick={() => void refetch()}>
-            Retry
-          </Button>
+        <div className="card">
+          <div
+            className="card-b"
+            role="alert"
+            style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+          >
+            <p style={{ color: 'var(--expense)', fontSize: 14 }}>
+              Falha ao carregar parcelamentos.
+            </p>
+            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
+              Tentar novamente
+            </Button>
+          </div>
         </div>
       ) : !series || series.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-          <p className="text-muted-foreground">No installment series found.</p>
-          <Button size="sm" className="min-h-[44px]" onClick={() => setCreateOpen(true)}>
-            Create your first series
-          </Button>
-        </div>
+        <EmptyState
+          title="Nenhuma série de parcelamentos"
+          desc="Crie sua primeira série para acompanhar suas compras parceladas."
+          action={
+            <Button
+              variant="primary"
+              leading={<Plus size={14} />}
+              onClick={() => setCreateOpen(true)}
+            >
+              Criar primeira série
+            </Button>
+          }
+        />
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-3">
           {series.map((s) => (
             <InstallmentSeriesCard
               key={s.id}

@@ -1,5 +1,8 @@
 import { memo } from 'react'
 import { Button } from '@/components/ui/button'
+import { IconBubble } from '@/components/ui/icon-bubble'
+import { TypeBadge } from '@/components/ui/type-badge'
+import { Badge } from '@/components/ui/badge'
 import type { Category } from '@/features/categories/types'
 
 export interface CategoryTreeNode extends Category {
@@ -27,59 +30,52 @@ export const CategoryNode = memo(function CategoryNode({
 }: CategoryNodeProps) {
   return (
     <div>
-      <div
-        className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm"
-        style={{ marginLeft: depth * 20 }}
-      >
-        <span
-          className="inline-block w-3 h-3 rounded-full flex-shrink-0"
-          style={{ backgroundColor: node.color }}
-          aria-hidden="true"
-        />
-        <span className="flex-1 font-medium truncate">{node.name}</span>
-        <span className="text-xs text-muted-foreground capitalize">{node.type.toLowerCase()}</span>
-
+      <div className="list-row">
+        {depth > 0 && (
+          <span style={{ width: depth * 20, flexShrink: 0, display: 'inline-block' }} />
+        )}
+        <IconBubble color={node.color} glyph={node.icon} size="sm" />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="fw-500 truncate">{node.name}</div>
+        </div>
+        <TypeBadge type={node.type} />
         {node.hidden && (
-          <span className="text-xs rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
-            Hidden
-          </span>
+          <Badge kind="muted" dot={false} square>
+            Oculto
+          </Badge>
         )}
         {node.archived && (
-          <span className="text-xs rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
-            Archived
-          </span>
+          <Badge kind="muted" dot={false} square>
+            Arquivado
+          </Badge>
         )}
-
-        <div className="flex gap-1 flex-shrink-0">
+        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 px-2 text-xs min-h-[44px] sm:min-h-0"
             onClick={() => onEdit(node)}
             aria-label={`Edit ${node.name}`}
           >
-            Edit
+            Editar
           </Button>
 
           {node.hidden ? (
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-xs min-h-[44px] sm:min-h-0"
               onClick={() => onShow(node)}
               aria-label={`Show ${node.name}`}
             >
-              Show
+              Mostrar
             </Button>
           ) : (
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-xs min-h-[44px] sm:min-h-0"
               onClick={() => onHide(node)}
               aria-label={`Hide ${node.name}`}
             >
-              Hide
+              Ocultar
             </Button>
           )}
 
@@ -87,28 +83,26 @@ export const CategoryNode = memo(function CategoryNode({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-xs min-h-[44px] sm:min-h-0"
               onClick={() => onUnarchive(node)}
               aria-label={`Unarchive ${node.name}`}
             >
-              Unarchive
+              Desarquivar
             </Button>
           ) : (
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-xs min-h-[44px] sm:min-h-0"
               onClick={() => onArchive(node)}
               aria-label={`Archive ${node.name}`}
             >
-              Archive
+              Arquivar
             </Button>
           )}
         </div>
       </div>
 
       {node.children.length > 0 && (
-        <div className="mt-1 space-y-1">
+        <div>
           {node.children.map((child) => (
             <CategoryNode
               key={child.id}

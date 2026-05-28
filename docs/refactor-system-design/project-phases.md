@@ -310,17 +310,17 @@ Reference files:
   These pages already have logic — only restyle them.
 
   For each page:
-  - [ ] Replace page wrapper with .page-h header pattern (title, desc, action buttons).
-  - [ ] Replace list/table containers with .card + .tbl or .card + .card-b patterns.
-  - [ ] Replace all modal dialogs with the new Modal component.
-  - [ ] Replace all form fields with Field / Input / Select / Textarea components.
-  - [ ] Apply IconBubble to category/recurrence icons.
-  - [ ] Apply StatusBadge / TypeBadge wherever applicable.
+  - [x] Replace page wrapper with .page-h header pattern (title, desc, action buttons).
+  - [x] Replace list/table containers with .card + .tbl or .card + .card-b patterns.
+  - [x] Replace all modal dialogs with the new Modal component.
+  - [x] Replace all form fields with Field / Input / Select / Textarea components.
+  - [x] Apply IconBubble to category/recurrence icons.
+  - [x] Apply StatusBadge / TypeBadge wherever applicable.
 
   Pages:
-  - [ ] src/features/categories/pages/   → tree of categories with color + icon + rule count
-  - [ ] src/features/installments/pages/ → installment series cards (.grid.grid-3) + detail modal
-  - [ ] src/features/recurrences/pages/  → recurrence cards (.grid.grid-3) + detail modal
+  - [x] src/features/categories/pages/   → tree of categories with color + icon + rule count
+  - [x] src/features/installments/pages/ → installment series cards (.grid.grid-3) + detail modal
+  - [x] src/features/recurrences/pages/  → recurrence cards (.grid.grid-3) + detail modal
 
   Deliverable: All pages share a visually consistent look matching the design system.
 

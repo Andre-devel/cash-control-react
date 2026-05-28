@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { useRecurrences } from '@/features/recurrences/hooks/use-recurrences'
 import { usePauseRecurrence } from '@/features/recurrences/hooks/use-pause-recurrence'
 import { useResumeRecurrence } from '@/features/recurrences/hooks/use-resume-recurrence'
@@ -11,29 +13,33 @@ import type { Recurrence } from '@/features/recurrences/types'
 
 function RecurrencesSkeleton() {
   return (
-    <div
-      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-      aria-busy="true"
-      aria-label="Loading recurrences"
-    >
+    <div className="grid grid-3" aria-busy="true" aria-label="Carregando recorrências">
       {[1, 2, 3].map((i) => (
         <div key={i} className="card">
           <div
             className="card-b animate-pulse"
             style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div className="h-4 w-40 rounded bg-muted" />
-              <div className="flex gap-2">
-                <div className="h-3 w-16 rounded bg-muted" />
-                <div className="h-3 w-16 rounded bg-muted" />
-                <div className="h-3 w-12 rounded bg-muted" />
-              </div>
+            <div
+              style={{ height: 14, width: '70%', background: 'var(--surface-3)', borderRadius: 4 }}
+            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div
+                style={{ height: 10, width: 60, background: 'var(--surface-3)', borderRadius: 4 }}
+              />
+              <div
+                style={{ height: 10, width: 60, background: 'var(--surface-3)', borderRadius: 4 }}
+              />
             </div>
-            <div className="h-3 w-32 rounded bg-muted" />
-            <div className="flex gap-1">
+            <div
+              style={{ height: 10, width: '40%', background: 'var(--surface-3)', borderRadius: 4 }}
+            />
+            <div style={{ display: 'flex', gap: 4 }}>
               {[1, 2, 3].map((j) => (
-                <div key={j} className="h-7 w-14 rounded bg-muted" />
+                <div
+                  key={j}
+                  style={{ height: 28, width: 56, background: 'var(--surface-3)', borderRadius: 4 }}
+                />
               ))}
             </div>
           </div>
@@ -60,33 +66,64 @@ export default function RecurrencesPage() {
     resumeRecurrence(recurrence.id)
   }
 
+  const recurrenceList = recurrences ?? []
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-bold tracking-tight">Recurrences</h1>
-        <Button size="sm" className="min-h-[44px]" onClick={() => setCreateOpen(true)}>
-          New Rule
-        </Button>
+    <div>
+      <div className="page-h">
+        <div>
+          <h1 className="title">Recorrências</h1>
+          <div className="desc">
+            {isLoading
+              ? 'Carregando…'
+              : isError
+                ? '—'
+                : `${recurrenceList.length} ${recurrenceList.length === 1 ? 'regra' : 'regras'}`}
+          </div>
+        </div>
+        <div className="spacer" />
+        <div className="actions">
+          <Button
+            variant="primary"
+            leading={<Plus size={14} />}
+            onClick={() => setCreateOpen(true)}
+          >
+            Nova regra
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
         <RecurrencesSkeleton />
       ) : isError ? (
-        <div className="space-y-2" role="alert">
-          <p className="text-sm text-destructive">Failed to load recurrence rules.</p>
-          <Button variant="outline" size="sm" onClick={() => void refetch()}>
-            Retry
-          </Button>
+        <div className="card">
+          <div
+            className="card-b"
+            role="alert"
+            style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+          >
+            <p style={{ color: 'var(--expense)', fontSize: 14 }}>Falha ao carregar recorrências.</p>
+            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
+              Tentar novamente
+            </Button>
+          </div>
         </div>
       ) : !recurrences || recurrences.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-          <p className="text-muted-foreground">No recurrence rules found.</p>
-          <Button size="sm" className="min-h-[44px]" onClick={() => setCreateOpen(true)}>
-            Create your first rule
-          </Button>
-        </div>
+        <EmptyState
+          title="Nenhuma regra de recorrência"
+          desc="Crie sua primeira regra para lançamentos automáticos recorrentes."
+          action={
+            <Button
+              variant="primary"
+              leading={<Plus size={14} />}
+              onClick={() => setCreateOpen(true)}
+            >
+              Criar primeira regra
+            </Button>
+          }
+        />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-3">
           {recurrences.map((recurrence) => (
             <RecurrenceCard
               key={recurrence.id}

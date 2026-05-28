@@ -1,4 +1,7 @@
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { TypeBadge } from '@/components/ui/type-badge'
+import { Money } from '@/components/ui/money'
 import type { Recurrence } from '@/features/recurrences/types'
 
 const FREQUENCY_LABELS: Record<string, string> = {
@@ -10,11 +13,9 @@ const FREQUENCY_LABELS: Record<string, string> = {
   YEARLY: 'Yearly',
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  INCOME: 'Income',
-  EXPENSE: 'Expense',
-  REFUND: 'Refund',
-  ADJUSTMENT: 'Adjustment',
+function formatDate(dateString: string | null): string {
+  if (!dateString) return '—'
+  return new Date(dateString).toLocaleDateString()
 }
 
 interface RecurrenceCardProps {
@@ -23,20 +24,6 @@ interface RecurrenceCardProps {
   onDelete: (recurrence: Recurrence) => void
   onPause: (recurrence: Recurrence) => void
   onResume: (recurrence: Recurrence) => void
-}
-
-function formatAmount(amount: string): string {
-  const num = parseFloat(amount)
-  if (isNaN(num)) return amount
-  return new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(num)
-}
-
-function formatDate(dateString: string | null): string {
-  if (!dateString) return '—'
-  return new Date(dateString).toLocaleDateString()
 }
 
 export function RecurrenceCard({
@@ -51,72 +38,73 @@ export function RecurrenceCard({
   return (
     <div className="card">
       <div className="card-b" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <p className="fw-500 truncate">{recurrence.description}</p>
-            <div className="flex flex-wrap items-center gap-2 mt-1">
-              <span className="text-dim text-xs">
-                {TYPE_LABELS[recurrence.type] ?? recurrence.type}
-              </span>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: 8,
+            alignItems: 'flex-start',
+          }}
+        >
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <p className="fw-500 truncate" style={{ marginBottom: 6 }}>
+              {recurrence.description}
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+              <TypeBadge type={recurrence.type} />
               <span className="text-dim text-xs">·</span>
               <span className="text-dim text-xs">
                 {FREQUENCY_LABELS[recurrence.frequency] ?? recurrence.frequency}
               </span>
-              <span
-                className={`badge ${isPaused ? 'pending' : 'paid'}`}
-                aria-label={`Status: ${isPaused ? 'Paused' : 'Active'}`}
-              >
-                <span className="dot" />
+              <Badge kind={isPaused ? 'pending' : 'paid'} dot={false} square>
                 {isPaused ? 'Paused' : 'Active'}
-              </span>
+              </Badge>
             </div>
           </div>
-          <p className="mono fw-600 text-sm shrink-0">{formatAmount(recurrence.amount)}</p>
+          <div className="mono fw-600 text-sm" style={{ flexShrink: 0 }}>
+            <Money value={parseFloat(recurrence.amount)} />
+          </div>
         </div>
 
         <p className="text-xs text-dim">
-          Next execution: {formatDate(recurrence.nextExecutionDate)}
+          Próxima execução: {formatDate(recurrence.nextExecutionDate)}
         </p>
 
-        <div className="flex flex-wrap gap-1">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="text-xs min-h-[44px]"
             onClick={() => onEdit(recurrence)}
             aria-label={`Edit ${recurrence.description}`}
           >
-            Edit
+            Editar
           </Button>
           {isPaused ? (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="text-xs min-h-[44px]"
               onClick={() => onResume(recurrence)}
               aria-label={`Resume ${recurrence.description}`}
             >
-              Resume
+              Retomar
             </Button>
           ) : (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="text-xs min-h-[44px]"
               onClick={() => onPause(recurrence)}
               aria-label={`Pause ${recurrence.description}`}
             >
-              Pause
+              Pausar
             </Button>
           )}
           <Button
             variant="danger"
             size="sm"
-            className="text-xs min-h-[44px]"
             onClick={() => onDelete(recurrence)}
             aria-label={`Delete ${recurrence.description}`}
           >
-            Delete
+            Excluir
           </Button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -183,50 +184,78 @@ export function CategorizationRulesSection({ categories }: CategorizationRulesSe
   const [deleteTarget, setDeleteTarget] = useState<CategorizationRule | null>(null)
 
   return (
-    <section aria-label="Auto-categorization rules">
-      <div className="flex items-center justify-between gap-4 mb-3">
-        <h2 className="text-lg font-semibold">Auto-Categorization Rules</h2>
-        <Button
-          size="sm"
-          className="min-h-[44px]"
-          onClick={() => setCreateOpen(true)}
-          aria-label="New Rule"
-        >
-          New Rule
-        </Button>
+    <div className="card">
+      <div className="card-h">
+        <div>
+          <h3>Regras de Categorização Automática</h3>
+          <div className="sub">Padrões de texto para categorizar transações automaticamente</div>
+        </div>
+        <div className="right">
+          <Button
+            variant="primary"
+            size="sm"
+            leading={<Plus size={14} />}
+            onClick={() => setCreateOpen(true)}
+            aria-label="New Rule"
+          >
+            Nova regra
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
-        <div className="space-y-2" aria-busy="true" aria-label="Loading rules">
+        <div
+          className="card-b"
+          aria-busy="true"
+          aria-label="Loading rules"
+          style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+        >
           {[1, 2].map((i) => (
-            <div key={i} className="h-10 rounded-md bg-muted animate-pulse" />
+            <div
+              key={i}
+              className="animate-pulse"
+              style={{ height: 36, borderRadius: 6, background: 'var(--surface-3)' }}
+            />
           ))}
         </div>
       ) : !rules || rules.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No auto-categorization rules defined.</p>
+        <div className="card-b">
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+            Nenhuma regra de categorização automática definida.
+          </p>
+        </div>
       ) : (
-        <div className="space-y-2">
-          {rules.map((rule) => (
-            <div
-              key={rule.id}
-              className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2 text-sm"
-            >
-              <span className="flex-1 font-mono">{rule.pattern}</span>
-              <span className="text-muted-foreground">→</span>
-              <span className="text-muted-foreground">
-                {rule.category?.name ?? rule.categoryId}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-2 text-xs text-destructive hover:text-destructive min-h-[44px] sm:min-h-0"
-                onClick={() => setDeleteTarget(rule)}
-                aria-label={`Delete rule for ${rule.pattern}`}
-              >
-                Delete
-              </Button>
-            </div>
-          ))}
+        <div className="card-b flush">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Padrão</th>
+                <th>Categoria</th>
+                <th style={{ width: 80 }} />
+              </tr>
+            </thead>
+            <tbody>
+              {rules.map((rule) => (
+                <tr key={rule.id}>
+                  <td className="mono">{rule.pattern}</td>
+                  <td style={{ color: 'var(--text-muted)' }}>
+                    {rule.category?.name ?? rule.categoryId}
+                  </td>
+                  <td>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleteTarget(rule)}
+                      aria-label={`Delete rule for ${rule.pattern}`}
+                      style={{ color: 'var(--expense)' }}
+                    >
+                      Excluir
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
@@ -241,6 +270,6 @@ export function CategorizationRulesSection({ categories }: CategorizationRulesSe
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
       />
-    </section>
+    </div>
   )
 }

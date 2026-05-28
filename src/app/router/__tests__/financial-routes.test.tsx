@@ -95,17 +95,17 @@ describe('Financial feature routes — authenticated rendering', () => {
 
   it('renders installments page at /installments', async () => {
     renderAtPath('/installments')
-    expect(await screen.findByRole('heading', { name: /installments/i })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: /parcelamentos/i })).toBeTruthy()
   })
 
   it('renders recurrences page at /recurrences', async () => {
     renderAtPath('/recurrences')
-    expect(await screen.findByRole('heading', { name: /recurrences/i })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: /recorrências/i })).toBeTruthy()
   })
 
   it('renders categories page at /categories', async () => {
     renderAtPath('/categories')
-    expect(await screen.findByRole('heading', { name: /categories/i })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: /categorias/i })).toBeTruthy()
   })
 
   it('renders cards page at /cards', async () => {

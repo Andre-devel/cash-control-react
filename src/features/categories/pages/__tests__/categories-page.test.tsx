@@ -39,12 +39,12 @@ afterEach(() => {
 describe('CategoriesPage', () => {
   it('renders the page heading', async () => {
     renderWithProviders(<CategoriesPage />)
-    await waitFor(() => expect(screen.getByRole('heading', { name: /categories/i })).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('heading', { name: /categorias/i })).toBeTruthy())
   })
 
   it('shows a loading skeleton while fetching', () => {
     renderWithProviders(<CategoriesPage />)
-    expect(screen.getByLabelText('Loading categories')).toBeTruthy()
+    expect(screen.getByLabelText('Carregando categorias')).toBeTruthy()
   })
 
   it('renders category list after loading', async () => {
@@ -90,7 +90,7 @@ describe('CategoriesPage', () => {
     renderWithProviders(<CategoriesPage />)
 
     await waitFor(() => screen.getAllByText(MOCK_CATEGORY_FOOD.name).length > 0)
-    await user.click(screen.getByRole('button', { name: /show hidden/i }))
+    await user.click(screen.getByRole('button', { name: /mostrar ocultas/i }))
     await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_HIDDEN.name)).toBeTruthy())
   })
 
@@ -117,21 +117,21 @@ describe('CategoriesPage', () => {
     renderWithProviders(<CategoriesPage />)
 
     await waitFor(() => screen.getAllByText(MOCK_CATEGORY_FOOD.name).length > 0)
-    await user.click(screen.getByRole('button', { name: /show archived/i }))
+    await user.click(screen.getByRole('button', { name: /mostrar arquivadas/i }))
     await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_ARCHIVED.name)).toBeTruthy())
   })
 
   it('shows empty state when no categories exist', async () => {
     server.use(http.get('*/categories', () => HttpResponse.json([])))
     renderWithProviders(<CategoriesPage />)
-    await waitFor(() => expect(screen.getByText(/no categories found/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/nenhuma categoria/i)).toBeTruthy())
   })
 
   it('shows empty state with create CTA', async () => {
     server.use(http.get('*/categories', () => HttpResponse.json([])))
     renderWithProviders(<CategoriesPage />)
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /create your first category/i })).toBeTruthy(),
+      expect(screen.getByRole('button', { name: /criar primeira categoria/i })).toBeTruthy(),
     )
   })
 
@@ -142,7 +142,7 @@ describe('CategoriesPage', () => {
       ),
     )
     renderWithProviders(<CategoriesPage />)
-    await waitFor(() => expect(screen.getByText(/failed to load categories/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/falha ao carregar categorias/i)).toBeTruthy())
   })
 
   it('error state has retry button', async () => {
@@ -152,14 +152,16 @@ describe('CategoriesPage', () => {
       ),
     )
     renderWithProviders(<CategoriesPage />)
-    await waitFor(() => expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /tentar novamente/i })).toBeTruthy(),
+    )
   })
 
-  it('New Category button opens create dialog', async () => {
+  it('Nova categoria button opens create dialog', async () => {
     const user = userEvent.setup()
     renderWithProviders(<CategoriesPage />)
-    await waitFor(() => screen.getByRole('button', { name: /new category/i }))
-    await user.click(screen.getByRole('button', { name: /new category/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova categoria/i }))
+    await user.click(screen.getByRole('button', { name: /nova categoria/i }))
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /create category/i })).toBeTruthy()
   })
@@ -168,8 +170,8 @@ describe('CategoriesPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<CategoriesPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new category/i }))
-    await user.click(screen.getByRole('button', { name: /new category/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova categoria/i }))
+    await user.click(screen.getByRole('button', { name: /nova categoria/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     await user.clear(screen.getByRole('textbox', { name: /name/i }))
@@ -185,8 +187,8 @@ describe('CategoriesPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<CategoriesPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new category/i }))
-    await user.click(screen.getByRole('button', { name: /new category/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova categoria/i }))
+    await user.click(screen.getByRole('button', { name: /nova categoria/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     const nameInput = screen.getByRole('textbox', { name: /name/i })
@@ -201,8 +203,8 @@ describe('CategoriesPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<CategoriesPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new category/i }))
-    await user.click(screen.getByRole('button', { name: /new category/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova categoria/i }))
+    await user.click(screen.getByRole('button', { name: /nova categoria/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     await user.click(screen.getByRole('button', { name: /cancel/i }))
@@ -223,12 +225,12 @@ describe('CategoriesPage', () => {
     })
   })
 
-  describe('New Category button accessibility', () => {
-    it('New Category button meets 44px min height', async () => {
+  describe('Nova categoria button accessibility', () => {
+    it('Nova categoria button uses primary design system style', async () => {
       renderWithProviders(<CategoriesPage />)
-      await waitFor(() => screen.getByRole('button', { name: /new category/i }))
-      const btn = screen.getByRole('button', { name: /new category/i })
-      expect(btn.className).toContain('min-h-[44px]')
+      await waitFor(() => screen.getByRole('button', { name: /nova categoria/i }))
+      const btn = screen.getByRole('button', { name: /nova categoria/i })
+      expect(btn.className).toContain('btn-primary')
     })
   })
 })
