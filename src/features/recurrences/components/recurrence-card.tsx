@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import type { Recurrence } from '@/features/recurrences/types'
 
 const FREQUENCY_LABELS: Record<string, string> = {
@@ -50,37 +49,32 @@ export function RecurrenceCard({
   const isPaused = recurrence.status === 'PAUSED'
 
   return (
-    <Card>
-      <CardContent className="p-4 space-y-3">
+    <div className="card">
+      <div className="card-b" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-foreground truncate">{recurrence.description}</p>
+            <p className="fw-500 truncate">{recurrence.description}</p>
             <div className="flex flex-wrap items-center gap-2 mt-1">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-dim text-xs">
                 {TYPE_LABELS[recurrence.type] ?? recurrence.type}
               </span>
-              <span className="text-xs text-muted-foreground">·</span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-dim text-xs">·</span>
+              <span className="text-dim text-xs">
                 {FREQUENCY_LABELS[recurrence.frequency] ?? recurrence.frequency}
               </span>
               <span
-                className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${
-                  isPaused
-                    ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                    : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                }`}
+                className={`badge ${isPaused ? 'pending' : 'paid'}`}
                 aria-label={`Status: ${isPaused ? 'Paused' : 'Active'}`}
               >
+                <span className="dot" />
                 {isPaused ? 'Paused' : 'Active'}
               </span>
             </div>
           </div>
-          <p className="font-mono font-semibold text-sm text-foreground shrink-0">
-            {formatAmount(recurrence.amount)}
-          </p>
+          <p className="mono fw-600 text-sm shrink-0">{formatAmount(recurrence.amount)}</p>
         </div>
 
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-dim">
           Next execution: {formatDate(recurrence.nextExecutionDate)}
         </p>
 
@@ -116,16 +110,16 @@ export function RecurrenceCard({
             </Button>
           )}
           <Button
-            variant="outline"
+            variant="danger"
             size="sm"
-            className="text-xs text-destructive hover:text-destructive min-h-[44px]"
+            className="text-xs min-h-[44px]"
             onClick={() => onDelete(recurrence)}
             aria-label={`Delete ${recurrence.description}`}
           >
             Delete
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

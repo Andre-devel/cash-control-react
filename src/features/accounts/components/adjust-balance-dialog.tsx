@@ -3,21 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
 import {
   adjustBalanceSchema,
   type AdjustBalanceFormValues,
@@ -55,71 +42,42 @@ export function AdjustBalanceDialog({ account, open, onClose }: AdjustBalanceDia
     )
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      form.reset()
-      onClose()
-    }
+  function handleClose() {
+    form.reset()
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Adjust Balance — {account?.name}</DialogTitle>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            id="adjust-balance-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="targetBalance"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Target Balance</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 2500.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="note"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Note (optional)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="e.g. Reconciliation with bank statement" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title={`Adjust Balance — ${account?.name}`}
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="submit"
             form="adjust-balance-form"
+            variant="primary"
             disabled={isPending}
             aria-busy={isPending}
           >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Adjusting…
@@ -128,8 +86,26 @@ export function AdjustBalanceDialog({ account, open, onClose }: AdjustBalanceDia
               'Adjust Balance'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <form
+        id="adjust-balance-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+      >
+        <Field label="Target Balance" error={form.formState.errors.targetBalance?.message}>
+          <Input placeholder="e.g. 2500.00" {...form.register('targetBalance')} />
+        </Field>
+
+        <Field label="Note (optional)" error={form.formState.errors.note?.message}>
+          <Textarea
+            placeholder="e.g. Reconciliation with bank statement"
+            {...form.register('note')}
+          />
+        </Field>
+      </form>
+    </Modal>
   )
 }

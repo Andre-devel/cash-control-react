@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Card, CardContent } from '@/components/ui/card'
 import { ROUTES } from '@/app/router/routes'
 import type { Role } from '@/features/roles/types'
 
@@ -16,19 +15,19 @@ export function RoleCard({ role }: RoleCardProps) {
       className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       aria-label={`View role ${role.name}`}
     >
-      <Card className="transition-colors hover:bg-accent">
-        <CardContent className="flex items-center justify-between p-4">
+      <div className="card" style={{ transition: 'background 80ms' }}>
+        <div className="card-b flex items-center justify-between">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-foreground truncate">{role.name}</span>
+              <span className="fw-500 truncate">{role.name}</span>
               {role.systemRole && (
-                <span className="shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                <span className="badge muted shrink-0" style={{ borderRadius: 'var(--r-full)' }}>
                   System
                 </span>
               )}
             </div>
             {role.description && (
-              <p className="mt-0.5 text-sm text-muted-foreground truncate">{role.description}</p>
+              <p className="mt-1 text-xs text-dim truncate">{role.description}</p>
             )}
           </div>
           <svg
@@ -41,13 +40,13 @@ export function RoleCard({ role }: RoleCardProps) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="ml-2 shrink-0 text-muted-foreground"
+            className="ml-2 shrink-0 text-dim"
             aria-hidden="true"
           >
             <path d="M9 18l6-6-6-6" />
           </svg>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </Link>
   )
 }

@@ -1,12 +1,5 @@
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { Modal } from '@/components/ui/modal'
 import { useArchiveCard } from '@/features/cards/hooks/use-archive-card'
 import type { Card } from '@/features/cards/types'
 
@@ -24,24 +17,21 @@ export function ArchiveCardDialog({ card, open, onClose }: ArchiveCardDialogProp
     archiveCard(card.id, { onSuccess: () => onClose() })
   }
 
-  return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Archive Card</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to archive <span className="font-semibold">{card?.name}</span>?
-            The card's invoice history will remain accessible.
-          </DialogDescription>
-        </DialogHeader>
+  if (!open) return null
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
+  return (
+    <Modal
+      title="Archive Card"
+      onClose={onClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="button"
-            variant="destructive"
+            variant="danger"
             onClick={handleConfirm}
             disabled={isPending}
             aria-busy={isPending}
@@ -49,7 +39,15 @@ export function ArchiveCardDialog({ card, open, onClose }: ArchiveCardDialogProp
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-destructive-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Archiving…
@@ -58,8 +56,13 @@ export function ArchiveCardDialog({ card, open, onClose }: ArchiveCardDialogProp
               'Archive Card'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <p>
+        Are you sure you want to archive <strong>{card?.name}</strong>? The card's invoice history
+        will remain accessible.
+      </p>
+    </Modal>
   )
 }

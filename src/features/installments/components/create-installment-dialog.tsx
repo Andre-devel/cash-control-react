@@ -1,22 +1,10 @@
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
+import { Select } from '@/components/ui/select'
 import {
   createInstallmentSchema,
   INSTALLMENT_TYPES,
@@ -26,7 +14,6 @@ import { useCreateInstallment } from '@/features/installments/hooks/use-create-i
 import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
-import { NativeSelect } from './installment-form-fields'
 
 const INSTALLMENT_TYPE_LABELS: Record<string, string> = {
   EXPENSE: 'Expense',
@@ -73,169 +60,42 @@ export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDial
     })
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      form.reset(DEFAULT_VALUES)
-      onClose()
-    }
+  function handleClose() {
+    form.reset(DEFAULT_VALUES)
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create Installment Series</DialogTitle>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            id="create-installment-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. New laptop" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="totalAmount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Total Amount</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 3600.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="installmentCount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Number of Installments</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={2}
-                      placeholder="e.g. 12"
-                      value={field.value ?? ''}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="Type" {...field}>
-                      {INSTALLMENT_TYPES.map((type) => (
-                        <option key={type} value={type}>
-                          {INSTALLMENT_TYPE_LABELS[type]}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="accountId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Account</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="Account" {...field}>
-                      <option value="">Select an account</option>
-                      {accounts.map((account) => (
-                        <option key={account.id} value={account.id}>
-                          {account.name}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <FormControl>
-                    <CategoryPickerCombobox
-                      value={field.value ?? ''}
-                      onChange={field.onChange}
-                      categories={categories}
-                      description={description}
-                      aria-label="Category"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="firstDueDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>First Due Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Create Installment Series"
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="submit"
             form="create-installment-form"
+            variant="primary"
             disabled={isPending}
             aria-busy={isPending}
           >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Creating…
@@ -244,8 +104,76 @@ export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDial
               'Create Series'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <form
+        id="create-installment-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+      >
+        <Field label="Description" error={form.formState.errors.description?.message}>
+          <Input placeholder="e.g. New laptop" {...form.register('description')} />
+        </Field>
+
+        <Field label="Total Amount" error={form.formState.errors.totalAmount?.message}>
+          <Input placeholder="e.g. 3600.00" {...form.register('totalAmount')} />
+        </Field>
+
+        <Field
+          label="Number of Installments"
+          error={form.formState.errors.installmentCount?.message}
+        >
+          <Input
+            type="number"
+            min={2}
+            placeholder="e.g. 12"
+            {...form.register('installmentCount', { valueAsNumber: true })}
+          />
+        </Field>
+
+        <Field label="Type" error={form.formState.errors.type?.message}>
+          <Select aria-label="Type" {...form.register('type')}>
+            {INSTALLMENT_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {INSTALLMENT_TYPE_LABELS[type]}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="Account" error={form.formState.errors.accountId?.message}>
+          <Select aria-label="Account" {...form.register('accountId')}>
+            <option value="">Select an account</option>
+            {accounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Controller
+          control={form.control}
+          name="categoryId"
+          render={({ field, fieldState }) => (
+            <Field label="Category" error={fieldState.error?.message}>
+              <CategoryPickerCombobox
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                categories={categories}
+                description={description}
+                aria-label="Category"
+              />
+            </Field>
+          )}
+        />
+
+        <Field label="First Due Date" error={form.formState.errors.firstDueDate?.message}>
+          <Input type="date" {...form.register('firstDueDate')} />
+        </Field>
+      </form>
+    </Modal>
   )
 }

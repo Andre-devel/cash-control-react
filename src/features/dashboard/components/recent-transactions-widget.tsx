@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useRecentTransactions } from '@/features/dashboard/hooks/use-recent-transactions'
 import { ROUTES } from '@/app/router/routes'
@@ -45,11 +44,11 @@ export function RecentTransactionsWidget() {
   const { data, isLoading, isError, refetch } = useRecentTransactions(10)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Recent Transactions</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="card">
+      <div className="card-h">
+        <h3>Recent Transactions</h3>
+      </div>
+      <div className="card-b">
         {isLoading ? (
           <WidgetSkeleton />
         ) : isError ? (
@@ -93,7 +92,7 @@ export function RecentTransactionsWidget() {
             })}
           </ul>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

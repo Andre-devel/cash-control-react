@@ -1,13 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { Modal } from '@/components/ui/modal'
 import { useDeleteAccount } from '@/features/accounts/hooks/use-delete-account'
 import type { Account } from '@/features/accounts/types'
 
@@ -38,40 +31,26 @@ export function DeleteAccountDialog({ account, open, onClose }: DeleteAccountDia
     })
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      setConflictError(null)
-      onClose()
-    }
+  function handleClose() {
+    setConflictError(null)
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Account</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to permanently delete{' '}
-            <span className="font-semibold">{account?.name}</span>? This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-
-        {conflictError && (
-          <div
-            className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-            role="alert"
-          >
-            {conflictError}
-          </div>
-        )}
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Delete Account"
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="button"
-            variant="destructive"
+            variant="danger"
             disabled={isPending}
             aria-busy={isPending}
             onClick={handleConfirm}
@@ -79,7 +58,15 @@ export function DeleteAccountDialog({ account, open, onClose }: DeleteAccountDia
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-destructive-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Deleting…
@@ -88,8 +75,22 @@ export function DeleteAccountDialog({ account, open, onClose }: DeleteAccountDia
               'Delete Account'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <p>
+        Are you sure you want to permanently delete <strong>{account?.name}</strong>? This action
+        cannot be undone.
+      </p>
+      {conflictError && (
+        <div
+          className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          role="alert"
+          style={{ marginTop: 12 }}
+        >
+          {conflictError}
+        </div>
+      )}
+    </Modal>
   )
 }

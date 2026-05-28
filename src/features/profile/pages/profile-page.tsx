@@ -3,15 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Field } from '@/components/ui/field'
 import { updateProfileSchema } from '@/features/profile/schemas/update-profile.schema'
 import { useProfile } from '@/features/profile/hooks/use-profile'
 import { useUpdateProfile } from '@/features/profile/hooks/use-update-profile'
@@ -51,11 +43,11 @@ export default function ProfilePage() {
     <div className="space-y-6 max-w-lg">
       <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Account Information</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="card">
+        <div className="card-h">
+          <h3>Account Information</h3>
+        </div>
+        <div className="card-b">
           {isLoading ? (
             <ProfileSkeleton />
           ) : isError ? (
@@ -66,56 +58,52 @@ export default function ProfilePage() {
               </Button>
             </div>
           ) : (
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-4">
-                {profile?.email && (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-foreground">Email</p>
-                    <p className="text-sm text-muted-foreground">{profile.email}</p>
-                  </div>
+            <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="col gap-4">
+              {profile?.email && (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-foreground">Email</p>
+                  <p className="text-sm text-muted-foreground">{profile.email}</p>
+                </div>
+              )}
+
+              <Field label="Display Name" error={form.formState.errors.name?.message}>
+                <Input placeholder="Your name" autoComplete="name" {...form.register('name')} />
+              </Field>
+
+              <Button type="submit" disabled={isPending} aria-busy={isPending}>
+                {isPending ? (
+                  <>
+                    <span
+                      className="animate-spin"
+                      style={{
+                        width: 14,
+                        height: 14,
+                        border: '2px solid currentColor',
+                        borderTopColor: 'transparent',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                      }}
+                      aria-hidden="true"
+                    />
+                    Saving…
+                  </>
+                ) : (
+                  'Save changes'
                 )}
-
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Display Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your name" autoComplete="name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button type="submit" disabled={isPending} aria-busy={isPending}>
-                  {isPending ? (
-                    <>
-                      <span
-                        className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
-                        aria-hidden="true"
-                      />
-                      Saving…
-                    </>
-                  ) : (
-                    'Save changes'
-                  )}
-                </Button>
-              </form>
-            </Form>
+              </Button>
+            </form>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Consent History</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="card">
+        <div className="card-h">
+          <h3>Consent History</h3>
+        </div>
+        <div className="card-b">
           <ConsentHistorySection />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

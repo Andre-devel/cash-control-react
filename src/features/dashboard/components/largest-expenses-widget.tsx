@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useLargestExpenses } from '@/features/dashboard/hooks/use-largest-expenses'
 import { ROUTES } from '@/app/router/routes'
@@ -27,11 +26,11 @@ export function LargestExpensesWidget() {
   const { data, isLoading, isError, refetch } = useLargestExpenses(5)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Largest Expenses</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="card">
+      <div className="card-h">
+        <h3>Largest Expenses</h3>
+      </div>
+      <div className="card-b">
         {isLoading ? (
           <WidgetSkeleton />
         ) : isError ? (
@@ -67,7 +66,7 @@ export function LargestExpensesWidget() {
             ))}
           </ul>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

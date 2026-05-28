@@ -1,5 +1,4 @@
 import { useEffect, useRef, type ChangeEvent } from 'react'
-import { cn } from '@/lib/utils'
 import { useSuggestCategory } from '@/features/categories/hooks/use-suggest-category'
 import type { Category } from '@/features/categories/types'
 
@@ -48,10 +47,7 @@ export function CategoryPickerCombobox({
         disabled={disabled}
         aria-label={ariaLabel ?? 'Category'}
         aria-invalid={ariaInvalid}
-        className={cn(
-          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-          className,
-        )}
+        className={`select${className ? ` ${className}` : ''}`}
       >
         <option value="">Select a category</option>
         {categories.map((cat) => (

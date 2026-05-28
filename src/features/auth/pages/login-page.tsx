@@ -3,15 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, Navigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Field } from '@/components/ui/field'
 import { loginSchema } from '@/features/auth/schemas/login.schema'
 import { useLogin } from '@/features/auth/hooks/use-login'
 import { useAuthStore } from '@/features/auth/store/auth.store'
@@ -36,78 +28,69 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>Sign in</CardTitle>
-        <CardDescription>Enter your credentials to access your account</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+    <div className="card w-full max-w-sm">
+      <div className="card-h">
+        <div>
+          <h2>Sign in</h2>
+          <p className="text-sm text-muted-foreground">
+            Enter your credentials to access your account
+          </p>
+        </div>
+      </div>
+      <div className="card-b">
+        <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="col gap-4">
+          <Field label="Email" error={form.formState.errors.email?.message}>
+            <Input
+              type="email"
+              placeholder="you@example.com"
+              autoComplete="email"
+              {...form.register('email')}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          </Field>
+          <Field label="Password" error={form.formState.errors.password?.message}>
+            <Input
+              type="password"
+              placeholder="••••••••"
+              autoComplete="current-password"
+              {...form.register('password')}
             />
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full"
-              disabled={isPending}
-              aria-busy={isPending}
-            >
-              {isPending ? (
-                <>
-                  <span
-                    className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
-                    aria-hidden="true"
-                  />
-                  Signing in…
-                </>
-              ) : (
-                'Sign in'
-              )}
-            </Button>
-          </form>
-        </Form>
+          </Field>
+          <Button
+            type="submit"
+            size="lg"
+            variant="primary"
+            className="w-full"
+            disabled={isPending}
+            aria-busy={isPending}
+          >
+            {isPending ? (
+              <>
+                <span
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
+                  aria-hidden="true"
+                />
+                Signing in…
+              </>
+            ) : (
+              'Sign in'
+            )}
+          </Button>
+        </form>
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
           <Link to={ROUTES.REGISTER} className="text-primary underline-offset-4 hover:underline">
             Create one
           </Link>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

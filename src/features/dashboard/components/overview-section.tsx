@@ -1,4 +1,3 @@
-import { Card, CardContent } from '@/components/ui/card'
 import { useOverview } from '@/features/dashboard/hooks/use-overview'
 
 function fmt(amount: string): string {
@@ -18,12 +17,12 @@ function OverviewSkeleton() {
       aria-label="Loading overview"
     >
       {[1, 2, 3, 4].map((i) => (
-        <Card key={i}>
-          <CardContent className="p-4 animate-pulse space-y-2">
+        <div key={i} className="card">
+          <div className="card-b animate-pulse space-y-2">
             <div className="h-3 w-24 rounded bg-muted" />
             <div className="h-6 w-32 rounded bg-muted" />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
     </div>
   )
@@ -61,14 +60,14 @@ export function OverviewSection() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((s) => (
-        <Card key={s.label}>
-          <CardContent className="p-4 space-y-1">
+        <div key={s.label} className="card">
+          <div className="card-b space-y-1">
             <p className="text-xs text-muted-foreground">{s.label}</p>
             <p className={`text-xl font-bold tracking-tight ${s.mono ? 'font-mono' : ''}`}>
               {s.value}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
     </div>
   )

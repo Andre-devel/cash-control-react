@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useUpcomingBills } from '@/features/dashboard/hooks/use-upcoming-bills'
 
@@ -31,31 +30,29 @@ export function UpcomingBillsWidget() {
   const { data, isLoading, isError, refetch } = useUpcomingBills(daysAhead)
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <CardTitle className="text-base">Upcoming Bills</CardTitle>
-          <div className="flex items-center gap-2 text-sm">
-            <label htmlFor="days-ahead" className="text-xs text-muted-foreground">
-              Days ahead:
-            </label>
-            <select
-              id="days-ahead"
-              value={daysAhead}
-              onChange={(e) => setDaysAhead(Number(e.target.value))}
-              className="rounded border border-input bg-background px-2 py-1 text-xs"
-              aria-label="Days ahead"
-            >
-              {[7, 14, 30].map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-          </div>
+    <div className="card">
+      <div className="card-h">
+        <h3>Upcoming Bills</h3>
+        <div className="flex items-center gap-2 text-sm">
+          <label htmlFor="days-ahead" className="text-xs text-muted-foreground">
+            Days ahead:
+          </label>
+          <select
+            id="days-ahead"
+            value={daysAhead}
+            onChange={(e) => setDaysAhead(Number(e.target.value))}
+            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            aria-label="Days ahead"
+          >
+            {[7, 14, 30].map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="card-b">
         {isLoading ? (
           <WidgetSkeleton />
         ) : isError ? (
@@ -95,7 +92,7 @@ export function UpcomingBillsWidget() {
             })}
           </ul>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

@@ -70,67 +70,67 @@ Reference files:
 
   Components to build (all under src/components/ui/):
 
-  - [ ] Button (src/components/ui/button.tsx)
+  - [x] Button (src/components/ui/button.tsx)
         Variants: default | primary | ghost | danger
         Sizes: sm | md | lg | icon
         Props: variant, size, icon, leading, trailing, onClick, disabled, type
         → Match .btn, .btn-primary, .btn-ghost, .btn-danger, .btn-sm, .btn-lg, .btn-icon.
 
-  - [ ] Input (src/components/ui/input.tsx)
+  - [x] Input (src/components/ui/input.tsx)
         Support leading/trailing slots (position: absolute overlays).
         Error state adds .error class.
         → Match .input, .input-group, .leading, .trailing, .with-leading, .with-trailing.
 
-  - [ ] PasswordInput (src/components/ui/password-input.tsx)
+  - [x] PasswordInput (src/components/ui/password-input.tsx)
         Extends Input with eye toggle button.
 
-  - [ ] MoneyInput (src/components/ui/money-input.tsx)
+  - [x] MoneyInput (src/components/ui/money-input.tsx)
         Leading slot shows currency symbol in .currency style, input uses font-mono.
 
-  - [ ] Select (src/components/ui/select.tsx)
+  - [x] Select (src/components/ui/select.tsx)
         Native <select> with .select class + custom chevron background-image.
 
-  - [ ] Textarea (src/components/ui/textarea.tsx)
+  - [x] Textarea (src/components/ui/textarea.tsx)
         Native <textarea> with .textarea class, min-height 78px.
 
-  - [ ] Field (src/components/ui/field.tsx)
+  - [x] Field (src/components/ui/field.tsx)
         Wrapper: label, children, hint, error (with alert icon), required asterisk.
         → Match .field, .lbl, .hint, .err.
 
-  - [ ] Toggle (src/components/ui/toggle.tsx)
+  - [x] Toggle (src/components/ui/toggle.tsx)
         CSS-only pill toggle. Props: on (boolean), onChange.
 
-  - [ ] Badge (src/components/ui/badge.tsx)
+  - [x] Badge (src/components/ui/badge.tsx)
         Variants: paid | pending | cancelled | income | expense | info | muted
         dot (boolean, default true), square (boolean).
 
-  - [ ] StatusBadge (src/components/ui/status-badge.tsx)
+  - [x] StatusBadge (src/components/ui/status-badge.tsx)
         Renders Badge with kind/label derived from status: PAID | PENDING | CANCELLED.
 
-  - [ ] TypeBadge (src/components/ui/type-badge.tsx)
+  - [x] TypeBadge (src/components/ui/type-badge.tsx)
         Renders Badge for: INCOME | EXPENSE | TRANSFER | REFUND | ADJUSTMENT.
 
-  - [ ] IconBubble (src/components/ui/icon-bubble.tsx)
+  - [x] IconBubble (src/components/ui/icon-bubble.tsx)
         Props: color (hex), icon (ReactNode), size (sm | md | lg | xl), glyph (string).
         Sets --icon-bg and --icon-fg CSS vars inline.
 
-  - [ ] Avatar (src/components/ui/avatar.tsx)
+  - [x] Avatar (src/components/ui/avatar.tsx)
         Props: name (initials string), color (optional hex).
 
-  - [ ] Modal (src/components/ui/modal.tsx)
+  - [x] Modal (src/components/ui/modal.tsx)
         Props: title, subtitle, onClose, children, footer, wide.
         Renders .modal-back > .modal with header, body, footer structure.
         Closes on Escape key and backdrop click.
 
-  - [ ] EmptyState (src/components/ui/empty-state.tsx)
+  - [x] EmptyState (src/components/ui/empty-state.tsx)
         Props: icon, title, desc, action.
 
-  - [ ] Money (src/components/ui/money.tsx)
+  - [x] Money (src/components/ui/money.tsx)
         Renders <span className="mono"> with sym, sign, int (grouped), dec (,XX).
         Props: value (number), currency ("BRL"|"USD"), signed (boolean), muted (boolean).
 
-  - [ ] Update src/components/ui/index.ts to export all new components.
-  - [ ] Update all existing feature components to import from the new primitives
+  - [x] Update src/components/ui/index.ts to export all new components.
+  - [x] Update all existing feature components to import from the new primitives
         instead of shadcn.
 
   Deliverable: shadcn components are no longer imported anywhere in src/features/.

@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useUpcomingInvoices } from '@/features/dashboard/hooks/use-upcoming-invoices'
 import { ROUTES } from '@/app/router/routes'
@@ -31,11 +30,11 @@ export function UpcomingInvoicesWidget() {
   const { data, isLoading, isError, refetch } = useUpcomingInvoices()
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Upcoming Invoices</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="card">
+      <div className="card-h">
+        <h3>Upcoming Invoices</h3>
+      </div>
+      <div className="card-b">
         {isLoading ? (
           <WidgetSkeleton />
         ) : isError ? (
@@ -68,7 +67,7 @@ export function UpcomingInvoicesWidget() {
             ))}
           </ul>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

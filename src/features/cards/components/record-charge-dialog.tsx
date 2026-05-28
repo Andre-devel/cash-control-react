@@ -2,21 +2,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
 import {
   recordChargeSchema,
   type RecordChargeFormValues,
@@ -57,99 +44,42 @@ export function RecordChargeDialog({ cardId, open, onClose }: RecordChargeDialog
     })
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      form.reset(DEFAULT_VALUES)
-      onClose()
-    }
+  function handleClose() {
+    form.reset(DEFAULT_VALUES)
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Record Charge</DialogTitle>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            id="record-charge-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Supermarket" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 150.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category ID (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Category UUID" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Record Charge"
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="submit"
             form="record-charge-form"
+            variant="primary"
             disabled={isPending}
             aria-busy={isPending}
           >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Recording…
@@ -158,8 +88,31 @@ export function RecordChargeDialog({ cardId, open, onClose }: RecordChargeDialog
               'Record Charge'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <form
+        id="record-charge-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+      >
+        <Field label="Description" error={form.formState.errors.description?.message}>
+          <Input placeholder="e.g. Supermarket" {...form.register('description')} />
+        </Field>
+
+        <Field label="Amount" error={form.formState.errors.amount?.message}>
+          <Input placeholder="e.g. 150.00" {...form.register('amount')} />
+        </Field>
+
+        <Field label="Date" error={form.formState.errors.date?.message}>
+          <Input type="date" {...form.register('date')} />
+        </Field>
+
+        <Field label="Category ID (optional)" error={form.formState.errors.categoryId?.message}>
+          <Input placeholder="Category UUID" {...form.register('categoryId')} />
+        </Field>
+      </form>
+    </Modal>
   )
 }

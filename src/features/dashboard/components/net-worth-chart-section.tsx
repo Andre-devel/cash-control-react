@@ -8,7 +8,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useNetWorthChart } from '@/features/dashboard/hooks/use-net-worth-chart'
 
@@ -38,38 +37,36 @@ export function NetWorthChartSection() {
   const { data, isLoading, isError, refetch } = useNetWorthChart({ from, to })
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="text-base">Net Worth Evolution</CardTitle>
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <label className="sr-only" htmlFor="nw-from">
-              From
-            </label>
-            <input
-              id="nw-from"
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="rounded border border-input bg-background px-2 py-1 text-xs"
-              aria-label="From date"
-            />
-            <span className="text-muted-foreground">–</span>
-            <label className="sr-only" htmlFor="nw-to">
-              To
-            </label>
-            <input
-              id="nw-to"
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="rounded border border-input bg-background px-2 py-1 text-xs"
-              aria-label="To date"
-            />
-          </div>
+    <div className="card">
+      <div className="card-h">
+        <h3>Net Worth Evolution</h3>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <label className="sr-only" htmlFor="nw-from">
+            From
+          </label>
+          <input
+            id="nw-from"
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            aria-label="From date"
+          />
+          <span className="text-muted-foreground">–</span>
+          <label className="sr-only" htmlFor="nw-to">
+            To
+          </label>
+          <input
+            id="nw-to"
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            aria-label="To date"
+          />
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="card-b">
         {isLoading ? (
           <ChartSkeleton />
         ) : isError ? (
@@ -120,7 +117,7 @@ export function NetWorthChartSection() {
             </LineChart>
           </ResponsiveContainer>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

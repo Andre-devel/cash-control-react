@@ -2,16 +2,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Field } from '@/components/ui/field'
 import { createRoleSchema, updateRoleSchema } from '@/features/roles/schemas'
 import type { CreateRoleFormValues, UpdateRoleFormValues } from '@/features/roles/schemas'
 
@@ -37,7 +29,15 @@ type RoleFormProps = (CreateMode | UpdateMode) & {
 function Spinner() {
   return (
     <span
-      className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+      className="animate-spin"
+      style={{
+        width: 14,
+        height: 14,
+        border: '2px solid currentColor',
+        borderTopColor: 'transparent',
+        borderRadius: '50%',
+        display: 'inline-block',
+      }}
       aria-hidden="true"
     />
   )
@@ -65,7 +65,7 @@ export function RoleForm(props: RoleFormProps) {
       {onCancel && (
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="sm"
           className="min-h-[44px]"
           onClick={onCancel}
@@ -74,7 +74,7 @@ export function RoleForm(props: RoleFormProps) {
           Cancel
         </Button>
       )}
-      <Button type="submit" size="lg" disabled={isPending} aria-busy={isPending}>
+      <Button type="submit" size="lg" variant="primary" disabled={isPending} aria-busy={isPending}>
         {isPending ? (
           <>
             <Spinner />
@@ -89,81 +89,41 @@ export function RoleForm(props: RoleFormProps) {
 
   if (mode === 'create') {
     return (
-      <Form {...createForm}>
-        <form onSubmit={createForm.handleSubmit(props.onSubmit)} noValidate className="space-y-4">
-          <FormField
-            control={createForm.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="MODERATOR" autoComplete="off" {...field} />
-                </FormControl>
-                <FormMessage />
-                {props.nameError && !createForm.formState.errors.name && (
-                  <p className="text-sm font-medium text-destructive">{props.nameError}</p>
-                )}
-              </FormItem>
-            )}
+      <form onSubmit={createForm.handleSubmit(props.onSubmit)} noValidate className="col gap-4">
+        <Field
+          label="Name"
+          error={
+            createForm.formState.errors.name?.message ||
+            (props.nameError && !createForm.formState.errors.name ? props.nameError : undefined)
+          }
+        >
+          <Input placeholder="MODERATOR" autoComplete="off" {...createForm.register('name')} />
+        </Field>
+        <Field label="Description" error={createForm.formState.errors.description?.message}>
+          <Textarea
+            placeholder="Describe the role's purpose"
+            rows={3}
+            {...createForm.register('description')}
           />
-          <FormField
-            control={createForm.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Describe the role's purpose"
-                    rows={3}
-                    {...field}
-                    value={field.value ?? ''}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {formActions('Create Role')}
-        </form>
-      </Form>
+        </Field>
+        {formActions('Create Role')}
+      </form>
     )
   }
 
   return (
-    <Form {...updateForm}>
-      <form onSubmit={updateForm.handleSubmit(props.onSubmit)} noValidate className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="update-role-name">Name</Label>
-          <Input
-            id="update-role-name"
-            value={props.roleName}
-            readOnly
-            disabled
-            className="cursor-not-allowed"
-          />
-        </div>
-        <FormField
-          control={updateForm.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Describe the role's purpose"
-                  rows={3}
-                  {...field}
-                  value={field.value ?? ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={updateForm.handleSubmit(props.onSubmit)} noValidate className="col gap-4">
+      <Field label="Name" htmlFor="update-role-name">
+        <Input id="update-role-name" value={props.roleName} readOnly disabled />
+      </Field>
+      <Field label="Description" error={updateForm.formState.errors.description?.message}>
+        <Textarea
+          placeholder="Describe the role's purpose"
+          rows={3}
+          {...updateForm.register('description')}
         />
-        {formActions('Save Changes')}
-      </form>
-    </Form>
+      </Field>
+      {formActions('Save Changes')}
+    </form>
   )
 }

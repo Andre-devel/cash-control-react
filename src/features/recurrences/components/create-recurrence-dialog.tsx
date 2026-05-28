@@ -2,21 +2,9 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
+import { Select } from '@/components/ui/select'
 import {
   createRecurrenceSchema,
   RECURRENCE_FREQUENCIES,
@@ -24,7 +12,6 @@ import {
   type CreateRecurrenceFormValues,
 } from '@/features/recurrences/schemas/create-recurrence.schema'
 import { useCreateRecurrence } from '@/features/recurrences/hooks/use-create-recurrence'
-import { NativeSelect } from './recurrence-form-fields'
 
 const FREQUENCY_LABELS: Record<string, string> = {
   DAILY: 'Daily',
@@ -78,153 +65,42 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
     })
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      form.reset(DEFAULT_VALUES)
-      onClose()
-    }
+  function handleClose() {
+    form.reset(DEFAULT_VALUES)
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create Recurrence Rule</DialogTitle>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            id="create-recurrence-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Monthly rent" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 1500.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="Type" {...field}>
-                      {RECURRENCE_TYPES.map((type) => (
-                        <option key={type} value={type}>
-                          {TYPE_LABELS[type]}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="frequency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Frequency</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="Frequency" {...field}>
-                      {RECURRENCE_FREQUENCIES.map((freq) => (
-                        <option key={freq} value={freq}>
-                          {FREQUENCY_LABELS[freq]}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="accountId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Account ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Account UUID" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category ID (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Category UUID" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="startDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Start Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Create Recurrence Rule"
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="submit"
             form="create-recurrence-form"
+            variant="primary"
             disabled={isPending}
             aria-busy={isPending}
           >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Creating…
@@ -233,8 +109,55 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
               'Create Rule'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <form
+        id="create-recurrence-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+      >
+        <Field label="Description" error={form.formState.errors.description?.message}>
+          <Input placeholder="e.g. Monthly rent" {...form.register('description')} />
+        </Field>
+
+        <Field label="Amount" error={form.formState.errors.amount?.message}>
+          <Input placeholder="e.g. 1500.00" {...form.register('amount')} />
+        </Field>
+
+        <Field label="Type" error={form.formState.errors.type?.message}>
+          <Select aria-label="Type" {...form.register('type')}>
+            {RECURRENCE_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {TYPE_LABELS[type]}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="Frequency" error={form.formState.errors.frequency?.message}>
+          <Select aria-label="Frequency" {...form.register('frequency')}>
+            {RECURRENCE_FREQUENCIES.map((freq) => (
+              <option key={freq} value={freq}>
+                {FREQUENCY_LABELS[freq]}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="Account ID" error={form.formState.errors.accountId?.message}>
+          <Input placeholder="Account UUID" {...form.register('accountId')} />
+        </Field>
+
+        <Field label="Category ID (optional)" error={form.formState.errors.categoryId?.message}>
+          <Input placeholder="Category UUID" {...form.register('categoryId')} />
+        </Field>
+
+        <Field label="Start Date" error={form.formState.errors.startDate?.message}>
+          <Input type="date" {...form.register('startDate')} />
+        </Field>
+      </form>
+    </Modal>
   )
 }

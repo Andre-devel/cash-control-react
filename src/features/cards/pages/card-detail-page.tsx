@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCard } from '@/features/cards/hooks/use-card'
 import { useInvoice } from '@/features/cards/hooks/use-invoice'
 import { useLimitUsage } from '@/features/cards/hooks/use-limit-usage'
@@ -143,11 +142,11 @@ export default function CardDetailPage() {
 
           {/* Limit Usage */}
           {limitUsage && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Limit Usage</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <div className="card">
+              <div className="card-h">
+                <h3>Limit Usage</h3>
+              </div>
+              <div className="card-b space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Used</span>
                   <span className="font-mono font-semibold">
@@ -171,37 +170,35 @@ export default function CardDetailPage() {
                   <span>Available: {formatAmount(limitUsage.availableAmount)}</span>
                   <span>Limit: {formatAmount(limitUsage.creditLimit)}</span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* Invoice */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Invoice</CardTitle>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    aria-label="Previous month"
-                    onClick={() => setReferenceMonth(getPreviousMonth(referenceMonth))}
-                  >
-                    ‹
-                  </Button>
-                  <span className="text-sm font-medium w-20 text-center">{referenceMonth}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    aria-label="Next month"
-                    onClick={() => setReferenceMonth(getNextMonth(referenceMonth))}
-                  >
-                    ›
-                  </Button>
-                </div>
+          <div className="card">
+            <div className="card-h">
+              <h3>Invoice</h3>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label="Previous month"
+                  onClick={() => setReferenceMonth(getPreviousMonth(referenceMonth))}
+                >
+                  ‹
+                </Button>
+                <span className="text-sm font-medium w-20 text-center">{referenceMonth}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label="Next month"
+                  onClick={() => setReferenceMonth(getNextMonth(referenceMonth))}
+                >
+                  ›
+                </Button>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            </div>
+            <div className="card-b space-y-4">
               {invoiceLoading ? (
                 <div
                   className="space-y-2 animate-pulse"
@@ -277,16 +274,16 @@ export default function CardDetailPage() {
               ) : (
                 <p className="text-sm text-muted-foreground">No invoice found for this month.</p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Spending Breakdown */}
           {spending && spending.items.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Spending Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div className="card">
+              <div className="card-h">
+                <h3>Spending Breakdown</h3>
+              </div>
+              <div className="card-b">
                 <div className="space-y-2">
                   {spending.items.map((item, i) => (
                     <div
@@ -309,8 +306,8 @@ export default function CardDetailPage() {
                     </span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           <EditCardDialog card={card} open={editOpen} onClose={() => setEditOpen(false)} />

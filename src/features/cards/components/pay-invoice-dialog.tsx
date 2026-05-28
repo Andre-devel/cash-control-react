@@ -2,22 +2,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
 import {
   createPayInvoiceSchema,
   type PayInvoiceFormValues,
@@ -58,11 +44,9 @@ export function PayInvoiceDialog({
     )
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      form.reset()
-      onClose()
-    }
+  function handleClose() {
+    form.reset()
+    onClose()
   }
 
   const formatAmount = (amount: string) => {
@@ -74,63 +58,38 @@ export function PayInvoiceDialog({
     }).format(num)
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Pay Invoice</DialogTitle>
-          <DialogDescription>
-            Remaining balance:{' '}
-            <span className="font-semibold">{formatAmount(remainingAmount)}</span>
-          </DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            id="pay-invoice-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Payment Amount</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 500.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="accountId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Source Account ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Account UUID" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Pay Invoice"
+      subtitle={`Remaining balance: ${formatAmount(remainingAmount)}`}
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
-          <Button type="submit" form="pay-invoice-form" disabled={isPending} aria-busy={isPending}>
+          <div className="spacer" />
+          <Button
+            type="submit"
+            form="pay-invoice-form"
+            variant="primary"
+            disabled={isPending}
+            aria-busy={isPending}
+          >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Processing…
@@ -139,8 +98,23 @@ export function PayInvoiceDialog({
               'Pay Invoice'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <form
+        id="pay-invoice-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+      >
+        <Field label="Payment Amount" error={form.formState.errors.amount?.message}>
+          <Input placeholder="e.g. 500.00" {...form.register('amount')} />
+        </Field>
+
+        <Field label="Source Account ID" error={form.formState.errors.accountId?.message}>
+          <Input placeholder="Account UUID" {...form.register('accountId')} />
+        </Field>
+      </form>
+    </Modal>
   )
 }

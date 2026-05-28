@@ -1,12 +1,5 @@
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { Modal } from '@/components/ui/modal'
 import { useCancelTransaction } from '@/features/transactions/hooks/use-cancel-transaction'
 import type { Transaction } from '@/features/transactions/types'
 
@@ -32,29 +25,21 @@ export function CancelTransactionDialog({
     })
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) onClose()
-  }
+  if (!open) return null
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Cancel Transaction</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to cancel{' '}
-            <span className="font-semibold">{transaction?.description}</span>? The record will be
-            preserved but removed from balance calculations.
-          </DialogDescription>
-        </DialogHeader>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Cancel Transaction"
+      onClose={onClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={onClose}>
             Keep Transaction
           </Button>
+          <div className="spacer" />
           <Button
             type="button"
-            variant="destructive"
+            variant="danger"
             disabled={isPending}
             aria-busy={isPending}
             onClick={handleConfirm}
@@ -62,7 +47,15 @@ export function CancelTransactionDialog({
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-destructive-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Cancelling…
@@ -71,8 +64,13 @@ export function CancelTransactionDialog({
               'Cancel Transaction'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <p>
+        Are you sure you want to cancel <strong>{transaction?.description}</strong>? The record will
+        be preserved but removed from balance calculations.
+      </p>
+    </Modal>
   )
 }

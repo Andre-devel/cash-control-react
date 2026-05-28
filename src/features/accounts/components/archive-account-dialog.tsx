@@ -1,12 +1,5 @@
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { Modal } from '@/components/ui/modal'
 import { useArchiveAccount } from '@/features/accounts/hooks/use-archive-account'
 import type { Account } from '@/features/accounts/types'
 
@@ -28,32 +21,37 @@ export function ArchiveAccountDialog({ account, open, onClose }: ArchiveAccountD
     })
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      onClose()
-    }
-  }
+  if (!open) return null
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Archive Account</DialogTitle>
-          <DialogDescription>
-            Archive <span className="font-semibold">{account?.name}</span>? The account will be
-            hidden from the default view but its history will be preserved.
-          </DialogDescription>
-        </DialogHeader>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Archive Account"
+      onClose={onClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="button" disabled={isPending} aria-busy={isPending} onClick={handleConfirm}>
+          <div className="spacer" />
+          <Button
+            type="button"
+            variant="primary"
+            disabled={isPending}
+            aria-busy={isPending}
+            onClick={handleConfirm}
+          >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Archiving…
@@ -62,8 +60,13 @@ export function ArchiveAccountDialog({ account, open, onClose }: ArchiveAccountD
               'Archive Account'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <p>
+        Archive <strong>{account?.name}</strong>? The account will be hidden from the default view
+        but its history will be preserved.
+      </p>
+    </Modal>
   )
 }

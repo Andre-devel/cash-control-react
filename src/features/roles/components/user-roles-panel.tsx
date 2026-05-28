@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { Select } from '@/components/ui/select'
+import { Modal } from '@/components/ui/modal'
 import type { Role } from '@/features/roles/types'
 import {
   useAssignRoleToUser,
@@ -42,9 +36,9 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
     onSuccess: () => setRoleToRevoke(null),
   })
 
-  function handleAssignOpenChange(open: boolean) {
-    setIsAssignOpen(open)
-    if (!open) setSelectedRoleId('')
+  function handleAssignClose() {
+    setIsAssignOpen(false)
+    setSelectedRoleId('')
   }
 
   function handleAssign() {
@@ -119,21 +113,57 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
         )}
       </div>
 
-      {/* Assign Role Dialog */}
-      <Dialog open={isAssignOpen} onOpenChange={handleAssignOpenChange}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Assign Role</DialogTitle>
-            <DialogDescription>
-              Select a role to assign to <strong>{userName}</strong>.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
+      {isAssignOpen && (
+        <Modal
+          title="Assign Role"
+          subtitle={`Select a role to assign to ${userName}.`}
+          onClose={handleAssignClose}
+          footer={
+            <>
+              <Button
+                variant="ghost"
+                className="min-h-[44px]"
+                onClick={handleAssignClose}
+                disabled={assignRole.isPending}
+              >
+                Cancel
+              </Button>
+              <div className="spacer" />
+              <Button
+                variant="primary"
+                className="min-h-[44px]"
+                onClick={handleAssign}
+                disabled={!selectedRoleId || assignRole.isPending}
+                aria-busy={assignRole.isPending}
+              >
+                {assignRole.isPending ? (
+                  <>
+                    <span
+                      className="animate-spin"
+                      style={{
+                        width: 14,
+                        height: 14,
+                        border: '2px solid currentColor',
+                        borderTopColor: 'transparent',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                      }}
+                      aria-hidden="true"
+                    />
+                    Assigning…
+                  </>
+                ) : (
+                  'Assign'
+                )}
+              </Button>
+            </>
+          }
+        >
+          <div>
             {isLoadingRoles ? (
               <p className="text-sm text-muted-foreground">Loading roles…</p>
             ) : (
-              <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              <Select
                 value={selectedRoleId}
                 onChange={(e) => setSelectedRoleId(e.target.value)}
                 aria-label="Select role"
@@ -144,81 +174,60 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
                     {role.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </div>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              className="min-h-[44px]"
-              onClick={() => handleAssignOpenChange(false)}
-              disabled={assignRole.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="min-h-[44px]"
-              onClick={handleAssign}
-              disabled={!selectedRoleId || assignRole.isPending}
-              aria-busy={assignRole.isPending}
-            >
-              {assignRole.isPending ? (
-                <>
-                  <span
-                    className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
-                    aria-hidden="true"
-                  />
-                  Assigning…
-                </>
-              ) : (
-                'Assign'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </Modal>
+      )}
 
-      {/* Revoke Role Confirmation Dialog */}
-      <Dialog open={roleToRevoke !== null} onOpenChange={(open) => !open && setRoleToRevoke(null)}>
-        <DialogContent role="alertdialog">
-          <DialogHeader>
-            <DialogTitle>Remove Role</DialogTitle>
-            <DialogDescription>
-              Remove <strong>{roleToRevoke?.name}</strong> from <strong>{userName}</strong>? This
-              action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              className="min-h-[44px]"
-              onClick={() => setRoleToRevoke(null)}
-              disabled={revokeRole.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              className="min-h-[44px]"
-              onClick={handleRevoke}
-              disabled={revokeRole.isPending}
-              aria-busy={revokeRole.isPending}
-            >
-              {revokeRole.isPending ? (
-                <>
-                  <span
-                    className="w-4 h-4 border-2 border-destructive-foreground border-t-transparent rounded-full animate-spin"
-                    aria-hidden="true"
-                  />
-                  Removing…
-                </>
-              ) : (
-                'Remove'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {roleToRevoke !== null && (
+        <Modal
+          alert
+          title="Remove Role"
+          subtitle={`Remove ${roleToRevoke.name} from ${userName}? This action cannot be undone.`}
+          onClose={() => setRoleToRevoke(null)}
+          footer={
+            <>
+              <Button
+                variant="ghost"
+                className="min-h-[44px]"
+                onClick={() => setRoleToRevoke(null)}
+                disabled={revokeRole.isPending}
+              >
+                Cancel
+              </Button>
+              <div className="spacer" />
+              <Button
+                variant="danger"
+                className="min-h-[44px]"
+                onClick={handleRevoke}
+                disabled={revokeRole.isPending}
+                aria-busy={revokeRole.isPending}
+              >
+                {revokeRole.isPending ? (
+                  <>
+                    <span
+                      className="animate-spin"
+                      style={{
+                        width: 14,
+                        height: 14,
+                        border: '2px solid currentColor',
+                        borderTopColor: 'transparent',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                      }}
+                      aria-hidden="true"
+                    />
+                    Removing…
+                  </>
+                ) : (
+                  'Remove'
+                )}
+              </Button>
+            </>
+          }
+        />
+      )}
     </>
   )
 }

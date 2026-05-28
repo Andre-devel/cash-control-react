@@ -1,23 +1,11 @@
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
+import { Select } from '@/components/ui/select'
 import {
   createTransactionSchema,
   TRANSACTION_TYPES,
@@ -28,7 +16,6 @@ import { useUpdateTransaction } from '@/features/transactions/hooks/use-update-t
 import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
-import { NativeSelect } from './transaction-form-fields'
 import type { Transaction } from '@/features/transactions/types'
 
 const TRANSACTION_TYPE_LABELS: Record<string, string> = {
@@ -100,165 +87,41 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
     )
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      onClose()
-    }
+  function handleClose() {
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit Transaction</DialogTitle>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            id="edit-transaction-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Supermarket" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 150.75" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="Type" {...field}>
-                      {TRANSACTION_TYPES.map((type) => (
-                        <option key={type} value={type}>
-                          {TRANSACTION_TYPE_LABELS[type]}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="accountId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Account</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="Account" {...field}>
-                      <option value="">Select an account</option>
-                      {accounts.map((account) => (
-                        <option key={account.id} value={account.id}>
-                          {account.name}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <FormControl>
-                    <CategoryPickerCombobox
-                      value={field.value ?? ''}
-                      onChange={field.onChange}
-                      categories={categories}
-                      description={description}
-                      aria-label="Category"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="competenceDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="Status" {...field}>
-                      {TRANSACTION_STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {TRANSACTION_STATUS_LABELS[status]}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Edit Transaction"
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="submit"
             form="edit-transaction-form"
+            variant="primary"
             disabled={isPending}
             aria-busy={isPending}
           >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Saving…
@@ -267,8 +130,74 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
               'Save Changes'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <form
+        id="edit-transaction-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+      >
+        <Field label="Description" error={form.formState.errors.description?.message}>
+          <Input placeholder="e.g. Supermarket" {...form.register('description')} />
+        </Field>
+
+        <Field label="Amount" error={form.formState.errors.amount?.message}>
+          <Input placeholder="e.g. 150.75" {...form.register('amount')} />
+        </Field>
+
+        <Field label="Type" error={form.formState.errors.type?.message}>
+          <Select aria-label="Type" {...form.register('type')}>
+            {TRANSACTION_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {TRANSACTION_TYPE_LABELS[type]}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="Account" error={form.formState.errors.accountId?.message}>
+          <Select aria-label="Account" {...form.register('accountId')}>
+            <option value="">Select an account</option>
+            {accounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Controller
+          control={form.control}
+          name="categoryId"
+          render={({ field, fieldState }) => (
+            <Field label="Category" error={fieldState.error?.message}>
+              <CategoryPickerCombobox
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                categories={categories}
+                description={description}
+                aria-label="Category"
+              />
+            </Field>
+          )}
+        />
+
+        <Field label="Date" error={form.formState.errors.competenceDate?.message}>
+          <Input type="date" {...form.register('competenceDate')} />
+        </Field>
+
+        <Field label="Status" error={form.formState.errors.status?.message}>
+          <Select aria-label="Status" {...form.register('status')}>
+            {TRANSACTION_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {TRANSACTION_STATUS_LABELS[status]}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      </form>
+    </Modal>
   )
 }

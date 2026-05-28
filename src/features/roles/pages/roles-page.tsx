@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Modal } from '@/components/ui/modal'
 import { useRoles, useCreateRole, useRolePermissions } from '@/features/roles/hooks'
 import { RoleList } from '../components/role-list'
 import { RoleForm } from '../components/role-form'
@@ -44,11 +44,9 @@ export default function RolesPage() {
     createRole.mutate({ name: values.name, description: values.description })
   }
 
-  function handleCreateOpenChange(open: boolean) {
-    setIsCreateOpen(open)
-    if (!open) {
-      setCreateNameError(undefined)
-    }
+  function handleCreateClose() {
+    setIsCreateOpen(false)
+    setCreateNameError(undefined)
   }
 
   if (isError) {
@@ -117,20 +115,17 @@ export default function RolesPage() {
         </div>
       )}
 
-      <Dialog open={isCreateOpen} onOpenChange={handleCreateOpenChange}>
-        <DialogContent aria-describedby={undefined}>
-          <DialogHeader>
-            <DialogTitle>Create Role</DialogTitle>
-          </DialogHeader>
+      {isCreateOpen && (
+        <Modal title="Create Role" onClose={handleCreateClose}>
           <RoleForm
             mode="create"
             isPending={createRole.isPending}
             onSubmit={handleCreate}
-            onCancel={() => handleCreateOpenChange(false)}
+            onCancel={handleCreateClose}
             nameError={createNameError}
           />
-        </DialogContent>
-      </Dialog>
+        </Modal>
+      )}
     </div>
   )
 }

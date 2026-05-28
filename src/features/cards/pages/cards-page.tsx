@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { useCards } from '@/features/cards/hooks/use-cards'
 import { CardTile } from '@/features/cards/components/card-tile'
 import { CreateCardDialog } from '@/features/cards/components/create-card-dialog'
@@ -16,8 +15,8 @@ function CardsSkeleton() {
       aria-label="Loading cards"
     >
       {[1, 2, 3].map((i) => (
-        <Card key={i}>
-          <CardContent className="p-4 space-y-3 animate-pulse">
+        <div key={i} className="card">
+          <div className="card-b space-y-3 animate-pulse">
             <div className="flex items-start gap-3">
               <div className="w-3 h-3 rounded-full mt-1 bg-muted" />
               <div className="space-y-1 flex-1">
@@ -34,8 +33,8 @@ function CardsSkeleton() {
                 <div key={j} className="h-7 w-14 rounded bg-muted" />
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
     </div>
   )

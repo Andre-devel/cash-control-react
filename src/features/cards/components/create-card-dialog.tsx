@@ -2,28 +2,15 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
+import { Select } from '@/components/ui/select'
 import {
   createCardSchema,
   CARD_BRANDS,
   type CreateCardFormValues,
 } from '@/features/cards/schemas/create-card.schema'
 import { useCreateCard } from '@/features/cards/hooks/use-create-card'
-import { NativeSelect } from './card-form-fields'
 
 const BRAND_LABELS: Record<string, string> = {
   VISA: 'Visa',
@@ -66,158 +53,42 @@ export function CreateCardDialog({ open, onClose }: CreateCardDialogProps) {
     })
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      form.reset(DEFAULT_VALUES)
-      onClose()
-    }
+  function handleClose() {
+    form.reset(DEFAULT_VALUES)
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create Credit Card</DialogTitle>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            id="create-card-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Nubank" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="brand"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Brand</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="Brand" {...field}>
-                      {CARD_BRANDS.map((brand) => (
-                        <option key={brand} value={brand}>
-                          {BRAND_LABELS[brand]}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="lastFourDigits"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Last Four Digits</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 1234" maxLength={4} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="creditLimit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Credit Limit</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 5000.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="billingCycleDay"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Billing Cycle Day</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={31}
-                        placeholder="e.g. 1"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 1)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="dueDay"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Due Day</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={31}
-                        placeholder="e.g. 10"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 1)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Color</FormLabel>
-                  <FormControl>
-                    <Input type="color" className="h-10 w-full cursor-pointer" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Create Credit Card"
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
-          <Button type="submit" form="create-card-form" disabled={isPending} aria-busy={isPending}>
+          <div className="spacer" />
+          <Button
+            type="submit"
+            form="create-card-form"
+            variant="primary"
+            disabled={isPending}
+            aria-busy={isPending}
+          >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Creating…
@@ -226,8 +97,63 @@ export function CreateCardDialog({ open, onClose }: CreateCardDialogProps) {
               'Create Card'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <form
+        id="create-card-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+      >
+        <Field label="Name" error={form.formState.errors.name?.message}>
+          <Input placeholder="e.g. Nubank" {...form.register('name')} />
+        </Field>
+
+        <Field label="Brand" error={form.formState.errors.brand?.message}>
+          <Select aria-label="Brand" {...form.register('brand')}>
+            {CARD_BRANDS.map((brand) => (
+              <option key={brand} value={brand}>
+                {BRAND_LABELS[brand]}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="Last Four Digits" error={form.formState.errors.lastFourDigits?.message}>
+          <Input placeholder="e.g. 1234" maxLength={4} {...form.register('lastFourDigits')} />
+        </Field>
+
+        <Field label="Credit Limit" error={form.formState.errors.creditLimit?.message}>
+          <Input placeholder="e.g. 5000.00" {...form.register('creditLimit')} />
+        </Field>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Billing Cycle Day" error={form.formState.errors.billingCycleDay?.message}>
+            <Input
+              type="number"
+              min={1}
+              max={31}
+              placeholder="e.g. 1"
+              {...form.register('billingCycleDay', { valueAsNumber: true })}
+            />
+          </Field>
+
+          <Field label="Due Day" error={form.formState.errors.dueDay?.message}>
+            <Input
+              type="number"
+              min={1}
+              max={31}
+              placeholder="e.g. 10"
+              {...form.register('dueDay', { valueAsNumber: true })}
+            />
+          </Field>
+        </div>
+
+        <Field label="Color" error={form.formState.errors.color?.message}>
+          <Input type="color" className="h-10 w-full cursor-pointer" {...form.register('color')} />
+        </Field>
+      </form>
+    </Modal>
   )
 }

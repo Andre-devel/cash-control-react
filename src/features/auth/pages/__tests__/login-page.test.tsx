@@ -191,10 +191,10 @@ describe('LoginPage — accessibility', () => {
     })
   })
 
-  it('submit button uses the lg size variant (h-11 = 44px touch target)', async () => {
+  it('submit button uses the lg size variant (44px touch target)', async () => {
     renderWithProviders(<LoginPage />)
     await screen.findByRole('heading', { name: /sign in/i })
     const button = screen.getByRole('button', { name: /sign in/i })
-    expect(button.className).toContain('h-11')
+    expect(button.className).toContain('btn-lg')
   })
 })

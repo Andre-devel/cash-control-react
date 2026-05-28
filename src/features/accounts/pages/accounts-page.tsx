@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { useUnarchiveAccount } from '@/features/accounts/hooks/use-unarchive-account'
 import { AccountCard } from '@/features/accounts/components/account-card'
@@ -20,8 +19,8 @@ function AccountsSkeleton() {
       aria-label="Loading accounts"
     >
       {[1, 2, 3].map((i) => (
-        <Card key={i}>
-          <CardContent className="p-4 space-y-3 animate-pulse">
+        <div key={i} className="card">
+          <div className="card-b space-y-3 animate-pulse">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full bg-muted" />
               <div className="space-y-1 flex-1">
@@ -35,8 +34,8 @@ function AccountsSkeleton() {
                 <div key={j} className="h-7 w-14 rounded bg-muted" />
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
     </div>
   )

@@ -1,12 +1,5 @@
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { Modal } from '@/components/ui/modal'
 import { useDeleteTransaction } from '@/features/transactions/hooks/use-delete-transaction'
 import type { Transaction } from '@/features/transactions/types'
 
@@ -32,29 +25,21 @@ export function DeleteTransactionDialog({
     })
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) onClose()
-  }
+  if (!open) return null
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Transaction</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to permanently delete{' '}
-            <span className="font-semibold">{transaction?.description}</span>? This action cannot be
-            undone.
-          </DialogDescription>
-        </DialogHeader>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Delete Transaction"
+      onClose={onClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="button"
-            variant="destructive"
+            variant="danger"
             disabled={isPending}
             aria-busy={isPending}
             onClick={handleConfirm}
@@ -62,7 +47,15 @@ export function DeleteTransactionDialog({
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-destructive-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Deleting…
@@ -71,8 +64,13 @@ export function DeleteTransactionDialog({
               'Delete Transaction'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <p>
+        Are you sure you want to permanently delete <strong>{transaction?.description}</strong>?
+        This action cannot be undone.
+      </p>
+    </Modal>
   )
 }

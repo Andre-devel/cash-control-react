@@ -3,28 +3,15 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
+import { Select } from '@/components/ui/select'
 import {
   updateAccountSchema,
   type UpdateAccountFormValues,
 } from '@/features/accounts/schemas/update-account.schema'
 import { ACCOUNT_TYPES } from '@/features/accounts/schemas/create-account.schema'
 import { useUpdateAccount } from '@/features/accounts/hooks/use-update-account'
-import { NativeSelect } from './account-form-fields'
 import type { Account } from '@/features/accounts/types'
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
@@ -82,127 +69,41 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
     )
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      onClose()
-    }
+  function handleClose() {
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit Account</DialogTitle>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            id="edit-account-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Nubank" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="Type" {...field}>
-                      {ACCOUNT_TYPES.map((type) => (
-                        <option key={type} value={type}>
-                          {ACCOUNT_TYPE_LABELS[type]}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="currency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Currency</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. BRL" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="balance"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Balance</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 1500.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Color</FormLabel>
-                  <FormControl>
-                    <Input placeholder="#4CAF50" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="icon"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Icon</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. wallet" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Edit Account"
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
-          <Button type="submit" form="edit-account-form" disabled={isPending} aria-busy={isPending}>
+          <div className="spacer" />
+          <Button
+            type="submit"
+            form="edit-account-form"
+            variant="primary"
+            disabled={isPending}
+            aria-busy={isPending}
+          >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Saving…
@@ -211,8 +112,45 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
               'Save Changes'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <form
+        id="edit-account-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+      >
+        <Field label="Name" error={form.formState.errors.name?.message}>
+          <Input placeholder="e.g. Nubank" {...form.register('name')} />
+        </Field>
+
+        <Field label="Type" error={form.formState.errors.type?.message}>
+          <Select aria-label="Type" {...form.register('type')}>
+            {ACCOUNT_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {ACCOUNT_TYPE_LABELS[type]}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="Currency" error={form.formState.errors.currency?.message}>
+          <Input placeholder="e.g. BRL" {...form.register('currency')} />
+        </Field>
+
+        <Field label="Balance" error={form.formState.errors.balance?.message}>
+          <Input placeholder="e.g. 1500.00" {...form.register('balance')} />
+        </Field>
+
+        <Field label="Color" error={form.formState.errors.color?.message}>
+          <Input placeholder="#4CAF50" {...form.register('color')} />
+        </Field>
+
+        <Field label="Icon" error={form.formState.errors.icon?.message}>
+          <Input placeholder="e.g. wallet" {...form.register('icon')} />
+        </Field>
+      </form>
+    </Modal>
   )
 }

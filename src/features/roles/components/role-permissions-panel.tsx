@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { Select } from '@/components/ui/select'
+import { Modal } from '@/components/ui/modal'
 import type { Role, Permission } from '@/features/roles/types'
 import {
   useAssignPermissionToRole,
@@ -43,9 +37,9 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
     onSuccess: () => setPermissionToRevoke(null),
   })
 
-  function handleAssignOpenChange(open: boolean) {
-    setIsAssignOpen(open)
-    if (!open) setSelectedPermissionId('')
+  function handleAssignClose() {
+    setIsAssignOpen(false)
+    setSelectedPermissionId('')
   }
 
   function handleAssign() {
@@ -133,21 +127,58 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
         )}
       </div>
 
-      {/* Assign Permission Dialog */}
-      <Dialog open={isAssignOpen} onOpenChange={handleAssignOpenChange}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Assign Permission</DialogTitle>
-            <DialogDescription>
-              Select a permission to assign to <strong>{role.name}</strong>.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
+      {isAssignOpen && (
+        <Modal
+          title="Assign Permission"
+          subtitle={`Select a permission to assign to ${role.name}.`}
+          onClose={handleAssignClose}
+          footer={
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="min-h-[44px]"
+                onClick={handleAssignClose}
+                disabled={assignPermission.isPending}
+              >
+                Cancel
+              </Button>
+              <div className="spacer" />
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleAssign}
+                disabled={!selectedPermissionId || assignPermission.isPending}
+                aria-busy={assignPermission.isPending}
+              >
+                {assignPermission.isPending ? (
+                  <>
+                    <span
+                      className="animate-spin"
+                      style={{
+                        width: 14,
+                        height: 14,
+                        border: '2px solid currentColor',
+                        borderTopColor: 'transparent',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                      }}
+                      aria-hidden="true"
+                    />
+                    Assigning…
+                  </>
+                ) : (
+                  'Assign'
+                )}
+              </Button>
+            </>
+          }
+        >
+          <div>
             {isLoadingPermissions ? (
               <p className="text-sm text-muted-foreground">Loading permissions…</p>
             ) : (
-              <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              <Select
                 value={selectedPermissionId}
                 onChange={(e) => setSelectedPermissionId(e.target.value)}
                 aria-label="Select permission"
@@ -158,85 +189,60 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
                     {permission.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </div>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="min-h-[44px]"
-              onClick={() => handleAssignOpenChange(false)}
-              disabled={assignPermission.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              size="lg"
-              onClick={handleAssign}
-              disabled={!selectedPermissionId || assignPermission.isPending}
-              aria-busy={assignPermission.isPending}
-            >
-              {assignPermission.isPending ? (
-                <>
-                  <span
-                    className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
-                    aria-hidden="true"
-                  />
-                  Assigning…
-                </>
-              ) : (
-                'Assign'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </Modal>
+      )}
 
-      {/* Revoke Permission Confirmation Dialog */}
-      <Dialog
-        open={permissionToRevoke !== null}
-        onOpenChange={(open) => !open && setPermissionToRevoke(null)}
-      >
-        <DialogContent role="alertdialog">
-          <DialogHeader>
-            <DialogTitle>Remove Permission</DialogTitle>
-            <DialogDescription>
-              Remove <strong>{permissionToRevoke?.name}</strong> from <strong>{role.name}</strong>?
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              className="min-h-[44px]"
-              onClick={() => setPermissionToRevoke(null)}
-              disabled={revokePermission.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              className="min-h-[44px]"
-              onClick={handleRevoke}
-              disabled={revokePermission.isPending}
-              aria-busy={revokePermission.isPending}
-            >
-              {revokePermission.isPending ? (
-                <>
-                  <span
-                    className="w-4 h-4 border-2 border-destructive-foreground border-t-transparent rounded-full animate-spin"
-                    aria-hidden="true"
-                  />
-                  Removing…
-                </>
-              ) : (
-                'Remove'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {permissionToRevoke !== null && (
+        <Modal
+          alert
+          title="Remove Permission"
+          subtitle={`Remove ${permissionToRevoke.name} from ${role.name}? This action cannot be undone.`}
+          onClose={() => setPermissionToRevoke(null)}
+          footer={
+            <>
+              <Button
+                variant="ghost"
+                className="min-h-[44px]"
+                onClick={() => setPermissionToRevoke(null)}
+                disabled={revokePermission.isPending}
+              >
+                Cancel
+              </Button>
+              <div className="spacer" />
+              <Button
+                variant="danger"
+                className="min-h-[44px]"
+                onClick={handleRevoke}
+                disabled={revokePermission.isPending}
+                aria-busy={revokePermission.isPending}
+              >
+                {revokePermission.isPending ? (
+                  <>
+                    <span
+                      className="animate-spin"
+                      style={{
+                        width: 14,
+                        height: 14,
+                        border: '2px solid currentColor',
+                        borderTopColor: 'transparent',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                      }}
+                      aria-hidden="true"
+                    />
+                    Removing…
+                  </>
+                ) : (
+                  'Remove'
+                )}
+              </Button>
+            </>
+          }
+        />
+      )}
     </>
   )
 }

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { useRecurrences } from '@/features/recurrences/hooks/use-recurrences'
 import { usePauseRecurrence } from '@/features/recurrences/hooks/use-pause-recurrence'
 import { useResumeRecurrence } from '@/features/recurrences/hooks/use-resume-recurrence'
@@ -18,14 +17,17 @@ function RecurrencesSkeleton() {
       aria-label="Loading recurrences"
     >
       {[1, 2, 3].map((i) => (
-        <Card key={i}>
-          <CardContent className="p-4 space-y-3 animate-pulse">
-            <div className="space-y-1">
+        <div key={i} className="card">
+          <div
+            className="card-b animate-pulse"
+            style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div className="h-4 w-40 rounded bg-muted" />
               <div className="flex gap-2">
                 <div className="h-3 w-16 rounded bg-muted" />
                 <div className="h-3 w-16 rounded bg-muted" />
-                <div className="h-3 w-12 rounded-full bg-muted" />
+                <div className="h-3 w-12 rounded bg-muted" />
               </div>
             </div>
             <div className="h-3 w-32 rounded bg-muted" />
@@ -34,8 +36,8 @@ function RecurrencesSkeleton() {
                 <div key={j} className="h-7 w-14 rounded bg-muted" />
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
     </div>
   )

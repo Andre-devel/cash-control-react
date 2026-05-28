@@ -3,22 +3,9 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
+import { Select } from '@/components/ui/select'
 import {
   createCategorizationRuleSchema,
   type CreateCategorizationRuleFormValues,
@@ -26,7 +13,6 @@ import {
 import { useCategorizationRules } from '@/features/categories/hooks/use-categorization-rules'
 import { useCreateCategorizationRule } from '@/features/categories/hooks/use-create-categorization-rule'
 import { useDeleteCategorizationRule } from '@/features/categories/hooks/use-delete-categorization-rule'
-import { NativeSelect } from '@/features/accounts/components/account-form-fields'
 import type { Category, CategorizationRule } from '@/features/categories/types'
 
 interface DeleteRuleDialogProps {
@@ -43,23 +29,21 @@ function DeleteRuleDialog({ rule, open, onClose }: DeleteRuleDialogProps) {
     deleteRule(rule.id, { onSuccess: () => onClose() })
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Rule</DialogTitle>
-          <DialogDescription>
-            Delete the auto-categorization rule for pattern{' '}
-            <span className="font-semibold">"{rule?.pattern}"</span>? This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
+    <Modal
+      title="Delete Rule"
+      onClose={onClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="button"
-            variant="destructive"
+            variant="danger"
             disabled={isPending}
             aria-busy={isPending}
             onClick={handleConfirm}
@@ -67,7 +51,15 @@ function DeleteRuleDialog({ rule, open, onClose }: DeleteRuleDialogProps) {
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-destructive-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Deleting…
@@ -76,9 +68,14 @@ function DeleteRuleDialog({ rule, open, onClose }: DeleteRuleDialogProps) {
               'Delete Rule'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <p>
+        Delete the auto-categorization rule for pattern <strong>"{rule?.pattern}"</strong>? This
+        action cannot be undone.
+      </p>
+    </Modal>
   )
 }
 
@@ -105,70 +102,42 @@ function CreateRuleDialog({ open, onClose, categories }: CreateRuleDialogProps) 
     })
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      form.reset({ pattern: '', categoryId: '' })
-      onClose()
-    }
+  function handleClose() {
+    form.reset({ pattern: '', categoryId: '' })
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create Auto-Categorization Rule</DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form
-            id="create-rule-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="pattern"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pattern</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Supermarket" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="Category" {...field}>
-                      <option value="">Select a category</option>
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Create Auto-Categorization Rule"
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
-          <Button type="submit" form="create-rule-form" disabled={isPending} aria-busy={isPending}>
+          <div className="spacer" />
+          <Button
+            type="submit"
+            form="create-rule-form"
+            variant="primary"
+            disabled={isPending}
+            aria-busy={isPending}
+          >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Creating…
@@ -177,9 +146,30 @@ function CreateRuleDialog({ open, onClose, categories }: CreateRuleDialogProps) 
               'Create Rule'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <form
+        id="create-rule-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+      >
+        <Field label="Pattern" error={form.formState.errors.pattern?.message}>
+          <Input placeholder="e.g. Supermarket" {...form.register('pattern')} />
+        </Field>
+        <Field label="Category" error={form.formState.errors.categoryId?.message}>
+          <Select aria-label="Category" {...form.register('categoryId')}>
+            <option value="">Select a category</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      </form>
+    </Modal>
   )
 }
 

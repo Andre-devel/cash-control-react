@@ -1,13 +1,6 @@
 import { useRef, useState, type ChangeEvent } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { Modal } from '@/components/ui/modal'
 import { useAttachments } from '@/features/transactions/hooks/use-attachments'
 import { useUploadAttachment } from '@/features/transactions/hooks/use-upload-attachment'
 import { useDeleteAttachment } from '@/features/transactions/hooks/use-delete-attachment'
@@ -37,32 +30,34 @@ function DeleteAttachmentDialog({
     deleteAttachment(attachment.id, { onSuccess: onClose })
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Attachment</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete{' '}
-            <span className="font-semibold">{attachment?.fileName}</span>?
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
+    <Modal
+      title="Delete Attachment"
+      onClose={onClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="button"
-            variant="destructive"
+            variant="danger"
             disabled={isPending}
             aria-busy={isPending}
             onClick={handleConfirm}
           >
             {isPending ? 'Deleting…' : 'Delete'}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <p>
+        Are you sure you want to delete <strong>{attachment?.fileName}</strong>?
+      </p>
+    </Modal>
   )
 }
 

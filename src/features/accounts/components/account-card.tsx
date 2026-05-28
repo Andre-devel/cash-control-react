@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import type { Account } from '@/features/accounts/types'
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
@@ -37,26 +36,27 @@ export function AccountCard({
   onTransfer,
 }: AccountCardProps) {
   return (
-    <Card className={account.archived ? 'opacity-60' : ''}>
-      <CardContent className="p-4 space-y-3">
+    <div
+      className={`card${account.archived ? ' opacity-60' : ''}`}
+      style={{ opacity: account.archived ? 0.6 : undefined }}
+    >
+      <div className="card-b" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-3 min-w-0">
             <div
-              className="w-3 h-3 rounded-full shrink-0"
-              style={{ backgroundColor: account.color }}
+              className="shrink-0"
+              style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: account.color }}
               aria-hidden="true"
             />
             <div className="min-w-0">
-              <p className="font-semibold text-foreground truncate">{account.name}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="fw-600 truncate">{account.name}</p>
+              <p className="text-xs text-dim">
                 {ACCOUNT_TYPE_LABELS[account.type] ?? account.type}
-                {account.archived && (
-                  <span className="ml-2 text-yellow-600 dark:text-yellow-400">(Archived)</span>
-                )}
+                {account.archived && <span className="ml-2">(Archived)</span>}
               </p>
             </div>
           </div>
-          <p className="font-mono font-semibold text-sm text-foreground shrink-0">
+          <p className="mono fw-600 text-sm shrink-0">
             {formatBalance(account.balance, account.currency)}
           </p>
         </div>
@@ -113,16 +113,16 @@ export function AccountCard({
             </Button>
           )}
           <Button
-            variant="outline"
+            variant="danger"
             size="sm"
-            className="text-xs text-destructive hover:text-destructive min-h-[44px]"
+            className="text-xs min-h-[44px]"
             onClick={() => onDelete(account)}
             aria-label={`Delete ${account.name}`}
           >
             Delete
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

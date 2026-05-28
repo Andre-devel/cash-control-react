@@ -9,7 +9,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useMonthlyChart } from '@/features/dashboard/hooks/use-monthly-chart'
 
@@ -30,26 +29,24 @@ export function MonthlyChartSection() {
   const { data, isLoading, isError, refetch } = useMonthlyChart(months)
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="text-base">Monthly Income vs Expenses</CardTitle>
-          <div className="flex gap-1" role="group" aria-label="Select number of months">
-            {MONTH_OPTIONS.map((m) => (
-              <Button
-                key={m}
-                variant={months === m ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setMonths(m)}
-                aria-pressed={months === m}
-              >
-                {m}m
-              </Button>
-            ))}
-          </div>
+    <div className="card">
+      <div className="card-h">
+        <h3>Monthly Income vs Expenses</h3>
+        <div className="flex gap-1" role="group" aria-label="Select number of months">
+          {MONTH_OPTIONS.map((m) => (
+            <Button
+              key={m}
+              variant={months === m ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMonths(m)}
+              aria-pressed={months === m}
+            >
+              {m}m
+            </Button>
+          ))}
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="card-b">
         {isLoading ? (
           <ChartSkeleton />
         ) : isError ? (
@@ -97,7 +94,7 @@ export function MonthlyChartSection() {
             </BarChart>
           </ResponsiveContainer>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

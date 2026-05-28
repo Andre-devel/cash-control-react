@@ -2,27 +2,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
+import { Select } from '@/components/ui/select'
 import {
   createTransferSchema,
   type CreateTransferFormValues,
 } from '@/features/accounts/schemas/create-transfer.schema'
 import { useCreateTransfer } from '@/features/accounts/hooks/use-create-transfer'
-import { NativeSelect } from './account-form-fields'
 import type { Account } from '@/features/accounts/types'
 
 interface CreateTransferDialogProps {
@@ -66,127 +53,42 @@ export function CreateTransferDialog({
     })
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      form.reset()
-      onClose()
-    }
+  function handleClose() {
+    form.reset()
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Transfer Between Accounts</DialogTitle>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            id="create-transfer-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="fromAccountId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>From Account</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="From Account" {...field}>
-                      <option value="">Select source account</option>
-                      {activeAccounts.map((acc) => (
-                        <option key={acc.id} value={acc.id}>
-                          {acc.name} ({acc.currency} {acc.balance})
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="toAccountId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>To Account</FormLabel>
-                  <FormControl>
-                    <NativeSelect aria-label="To Account" {...field}>
-                      <option value="">Select destination account</option>
-                      {activeAccounts.map((acc) => (
-                        <option key={acc.id} value={acc.id}>
-                          {acc.name} ({acc.currency} {acc.balance})
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 500.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description (optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Savings contribution" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Transfer Between Accounts"
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="submit"
             form="create-transfer-form"
+            variant="primary"
             disabled={isPending}
             aria-busy={isPending}
           >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Transferring…
@@ -195,8 +97,49 @@ export function CreateTransferDialog({
               'Transfer'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <form
+        id="create-transfer-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+      >
+        <Field label="From Account" error={form.formState.errors.fromAccountId?.message}>
+          <Select aria-label="From Account" {...form.register('fromAccountId')}>
+            <option value="">Select source account</option>
+            {activeAccounts.map((acc) => (
+              <option key={acc.id} value={acc.id}>
+                {acc.name} ({acc.currency} {acc.balance})
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="To Account" error={form.formState.errors.toAccountId?.message}>
+          <Select aria-label="To Account" {...form.register('toAccountId')}>
+            <option value="">Select destination account</option>
+            {activeAccounts.map((acc) => (
+              <option key={acc.id} value={acc.id}>
+                {acc.name} ({acc.currency} {acc.balance})
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="Amount" error={form.formState.errors.amount?.message}>
+          <Input placeholder="e.g. 500.00" {...form.register('amount')} />
+        </Field>
+
+        <Field label="Date" error={form.formState.errors.date?.message}>
+          <Input type="date" {...form.register('date')} />
+        </Field>
+
+        <Field label="Description (optional)" error={form.formState.errors.description?.message}>
+          <Input placeholder="e.g. Savings contribution" {...form.register('description')} />
+        </Field>
+      </form>
+    </Modal>
   )
 }

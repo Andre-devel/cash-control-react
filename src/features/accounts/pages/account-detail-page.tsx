@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAccount } from '@/features/accounts/hooks/use-account'
 import { EditAccountDialog } from '@/features/accounts/components/edit-account-dialog'
 import { AdjustBalanceDialog } from '@/features/accounts/components/adjust-balance-dialog'
@@ -91,11 +90,11 @@ export default function AccountDetailPage() {
             </div>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <div className="card">
+            <div className="card-h">
+              <h3>Account Details</h3>
+            </div>
+            <div className="card-b space-y-3">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <div>
                   <p className="text-xs text-muted-foreground">Type</p>
@@ -120,8 +119,8 @@ export default function AccountDetailPage() {
                   <p className="font-medium">{new Date(account.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           <EditAccountDialog account={account} open={editOpen} onClose={() => setEditOpen(false)} />
           <AdjustBalanceDialog

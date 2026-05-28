@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { useTransaction } from '@/features/transactions/hooks/use-transaction'
 import { AttachmentSection } from '@/features/transactions/components/attachment-section'
 import { EditTransactionDialog } from '@/features/transactions/components/edit-transaction-dialog'
@@ -110,8 +109,8 @@ export default function TransactionDetailPage() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="p-4 space-y-3">
+      <div className="card">
+        <div className="card-b space-y-3">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div>
               <p className="text-xs text-muted-foreground">Amount</p>
@@ -140,8 +139,8 @@ export default function TransactionDetailPage() {
               <p className="text-sm">{new Date(transaction.createdAt).toLocaleDateString()}</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <AttachmentSection transactionId={transaction.id} />
 

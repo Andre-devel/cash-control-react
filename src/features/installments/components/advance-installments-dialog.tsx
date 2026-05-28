@@ -3,22 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
 import { useAdvanceInstallments } from '@/features/installments/hooks/use-advance-installments'
 import type { InstallmentSeries } from '@/features/installments/types'
 
@@ -64,90 +50,42 @@ export function AdvanceInstallmentsDialog({
     )
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      form.reset({ count: 1 })
-      onClose()
-    }
+  function handleClose() {
+    form.reset({ count: 1 })
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Advance Installments</DialogTitle>
-          <DialogDescription>
-            Move upcoming installments of{' '}
-            <span className="font-semibold">{series?.description}</span> to the current period.
-          </DialogDescription>
-        </DialogHeader>
-
-        {series && (
-          <div className="rounded-md border border-border bg-muted/40 px-4 py-3 space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Remaining installments</span>
-              <span className="font-medium">{remaining}</span>
-            </div>
-            {series.nextDueDate && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Next due date</span>
-                <span className="font-medium">{series.nextDueDate}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        <Form {...form}>
-          <form
-            id="advance-installments-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="count"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Number of installments to advance</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={remaining || undefined}
-                      placeholder="e.g. 1"
-                      value={field.value ?? ''}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <p className="text-xs text-muted-foreground">
-          The selected installments will have their due dates moved to the current billing period.
-        </p>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Advance Installments"
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="submit"
             form="advance-installments-form"
+            variant="primary"
             disabled={isPending}
             aria-busy={isPending}
           >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Advancing…
@@ -156,8 +94,55 @@ export function AdvanceInstallmentsDialog({
               'Advance Installments'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <p>
+        Move upcoming installments of <strong>{series?.description}</strong> to the current period.
+      </p>
+
+      {series && (
+        <div
+          className="rounded-md border border-border bg-muted/40 px-4 py-3 space-y-1 text-sm"
+          style={{ marginTop: 12 }}
+        >
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Remaining installments</span>
+            <span className="font-medium">{remaining}</span>
+          </div>
+          {series.nextDueDate && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Next due date</span>
+              <span className="font-medium">{series.nextDueDate}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <form
+        id="advance-installments-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+        style={{ marginTop: 12 }}
+      >
+        <Field
+          label="Number of installments to advance"
+          error={form.formState.errors.count?.message}
+        >
+          <Input
+            type="number"
+            min={1}
+            max={remaining || undefined}
+            placeholder="e.g. 1"
+            {...form.register('count', { valueAsNumber: true })}
+          />
+        </Field>
+      </form>
+
+      <p className="text-xs text-muted-foreground" style={{ marginTop: 8 }}>
+        The selected installments will have their due dates moved to the current billing period.
+      </p>
+    </Modal>
   )
 }

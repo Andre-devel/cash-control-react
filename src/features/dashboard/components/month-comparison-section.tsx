@@ -9,7 +9,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useComparisonChart } from '@/features/dashboard/hooks/use-comparison-chart'
 
@@ -68,38 +67,36 @@ export function MonthComparisonSection() {
     : []
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="text-base">Month Comparison</CardTitle>
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="sr-only" htmlFor="cmp-month1">
-              Month 1
-            </label>
-            <input
-              id="cmp-month1"
-              type="month"
-              value={month1}
-              onChange={(e) => setMonth1(e.target.value)}
-              className="rounded border border-input bg-background px-2 py-1 text-xs"
-              aria-label="Month 1"
-            />
-            <span className="text-muted-foreground text-xs">vs</span>
-            <label className="sr-only" htmlFor="cmp-month2">
-              Month 2
-            </label>
-            <input
-              id="cmp-month2"
-              type="month"
-              value={month2}
-              onChange={(e) => setMonth2(e.target.value)}
-              className="rounded border border-input bg-background px-2 py-1 text-xs"
-              aria-label="Month 2"
-            />
-          </div>
+    <div className="card">
+      <div className="card-h">
+        <h3>Month Comparison</h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="sr-only" htmlFor="cmp-month1">
+            Month 1
+          </label>
+          <input
+            id="cmp-month1"
+            type="month"
+            value={month1}
+            onChange={(e) => setMonth1(e.target.value)}
+            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            aria-label="Month 1"
+          />
+          <span className="text-muted-foreground text-xs">vs</span>
+          <label className="sr-only" htmlFor="cmp-month2">
+            Month 2
+          </label>
+          <input
+            id="cmp-month2"
+            type="month"
+            value={month2}
+            onChange={(e) => setMonth2(e.target.value)}
+            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            aria-label="Month 2"
+          />
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="card-b">
         {isLoading ? (
           <ChartSkeleton />
         ) : isError ? (
@@ -160,7 +157,7 @@ export function MonthComparisonSection() {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

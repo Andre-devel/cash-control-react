@@ -3,22 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form'
+import { Modal } from '@/components/ui/modal'
+import { Field } from '@/components/ui/field'
 import { useUpdateInstallment } from '@/features/installments/hooks/use-update-installment'
 import type { InstallmentSeries } from '@/features/installments/types'
 
@@ -70,109 +56,43 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
     )
   }
 
-  function handleOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      form.reset(DEFAULT_VALUES)
-      onClose()
-    }
+  function handleClose() {
+    form.reset(DEFAULT_VALUES)
+    onClose()
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit Individual Installment</DialogTitle>
-          <DialogDescription>
-            <span className="inline-flex items-center gap-1.5 rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-              Individual override
-            </span>{' '}
-            This change applies only to a single installment, not the entire series{' '}
-            {series ? `"${series.description}"` : ''}.
-          </DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            id="edit-installment-form"
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="transactionId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Transaction ID</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Paste the transaction ID from the transactions list"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. New laptop — installment 3" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 300.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Due Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+    <Modal
+      title="Edit Individual Installment"
+      subtitle={`Individual override — applies only to this installment, not the entire series${series ? ` "${series.description}"` : ''}.`}
+      onClose={handleClose}
+      footer={
+        <>
+          <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
+          <div className="spacer" />
           <Button
             type="submit"
             form="edit-installment-form"
+            variant="primary"
             disabled={isPending}
             aria-busy={isPending}
           >
             {isPending ? (
               <>
                 <span
-                  className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"
+                  className="animate-spin"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                  }}
                   aria-hidden="true"
                 />
                 Saving…
@@ -181,8 +101,34 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
               'Save Installment'
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <form
+        id="edit-installment-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="col gap-4"
+      >
+        <Field label="Transaction ID" error={form.formState.errors.transactionId?.message}>
+          <Input
+            placeholder="Paste the transaction ID from the transactions list"
+            {...form.register('transactionId')}
+          />
+        </Field>
+
+        <Field label="Description" error={form.formState.errors.description?.message}>
+          <Input placeholder="e.g. New laptop — installment 3" {...form.register('description')} />
+        </Field>
+
+        <Field label="Amount" error={form.formState.errors.amount?.message}>
+          <Input placeholder="e.g. 300.00" {...form.register('amount')} />
+        </Field>
+
+        <Field label="Due Date" error={form.formState.errors.dueDate?.message}>
+          <Input type="date" {...form.register('dueDate')} />
+        </Field>
+      </form>
+    </Modal>
   )
 }

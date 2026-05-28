@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useCategoriesChart } from '@/features/dashboard/hooks/use-categories-chart'
 
@@ -42,38 +41,36 @@ export function CategoriesChartSection() {
   const { data, isLoading, isError, refetch } = useCategoriesChart({ from, to })
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="text-base">Spending by Category</CardTitle>
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <label className="sr-only" htmlFor="cat-from">
-              From
-            </label>
-            <input
-              id="cat-from"
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="rounded border border-input bg-background px-2 py-1 text-xs"
-              aria-label="From date"
-            />
-            <span className="text-muted-foreground">–</span>
-            <label className="sr-only" htmlFor="cat-to">
-              To
-            </label>
-            <input
-              id="cat-to"
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="rounded border border-input bg-background px-2 py-1 text-xs"
-              aria-label="To date"
-            />
-          </div>
+    <div className="card">
+      <div className="card-h">
+        <h3>Spending by Category</h3>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <label className="sr-only" htmlFor="cat-from">
+            From
+          </label>
+          <input
+            id="cat-from"
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            aria-label="From date"
+          />
+          <span className="text-muted-foreground">–</span>
+          <label className="sr-only" htmlFor="cat-to">
+            To
+          </label>
+          <input
+            id="cat-to"
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            aria-label="To date"
+          />
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="card-b">
         {isLoading ? (
           <ChartSkeleton />
         ) : isError ? (
@@ -123,7 +120,7 @@ export function CategoriesChartSection() {
             </PieChart>
           </ResponsiveContainer>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

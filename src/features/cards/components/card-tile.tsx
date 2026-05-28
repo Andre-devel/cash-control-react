@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Link } from 'react-router-dom'
 import { ROUTES } from '@/app/router/routes'
 import type { Card as CreditCard } from '@/features/cards/types'
@@ -30,8 +29,8 @@ interface CardTileProps {
 
 export function CardTile({ card, onEdit, onArchive }: CardTileProps) {
   return (
-    <Card>
-      <CardContent className="p-4 space-y-3">
+    <div className="card">
+      <div className="card-b space-y-3">
         <div className="flex items-start gap-3">
           <div
             className="w-3 h-3 rounded-full mt-1 shrink-0"
@@ -92,7 +91,7 @@ export function CardTile({ card, onEdit, onArchive }: CardTileProps) {
             </Button>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
