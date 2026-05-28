@@ -7,11 +7,11 @@ import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
 import {
-  createRecurrenceSchema,
+  updateRecurrenceSchema,
   RECURRENCE_FREQUENCIES,
   RECURRENCE_TYPES,
-  type CreateRecurrenceFormValues,
-} from '@/features/recurrences/schemas/create-recurrence.schema'
+  type UpdateRecurrenceFormValues,
+} from '@/features/recurrences/schemas/update-recurrence.schema'
 import { useUpdateRecurrence } from '@/features/recurrences/hooks/use-update-recurrence'
 import type { Recurrence } from '@/features/recurrences/types'
 
@@ -39,8 +39,8 @@ interface EditRecurrenceDialogProps {
 export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurrenceDialogProps) {
   const { mutate: updateRecurrence, isPending } = useUpdateRecurrence()
 
-  const form = useForm<CreateRecurrenceFormValues>({
-    resolver: zodResolver(createRecurrenceSchema),
+  const form = useForm<UpdateRecurrenceFormValues>({
+    resolver: zodResolver(updateRecurrenceSchema),
     defaultValues: {
       description: '',
       amount: '0.00',
@@ -49,6 +49,7 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
       accountId: '',
       categoryId: '',
       startDate: '',
+      endDate: '',
     },
   })
 
@@ -62,15 +63,17 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
         accountId: recurrence.accountId,
         categoryId: recurrence.categoryId ?? '',
         startDate: recurrence.startDate,
+        endDate: recurrence.endDate ?? '',
       })
     }
   }, [recurrence, form])
 
-  function onSubmit(data: CreateRecurrenceFormValues) {
+  function onSubmit(data: UpdateRecurrenceFormValues) {
     if (!recurrence) return
     const payload = {
       ...data,
       categoryId: data.categoryId || undefined,
+      endDate: data.endDate || undefined,
     }
     updateRecurrence(
       { id: recurrence.id, data: payload },
@@ -172,6 +175,10 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
 
         <Field label="Start Date" error={form.formState.errors.startDate?.message}>
           <Input type="date" {...form.register('startDate')} />
+        </Field>
+
+        <Field label="End Date (optional)" error={form.formState.errors.endDate?.message}>
+          <Input type="date" {...form.register('endDate')} />
         </Field>
       </form>
     </Modal>

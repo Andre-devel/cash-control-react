@@ -24,6 +24,7 @@ export const createRecurrenceSchema = z.object({
   accountId: z.string().min(1, 'Account is required'),
   categoryId: z.string().optional(),
   startDate: z.string().min(1, 'Start date is required'),
+  endDate: z.string().optional(),
 })
 
 export type CreateRecurrenceFormValues = z.infer<typeof createRecurrenceSchema>

@@ -26,6 +26,7 @@ export const MOCK_RECURRENCE_2: Recurrence = {
   startDate: '2026-01-01',
   nextExecutionDate: '2026-06-10',
   status: 'PAUSED',
+  pausedUntil: '2026-07-01',
   createdAt: '2026-01-01T00:00:00Z',
 }
 
@@ -79,16 +80,25 @@ export const recurrencesHandlers = [
     return HttpResponse.json(updated)
   }),
 
-  http.post('*/recurrences/:id/pause', ({ params }) => {
+  http.post('*/recurrences/:id/pause', async ({ params, request }) => {
+    let pausedUntil: string | undefined
+    try {
+      const body = (await request.json()) as { pausedUntil?: string }
+      pausedUntil = body.pausedUntil
+    } catch {
+      // body is optional
+    }
     recurrencesStore = recurrencesStore.map((r) =>
-      r.id === params.id ? { ...r, status: 'PAUSED' as const } : r,
+      r.id === params.id
+        ? { ...r, status: 'PAUSED' as const, ...(pausedUntil ? { pausedUntil } : {}) }
+        : r,
     )
     return new HttpResponse(null, { status: 204 })
   }),
 
   http.post('*/recurrences/:id/resume', ({ params }) => {
     recurrencesStore = recurrencesStore.map((r) =>
-      r.id === params.id ? { ...r, status: 'ACTIVE' as const } : r,
+      r.id === params.id ? { ...r, status: 'ACTIVE' as const, pausedUntil: undefined } : r,
     )
     return new HttpResponse(null, { status: 204 })
   }),

@@ -23,6 +23,8 @@ export interface Recurrence {
   startDate: string
   nextExecutionDate: string | null
   status: RecurrenceStatus
+  pausedUntil?: string
+  endDate?: string
   createdAt: string
 }
 
@@ -34,9 +36,23 @@ export interface CreateRecurrenceRequest {
   accountId: string
   categoryId?: string
   startDate: string
+  endDate?: string
 }
 
-export type UpdateRecurrenceRequest = CreateRecurrenceRequest
+export interface UpdateRecurrenceRequest {
+  description: string
+  amount: string
+  frequency: RecurrenceFrequency
+  type: RecurrenceType
+  accountId: string
+  categoryId?: string
+  startDate: string
+  endDate?: string
+}
+
+export interface PauseRecurrenceRequest {
+  pausedUntil?: string
+}
 
 export interface DeleteRecurrenceParams {
   id: string

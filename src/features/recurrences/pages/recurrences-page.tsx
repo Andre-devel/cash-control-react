@@ -59,7 +59,7 @@ export default function RecurrencesPage() {
   const [deleteTarget, setDeleteTarget] = useState<Recurrence | null>(null)
 
   function handlePause(recurrence: Recurrence) {
-    pauseRecurrence(recurrence.id)
+    pauseRecurrence({ id: recurrence.id })
   }
 
   function handleResume(recurrence: Recurrence) {

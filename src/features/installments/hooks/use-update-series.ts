@@ -3,12 +3,12 @@ import { updateSeries } from '@/features/installments/api/installments.api'
 import { toast } from '@/lib/toast'
 import { INSTALLMENTS_QUERY_KEY } from './use-installment-series'
 import { TRANSACTIONS_QUERY_KEY } from '@/features/transactions/hooks/use-transactions'
-import type { UpdateSeriesRequest, InstallmentSeries } from '@/features/installments/types'
+import type { EditSeriesRequest, InstallmentSeries } from '@/features/installments/types'
 import type { NormalizedError } from '@/features/auth/types'
 
 interface UpdateSeriesVariables {
   seriesId: string
-  data: UpdateSeriesRequest
+  data: EditSeriesRequest
 }
 
 export function useUpdateSeries() {

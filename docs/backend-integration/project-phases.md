@@ -389,13 +389,13 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
   - `newAmount?: string` — optional new amount per installment
 
 **Implementation Tasks:**
-- [ ] Replace `AdvanceInstallmentsRequest = { seriesId, count }` with `{ transactionIds: string[], newDate: string, newAmount?: string }` in `installments/types/index.ts`
-- [ ] Update `advanceInstallments()` call in `installments.api.ts`
-- [ ] Update the advance installment UI to select individual installments (checkboxes) and pick a new date, instead of a count input
+- [x] Replace `AdvanceInstallmentsRequest = { seriesId, count }` with `{ transactionIds: string[], newDate: string, newAmount?: string }` in `installments/types/index.ts`
+- [x] Update `advanceInstallments()` call in `installments.api.ts`
+- [x] Update the advance installment UI to select individual installments (checkboxes) and pick a new date, instead of a count input
 
 **Acceptance Criteria:**
-- [ ] Advancing 2 specific installments sends `{ transactionIds: [uuid1, uuid2], newDate: "2026-06-01" }`
-- [ ] The backend returns the updated `TransactionDetailResponse[]` for each advanced installment
+- [x] Advancing 2 specific installments sends `{ transactionIds: [uuid1, uuid2], newDate: "2026-06-01" }`
+- [x] The backend returns the updated `TransactionDetailResponse[]` for each advanced installment
 
 ---
 
@@ -405,14 +405,14 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `InstallmentSeriesDetailResponse` likely includes: `id`, `description`, `amount` (per installment), `totalAmount`, `installmentCount`, `paidCount`, `remainingCount`, `accountId`, `categoryId`, `firstDueDate`, `status`, `transactions: TransactionDetailResponse[]`
 
 **Implementation Tasks:**
-- [ ] Add `GET /api/v1/installments/series/{seriesId}` to `installments.api.ts` if not present
-- [ ] Add list endpoint: `GET /api/v1/installments` (list all active series for the user) to `installments.api.ts`
-- [ ] Align `InstallmentSeries` type fields — verify `amount` is per-installment vs. total; add `remainingCount`
-- [ ] Update `UpdateSeriesRequest` → `EditSeriesRequest` (rename to match backend); include `description`, `notes`, `categoryId`, `accountId`
+- [x] Add `GET /api/v1/installments/series/{seriesId}` to `installments.api.ts` if not present
+- [x] Add list endpoint: `GET /api/v1/installments` (list all active series for the user) to `installments.api.ts`
+- [x] Align `InstallmentSeries` type fields — verify `amount` is per-installment vs. total; add `remainingCount`
+- [x] Update `UpdateSeriesRequest` → `EditSeriesRequest` (rename to match backend); include `description`, `notes`, `categoryId`, `accountId`
 
 **Acceptance Criteria:**
-- [ ] Installment series page lists all active series
-- [ ] Series detail shows per-installment amount, total, and remaining count
+- [x] Installment series page lists all active series
+- [x] Series detail shows per-installment amount, total, and remaining count
 
 ---
 
@@ -422,15 +422,15 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `RecurrenceRuleResponse` likely includes: `id`, `description`, `amount`, `type`, `frequency`, `accountId`, `categoryId`, `startDate`, `nextExecutionDate`, `status`, `pausedUntil`, `endDate`, `createdAt`
 
 **Implementation Tasks:**
-- [ ] Remove `'ADJUSTMENT'` from `RecurrenceType`
-- [ ] Add `pausedUntil?: string` and `endDate?: string` to `Recurrence` type
-- [ ] Update `CreateRecurrenceRequest` to include optional `endDate?: string`
-- [ ] Update `UpdateRecurrenceRequest` to be a partial of the editable fields (not a full copy of create)
-- [ ] Verify `pauseRecurrence` API function sends `{ pausedUntil?: string }` in body (backend `PauseRecurrenceRequest` is optional)
+- [x] Remove `'ADJUSTMENT'` from `RecurrenceType`
+- [x] Add `pausedUntil?: string` and `endDate?: string` to `Recurrence` type
+- [x] Update `CreateRecurrenceRequest` to include optional `endDate?: string`
+- [x] Update `UpdateRecurrenceRequest` to be a partial of the editable fields (not a full copy of create)
+- [x] Verify `pauseRecurrence` API function sends `{ pausedUntil?: string }` in body (backend `PauseRecurrenceRequest` is optional)
 
 **Acceptance Criteria:**
-- [ ] Recurrence list renders `pausedUntil` date when rule is paused
-- [ ] TypeScript rejects `type: 'ADJUSTMENT'` on `CreateRecurrenceRequest`
+- [x] Recurrence list renders `pausedUntil` date when rule is paused
+- [x] TypeScript rejects `type: 'ADJUSTMENT'` on `CreateRecurrenceRequest`
 
 ---
 
@@ -589,7 +589,7 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - [x] Transaction type: `ADJUSTMENT` value rejected by TypeScript; `TRANSFER` renders correctly
 - [x] Attachment upload: `files` field name; returns array; single file upload handled
 - [x] Category picker: renders root + subcategory tree; system categories not editable
-- [ ] Advance installments: sends `{ transactionIds[], newDate }` not `{ seriesId, count }`
+- [x] Advance installments: sends `{ transactionIds[], newDate }` not `{ seriesId, count }`
 - [ ] 409 conflict on duplicate name: inline form error, not generic toast
 - [ ] 422 business rule violation: form-level error, not toast
 - [ ] Error toast for 5xx: shows `Ref: <correlationId>`

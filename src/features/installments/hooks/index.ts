@@ -1,4 +1,5 @@
 export * from './use-installment-series'
+export * from './use-installment-series-detail'
 export * from './use-create-installment'
 export * from './use-update-series'
 export * from './use-update-installment'

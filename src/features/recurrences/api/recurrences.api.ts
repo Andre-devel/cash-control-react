@@ -3,6 +3,7 @@ import type {
   Recurrence,
   CreateRecurrenceRequest,
   UpdateRecurrenceRequest,
+  PauseRecurrenceRequest,
   DeleteRecurrenceStrategy,
 } from '@/features/recurrences/types'
 
@@ -29,8 +30,8 @@ export async function updateRecurrence(
   return response.data
 }
 
-export async function pauseRecurrence(id: string): Promise<void> {
-  await axiosInstance.post(`/recurrences/${id}/pause`)
+export async function pauseRecurrence(id: string, body?: PauseRecurrenceRequest): Promise<void> {
+  await axiosInstance.post(`/recurrences/${id}/pause`, body ?? {})
 }
 
 export async function resumeRecurrence(id: string): Promise<void> {

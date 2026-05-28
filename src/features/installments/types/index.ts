@@ -1,5 +1,15 @@
 export type InstallmentType = 'EXPENSE' | 'INCOME'
 export type InstallmentSeriesStatus = 'ACTIVE' | 'SETTLED'
+export type InstallmentTransactionStatus = 'PENDING' | 'PAID' | 'OVERDUE'
+
+export interface InstallmentTransaction {
+  id: string
+  description: string
+  amount: string
+  dueDate: string
+  status: InstallmentTransactionStatus
+  installmentNumber: number
+}
 
 export interface InstallmentSeries {
   id: string
@@ -8,6 +18,7 @@ export interface InstallmentSeries {
   installmentCount: number
   paidCount: number
   remainingAmount: string
+  remainingCount?: number
   accountId: string
   categoryId: string | null
   firstDueDate: string
@@ -15,6 +26,13 @@ export interface InstallmentSeries {
   type: InstallmentType
   status: InstallmentSeriesStatus
   createdAt: string
+}
+
+export interface InstallmentSeriesDetail extends InstallmentSeries {
+  amount: string
+  remainingCount: number
+  notes?: string
+  transactions: InstallmentTransaction[]
 }
 
 export interface CreateInstallmentSeriesRequest {
@@ -27,10 +45,11 @@ export interface CreateInstallmentSeriesRequest {
   type: InstallmentType
 }
 
-export interface UpdateSeriesRequest {
+export interface EditSeriesRequest {
   description: string
   accountId: string
   categoryId?: string
+  notes?: string
 }
 
 export interface UpdateInstallmentRequest {
@@ -40,6 +59,7 @@ export interface UpdateInstallmentRequest {
 }
 
 export interface AdvanceInstallmentsRequest {
-  seriesId: string
-  count: number
+  transactionIds: string[]
+  newDate: string
+  newAmount?: string
 }

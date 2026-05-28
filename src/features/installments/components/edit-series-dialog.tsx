@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import {
   updateSeriesSchema,
   type UpdateSeriesFormValues,
@@ -29,7 +30,7 @@ export function EditSeriesDialog({ series, open, onClose }: EditSeriesDialogProp
 
   const form = useForm<UpdateSeriesFormValues>({
     resolver: zodResolver(updateSeriesSchema),
-    defaultValues: { description: '', accountId: '', categoryId: '' },
+    defaultValues: { description: '', accountId: '', categoryId: '', notes: '' },
   })
 
   const description = form.watch('description')
@@ -40,13 +41,18 @@ export function EditSeriesDialog({ series, open, onClose }: EditSeriesDialogProp
         description: series.description,
         accountId: series.accountId,
         categoryId: series.categoryId ?? '',
+        notes: '',
       })
     }
   }, [series, form])
 
   function onSubmit(data: UpdateSeriesFormValues) {
     if (!series) return
-    const payload = { ...data, categoryId: data.categoryId || undefined }
+    const payload = {
+      ...data,
+      categoryId: data.categoryId || undefined,
+      notes: data.notes || undefined,
+    }
     updateSeries({ seriesId: series.id, data: payload }, { onSuccess: () => onClose() })
   }
 
@@ -133,6 +139,14 @@ export function EditSeriesDialog({ series, open, onClose }: EditSeriesDialogProp
             </Field>
           )}
         />
+
+        <Field label="Notes (optional)" error={form.formState.errors.notes?.message}>
+          <Textarea
+            placeholder="Any notes about this series…"
+            rows={3}
+            {...form.register('notes')}
+          />
+        </Field>
       </form>
     </Modal>
   )

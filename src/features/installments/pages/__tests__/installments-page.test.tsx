@@ -7,6 +7,7 @@ import { renderWithProviders } from '@/test/utils'
 import {
   MOCK_SERIES_1,
   MOCK_SERIES_2,
+  MOCK_TRANSACTIONS_SERIES_1,
   resetInstallmentsStore,
 } from '@/test/handlers/installments.handlers'
 import InstallmentsPage from '../installments-page'
@@ -265,6 +266,84 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /advance installments/i })).toBeTruthy()
+  })
+
+  it('advance dialog loads pending installments as checkboxes', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<InstallmentsPage />)
+
+    await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
+
+    const advanceButtons = screen.getAllByRole('button', { name: /^advance/i })
+    await user.click(advanceButtons[0])
+
+    await waitFor(() => screen.getByRole('dialog'))
+
+    const pendingTransactions = MOCK_TRANSACTIONS_SERIES_1.filter((t) => t.status === 'PENDING')
+    await waitFor(() => {
+      const checkboxes = screen.getAllByRole('checkbox')
+      expect(checkboxes.length).toBe(pendingTransactions.length)
+    })
+  })
+
+  it('advance dialog has new due date input', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<InstallmentsPage />)
+
+    await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
+
+    const advanceButtons = screen.getAllByRole('button', { name: /^advance/i })
+    await user.click(advanceButtons[0])
+
+    await waitFor(() => screen.getByRole('dialog'))
+
+    await waitFor(() => expect(screen.getByLabelText(/new due date/i)).toBeTruthy())
+  })
+
+  it('advance dialog submits with selected transactionIds and newDate', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<InstallmentsPage />)
+
+    await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
+
+    const advanceButtons = screen.getAllByRole('button', { name: /^advance/i })
+    await user.click(advanceButtons[0])
+
+    await waitFor(() => screen.getByRole('dialog'))
+
+    await waitFor(() => {
+      const checkboxes = screen.getAllByRole('checkbox')
+      expect(checkboxes.length).toBeGreaterThan(0)
+    })
+
+    const checkboxes = screen.getAllByRole('checkbox')
+    await user.click(checkboxes[0])
+
+    const dateInput = screen.getByLabelText(/new due date/i)
+    await user.type(dateInput, '2026-07-01')
+
+    await user.click(screen.getByRole('button', { name: /advance installments/i }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('advance dialog shows validation error when no installments are selected', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<InstallmentsPage />)
+
+    await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
+
+    const advanceButtons = screen.getAllByRole('button', { name: /^advance/i })
+    await user.click(advanceButtons[0])
+
+    await waitFor(() => screen.getByRole('dialog'))
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toBeGreaterThan(0)
+    })
+
+    await user.click(screen.getByRole('button', { name: /advance installments/i }))
+
+    await waitFor(() => expect(screen.getByText(/select at least one installment/i)).toBeTruthy())
   })
 
   it('Nova série button uses primary design system style', async () => {

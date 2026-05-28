@@ -70,6 +70,13 @@ export function RecurrenceCard({
           Próxima execução: {formatDate(recurrence.nextExecutionDate)}
         </p>
 
+        {isPaused && recurrence.pausedUntil && (
+          <p className="text-xs text-dim">
+            Pausado até:{' '}
+            <span className="fw-500">{new Date(recurrence.pausedUntil).toLocaleDateString()}</span>
+          </p>
+        )}
+
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
           <Button
             variant="ghost"

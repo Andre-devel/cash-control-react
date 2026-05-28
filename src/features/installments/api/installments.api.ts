@@ -1,14 +1,29 @@
 import { axiosInstance } from '@/services/http'
 import type {
   InstallmentSeries,
+  InstallmentSeriesDetail,
   CreateInstallmentSeriesRequest,
-  UpdateSeriesRequest,
+  EditSeriesRequest,
   UpdateInstallmentRequest,
   AdvanceInstallmentsRequest,
 } from '@/features/installments/types'
 
+export async function listInstallments(): Promise<InstallmentSeries[]> {
+  const response = await axiosInstance.get<InstallmentSeries[]>('/installments')
+  return response.data
+}
+
 export async function listInstallmentSeries(): Promise<InstallmentSeries[]> {
   const response = await axiosInstance.get<InstallmentSeries[]>('/installments/series')
+  return response.data
+}
+
+export async function getInstallmentSeriesDetail(
+  seriesId: string,
+): Promise<InstallmentSeriesDetail> {
+  const response = await axiosInstance.get<InstallmentSeriesDetail>(
+    `/installments/series/${seriesId}`,
+  )
   return response.data
 }
 
@@ -21,7 +36,7 @@ export async function createInstallmentSeries(
 
 export async function updateSeries(
   seriesId: string,
-  data: UpdateSeriesRequest,
+  data: EditSeriesRequest,
 ): Promise<InstallmentSeries> {
   const response = await axiosInstance.put<InstallmentSeries>(
     `/installments/series/${seriesId}`,
