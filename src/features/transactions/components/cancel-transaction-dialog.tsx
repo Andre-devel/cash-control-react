@@ -29,12 +29,12 @@ export function CancelTransactionDialog({
 
   return (
     <Modal
-      title="Cancel Transaction"
+      title="Cancelar transação"
       onClose={onClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={onClose}>
-            Keep Transaction
+            Manter transação
           </Button>
           <div className="spacer" />
           <Button
@@ -58,18 +58,18 @@ export function CancelTransactionDialog({
                   }}
                   aria-hidden="true"
                 />
-                Cancelling…
+                Cancelando…
               </>
             ) : (
-              'Cancel Transaction'
+              'Confirmar cancelamento'
             )}
           </Button>
         </>
       }
     >
       <p>
-        Are you sure you want to cancel <strong>{transaction?.description}</strong>? The record will
-        be preserved but removed from balance calculations.
+        Tem certeza que deseja cancelar <strong>{transaction?.description}</strong>? O registro será
+        preservado mas removido dos cálculos de saldo.
       </p>
     </Modal>
   )

@@ -17,16 +17,16 @@ import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 
 const TRANSACTION_TYPE_LABELS: Record<string, string> = {
-  INCOME: 'Income',
-  EXPENSE: 'Expense',
-  REFUND: 'Refund',
-  ADJUSTMENT: 'Adjustment',
+  INCOME: 'Receita',
+  EXPENSE: 'Despesa',
+  REFUND: 'Reembolso',
+  ADJUSTMENT: 'Ajuste',
 }
 
 const TRANSACTION_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Pending',
-  PAID: 'Paid',
-  CANCELLED: 'Cancelled',
+  PENDING: 'Pendente',
+  PAID: 'Pago',
+  CANCELLED: 'Cancelado',
 }
 
 const DEFAULT_VALUES: CreateTransactionFormValues = {
@@ -78,12 +78,14 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
 
   return (
     <Modal
-      title="Create Transaction"
+      title="Nova transação"
+      subtitle="Registre uma receita, despesa, reembolso ou ajuste"
       onClose={handleClose}
+      wide
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -107,10 +109,10 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
                   }}
                   aria-hidden="true"
                 />
-                Creating…
+                Criando…
               </>
             ) : (
-              'Create Transaction'
+              'Criar transação'
             )}
           </Button>
         </>
@@ -122,16 +124,19 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
         noValidate
         className="col gap-4"
       >
-        <Field label="Description" error={form.formState.errors.description?.message}>
-          <Input placeholder="e.g. Supermarket" {...form.register('description')} />
+        <Field label="Descrição" required error={form.formState.errors.description?.message}>
+          <Input
+            placeholder="Ex: Supermercado, salário, aluguel…"
+            {...form.register('description')}
+          />
         </Field>
 
-        <Field label="Amount" error={form.formState.errors.amount?.message}>
-          <Input placeholder="e.g. 150.75" {...form.register('amount')} />
+        <Field label="Valor" required error={form.formState.errors.amount?.message}>
+          <Input placeholder="Ex: 150.75" {...form.register('amount')} />
         </Field>
 
-        <Field label="Type" error={form.formState.errors.type?.message}>
-          <Select aria-label="Type" {...form.register('type')}>
+        <Field label="Tipo" error={form.formState.errors.type?.message}>
+          <Select aria-label="Tipo" {...form.register('type')}>
             {TRANSACTION_TYPES.map((type) => (
               <option key={type} value={type}>
                 {TRANSACTION_TYPE_LABELS[type]}
@@ -140,9 +145,9 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
           </Select>
         </Field>
 
-        <Field label="Account" error={form.formState.errors.accountId?.message}>
-          <Select aria-label="Account" {...form.register('accountId')}>
-            <option value="">Select an account</option>
+        <Field label="Conta" required error={form.formState.errors.accountId?.message}>
+          <Select aria-label="Conta" {...form.register('accountId')}>
+            <option value="">Selecionar conta</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>
                 {account.name}
@@ -155,19 +160,23 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
           control={form.control}
           name="categoryId"
           render={({ field, fieldState }) => (
-            <Field label="Category" error={fieldState.error?.message}>
+            <Field label="Categoria" error={fieldState.error?.message}>
               <CategoryPickerCombobox
                 value={field.value ?? ''}
                 onChange={field.onChange}
                 categories={categories}
                 description={description}
-                aria-label="Category"
+                aria-label="Categoria"
               />
             </Field>
           )}
         />
 
-        <Field label="Date" error={form.formState.errors.competenceDate?.message}>
+        <Field
+          label="Data de competência"
+          required
+          error={form.formState.errors.competenceDate?.message}
+        >
           <Input type="date" {...form.register('competenceDate')} />
         </Field>
 

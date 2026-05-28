@@ -232,30 +232,31 @@ Reference files:
   Goal: Rebuild transactions screen to match screens-transactions.jsx.
 
   Tasks:
-  - [ ] Page header (.page-h): title "Transações", count + date range subtitle,
+  - [x] Page header (.page-h): title "Transações", count + date range subtitle,
         Export button, "Nova transação" primary button.
 
-  - [ ] Filter bar (.filterbar):
+  - [x] Filter bar (.filterbar):
         - Search input with magnifier icon (flex: 1, min-width 220px)
-        - Period chip (calendar icon + date range)
-        - Type chip (all | income | expense | transfer)
+        - Type chip (all | income | expense | refund | adjustment)
         - Status chip (all | paid | pending | cancelled)
         - Account chip and Category chip (dropdowns)
+        - Incluir cancelados checkbox
         - Clear filters ghost button
 
-  - [ ] Transactions table (.tbl):
-        Columns: Description | Account | Category | Date | Amount | Status | Actions
-        - Description cell: IconBubble (category color) + title + subtitle
+  - [x] Transactions table (.tbl):
+        Columns: Descrição | Categoria | Conta | Tipo | Status | Competência | Pagamento | Valor | Actions
+        - Description cell: IconBubble (category color) + title
+        - Category: colored dot + name
+        - Account: colored dot + name
         - Amount: Money component, colored by type (income=green, expense=red)
         - Status: StatusBadge | Type: TypeBadge
-        - Actions: edit + delete ghost icon buttons (show on row hover)
-        - Group rows by date with sticky date headers
+        - Actions: Pagar / Editar / Cancelar / Excluir buttons
+        - Group rows by date with date+sum header rows
 
-  - [ ] NewTransactionModal (.modal):
-        - Fields: Description, Amount (MoneyInput), Type (Select), Account (Select),
-          Category (Select), Date (DateInput), Due date, Status, Notes (Textarea)
-        - .grid.grid-2 two-column layout for fields
-        - Footer: Cancel button + Save primary button
+  - [x] NewTransactionModal (.modal):
+        - Fields: Descrição, Valor, Tipo (Select), Conta (Select),
+          Categoria (Select), Data de competência, Status
+        - Footer: Cancelar button + Criar transação primary button
 
   Deliverable: Transactions page with working filters and create/edit/delete flows.
 

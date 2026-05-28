@@ -29,12 +29,12 @@ export function DeleteTransactionDialog({
 
   return (
     <Modal
-      title="Delete Transaction"
+      title="Excluir transação"
       onClose={onClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -58,18 +58,18 @@ export function DeleteTransactionDialog({
                   }}
                   aria-hidden="true"
                 />
-                Deleting…
+                Excluindo…
               </>
             ) : (
-              'Delete Transaction'
+              'Excluir transação'
             )}
           </Button>
         </>
       }
     >
       <p>
-        Are you sure you want to permanently delete <strong>{transaction?.description}</strong>?
-        This action cannot be undone.
+        Tem certeza que deseja excluir permanentemente <strong>{transaction?.description}</strong>?
+        Esta ação não pode ser desfeita.
       </p>
     </Modal>
   )
