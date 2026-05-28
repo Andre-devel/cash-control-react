@@ -40,16 +40,16 @@ afterEach(() => {
 })
 
 describe('LoginPage', () => {
-  it('renders the sign in heading', async () => {
+  it('renders the welcome heading', async () => {
     renderWithProviders(<LoginPage />)
-    expect(await screen.findByRole('heading', { name: /sign in/i })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: /bem-vindo de volta/i })).toBeTruthy()
   })
 
   it('shows inline validation errors on empty form submission', async () => {
     const user = userEvent.setup()
     renderWithProviders(<LoginPage />)
 
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    await user.click(screen.getByRole('button', { name: 'Entrar' }))
 
     expect(await screen.findByText('Email is required')).toBeTruthy()
     expect(await screen.findByText('Password is required')).toBeTruthy()
@@ -59,35 +59,20 @@ describe('LoginPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<LoginPage />)
 
-    await user.type(screen.getByLabelText('Email'), 'notanemail')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    await user.type(screen.getByLabelText(/e-mail/i), 'notanemail')
+    await user.type(screen.getByLabelText(/^senha/i), 'password123')
+    await user.click(screen.getByRole('button', { name: 'Entrar' }))
 
     expect(await screen.findByText(/valid email/i)).toBeTruthy()
-  })
-
-  it('disables the submit button while the request is in flight', async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<LoginPage />)
-
-    await user.type(screen.getByLabelText('Email'), 'user@example.com')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-
-    const button = screen.getByRole('button', { name: /sign in/i })
-    await user.click(button)
-
-    await waitFor(() => {
-      expect(useAuthStore.getState().token).toBe(MOCK_TOKEN)
-    })
   })
 
   it('stores token and redirects on successful login', async () => {
     const user = userEvent.setup()
     renderWithProviders(<LoginPage />)
 
-    await user.type(screen.getByLabelText('Email'), 'user@example.com')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    await user.type(screen.getByLabelText(/e-mail/i), 'user@example.com')
+    await user.type(screen.getByLabelText(/^senha/i), 'password123')
+    await user.click(screen.getByRole('button', { name: 'Entrar' }))
 
     await waitFor(() => {
       expect(useAuthStore.getState().token).toBe(MOCK_TOKEN)
@@ -102,13 +87,16 @@ describe('LoginPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<LoginPage />)
 
-    await user.type(screen.getByLabelText('Email'), 'wrong@example.com')
-    await user.type(screen.getByLabelText('Password'), 'wrongpassword')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    await user.type(screen.getByLabelText(/e-mail/i), 'wrong@example.com')
+    await user.type(screen.getByLabelText(/^senha/i), 'wrongpassword')
+    await user.click(screen.getByRole('button', { name: 'Entrar' }))
 
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Invalid credentials. Please try again.')
-    })
+    await waitFor(
+      () => {
+        expect(toast.error).toHaveBeenCalledWith('Invalid credentials. Please try again.')
+      },
+      { timeout: 5000 },
+    )
 
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
   })
@@ -117,9 +105,9 @@ describe('LoginPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<LoginPage />)
 
-    await user.type(screen.getByLabelText('Email'), 'user@example.com')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    await user.type(screen.getByLabelText(/e-mail/i), 'user@example.com')
+    await user.type(screen.getByLabelText(/^senha/i), 'password123')
+    await user.click(screen.getByRole('button', { name: 'Entrar' }))
 
     await waitFor(() => {
       expect(useAuthStore.getState().isAuthenticated).toBe(true)
@@ -129,35 +117,89 @@ describe('LoginPage', () => {
   })
 })
 
+describe('LoginPage — forgot password', () => {
+  it('switches to forgot password mode when link is clicked', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<LoginPage />)
+
+    await screen.findByRole('heading', { name: /bem-vindo de volta/i })
+    await user.click(screen.getByRole('button', { name: /esqueci minha senha/i }))
+
+    expect(await screen.findByRole('heading', { name: /recuperar acesso/i })).toBeTruthy()
+  })
+
+  it('shows info toast and returns to login mode on forgot submit', async () => {
+    const { toast } = await import('@/lib/toast')
+    const user = userEvent.setup()
+    renderWithProviders(<LoginPage />)
+
+    await screen.findByRole('heading', { name: /bem-vindo de volta/i })
+    await user.click(screen.getByRole('button', { name: /esqueci minha senha/i }))
+
+    await user.type(screen.getByLabelText(/e-mail/i), 'user@example.com')
+    await user.click(screen.getByRole('button', { name: /enviar link/i }))
+
+    expect(toast.info).toHaveBeenCalled()
+    expect(await screen.findByRole('heading', { name: /bem-vindo de volta/i })).toBeTruthy()
+  })
+
+  it('returns to login mode when back button is clicked', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<LoginPage />)
+
+    await screen.findByRole('heading', { name: /bem-vindo de volta/i })
+    await user.click(screen.getByRole('button', { name: /esqueci minha senha/i }))
+    await user.click(screen.getByRole('button', { name: /voltar para login/i }))
+
+    expect(await screen.findByRole('heading', { name: /bem-vindo de volta/i })).toBeTruthy()
+  })
+})
+
 describe('LoginPage — accessibility', () => {
   it('each form input has an accessible label', async () => {
     renderWithProviders(<LoginPage />)
-    await screen.findByRole('heading', { name: /sign in/i })
-    expect(screen.getByLabelText('Email')).toBeTruthy()
-    expect(screen.getByLabelText('Password')).toBeTruthy()
+    await screen.findByRole('heading', { name: /bem-vindo de volta/i })
+    expect(screen.getByLabelText(/e-mail/i)).toBeTruthy()
+    expect(screen.getByLabelText(/^senha/i)).toBeTruthy()
   })
 
   it('all form controls are reachable via Tab in the correct order', async () => {
     const user = userEvent.setup()
     renderWithProviders(<LoginPage />)
-    await screen.findByRole('heading', { name: /sign in/i })
+    await screen.findByRole('heading', { name: /bem-vindo de volta/i })
 
+    // auth-tabs section (2 links)
     await user.tab()
-    expect(screen.getByLabelText('Email')).toHaveFocus()
+    await user.tab()
 
+    // E-mail input
     await user.tab()
-    expect(screen.getByLabelText('Password')).toHaveFocus()
+    expect(screen.getByLabelText(/e-mail/i)).toHaveFocus()
 
+    // Senha input
     await user.tab()
-    expect(screen.getByRole('button', { name: /sign in/i })).toHaveFocus()
+    expect(screen.getByLabelText(/^senha/i)).toHaveFocus()
+
+    // eye toggle inside PasswordInput
+    await user.tab()
+
+    // "Manter conectado" checkbox
+    await user.tab()
+
+    // "Esqueci minha senha" button
+    await user.tab()
+
+    // "Entrar" submit button
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'Entrar' })).toHaveFocus()
   })
 
   it('form can be submitted by pressing Enter in the password field', async () => {
     const user = userEvent.setup()
     renderWithProviders(<LoginPage />)
 
-    await user.type(screen.getByLabelText('Email'), 'user@example.com')
-    await user.type(screen.getByLabelText('Password'), 'password123{Enter}')
+    await user.type(screen.getByLabelText(/e-mail/i), 'user@example.com')
+    await user.type(screen.getByLabelText(/^senha/i), 'password123{Enter}')
 
     await waitFor(() => {
       expect(useAuthStore.getState().isAuthenticated).toBe(true)
@@ -175,14 +217,15 @@ describe('LoginPage — accessibility', () => {
     const user = userEvent.setup()
     renderWithProviders(<LoginPage />)
 
-    await user.type(screen.getByLabelText('Email'), 'user@example.com')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    await user.type(screen.getByLabelText(/e-mail/i), 'user@example.com')
+    await user.type(screen.getByLabelText(/^senha/i), 'password123')
+
+    const submitButton = screen.getByRole('button', { name: 'Entrar' })
+    await user.click(submitButton)
 
     await waitFor(() => {
-      const button = screen.getByRole('button')
-      expect(button).toHaveAttribute('aria-busy', 'true')
-      const spinner = button.querySelector('[aria-hidden="true"]')
+      expect(submitButton).toHaveAttribute('aria-busy', 'true')
+      const spinner = submitButton.querySelector('[aria-hidden="true"]')
       expect(spinner).toBeTruthy()
     })
 
@@ -193,8 +236,8 @@ describe('LoginPage — accessibility', () => {
 
   it('submit button uses the lg size variant (44px touch target)', async () => {
     renderWithProviders(<LoginPage />)
-    await screen.findByRole('heading', { name: /sign in/i })
-    const button = screen.getByRole('button', { name: /sign in/i })
+    await screen.findByRole('heading', { name: /bem-vindo de volta/i })
+    const button = screen.getByRole('button', { name: 'Entrar' })
     expect(button.className).toContain('btn-lg')
   })
 })

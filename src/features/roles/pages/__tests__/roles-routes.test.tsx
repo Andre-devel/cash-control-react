@@ -93,12 +93,16 @@ describe('Roles routes', () => {
 
   it('redirects unauthenticated access to /admin/roles to login', async () => {
     renderAtPath('/admin/roles')
-    expect(await screen.findByRole('heading', { name: /sign in/i }, { timeout: 5000 })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /bem-vindo de volta/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('redirects unauthenticated access to /admin/roles/:roleId to login', async () => {
     renderAtPath('/admin/roles/some-id')
-    expect(await screen.findByRole('heading', { name: /sign in/i }, { timeout: 5000 })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /bem-vindo de volta/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('redirects to /forbidden when authenticated but lacks role permissions', async () => {

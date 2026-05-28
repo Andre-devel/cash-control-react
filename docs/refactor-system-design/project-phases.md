@@ -175,14 +175,14 @@ Reference files:
   Goal: Rebuild login and register pages to match the two-column auth layout.
 
   Tasks:
-  - [ ] Apply two-column .auth-shell layout to both pages.
+  - [x] Apply two-column .auth-shell layout to both pages.
 
-  - [ ] Left panel (.auth-aside):
+  - [x] Left panel (.auth-aside):
         - Brand logo (gradient square "C" + "Cash Control" name)
         - Radial gradient background (accent orange glow)
         - Pitch text: h2 "Controle total das suas finanças" + subtitle
 
-  - [ ] Right panel (.auth-main):
+  - [x] Right panel (.auth-main):
         - .auth-card with tab switcher (Login / Criar conta) or split pages
         - Email + password Fields using the new Field/Input components
         - Primary Button "Entrar" / "Criar conta"
@@ -190,8 +190,8 @@ Reference files:
         - Ghost button "Continuar com Google" (Google SVG icon)
         - .auth-foot link to the other auth page
 
-  - [ ] Apply to src/features/auth/pages/login-page.tsx
-  - [ ] Apply to src/features/auth/pages/register-page.tsx
+  - [x] Apply to src/features/auth/pages/login-page.tsx
+  - [x] Apply to src/features/auth/pages/register-page.tsx
 
   Deliverable: Auth pages match the design system layout exactly. All form states
   (error, loading, disabled) use the new Field/Input/Button components.

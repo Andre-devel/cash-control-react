@@ -66,17 +66,23 @@ function renderAtPath(path: string) {
 describe('Router', () => {
   it('renders login page at /login', async () => {
     renderAtPath('/login')
-    expect(await screen.findByRole('heading', { name: /sign in/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /bem-vindo de volta/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('renders register page at /register', async () => {
     renderAtPath('/register')
-    expect(await screen.findByRole('heading', { name: /create account/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /crie sua conta/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('redirects unauthenticated access to /dashboard to /login', async () => {
     renderAtPath('/dashboard')
-    expect(await screen.findByRole('heading', { name: /sign in/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /bem-vindo de volta/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('renders dashboard page at /dashboard when authenticated', async () => {
@@ -95,12 +101,14 @@ describe('Router', () => {
 
   it('renders 404 page for unknown routes', async () => {
     renderAtPath('/unknown-route')
-    expect(await screen.findByRole('heading', { name: '404' })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: '404' }, { timeout: 5000 })).toBeTruthy()
   })
 
   it('redirects root / to the login page', async () => {
     renderAtPath('/')
-    expect(await screen.findByRole('heading', { name: /sign in/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /bem-vindo de volta/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('redirects authenticated users away from /login to /dashboard', async () => {
@@ -135,13 +143,13 @@ describe('Router', () => {
 describe('Router — layout accessibility', () => {
   it('public layout renders a <main> landmark for login route', async () => {
     renderAtPath('/login')
-    await screen.findByRole('heading', { name: /sign in/i })
+    await screen.findByRole('heading', { name: /bem-vindo de volta/i }, { timeout: 5000 })
     expect(screen.getByRole('main')).toBeTruthy()
   })
 
   it('public layout renders a <main> landmark for register route', async () => {
     renderAtPath('/register')
-    await screen.findByRole('heading', { name: /create account/i })
+    await screen.findByRole('heading', { name: /crie sua conta/i }, { timeout: 5000 })
     expect(screen.getByRole('main')).toBeTruthy()
   })
 

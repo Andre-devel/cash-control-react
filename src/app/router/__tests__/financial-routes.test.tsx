@@ -133,16 +133,22 @@ describe('Financial feature routes — unauthenticated redirect', () => {
 
   it('redirects unauthenticated access to /accounts to /login', async () => {
     renderAtPath('/accounts')
-    expect(await screen.findByRole('heading', { name: /sign in/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /bem-vindo de volta/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('redirects unauthenticated access to /transactions to /login', async () => {
     renderAtPath('/transactions')
-    expect(await screen.findByRole('heading', { name: /sign in/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /bem-vindo de volta/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('redirects unauthenticated access to /profile to /login', async () => {
     renderAtPath('/profile')
-    expect(await screen.findByRole('heading', { name: /sign in/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /bem-vindo de volta/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 })

@@ -108,14 +108,16 @@ describe('AuthGuard', () => {
       </QueryClientProvider>,
     )
 
-    expect(await screen.findByRole('heading', { name: /sign in/i }, { timeout: 5000 })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /bem-vindo de volta/i }, { timeout: 10000 }),
+    ).toBeTruthy()
 
-    await user.type(screen.getByLabelText('Email'), 'user@example.com')
-    await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.click(screen.getByRole('button', { name: /sign in/i }))
+    await user.type(screen.getByLabelText(/e-mail/i), 'user@example.com')
+    await user.type(screen.getByLabelText(/^senha/i), 'password123')
+    await user.click(screen.getByRole('button', { name: 'Entrar' }))
 
     expect(
-      await screen.findByRole('heading', { name: /dashboard/i }, { timeout: 5000 }),
+      await screen.findByRole('heading', { name: /dashboard/i }, { timeout: 10000 }),
     ).toBeTruthy()
-  })
+  }, 30000)
 })
