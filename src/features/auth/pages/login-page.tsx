@@ -1,5 +1,3 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, Navigate } from 'react-router-dom'
@@ -11,11 +9,8 @@ import { AuthAside } from '@/features/auth/components/auth-aside'
 import { loginSchema } from '@/features/auth/schemas/login.schema'
 import { useLogin } from '@/features/auth/hooks/use-login'
 import { useAuthStore } from '@/features/auth/store/auth.store'
-import { toast } from '@/lib/toast'
 import { ROUTES } from '@/app/router/routes'
 import type { LoginFormValues } from '@/features/auth/schemas/login.schema'
-
-type AuthMode = 'login' | 'forgot'
 
 function GoogleIcon() {
   return (
@@ -41,8 +36,6 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<AuthMode>('login')
-  const [forgotEmail, setForgotEmail] = useState('')
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const { mutate, isPending } = useLogin()
 
@@ -59,146 +52,101 @@ export default function LoginPage() {
     mutate(data)
   }
 
-  function onForgotSubmit(e: FormEvent) {
-    e.preventDefault()
-    toast.info('Se esse e-mail estiver cadastrado, você receberá o link em breve.')
-    setMode('login')
-    setForgotEmail('')
-  }
-
   return (
     <div className="auth-shell">
       <AuthAside />
 
       <main className="auth-main">
         <div className="auth-card">
-          {mode === 'login' && (
-            <div className="auth-tabs">
-              <Link to={ROUTES.LOGIN} className="on">
-                Entrar
-              </Link>
-              <Link to={ROUTES.REGISTER}>Criar conta</Link>
-            </div>
-          )}
+          <div className="auth-tabs">
+            <Link to={ROUTES.LOGIN} className="on">
+              Entrar
+            </Link>
+            <Link to={ROUTES.REGISTER}>Criar conta</Link>
+          </div>
 
-          {mode === 'login' && (
-            <>
-              <h1>Bem-vindo de volta</h1>
-              <div className="sub">Entre para gerenciar suas finanças.</div>
+          <h1>Bem-vindo de volta</h1>
+          <div className="sub">Entre para gerenciar suas finanças.</div>
 
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                noValidate
-                className="col"
-                style={{ gap: 14 }}
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            noValidate
+            className="col"
+            style={{ gap: 14 }}
+          >
+            <Field label="E-mail" error={form.formState.errors.email?.message}>
+              <Input
+                type="email"
+                placeholder="voce@email.com"
+                autoComplete="email"
+                error={!!form.formState.errors.email}
+                {...form.register('email')}
+              />
+            </Field>
+
+            <Field label="Senha" error={form.formState.errors.password?.message}>
+              <PasswordInput
+                placeholder="••••••••"
+                autoComplete="current-password"
+                error={!!form.formState.errors.password}
+                {...form.register('password')}
+              />
+            </Field>
+
+            <div className="row between" style={{ marginTop: -4 }}>
+              <label
+                className="row gap-2"
+                style={{ fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer' }}
               >
-                <Field label="E-mail" error={form.formState.errors.email?.message}>
-                  <Input
-                    type="email"
-                    placeholder="voce@email.com"
-                    autoComplete="email"
-                    error={!!form.formState.errors.email}
-                    {...form.register('email')}
+                <input type="checkbox" className="checkbox" />
+                Manter conectado
+              </label>
+              <Link to={ROUTES.FORGOT_PASSWORD} className="link" style={{ fontSize: 12 }}>
+                Esqueci minha senha
+              </Link>
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              disabled={isPending}
+              aria-busy={isPending}
+            >
+              {isPending ? (
+                <>
+                  <span
+                    style={{
+                      width: 14,
+                      height: 14,
+                      border: '2px solid currentColor',
+                      borderTopColor: 'transparent',
+                      borderRadius: '50%',
+                      display: 'inline-block',
+                      animation: 'spin 0.6s linear infinite',
+                    }}
+                    aria-hidden="true"
                   />
-                </Field>
+                  Entrando…
+                </>
+              ) : (
+                'Entrar'
+              )}
+            </Button>
 
-                <Field label="Senha" error={form.formState.errors.password?.message}>
-                  <PasswordInput
-                    placeholder="••••••••"
-                    autoComplete="current-password"
-                    error={!!form.formState.errors.password}
-                    {...form.register('password')}
-                  />
-                </Field>
+            <div className="auth-divider">ou continue com</div>
 
-                <div className="row between" style={{ marginTop: -4 }}>
-                  <label
-                    className="row gap-2"
-                    style={{ fontSize: 12, color: 'var(--text-muted)', cursor: 'pointer' }}
-                  >
-                    <input type="checkbox" className="checkbox" />
-                    Manter conectado
-                  </label>
-                  <button
-                    type="button"
-                    className="link"
-                    style={{ fontSize: 12, background: 'none', border: 0, padding: 0 }}
-                    onClick={() => setMode('forgot')}
-                  >
-                    Esqueci minha senha
-                  </button>
-                </div>
+            <Button type="button" size="lg" leading={<GoogleIcon />}>
+              Entrar com Google
+            </Button>
+          </form>
 
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  disabled={isPending}
-                  aria-busy={isPending}
-                >
-                  {isPending ? (
-                    <>
-                      <span
-                        style={{
-                          width: 14,
-                          height: 14,
-                          border: '2px solid currentColor',
-                          borderTopColor: 'transparent',
-                          borderRadius: '50%',
-                          display: 'inline-block',
-                          animation: 'spin 0.6s linear infinite',
-                        }}
-                        aria-hidden="true"
-                      />
-                      Entrando…
-                    </>
-                  ) : (
-                    'Entrar'
-                  )}
-                </Button>
-
-                <div className="auth-divider">ou continue com</div>
-
-                <Button type="button" size="lg" leading={<GoogleIcon />}>
-                  Entrar com Google
-                </Button>
-              </form>
-
-              <div className="auth-foot">
-                Novo por aqui?{' '}
-                <Link to={ROUTES.REGISTER} className="link">
-                  Crie sua conta
-                </Link>
-              </div>
-            </>
-          )}
-
-          {mode === 'forgot' && (
-            <>
-              <h1>Recuperar acesso</h1>
-              <div className="sub">Enviaremos um link para redefinir sua senha.</div>
-
-              <form onSubmit={onForgotSubmit} noValidate className="col" style={{ gap: 14 }}>
-                <Field label="E-mail">
-                  <Input
-                    type="email"
-                    placeholder="voce@email.com"
-                    autoComplete="email"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                  />
-                </Field>
-
-                <Button type="submit" variant="primary" size="lg">
-                  Enviar link
-                </Button>
-
-                <Button type="button" variant="ghost" size="lg" onClick={() => setMode('login')}>
-                  Voltar para login
-                </Button>
-              </form>
-            </>
-          )}
+          <div className="auth-foot">
+            Novo por aqui?{' '}
+            <Link to={ROUTES.REGISTER} className="link">
+              Crie sua conta
+            </Link>
+          </div>
         </div>
       </main>
     </div>

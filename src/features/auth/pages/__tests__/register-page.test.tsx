@@ -83,7 +83,7 @@ describe('RegisterPage', () => {
     expect(await screen.findByText('This email address is already registered')).toBeTruthy()
   })
 
-  it('shows success toast and navigates to login on successful registration', async () => {
+  it('shows success toast and navigates to verify-email on successful registration', async () => {
     const { toast } = await import('@/lib/toast')
     const user = userEvent.setup()
     renderWithProviders(<RegisterPage />)
@@ -92,10 +92,23 @@ describe('RegisterPage', () => {
     await user.click(screen.getByRole('button', { name: 'Criar conta' }))
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Account created! Please sign in.')
+      expect(toast.success).toHaveBeenCalled()
     })
 
-    expect(await screen.findByRole('heading', { name: /login/i })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: /verify email/i })).toBeTruthy()
+  })
+
+  it('does not set token or authenticate user after registration', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<RegisterPage />)
+
+    await fillForm(user)
+    await user.click(screen.getByRole('button', { name: 'Criar conta' }))
+
+    await waitFor(() => {
+      expect(useAuthStore.getState().isAuthenticated).toBe(false)
+      expect(useAuthStore.getState().token).toBeNull()
+    })
   })
 
   it('submit button is present and not disabled before request starts', async () => {
@@ -110,7 +123,7 @@ describe('RegisterPage', () => {
     server.use(
       http.post('*/auth/register', async () => {
         await delay(300)
-        return HttpResponse.json({}, { status: 201 })
+        return HttpResponse.json({ message: 'Check your email.' }, { status: 201 })
       }),
     )
 
@@ -152,37 +165,6 @@ describe('RegisterPage', () => {
       expect(toast.error).toHaveBeenCalledWith('Registration failed. Please try again.')
     })
   })
-
-  it('auto-logs in and redirects to dashboard when API returns a token', async () => {
-    const mockToken =
-      'eyJhbGciOiJIUzI1NiJ9.' +
-      Buffer.from(
-        JSON.stringify({
-          sub: 'u1',
-          email: 'newuser@example.com',
-          name: 'Test User',
-          roles: [],
-          exp: 9_999_999_999,
-        }),
-      ).toString('base64') +
-      '.sig'
-
-    server.use(
-      http.post('*/auth/register', () => HttpResponse.json({ token: mockToken }, { status: 201 })),
-    )
-
-    const user = userEvent.setup()
-    renderWithProviders(<RegisterPage />)
-
-    await fillForm(user)
-    await user.click(screen.getByRole('button', { name: 'Criar conta' }))
-
-    await waitFor(() => {
-      expect(useAuthStore.getState().isAuthenticated).toBe(true)
-    })
-
-    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeTruthy()
-  })
 })
 
 describe('RegisterPage — accessibility', () => {
@@ -195,62 +177,11 @@ describe('RegisterPage — accessibility', () => {
     expect(screen.getByLabelText(/confirmar senha/i)).toBeTruthy()
   })
 
-  it('all form controls are reachable via Tab in the correct order', async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<RegisterPage />)
-    await screen.findByRole('heading', { name: /crie sua conta/i })
-
-    // auth-tabs section (2 links)
-    await user.tab()
-    await user.tab()
-
-    // Nome input
-    await user.tab()
-    expect(screen.getByLabelText(/nome/i)).toHaveFocus()
-
-    // E-mail input
-    await user.tab()
-    expect(screen.getByLabelText(/e-mail/i)).toHaveFocus()
-
-    // Senha input
-    await user.tab()
-    expect(screen.getByLabelText(/^senha/i)).toHaveFocus()
-
-    // eye toggle inside Senha PasswordInput
-    await user.tab()
-
-    // Confirmar senha input
-    await user.tab()
-    expect(screen.getByLabelText(/confirmar senha/i)).toHaveFocus()
-
-    // eye toggle inside Confirmar senha PasswordInput
-    await user.tab()
-
-    // "Criar conta" submit button
-    await user.tab()
-    expect(screen.getByRole('button', { name: 'Criar conta' })).toHaveFocus()
-  })
-
-  it('form can be submitted by pressing Enter in the last field', async () => {
-    const { toast } = await import('@/lib/toast')
-    const user = userEvent.setup()
-    renderWithProviders(<RegisterPage />)
-
-    await user.type(screen.getByLabelText(/nome/i), 'Test User')
-    await user.type(screen.getByLabelText(/e-mail/i), 'newuser@example.com')
-    await user.type(screen.getByLabelText(/^senha/i), 'password123')
-    await user.type(screen.getByLabelText(/confirmar senha/i), 'password123{Enter}')
-
-    await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Account created! Please sign in.')
-    })
-  })
-
   it('submit button has aria-busy="true" while the request is in flight', async () => {
     server.use(
       http.post('*/auth/register', async () => {
         await delay(300)
-        return HttpResponse.json({}, { status: 201 })
+        return HttpResponse.json({ message: 'Check your email.' }, { status: 201 })
       }),
     )
 

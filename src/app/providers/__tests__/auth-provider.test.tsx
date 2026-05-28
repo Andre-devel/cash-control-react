@@ -23,6 +23,23 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
+vi.mock('@/features/auth/api/auth.api', async () => {
+  const original = await vi.importActual('@/features/auth/api/auth.api')
+  return {
+    ...(original as object),
+    getMeApi: vi.fn().mockResolvedValue({
+      id: 'user-123',
+      email: 'user@example.com',
+      displayName: 'Test User',
+      status: 'ACTIVE',
+      roles: ['USER'],
+      permissions: [],
+      linkedProviders: [],
+      createdAt: '2026-01-01T00:00:00Z',
+    }),
+  }
+})
+
 function makeExpiredToken(): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256' })).toString('base64')
   const payload = Buffer.from(JSON.stringify({ sub: 'u1', exp: 1, iat: 1 })).toString('base64')
@@ -105,5 +122,17 @@ describe('AuthProvider', () => {
   it('completes initialization before rendering children', async () => {
     renderAuthProvider()
     expect(await screen.findByRole('heading', { name: /protected/i })).toBeTruthy()
+  })
+
+  it('populates user from getMeApi when valid token is present', async () => {
+    useAuthStore.getState().setToken(makeValidToken())
+    renderAuthProvider()
+
+    await waitFor(() => {
+      const user = useAuthStore.getState().user
+      expect(user?.email).toBe('user@example.com')
+      expect(user?.name).toBe('Test User')
+      expect(user?.roles).toEqual(['USER'])
+    })
   })
 })

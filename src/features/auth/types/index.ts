@@ -39,3 +39,18 @@ export interface NormalizedError {
   correlationId: string
   path?: string
 }
+
+export interface MessageResponse {
+  message: string
+}
+
+export interface UserProfileResponse {
+  id: string
+  email: string
+  displayName: string
+  status: string
+  roles: string[]
+  permissions: string[]
+  linkedProviders: string[]
+  createdAt: string
+}

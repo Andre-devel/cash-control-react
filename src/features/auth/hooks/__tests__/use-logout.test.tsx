@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
+import { http, HttpResponse } from 'msw'
+import { server } from '@/test/msw/server'
 import { useLogout } from '../use-logout'
 import { useAuthStore } from '@/features/auth/store/auth.store'
 
@@ -68,5 +70,39 @@ describe('use-logout', () => {
     })
 
     expect(queryClient.clear).toHaveBeenCalled()
+  })
+
+  it('calls POST /auth/logout API', async () => {
+    let logoutCalled = false
+    server.use(
+      http.post('*/auth/logout', () => {
+        logoutCalled = true
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+
+    const { result } = renderHook(() => useLogout(), { wrapper: Wrapper })
+
+    act(() => {
+      result.current()
+    })
+
+    await waitFor(() => {
+      expect(logoutCalled).toBe(true)
+    })
+  })
+
+  it('still clears session even if logout API fails', async () => {
+    server.use(http.post('*/auth/logout', () => HttpResponse.error()))
+
+    useAuthStore.getState().setToken('test-token')
+    const { result } = renderHook(() => useLogout(), { wrapper: Wrapper })
+
+    act(() => {
+      result.current()
+    })
+
+    expect(useAuthStore.getState().isAuthenticated).toBe(false)
+    expect(useAuthStore.getState().token).toBeNull()
   })
 })

@@ -3,11 +3,10 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
-import { useRegister } from '../use-register'
-import { useAuthStore } from '@/features/auth/store/auth.store'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
-import { MOCK_TOKEN } from '@/test/msw/handlers'
+import { useRegister } from '../use-register'
+import { useAuthStore } from '@/features/auth/store/auth.store'
 
 vi.mock('@/lib/toast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn() },
@@ -47,7 +46,7 @@ describe('use-register', () => {
     server.use(
       http.post('*/auth/register', async ({ request }) => {
         capturedBody = await request.json()
-        return HttpResponse.json({}, { status: 201 })
+        return HttpResponse.json({ message: 'Check your email.' }, { status: 201 })
       }),
     )
 
@@ -63,47 +62,14 @@ describe('use-register', () => {
     expect(capturedBody).not.toHaveProperty('confirmPassword')
   })
 
-  it('shows success toast and does not set token when API returns no token', async () => {
+  it('shows success toast with the message from API and does not set token', async () => {
     const { toast } = await import('@/lib/toast')
-    const { result } = renderHook(() => useRegister(), { wrapper: Wrapper })
-
-    act(() => {
-      result.current.mutate(validData)
-    })
-
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-
-    expect(toast.success).toHaveBeenCalledWith('Account created! Please sign in.')
-    expect(useAuthStore.getState().isAuthenticated).toBe(false)
-  })
-
-  it('stores token when API returns one on registration', async () => {
-    server.use(
-      http.post('*/auth/register', () => HttpResponse.json({ token: MOCK_TOKEN }, { status: 201 })),
-    )
-
-    const { result } = renderHook(() => useRegister(), { wrapper: Wrapper })
-
-    act(() => {
-      result.current.mutate(validData)
-    })
-
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-
-    expect(useAuthStore.getState().token).toBe(MOCK_TOKEN)
-    expect(useAuthStore.getState().isAuthenticated).toBe(true)
-  })
-
-  it('falls back to empty strings when JWT payload fields are missing on registration', async () => {
-    const minimalToken = [
-      Buffer.from(JSON.stringify({ alg: 'HS256' })).toString('base64'),
-      Buffer.from(JSON.stringify({ exp: 9_999_999_999 })).toString('base64'),
-      'sig',
-    ].join('.')
-
     server.use(
       http.post('*/auth/register', () =>
-        HttpResponse.json({ token: minimalToken }, { status: 201 }),
+        HttpResponse.json(
+          { message: 'Conta criada! Verifique seu e-mail para ativar.' },
+          { status: 201 },
+        ),
       ),
     )
 
@@ -115,10 +81,33 @@ describe('use-register', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    const user = useAuthStore.getState().user
-    expect(user?.id).toBe('')
-    expect(user?.email).toBe('')
-    expect(user?.name).toBe('')
-    expect(user?.roles).toEqual([])
+    expect(toast.success).toHaveBeenCalledWith('Conta criada! Verifique seu e-mail para ativar.')
+    expect(useAuthStore.getState().isAuthenticated).toBe(false)
+    expect(useAuthStore.getState().token).toBeNull()
+  })
+
+  it('does not set token on successful registration', async () => {
+    const { result } = renderHook(() => useRegister(), { wrapper: Wrapper })
+
+    act(() => {
+      result.current.mutate(validData)
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(useAuthStore.getState().token).toBeNull()
+    expect(useAuthStore.getState().isAuthenticated).toBe(false)
+  })
+
+  it('does not set user on successful registration', async () => {
+    const { result } = renderHook(() => useRegister(), { wrapper: Wrapper })
+
+    act(() => {
+      result.current.mutate(validData)
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(useAuthStore.getState().user).toBeNull()
   })
 })

@@ -41,14 +41,11 @@ axiosInstance.interceptors.response.use(
 
     if (normalized.status === 401 && !isHandling401) {
       isHandling401 = true
-      try {
-        await handle401()
-      } finally {
-        // Reset after redirect completes so the flag doesn't stick
+      handle401().finally(() => {
         setTimeout(() => {
           isHandling401 = false
         }, 0)
-      }
+      })
     }
 
     return Promise.reject(normalized)

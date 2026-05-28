@@ -96,6 +96,23 @@ export const handlers = [
     )
   }),
 
+  http.post('*/auth/logout', () => {
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.get('*/auth/me', () => {
+    return HttpResponse.json({
+      id: 'user-123',
+      email: 'user@example.com',
+      displayName: 'Test User',
+      status: 'ACTIVE',
+      roles: ['USER'],
+      permissions: [],
+      linkedProviders: [],
+      createdAt: '2026-01-01T00:00:00Z',
+    })
+  }),
+
   http.post('*/auth/register', async ({ request }) => {
     const body = (await request.json()) as { email: string }
 
@@ -110,6 +127,61 @@ export const handlers = [
       )
     }
 
-    return HttpResponse.json({}, { status: 201 })
+    return HttpResponse.json(
+      { message: 'Registration successful. Please verify your email.' },
+      { status: 201 },
+    )
+  }),
+
+  http.get('*/auth/email/verify', ({ request }) => {
+    const url = new URL(request.url)
+    const token = url.searchParams.get('token')
+    if (token === 'expired-token') {
+      return HttpResponse.json(
+        {
+          errorCode: 'TOKEN_EXPIRED',
+          message: 'Verification token expired.',
+          correlationId: 'test-id',
+        },
+        { status: 400 },
+      )
+    }
+    return HttpResponse.json({ message: 'Email verified successfully.' })
+  }),
+
+  http.post('*/auth/email/verify/resend', () => {
+    return HttpResponse.json({ message: 'If that email is registered, a link has been sent.' })
+  }),
+
+  http.post('*/auth/password-reset/request', () => {
+    return HttpResponse.json({
+      message: 'If that email is registered, a reset link has been sent.',
+    })
+  }),
+
+  http.post('*/auth/password-reset/confirm', async ({ request }) => {
+    const body = (await request.json()) as { token: string; newPassword: string }
+    if (body.token === 'expired-token') {
+      return HttpResponse.json(
+        { errorCode: 'TOKEN_EXPIRED', message: 'Reset token expired.', correlationId: 'test-id' },
+        { status: 400 },
+      )
+    }
+    return HttpResponse.json({ message: 'Password reset successfully.' })
+  }),
+
+  http.post('*/auth/password/change', async ({ request }) => {
+    const body = (await request.json()) as { currentPassword: string; newPassword: string }
+    if (body.currentPassword === 'wrongpassword') {
+      return HttpResponse.json(
+        {
+          errorCode: 'WRONG_CURRENT_PASSWORD',
+          message: 'Current password is incorrect.',
+          correlationId: 'test-id',
+        },
+        { status: 400 },
+      )
+    }
+    return new HttpResponse(null, { status: 204 })
   }),
 ]

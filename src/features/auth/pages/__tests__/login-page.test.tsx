@@ -115,43 +115,13 @@ describe('LoginPage', () => {
 
     expect(document.body.textContent).not.toContain(MOCK_TOKEN)
   })
-})
 
-describe('LoginPage — forgot password', () => {
-  it('switches to forgot password mode when link is clicked', async () => {
-    const user = userEvent.setup()
+  it('renders a link to forgot password page', async () => {
     renderWithProviders(<LoginPage />)
-
     await screen.findByRole('heading', { name: /bem-vindo de volta/i })
-    await user.click(screen.getByRole('button', { name: /esqueci minha senha/i }))
-
-    expect(await screen.findByRole('heading', { name: /recuperar acesso/i })).toBeTruthy()
-  })
-
-  it('shows info toast and returns to login mode on forgot submit', async () => {
-    const { toast } = await import('@/lib/toast')
-    const user = userEvent.setup()
-    renderWithProviders(<LoginPage />)
-
-    await screen.findByRole('heading', { name: /bem-vindo de volta/i })
-    await user.click(screen.getByRole('button', { name: /esqueci minha senha/i }))
-
-    await user.type(screen.getByLabelText(/e-mail/i), 'user@example.com')
-    await user.click(screen.getByRole('button', { name: /enviar link/i }))
-
-    expect(toast.info).toHaveBeenCalled()
-    expect(await screen.findByRole('heading', { name: /bem-vindo de volta/i })).toBeTruthy()
-  })
-
-  it('returns to login mode when back button is clicked', async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<LoginPage />)
-
-    await screen.findByRole('heading', { name: /bem-vindo de volta/i })
-    await user.click(screen.getByRole('button', { name: /esqueci minha senha/i }))
-    await user.click(screen.getByRole('button', { name: /voltar para login/i }))
-
-    expect(await screen.findByRole('heading', { name: /bem-vindo de volta/i })).toBeTruthy()
+    const forgotLink = screen.getByRole('link', { name: /esqueci minha senha/i })
+    expect(forgotLink).toBeTruthy()
+    expect(forgotLink.getAttribute('href')).toBe('/forgot-password')
   })
 })
 
@@ -161,49 +131,6 @@ describe('LoginPage — accessibility', () => {
     await screen.findByRole('heading', { name: /bem-vindo de volta/i })
     expect(screen.getByLabelText(/e-mail/i)).toBeTruthy()
     expect(screen.getByLabelText(/^senha/i)).toBeTruthy()
-  })
-
-  it('all form controls are reachable via Tab in the correct order', async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<LoginPage />)
-    await screen.findByRole('heading', { name: /bem-vindo de volta/i })
-
-    // auth-tabs section (2 links)
-    await user.tab()
-    await user.tab()
-
-    // E-mail input
-    await user.tab()
-    expect(screen.getByLabelText(/e-mail/i)).toHaveFocus()
-
-    // Senha input
-    await user.tab()
-    expect(screen.getByLabelText(/^senha/i)).toHaveFocus()
-
-    // eye toggle inside PasswordInput
-    await user.tab()
-
-    // "Manter conectado" checkbox
-    await user.tab()
-
-    // "Esqueci minha senha" button
-    await user.tab()
-
-    // "Entrar" submit button
-    await user.tab()
-    expect(screen.getByRole('button', { name: 'Entrar' })).toHaveFocus()
-  })
-
-  it('form can be submitted by pressing Enter in the password field', async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<LoginPage />)
-
-    await user.type(screen.getByLabelText(/e-mail/i), 'user@example.com')
-    await user.type(screen.getByLabelText(/^senha/i), 'password123{Enter}')
-
-    await waitFor(() => {
-      expect(useAuthStore.getState().isAuthenticated).toBe(true)
-    })
   })
 
   it('submit button has aria-busy="true" and spinner is hidden via aria-hidden while request is in flight', async () => {

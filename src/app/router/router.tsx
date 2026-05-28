@@ -12,6 +12,9 @@ import { ROUTES } from './routes'
 
 const LoginPage = lazy(() => import('@/features/auth/pages/login-page'))
 const RegisterPage = lazy(() => import('@/features/auth/pages/register-page'))
+const VerifyEmailPage = lazy(() => import('@/features/auth/pages/verify-email-page'))
+const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/forgot-password-page'))
+const ResetPasswordPage = lazy(() => import('@/features/auth/pages/reset-password-page'))
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/dashboard-page'))
 const NotFoundPage = lazy(() => import('@/components/feedback/not-found-page'))
 const ForbiddenPage = lazy(() => import('@/components/feedback/forbidden-page'))
@@ -70,6 +73,30 @@ export const routeConfig: RouteObject[] = [
             element: (
               <Suspense fallback={<PageLoader />}>
                 <RegisterPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: ROUTES.VERIFY_EMAIL,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <VerifyEmailPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: ROUTES.FORGOT_PASSWORD,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <ForgotPasswordPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: ROUTES.RESET_PASSWORD,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <ResetPasswordPage />
               </Suspense>
             ),
           },

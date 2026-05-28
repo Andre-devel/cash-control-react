@@ -57,6 +57,30 @@ export function renderWithProviders(
           </div>
         ),
       },
+      {
+        path: '/verify-email',
+        element: (
+          <div>
+            <h1>Verify Email</h1>
+          </div>
+        ),
+      },
+      {
+        path: '/forgot-password',
+        element: (
+          <div>
+            <h1>Forgot Password</h1>
+          </div>
+        ),
+      },
+      {
+        path: '/reset-password',
+        element: (
+          <div>
+            <h1>Reset Password</h1>
+          </div>
+        ),
+      },
     ],
     { initialEntries: [initialRoute] },
   )

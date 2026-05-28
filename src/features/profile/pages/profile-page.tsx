@@ -8,6 +8,7 @@ import { updateProfileSchema } from '@/features/profile/schemas/update-profile.s
 import { useProfile } from '@/features/profile/hooks/use-profile'
 import { useUpdateProfile } from '@/features/profile/hooks/use-update-profile'
 import { ConsentHistorySection } from '@/features/profile/components/consent-history-section'
+import { ChangePasswordSection } from '@/features/profile/components/change-password-section'
 import type { UpdateProfileFormValues } from '@/features/profile/schemas/update-profile.schema'
 
 function ProfileSkeleton() {
@@ -95,6 +96,15 @@ export default function ProfilePage() {
               </Button>
             </form>
           )}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-h">
+          <h3>Change Password</h3>
+        </div>
+        <div className="card-b">
+          <ChangePasswordSection />
         </div>
       </div>
 
