@@ -6,6 +6,7 @@ import type {
   UpdateAccountRequest,
   AdjustBalanceRequest,
   CreateTransferRequest,
+  Transfer,
 } from '@/features/accounts/types'
 
 export async function listAccounts(params?: ListAccountsParams): Promise<Account[]> {
@@ -51,4 +52,9 @@ export async function createTransfer(data: CreateTransferRequest): Promise<void>
 
 export async function deleteTransfer(groupId: string): Promise<void> {
   await axiosInstance.delete(`/accounts/transfers/${groupId}`)
+}
+
+export async function listTransfers(): Promise<Transfer[]> {
+  const response = await axiosInstance.get<Transfer[]>('/accounts/transfers')
+  return response.data
 }

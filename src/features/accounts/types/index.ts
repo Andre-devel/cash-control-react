@@ -39,3 +39,15 @@ export interface CreateTransferRequest {
   date: string
   description?: string
 }
+
+export interface Transfer {
+  id: string
+  groupId: string
+  description: string
+  amount: string
+  fromAccountId: string
+  fromAccountName?: string
+  toAccountId: string
+  toAccountName?: string
+  date: string
+}

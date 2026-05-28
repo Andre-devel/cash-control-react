@@ -266,16 +266,16 @@ Reference files:
   Goal: Rebuild accounts page to match AccountsScreen in screens-money.jsx.
 
   Tasks:
-  - [ ] Page header: title "Contas", count + total balance subtitle,
+  - [x] Page header: title "Contas", count + total balance subtitle,
         "Transferir" button (arrowLR icon), "Nova conta" primary button.
 
-  - [ ] Account cards grid (.grid.grid-3):
+  - [x] Account cards grid (.grid.grid-3):
         - Each card: IconBubble colored + account name + type badge
         - Body: large Geist Mono balance
         - Footer: last transaction date + "Ver detalhes" link
         - Last card: "+" new account placeholder
 
-  - [ ] Bottom row (grid 1.4fr 1fr):
+  - [x] Bottom row (grid 1.4fr 1fr):
         - Left card: "Distribuição por tipo" — SVG donut chart + legend list
           (type label, percentage, amount)
         - Right card: "Transferências recentes" — list of transfers

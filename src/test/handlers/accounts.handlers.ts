@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import type { Account } from '@/features/accounts/types'
+import type { Account, Transfer } from '@/features/accounts/types'
 
 export const MOCK_ACCOUNT_1: Account = {
   id: 'account-1',
@@ -25,6 +25,18 @@ export const MOCK_ACCOUNT_2: Account = {
   createdAt: '2026-01-01T00:00:00Z',
 }
 
+export const MOCK_TRANSFER_1: Transfer = {
+  id: 'transfer-1',
+  groupId: 'group-1',
+  description: 'Nubank → Savings',
+  amount: '500.00',
+  fromAccountId: 'account-1',
+  fromAccountName: 'Nubank',
+  toAccountId: 'account-2',
+  toAccountName: 'Savings',
+  date: '2026-05-04',
+}
+
 export const MOCK_ARCHIVED_ACCOUNT: Account = {
   id: 'account-archived',
   name: 'Old Account',
@@ -44,6 +56,10 @@ export function resetAccountsStore() {
 }
 
 export const accountsHandlers = [
+  http.get('*/accounts/transfers', () => {
+    return HttpResponse.json([MOCK_TRANSFER_1])
+  }),
+
   http.get('*/accounts', ({ request }) => {
     const url = new URL(request.url)
     const includeArchived = url.searchParams.get('includeArchived') === 'true'

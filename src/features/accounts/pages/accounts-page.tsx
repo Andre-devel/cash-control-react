@@ -1,8 +1,13 @@
 import { useState } from 'react'
+import { ArrowLeftRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Money } from '@/components/ui/money'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { useUnarchiveAccount } from '@/features/accounts/hooks/use-unarchive-account'
 import { AccountCard } from '@/features/accounts/components/account-card'
+import { NewAccountCard } from '@/features/accounts/components/new-account-card'
+import { DistributionCard } from '@/features/accounts/components/distribution-card'
+import { RecentTransfersCard } from '@/features/accounts/components/recent-transfers-card'
 import { CreateAccountDialog } from '@/features/accounts/components/create-account-dialog'
 import { EditAccountDialog } from '@/features/accounts/components/edit-account-dialog'
 import { DeleteAccountDialog } from '@/features/accounts/components/delete-account-dialog'
@@ -13,27 +18,19 @@ import type { Account } from '@/features/accounts/types'
 
 function AccountsSkeleton() {
   return (
-    <div
-      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-      aria-busy="true"
-      aria-label="Loading accounts"
-    >
+    <div className="grid grid-3 mb-6 animate-pulse" aria-busy="true" aria-label="Carregando contas">
       {[1, 2, 3].map((i) => (
         <div key={i} className="card">
-          <div className="card-b space-y-3 animate-pulse">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-muted" />
-              <div className="space-y-1 flex-1">
-                <div className="h-4 w-32 rounded bg-muted" />
-                <div className="h-3 w-20 rounded bg-muted" />
-              </div>
-              <div className="h-4 w-20 rounded bg-muted" />
-            </div>
-            <div className="flex gap-1">
-              {[1, 2, 3].map((j) => (
-                <div key={j} className="h-7 w-14 rounded bg-muted" />
-              ))}
-            </div>
+          <div className="card-b" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div
+              style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--surface-3)' }}
+            />
+            <div
+              style={{ height: 12, width: 100, background: 'var(--surface-3)', borderRadius: 4 }}
+            />
+            <div
+              style={{ height: 28, width: 140, background: 'var(--surface-3)', borderRadius: 4 }}
+            />
           </div>
         </div>
       ))}
@@ -59,6 +56,9 @@ export default function AccountsPage() {
   const [transferSource, setTransferSource] = useState<Account | null>(null)
   const [transferOpen, setTransferOpen] = useState(false)
 
+  const activeAccounts = accounts ?? []
+  const totalBalance = activeAccounts.reduce((sum, a) => sum + parseFloat(a.balance), 0)
+
   function handleUnarchive(account: Account) {
     unarchiveAccount(account.id)
   }
@@ -69,49 +69,70 @@ export default function AccountsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-2xl font-bold tracking-tight">Accounts</h1>
-        <div className="flex items-center gap-2">
+    <div>
+      {/* Page header */}
+      <div className="page-h">
+        <div>
+          <h1 className="title">Contas</h1>
+          <div className="desc">
+            {isLoading ? (
+              'Carregando…'
+            ) : isError ? (
+              '—'
+            ) : (
+              <>
+                {activeAccounts.length} {activeAccounts.length === 1 ? 'conta' : 'contas'} · saldo
+                total{' '}
+                <span className="mono fw-500" style={{ color: 'var(--text)' }}>
+                  <Money value={totalBalance} />
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="spacer" />
+        <div className="actions">
           <Button
-            variant="outline"
             size="sm"
-            className="min-h-[44px]"
+            variant="ghost"
             onClick={() => setShowArchived((v) => !v)}
             aria-pressed={showArchived}
           >
-            {showArchived ? 'Hide Archived' : 'Show Archived'}
+            {showArchived ? 'Ocultar arquivadas' : 'Mostrar arquivadas'}
+          </Button>
+          <Button leading={<ArrowLeftRight size={14} />} onClick={() => setTransferOpen(true)}>
+            Transferir
           </Button>
           <Button
-            size="sm"
-            className="min-h-[44px]"
+            variant="primary"
+            leading={<Plus size={14} />}
             onClick={() => setCreateOpen(true)}
-            aria-label="New Account"
+            aria-label="Nova conta"
           >
-            New Account
+            Nova conta
           </Button>
         </div>
       </div>
 
+      {/* Account cards grid */}
       {isLoading ? (
         <AccountsSkeleton />
       ) : isError ? (
-        <div className="space-y-2" role="alert">
-          <p className="text-sm text-destructive">Failed to load accounts.</p>
-          <Button variant="outline" size="sm" onClick={() => void refetch()}>
-            Retry
+        <div role="alert" style={{ marginBottom: 24 }}>
+          <p style={{ color: 'var(--expense)', fontSize: 13, marginBottom: 8 }}>
+            Erro ao carregar contas.
+          </p>
+          <Button size="sm" variant="ghost" onClick={() => void refetch()}>
+            Tentar novamente
           </Button>
         </div>
-      ) : !accounts || accounts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-          <p className="text-muted-foreground">No accounts found.</p>
-          <Button size="sm" className="min-h-[44px]" onClick={() => setCreateOpen(true)}>
-            Create your first account
-          </Button>
+      ) : activeAccounts.length === 0 ? (
+        <div className="grid grid-3 mb-6">
+          <NewAccountCard onClick={() => setCreateOpen(true)} />
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {accounts.map((account) => (
+        <div className="grid grid-3 mb-6">
+          {activeAccounts.map((account) => (
             <AccountCard
               key={account.id}
               account={account}
@@ -123,6 +144,15 @@ export default function AccountsPage() {
               onTransfer={handleTransfer}
             />
           ))}
+          {!showArchived && <NewAccountCard onClick={() => setCreateOpen(true)} />}
+        </div>
+      )}
+
+      {/* Distribution + recent transfers */}
+      {!isLoading && !isError && activeAccounts.length > 0 && (
+        <div className="grid" style={{ gridTemplateColumns: '1.4fr 1fr' }}>
+          <DistributionCard accounts={activeAccounts} totalBalance={totalBalance} />
+          <RecentTransfersCard />
         </div>
       )}
 
@@ -154,7 +184,7 @@ export default function AccountsPage() {
 
       <CreateTransferDialog
         defaultFromAccount={transferSource}
-        accounts={accounts ?? []}
+        accounts={activeAccounts}
         open={transferOpen}
         onClose={() => {
           setTransferOpen(false)

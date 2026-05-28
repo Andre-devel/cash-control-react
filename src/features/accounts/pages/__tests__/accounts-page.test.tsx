@@ -38,34 +38,27 @@ afterEach(() => {
 describe('AccountsPage', () => {
   it('renders the page heading', async () => {
     renderWithProviders(<AccountsPage />)
-    await waitFor(() => expect(screen.getByRole('heading', { name: /accounts/i })).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('heading', { name: /contas/i })).toBeTruthy())
   })
 
   it('shows a loading skeleton while fetching', () => {
     renderWithProviders(<AccountsPage />)
-    expect(screen.getByLabelText('Loading accounts')).toBeTruthy()
+    expect(screen.getByLabelText('Carregando contas')).toBeTruthy()
   })
 
   it('renders the list of accounts after loading', async () => {
     renderWithProviders(<AccountsPage />)
     await waitFor(() => {
       expect(screen.getByText(MOCK_ACCOUNT_1.name)).toBeTruthy()
-      // MOCK_ACCOUNT_2 name is "Savings" which also matches the type label, use getAllByText
       expect(screen.getAllByText(MOCK_ACCOUNT_2.name).length).toBeGreaterThan(0)
     })
   })
 
-  it('shows empty state when no accounts exist', async () => {
-    server.use(http.get('*/accounts', () => HttpResponse.json([])))
-    renderWithProviders(<AccountsPage />)
-    await waitFor(() => expect(screen.getByText(/no accounts found/i)).toBeTruthy())
-  })
-
-  it('shows empty state with create CTA', async () => {
+  it('shows the "Adicionar conta" placeholder when no accounts exist', async () => {
     server.use(http.get('*/accounts', () => HttpResponse.json([])))
     renderWithProviders(<AccountsPage />)
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /create your first account/i })).toBeTruthy(),
+      expect(screen.getByRole('button', { name: /adicionar conta/i })).toBeTruthy(),
     )
   })
 
@@ -76,7 +69,7 @@ describe('AccountsPage', () => {
       ),
     )
     renderWithProviders(<AccountsPage />)
-    await waitFor(() => expect(screen.getByText(/failed to load accounts/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/erro ao carregar contas/i)).toBeTruthy())
   })
 
   it('error state has retry button', async () => {
@@ -86,14 +79,16 @@ describe('AccountsPage', () => {
       ),
     )
     renderWithProviders(<AccountsPage />)
-    await waitFor(() => expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /tentar novamente/i })).toBeTruthy(),
+    )
   })
 
-  it('New Account button opens create dialog', async () => {
+  it('"Nova conta" button opens create dialog', async () => {
     const user = userEvent.setup()
     renderWithProviders(<AccountsPage />)
-    await waitFor(() => screen.getByRole('button', { name: /new account/i }))
-    await user.click(screen.getByRole('button', { name: /new account/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova conta/i }))
+    await user.click(screen.getByRole('button', { name: /nova conta/i }))
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /create account/i })).toBeTruthy()
   })
@@ -102,8 +97,8 @@ describe('AccountsPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<AccountsPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new account/i }))
-    await user.click(screen.getByRole('button', { name: /new account/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova conta/i }))
+    await user.click(screen.getByRole('button', { name: /nova conta/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     await user.clear(screen.getByRole('textbox', { name: /name/i }))
@@ -119,8 +114,8 @@ describe('AccountsPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<AccountsPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new account/i }))
-    await user.click(screen.getByRole('button', { name: /new account/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova conta/i }))
+    await user.click(screen.getByRole('button', { name: /nova conta/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     const nameInput = screen.getByRole('textbox', { name: /name/i })
@@ -135,8 +130,8 @@ describe('AccountsPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<AccountsPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /new account/i }))
-    await user.click(screen.getByRole('button', { name: /new account/i }))
+    await waitFor(() => screen.getByRole('button', { name: /nova conta/i }))
+    await user.click(screen.getByRole('button', { name: /nova conta/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     await user.click(screen.getByRole('button', { name: /cancel/i }))
@@ -161,7 +156,7 @@ describe('AccountsPage', () => {
       expect(screen.queryByText(MOCK_ARCHIVED_ACCOUNT.name)).toBeNull()
     })
 
-    it('show archived toggle reveals archived accounts', async () => {
+    it('"Mostrar arquivadas" toggle reveals archived accounts', async () => {
       server.use(
         http.get('*/accounts', ({ request }) => {
           const url = new URL(request.url)
@@ -177,7 +172,7 @@ describe('AccountsPage', () => {
       renderWithProviders(<AccountsPage />)
 
       await waitFor(() => screen.getByText(MOCK_ACCOUNT_1.name))
-      await user.click(screen.getByRole('button', { name: /show archived/i }))
+      await user.click(screen.getByRole('button', { name: /mostrar arquivadas/i }))
       await waitFor(() => expect(screen.getByText(MOCK_ARCHIVED_ACCOUNT.name)).toBeTruthy())
     })
 
@@ -187,9 +182,11 @@ describe('AccountsPage', () => {
 
       await waitFor(() => expect(screen.getByText(MOCK_ACCOUNT_1.name)).toBeTruthy())
 
-      // Exclude the "Show Archived" toggle — click only the card-level "Archive {name}" buttons
-      const archiveButtons = screen.getAllByRole('button', { name: /^archive /i })
-      await user.click(archiveButtons[0])
+      const moreButtons = screen.getAllByRole('button', { name: /mais opções para/i })
+      await user.click(moreButtons[0])
+
+      await waitFor(() => screen.getByRole('button', { name: /^arquivar$/i }))
+      await user.click(screen.getByRole('button', { name: /^arquivar$/i }))
 
       await waitFor(() => screen.getByRole('dialog'))
       await user.click(screen.getByRole('button', { name: /archive account/i }))
@@ -206,8 +203,11 @@ describe('AccountsPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_ACCOUNT_1.name))
 
-      const deleteButtons = screen.getAllByRole('button', { name: /^delete /i })
-      await user.click(deleteButtons[0])
+      const moreButtons = screen.getAllByRole('button', { name: /mais opções para/i })
+      await user.click(moreButtons[0])
+
+      await waitFor(() => screen.getByRole('button', { name: /^excluir$/i }))
+      await user.click(screen.getByRole('button', { name: /^excluir$/i }))
 
       await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     })
@@ -230,8 +230,13 @@ describe('AccountsPage', () => {
       renderWithProviders(<AccountsPage />)
 
       await waitFor(() => screen.getByText(MOCK_ACCOUNT_1.name))
-      const deleteButtons = screen.getAllByRole('button', { name: /^delete /i })
-      await user.click(deleteButtons[0])
+
+      const moreButtons = screen.getAllByRole('button', { name: /mais opções para/i })
+      await user.click(moreButtons[0])
+
+      await waitFor(() => screen.getByRole('button', { name: /^excluir$/i }))
+      await user.click(screen.getByRole('button', { name: /^excluir$/i }))
+
       await waitFor(() => screen.getByRole('dialog'))
 
       await user.click(screen.getByRole('button', { name: /delete account/i }))
@@ -240,12 +245,28 @@ describe('AccountsPage', () => {
     })
   })
 
-  describe('New Account button accessibility', () => {
-    it('New Account button meets 44px min height', async () => {
+  describe('distribution and transfers sections', () => {
+    it('renders the distribution card', async () => {
       renderWithProviders(<AccountsPage />)
-      await waitFor(() => screen.getByRole('button', { name: /new account/i }))
-      const btn = screen.getByRole('button', { name: /new account/i })
-      expect(btn.className).toContain('min-h-[44px]')
+      await waitFor(() => expect(screen.getByText(/distribuição por tipo/i)).toBeTruthy())
     })
+
+    it('renders the recent transfers card', async () => {
+      renderWithProviders(<AccountsPage />)
+      await waitFor(() => expect(screen.getByText(/transferências recentes/i)).toBeTruthy())
+    })
+
+    it('renders a transfer entry from the API', async () => {
+      renderWithProviders(<AccountsPage />)
+      await waitFor(() => expect(screen.getByText(/Nubank.*Savings/)).toBeTruthy())
+    })
+  })
+
+  it('"Transferir" button opens transfer dialog', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<AccountsPage />)
+    await waitFor(() => screen.getByRole('button', { name: /^transferir$/i }))
+    await user.click(screen.getByRole('button', { name: /^transferir$/i }))
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
   })
 })

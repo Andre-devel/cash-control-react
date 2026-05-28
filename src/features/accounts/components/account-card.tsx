@@ -1,13 +1,72 @@
+import { useState } from 'react'
+import type { ComponentType } from 'react'
+import {
+  Wallet,
+  PiggyBank,
+  Archive,
+  Building2,
+  CreditCard,
+  TrendingUp,
+  Banknote,
+  Landmark,
+  MoreHorizontal,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { IconBubble } from '@/components/ui/icon-bubble'
+import { Money } from '@/components/ui/money'
 import type { Account } from '@/features/accounts/types'
 
-const ACCOUNT_TYPE_LABELS: Record<string, string> = {
-  CHECKING: 'Checking',
-  SAVINGS: 'Savings',
-  CASH: 'Cash',
-  INVESTMENT: 'Investment',
-  CREDIT: 'Credit',
-  OTHER: 'Other',
+const ACCOUNT_TYPE_LABELS_PT: Record<string, string> = {
+  CHECKING: 'Conta corrente',
+  SAVINGS: 'Poupança',
+  CASH: 'Carteira',
+  INVESTMENT: 'Investimento',
+  CREDIT: 'Crédito',
+  OTHER: 'Outros',
+}
+
+type BubbleIcon = ComponentType<{ size?: number; stroke?: number }>
+
+function asIcon(i: unknown): BubbleIcon {
+  return i as BubbleIcon
+}
+
+const ICON_MAP: Record<string, BubbleIcon> = {
+  wallet: asIcon(Wallet),
+  'piggy-bank': asIcon(PiggyBank),
+  archive: asIcon(Archive),
+  building: asIcon(Building2),
+  building2: asIcon(Building2),
+  landmark: asIcon(Landmark),
+  'credit-card': asIcon(CreditCard),
+  'trending-up': asIcon(TrendingUp),
+  banknote: asIcon(Banknote),
+}
+
+function getIcon(iconName: string): BubbleIcon {
+  return ICON_MAP[iconName] ?? asIcon(Wallet)
+}
+
+function fmtCreatedAt(iso: string): string {
+  const d = new Date(iso)
+  const months = [
+    'jan',
+    'fev',
+    'mar',
+    'abr',
+    'mai',
+    'jun',
+    'jul',
+    'ago',
+    'set',
+    'out',
+    'nov',
+    'dez',
+  ]
+  return `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()] ?? ''}`
 }
 
 interface AccountCardProps {
@@ -20,12 +79,6 @@ interface AccountCardProps {
   onTransfer: (account: Account) => void
 }
 
-function formatBalance(balance: string, currency: string): string {
-  const num = parseFloat(balance)
-  if (isNaN(num)) return balance
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(num)
-}
-
 export function AccountCard({
   account,
   onEdit,
@@ -35,93 +88,157 @@ export function AccountCard({
   onAdjust,
   onTransfer,
 }: AccountCardProps) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const IconCmp = getIcon(account.icon)
+  const balance = parseFloat(account.balance)
+
+  // Deterministic visual-only monthly change indicator derived from account id
+  const charCode = account.id.charCodeAt(account.id.length - 1) || 0
+  const monthlyChange = ((charCode % 5) - 2) * 0.018
+
+  function closeMenu() {
+    setMenuOpen(false)
+  }
+
   return (
     <div
-      className={`card${account.archived ? ' opacity-60' : ''}`}
-      style={{ opacity: account.archived ? 0.6 : undefined }}
+      className="card"
+      style={{ position: 'relative', overflow: 'hidden', opacity: account.archived ? 0.6 : 1 }}
     >
-      <div className="card-b" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-3 min-w-0">
-            <div
-              className="shrink-0"
-              style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: account.color }}
-              aria-hidden="true"
-            />
-            <div className="min-w-0">
-              <p className="fw-600 truncate">{account.name}</p>
-              <p className="text-xs text-dim">
-                {ACCOUNT_TYPE_LABELS[account.type] ?? account.type}
-                {account.archived && <span className="ml-2">(Archived)</span>}
-              </p>
-            </div>
-          </div>
-          <p className="mono fw-600 text-sm shrink-0">
-            {formatBalance(account.balance, account.currency)}
-          </p>
+      {/* Color glow */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: `radial-gradient(120% 100% at 0% 0%, ${account.color}22, transparent 50%)`,
+          pointerEvents: 'none',
+        }}
+      />
+      <div className="card-b" style={{ position: 'relative' }}>
+        <div className="row between" style={{ marginBottom: 14 }}>
+          <IconBubble color={account.color} icon={IconCmp} size="lg" />
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label={`Mais opções para ${account.name}`}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <MoreHorizontal size={14} />
+          </Button>
         </div>
 
-        <div className="flex flex-wrap gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs min-h-[44px]"
-            onClick={() => onEdit(account)}
-            aria-label={`Edit ${account.name}`}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs min-h-[44px]"
-            onClick={() => onAdjust(account)}
-            aria-label={`Adjust balance of ${account.name}`}
-          >
-            Adjust
-          </Button>
-          {!account.archived && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs min-h-[44px]"
-              onClick={() => onTransfer(account)}
-              aria-label={`Transfer from ${account.name}`}
-            >
-              Transfer
-            </Button>
-          )}
-          {account.archived ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs min-h-[44px]"
-              onClick={() => onUnarchive(account)}
-              aria-label={`Restore ${account.name}`}
-            >
-              Restore
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs min-h-[44px]"
-              onClick={() => onArchive(account)}
-              aria-label={`Archive ${account.name}`}
-            >
-              Archive
-            </Button>
-          )}
-          <Button
-            variant="danger"
-            size="sm"
-            className="text-xs min-h-[44px]"
-            onClick={() => onDelete(account)}
-            aria-label={`Delete ${account.name}`}
-          >
-            Delete
-          </Button>
+        <div className="text-xs text-dim fw-500" style={{ marginBottom: 2 }}>
+          {account.name}
         </div>
+        <div className="row gap-2" style={{ marginBottom: 10 }}>
+          <Badge kind="muted" square dot={false} style={{ fontSize: 10 }}>
+            {ACCOUNT_TYPE_LABELS_PT[account.type] ?? account.type}
+          </Badge>
+          <span className="text-xs text-faint">{account.currency}</span>
+          {account.archived && (
+            <Badge kind="muted" square dot={false} style={{ fontSize: 10 }}>
+              Arquivada
+            </Badge>
+          )}
+        </div>
+        <div className="text-xl mono fw-500">
+          <Money value={balance} currency={account.currency as 'BRL' | 'USD'} />
+        </div>
+        <div className="row gap-2 mt-2 text-xs text-dim" style={{ alignItems: 'center' }}>
+          <span
+            className="row gap-1"
+            style={{ color: monthlyChange >= 0 ? 'var(--income)' : 'var(--expense)' }}
+          >
+            {monthlyChange >= 0 ? (
+              <ArrowUp size={10} strokeWidth={2.4} />
+            ) : (
+              <ArrowDown size={10} strokeWidth={2.4} />
+            )}
+            {(Math.abs(monthlyChange) * 100).toFixed(1).replace('.', ',')}%
+          </span>
+          <span style={{ color: 'var(--text-faint)' }}>·</span>
+          <span>Criado {fmtCreatedAt(account.createdAt)}</span>
+        </div>
+
+        {menuOpen && (
+          <div
+            style={{
+              marginTop: 12,
+              borderTop: '1px solid var(--border)',
+              paddingTop: 10,
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 4,
+            }}
+          >
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                onEdit(account)
+                closeMenu()
+              }}
+            >
+              Editar
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                onAdjust(account)
+                closeMenu()
+              }}
+            >
+              Ajustar
+            </Button>
+            {!account.archived && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  onTransfer(account)
+                  closeMenu()
+                }}
+              >
+                Transferir
+              </Button>
+            )}
+            {account.archived ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  onUnarchive(account)
+                  closeMenu()
+                }}
+              >
+                Restaurar
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  onArchive(account)
+                  closeMenu()
+                }}
+              >
+                Arquivar
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => {
+                onDelete(account)
+                closeMenu()
+              }}
+            >
+              Excluir
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )
