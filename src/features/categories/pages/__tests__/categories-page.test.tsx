@@ -9,6 +9,7 @@ import {
   MOCK_CATEGORY_SALARY,
   MOCK_CATEGORY_HIDDEN,
   MOCK_CATEGORY_ARCHIVED,
+  MOCK_CATEGORY_SYSTEM,
   resetCategoriesStore,
 } from '@/test/handlers/categories.handlers'
 import CategoriesPage from '../categories-page'
@@ -57,13 +58,17 @@ describe('CategoriesPage', () => {
 
   it('hidden categories are excluded from the default view', async () => {
     renderWithProviders(<CategoriesPage />)
-    await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_FOOD.name)).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getAllByText(MOCK_CATEGORY_FOOD.name).length).toBeGreaterThan(0),
+    )
     expect(screen.queryByText(MOCK_CATEGORY_HIDDEN.name)).toBeNull()
   })
 
   it('archived categories are excluded from the default view', async () => {
     renderWithProviders(<CategoriesPage />)
-    await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_FOOD.name)).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getAllByText(MOCK_CATEGORY_FOOD.name).length).toBeGreaterThan(0),
+    )
     expect(screen.queryByText(MOCK_CATEGORY_ARCHIVED.name)).toBeNull()
   })
 
@@ -231,6 +236,57 @@ describe('CategoriesPage', () => {
       await waitFor(() => screen.getByRole('button', { name: /nova categoria/i }))
       const btn = screen.getByRole('button', { name: /nova categoria/i })
       expect(btn.className).toContain('btn-primary')
+    })
+  })
+
+  describe('system categories', () => {
+    it('shows Sistema badge for system categories', async () => {
+      renderWithProviders(<CategoriesPage />)
+      await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_SYSTEM.name)).toBeTruthy())
+      expect(screen.getByText('Sistema')).toBeTruthy()
+    })
+
+    it('Edit button is disabled for system categories', async () => {
+      renderWithProviders(<CategoriesPage />)
+      await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_SYSTEM.name)).toBeTruthy())
+      const editBtn = screen.getByRole('button', {
+        name: new RegExp(`Edit ${MOCK_CATEGORY_SYSTEM.name}`, 'i'),
+      })
+      expect(editBtn).toBeDisabled()
+    })
+
+    it('Hide button is disabled for system categories', async () => {
+      renderWithProviders(<CategoriesPage />)
+      await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_SYSTEM.name)).toBeTruthy())
+      const hideBtn = screen.getByRole('button', {
+        name: new RegExp(`Hide ${MOCK_CATEGORY_SYSTEM.name}`, 'i'),
+      })
+      expect(hideBtn).toBeDisabled()
+    })
+
+    it('Archive button is disabled for system categories', async () => {
+      renderWithProviders(<CategoriesPage />)
+      await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_SYSTEM.name)).toBeTruthy())
+      const archiveBtn = screen.getByRole('button', {
+        name: new RegExp(`Archive ${MOCK_CATEGORY_SYSTEM.name}`, 'i'),
+      })
+      expect(archiveBtn).toBeDisabled()
+    })
+
+    it('Edit button is enabled for non-system categories', async () => {
+      renderWithProviders(<CategoriesPage />)
+      await waitFor(() => screen.getAllByText(MOCK_CATEGORY_FOOD.name).length > 0)
+      const editBtn = screen.getByRole('button', {
+        name: new RegExp(`Edit ${MOCK_CATEGORY_FOOD.name}`, 'i'),
+      })
+      expect(editBtn).not.toBeDisabled()
+    })
+  })
+
+  describe('subcategory tree rendering', () => {
+    it('renders subcategory under parent in tree', async () => {
+      renderWithProviders(<CategoriesPage />)
+      await waitFor(() => expect(screen.getByText('Restaurant')).toBeTruthy())
     })
   })
 })

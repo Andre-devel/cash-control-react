@@ -13,6 +13,7 @@ import {
 } from '@/features/categories/schemas/create-category.schema'
 import { useUpdateCategory } from '@/features/categories/hooks/use-update-category'
 import { useCategories } from '@/features/categories/hooks/use-categories'
+import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 import type { Category } from '@/features/categories/types'
 
 const CATEGORY_TYPE_LABELS: Record<string, string> = {
@@ -74,8 +75,9 @@ export function EditCategoryDialog({ category, open, onClose }: EditCategoryDial
   }
 
   const rootCategories = (categories ?? []).filter(
-    (c) => c.parentId === null && !c.archived && c.id !== category?.id,
+    (c) => !c.archived && !c.isSystem && c.id !== category?.id,
   )
+  const allFlatCategories = flattenCategories(rootCategories).filter((c) => c.id !== category?.id)
 
   if (!open) return null
 
@@ -150,7 +152,7 @@ export function EditCategoryDialog({ category, open, onClose }: EditCategoryDial
         <Field label="Parent Category (optional)" error={form.formState.errors.parentId?.message}>
           <Select aria-label="Parent Category" {...form.register('parentId')}>
             <option value="">None</option>
-            {rootCategories.map((cat) => (
+            {allFlatCategories.map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}
               </option>

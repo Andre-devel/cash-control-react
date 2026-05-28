@@ -3,22 +3,13 @@ import { CategoryNode, type CategoryTreeNode } from './category-node'
 import type { Category } from '@/features/categories/types'
 
 function buildTree(categories: Category[]): CategoryTreeNode[] {
-  const map = new Map<string, CategoryTreeNode>()
-  const roots: CategoryTreeNode[] = []
-
-  categories.forEach((cat) => {
-    map.set(cat.id, { ...cat, children: [] })
-  })
-
-  map.forEach((node) => {
-    if (node.parentId !== null && map.has(node.parentId)) {
-      map.get(node.parentId)!.children.push(node)
-    } else {
-      roots.push(node)
+  function toNode(cat: Category): CategoryTreeNode {
+    return {
+      ...cat,
+      children: (cat.subcategories ?? []).map(toNode),
     }
-  })
-
-  return roots
+  }
+  return categories.map(toNode)
 }
 
 interface CategoryTreeProps {

@@ -14,6 +14,8 @@ import {
 import { useCategorizationRules } from '@/features/categories/hooks/use-categorization-rules'
 import { useCreateCategorizationRule } from '@/features/categories/hooks/use-create-categorization-rule'
 import { useDeleteCategorizationRule } from '@/features/categories/hooks/use-delete-categorization-rule'
+import { flattenCategories } from '@/features/categories/utils/flatten-categories'
+import type { Account } from '@/features/accounts/types'
 import type { Category, CategorizationRule } from '@/features/categories/types'
 
 interface DeleteRuleDialogProps {
@@ -84,27 +86,37 @@ interface CreateRuleDialogProps {
   open: boolean
   onClose: () => void
   categories: Category[]
+  accounts: Account[]
 }
 
-function CreateRuleDialog({ open, onClose, categories }: CreateRuleDialogProps) {
+function CreateRuleDialog({ open, onClose, categories, accounts }: CreateRuleDialogProps) {
   const { mutate: createRule, isPending } = useCreateCategorizationRule()
 
   const form = useForm<CreateCategorizationRuleFormValues>({
     resolver: zodResolver(createCategorizationRuleSchema),
-    defaultValues: { pattern: '', categoryId: '' },
+    defaultValues: { pattern: '', categoryId: '', subcategoryId: '', accountId: '' },
   })
 
+  const watchedCategoryId = form.watch('categoryId')
+  const selectedCategory = categories.find((c) => c.id === watchedCategoryId)
+  const subcategories = selectedCategory?.subcategories ?? []
+
   function onSubmit(data: CreateCategorizationRuleFormValues) {
-    createRule(data, {
+    const payload = {
+      ...data,
+      subcategoryId: data.subcategoryId || undefined,
+      accountId: data.accountId || undefined,
+    }
+    createRule(payload, {
       onSuccess: () => {
-        form.reset({ pattern: '', categoryId: '' })
+        form.reset({ pattern: '', categoryId: '', subcategoryId: '', accountId: '' })
         onClose()
       },
     })
   }
 
   function handleClose() {
-    form.reset({ pattern: '', categoryId: '' })
+    form.reset({ pattern: '', categoryId: '', subcategoryId: '', accountId: '' })
     onClose()
   }
 
@@ -159,16 +171,49 @@ function CreateRuleDialog({ open, onClose, categories }: CreateRuleDialogProps) 
         <Field label="Pattern" error={form.formState.errors.pattern?.message}>
           <Input placeholder="e.g. Supermarket" {...form.register('pattern')} />
         </Field>
+
         <Field label="Category" error={form.formState.errors.categoryId?.message}>
           <Select aria-label="Category" {...form.register('categoryId')}>
             <option value="">Select a category</option>
-            {categories.map((cat) => (
+            {flattenCategories(categories).map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}
               </option>
             ))}
           </Select>
         </Field>
+
+        {subcategories.length > 0 && (
+          <Field
+            label="Subcategory (optional)"
+            error={form.formState.errors.subcategoryId?.message}
+          >
+            <Select aria-label="Subcategory" {...form.register('subcategoryId')}>
+              <option value="">None</option>
+              {subcategories.map((sub) => (
+                <option key={sub.id} value={sub.id}>
+                  {sub.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
+
+        {accounts.length > 0 && (
+          <Field
+            label="Scope to Account (optional)"
+            error={form.formState.errors.accountId?.message}
+          >
+            <Select aria-label="Account" {...form.register('accountId')}>
+              <option value="">All accounts</option>
+              {accounts.map((acc) => (
+                <option key={acc.id} value={acc.id}>
+                  {acc.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
       </form>
     </Modal>
   )
@@ -176,12 +221,18 @@ function CreateRuleDialog({ open, onClose, categories }: CreateRuleDialogProps) 
 
 interface CategorizationRulesSectionProps {
   categories: Category[]
+  accounts: Account[]
 }
 
-export function CategorizationRulesSection({ categories }: CategorizationRulesSectionProps) {
+export function CategorizationRulesSection({
+  categories,
+  accounts,
+}: CategorizationRulesSectionProps) {
   const { data: rules, isLoading } = useCategorizationRules()
   const [createOpen, setCreateOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<CategorizationRule | null>(null)
+
+  const sortedRules = rules ? [...rules].sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0)) : []
 
   return (
     <div className="card">
@@ -218,7 +269,7 @@ export function CategorizationRulesSection({ categories }: CategorizationRulesSe
             />
           ))}
         </div>
-      ) : !rules || rules.length === 0 ? (
+      ) : !sortedRules.length ? (
         <div className="card-b">
           <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
             Nenhuma regra de categorização automática definida.
@@ -231,15 +282,19 @@ export function CategorizationRulesSection({ categories }: CategorizationRulesSe
               <tr>
                 <th>Padrão</th>
                 <th>Categoria</th>
+                <th>Prioridade</th>
                 <th style={{ width: 80 }} />
               </tr>
             </thead>
             <tbody>
-              {rules.map((rule) => (
+              {sortedRules.map((rule) => (
                 <tr key={rule.id}>
                   <td className="mono">{rule.pattern}</td>
                   <td style={{ color: 'var(--text-muted)' }}>
                     {rule.category?.name ?? rule.categoryId}
+                  </td>
+                  <td style={{ color: 'var(--text-muted)' }}>
+                    {rule.priority != null ? rule.priority : '—'}
                   </td>
                   <td>
                     <Button
@@ -263,6 +318,7 @@ export function CategorizationRulesSection({ categories }: CategorizationRulesSe
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         categories={categories}
+        accounts={accounts}
       />
 
       <DeleteRuleDialog

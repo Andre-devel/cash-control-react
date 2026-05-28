@@ -13,6 +13,17 @@ interface CategoryPickerComboboxProps {
   disabled?: boolean
 }
 
+function flatWithDepth(categories: Category[], depth = 0): Array<{ cat: Category; depth: number }> {
+  const result: Array<{ cat: Category; depth: number }> = []
+  for (const cat of categories) {
+    result.push({ cat, depth })
+    if (cat.subcategories && cat.subcategories.length > 0) {
+      result.push(...flatWithDepth(cat.subcategories, depth + 1))
+    }
+  }
+  return result
+}
+
 export function CategoryPickerCombobox({
   value,
   onChange,
@@ -38,6 +49,7 @@ export function CategoryPickerCombobox({
   }
 
   const isSuggested = suggested && suggested.id === value
+  const flatCategories = flatWithDepth(categories)
 
   return (
     <div className="space-y-1">
@@ -50,8 +62,10 @@ export function CategoryPickerCombobox({
         className={`select${className ? ` ${className}` : ''}`}
       >
         <option value="">Select a category</option>
-        {categories.map((cat) => (
+        {flatCategories.map(({ cat, depth }) => (
           <option key={cat.id} value={cat.id}>
+            {' '.repeat(depth * 3)}
+            {depth > 0 ? '↳ ' : ''}
             {cat.name}
           </option>
         ))}

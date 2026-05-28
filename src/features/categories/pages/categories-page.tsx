@@ -11,6 +11,7 @@ import { CreateCategoryDialog } from '@/features/categories/components/create-ca
 import { EditCategoryDialog } from '@/features/categories/components/edit-category-dialog'
 import { CategorizationRulesSection } from '@/features/categories/components/categorization-rules-section'
 import { useArchiveCategory } from '@/features/categories/hooks/use-archive-category'
+import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import type { Category } from '@/features/categories/types'
 
 function CategoriesSkeleton() {
@@ -44,12 +45,13 @@ export default function CategoriesPage() {
   const { mutate: showCategory } = useShowCategory()
   const { mutate: archiveCategory } = useArchiveCategory()
   const { mutate: unarchiveCategory } = useUnarchiveCategory()
+  const { data: accounts } = useAccounts()
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Category | null>(null)
 
   const allCategories = useMemo(() => categories ?? [], [categories])
-  const activeCategories = useMemo(() => allCategories.filter((c) => !c.archived), [allCategories])
+  const activeAccounts = useMemo(() => (accounts ?? []).filter((a) => !a.archived), [accounts])
 
   const handleEdit = useCallback((category: Category) => setEditTarget(category), [])
   const handleHide = useCallback((category: Category) => hideCategory(category.id), [hideCategory])
@@ -148,7 +150,7 @@ export default function CategoriesPage() {
         </div>
       )}
 
-      <CategorizationRulesSection categories={activeCategories} />
+      <CategorizationRulesSection categories={allCategories} accounts={activeAccounts} />
 
       <CreateCategoryDialog open={createOpen} onClose={() => setCreateOpen(false)} />
 

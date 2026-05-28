@@ -12,6 +12,7 @@ import {
 } from '@/features/categories/schemas/create-category.schema'
 import { useCreateCategory } from '@/features/categories/hooks/use-create-category'
 import { useCategories } from '@/features/categories/hooks/use-categories'
+import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 
 const CATEGORY_TYPE_LABELS: Record<string, string> = {
   INCOME: 'Income',
@@ -58,7 +59,8 @@ export function CreateCategoryDialog({ open, onClose }: CreateCategoryDialogProp
     onClose()
   }
 
-  const rootCategories = (categories ?? []).filter((c) => c.parentId === null && !c.archived)
+  const rootCategories = (categories ?? []).filter((c) => !c.archived && !c.isSystem)
+  const allFlatCategories = flattenCategories(rootCategories)
 
   if (!open) return null
 
@@ -130,11 +132,11 @@ export function CreateCategoryDialog({ open, onClose }: CreateCategoryDialogProp
           <Input placeholder="e.g. tag" {...form.register('icon')} />
         </Field>
 
-        {rootCategories.length > 0 && (
+        {allFlatCategories.length > 0 && (
           <Field label="Parent Category (optional)" error={form.formState.errors.parentId?.message}>
             <Select aria-label="Parent Category" {...form.register('parentId')}>
               <option value="">None</option>
-              {rootCategories.map((cat) => (
+              {allFlatCategories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>

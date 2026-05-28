@@ -39,6 +39,11 @@ export const CategoryNode = memo(function CategoryNode({
           <div className="fw-500 truncate">{node.name}</div>
         </div>
         <TypeBadge type={node.type} />
+        {node.isSystem && (
+          <Badge kind="muted" dot={false} square>
+            Sistema
+          </Badge>
+        )}
         {node.hidden && (
           <Badge kind="muted" dot={false} square>
             Oculto
@@ -55,6 +60,7 @@ export const CategoryNode = memo(function CategoryNode({
             size="sm"
             onClick={() => onEdit(node)}
             aria-label={`Edit ${node.name}`}
+            disabled={node.isSystem}
           >
             Editar
           </Button>
@@ -65,6 +71,7 @@ export const CategoryNode = memo(function CategoryNode({
               size="sm"
               onClick={() => onShow(node)}
               aria-label={`Show ${node.name}`}
+              disabled={node.isSystem}
             >
               Mostrar
             </Button>
@@ -74,6 +81,7 @@ export const CategoryNode = memo(function CategoryNode({
               size="sm"
               onClick={() => onHide(node)}
               aria-label={`Hide ${node.name}`}
+              disabled={node.isSystem}
             >
               Ocultar
             </Button>
@@ -85,6 +93,7 @@ export const CategoryNode = memo(function CategoryNode({
               size="sm"
               onClick={() => onUnarchive(node)}
               aria-label={`Unarchive ${node.name}`}
+              disabled={node.isSystem}
             >
               Desarquivar
             </Button>
@@ -94,6 +103,7 @@ export const CategoryNode = memo(function CategoryNode({
               size="sm"
               onClick={() => onArchive(node)}
               aria-label={`Archive ${node.name}`}
+              disabled={node.isSystem}
             >
               Arquivar
             </Button>

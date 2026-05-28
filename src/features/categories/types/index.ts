@@ -9,6 +9,8 @@ export interface Category {
   parentId: string | null
   hidden: boolean
   archived: boolean
+  isSystem: boolean
+  subcategories?: Category[]
 }
 
 export interface ListCategoriesParams {
@@ -30,6 +32,9 @@ export interface CategorizationRule {
   id: string
   pattern: string
   categoryId: string
+  subcategoryId?: string
+  accountId?: string
+  priority?: number
   category: Category | null
   createdAt: string
 }
@@ -37,4 +42,6 @@ export interface CategorizationRule {
 export interface CreateCategorizationRuleRequest {
   pattern: string
   categoryId: string
+  subcategoryId?: string
+  accountId?: string
 }

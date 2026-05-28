@@ -344,16 +344,16 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `CategoryResponse` likely has: `id`, `name`, `color`, `icon`, `type`, `parentId`, `hidden`, `archived`, `isSystem`, `subcategories`
 
 **Implementation Tasks:**
-- [ ] Add `subcategories?: Category[]` to `Category` interface (recursive or separate `CategoryWithChildren`)
-- [ ] Add `isSystem: boolean` to `Category`
-- [ ] Create a flat utility `flattenCategories(categories: Category[]): Category[]` for select/combo pickers that need a flat list
-- [ ] Update `listCategories` API function to return `Category[]` (root-level with nested subcategories)
-- [ ] Update any `select` components rendering categories to handle the tree structure
+- [x] Add `subcategories?: Category[]` to `Category` interface (recursive or separate `CategoryWithChildren`)
+- [x] Add `isSystem: boolean` to `Category`
+- [x] Create a flat utility `flattenCategories(categories: Category[]): Category[]` for select/combo pickers that need a flat list
+- [x] Update `listCategories` API function to return `Category[]` (root-level with nested subcategories)
+- [x] Update any `select` components rendering categories to handle the tree structure
 
 **Acceptance Criteria:**
-- [ ] Category selector renders root categories with indented subcategories
-- [ ] System categories show a visual indicator and have edit/archive buttons disabled
-- [ ] Flat utility correctly produces all leaf and root nodes in a single array
+- [x] Category selector renders root categories with indented subcategories
+- [x] System categories show a visual indicator and have edit/archive buttons disabled
+- [x] Flat utility correctly produces all leaf and root nodes in a single array
 
 ---
 
@@ -364,13 +364,13 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `CreateCategoryRuleRequest` includes: `pattern`, `categoryId`, `subcategoryId?`, `accountId?`
 
 **Implementation Tasks:**
-- [ ] Add `subcategoryId?: string`, `accountId?: string`, `priority?: number` to `CategorizationRule` type
-- [ ] Update `CreateCategorizationRuleRequest` with `subcategoryId?` and `accountId?` fields
-- [ ] Verify `GET /categories/rules` returns a flat array and update API function return type
+- [x] Add `subcategoryId?: string`, `accountId?: string`, `priority?: number` to `CategorizationRule` type
+- [x] Update `CreateCategorizationRuleRequest` with `subcategoryId?` and `accountId?` fields
+- [x] Verify `GET /categories/rules` returns a flat array and update API function return type
 
 **Acceptance Criteria:**
-- [ ] Category rules list renders priority order
-- [ ] Create rule form allows selecting a subcategory and optionally scoping to an account
+- [x] Category rules list renders priority order
+- [x] Create rule form allows selecting a subcategory and optionally scoping to an account
 
 ---
 
@@ -588,7 +588,7 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - [x] Archive account: response is the updated Account object, no extra refetch needed
 - [x] Transaction type: `ADJUSTMENT` value rejected by TypeScript; `TRANSFER` renders correctly
 - [x] Attachment upload: `files` field name; returns array; single file upload handled
-- [ ] Category picker: renders root + subcategory tree; system categories not editable
+- [x] Category picker: renders root + subcategory tree; system categories not editable
 - [ ] Advance installments: sends `{ transactionIds[], newDate }` not `{ seriesId, count }`
 - [ ] 409 conflict on duplicate name: inline form error, not generic toast
 - [ ] 422 business rule violation: form-level error, not toast
