@@ -107,7 +107,7 @@ export function RecentTransfersCard() {
               <IconBubble color="var(--info)" icon={asIcon(ArrowLeftRight)} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="title">{t.description}</div>
-                <div className="meta">{fmtDate(t.date)}</div>
+                <div className="meta">{fmtDate(t.competenceDate)}</div>
               </div>
               <div className="amount mono">
                 <Money value={parseFloat(t.amount)} />

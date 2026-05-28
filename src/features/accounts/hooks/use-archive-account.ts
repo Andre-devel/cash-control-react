@@ -2,15 +2,22 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { archiveAccount } from '@/features/accounts/api/accounts.api'
 import { toast } from '@/lib/toast'
 import { ACCOUNTS_QUERY_KEY } from './use-accounts'
+import type { Account } from '@/features/accounts/types'
 import type { NormalizedError } from '@/features/auth/types'
 
 export function useArchiveAccount() {
   const queryClient = useQueryClient()
 
-  return useMutation<void, NormalizedError, string>({
+  return useMutation<Account, NormalizedError, string>({
     mutationFn: archiveAccount,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY })
+    onSuccess: (updatedAccount) => {
+      queryClient.setQueryData<Account>([...ACCOUNTS_QUERY_KEY, updatedAccount.id], updatedAccount)
+      queryClient.setQueriesData<Account[]>({ queryKey: ACCOUNTS_QUERY_KEY }, (old) => {
+        if (!Array.isArray(old)) return old
+        const updated = old.map((a) => (a.id === updatedAccount.id ? updatedAccount : a))
+        // If no archived items existed before, this is a non-archived list — filter the account out
+        return old.some((a) => a.archived) ? updated : updated.filter((a) => !a.archived)
+      })
       toast.success('Account archived.')
     },
     onError: (error) => {

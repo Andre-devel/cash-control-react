@@ -1,4 +1,4 @@
-export type TransactionType = 'INCOME' | 'EXPENSE' | 'REFUND' | 'ADJUSTMENT'
+export type TransactionType = 'INCOME' | 'EXPENSE' | 'REFUND' | 'ADJUSTMENT' | 'TRANSFER'
 export type TransactionStatus = 'PENDING' | 'PAID' | 'CANCELLED'
 
 export interface Transaction {

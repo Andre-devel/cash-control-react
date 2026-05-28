@@ -24,7 +24,7 @@ export function AdjustBalanceDialog({ account, open, onClose }: AdjustBalanceDia
   const form = useForm<AdjustBalanceFormValues>({
     resolver: zodResolver(adjustBalanceSchema),
     defaultValues: {
-      targetBalance: account?.balance ?? '0.00',
+      amount: '',
       note: '',
     },
   })
@@ -95,8 +95,8 @@ export function AdjustBalanceDialog({ account, open, onClose }: AdjustBalanceDia
         noValidate
         className="col gap-4"
       >
-        <Field label="Target Balance" error={form.formState.errors.targetBalance?.message}>
-          <Input placeholder="e.g. 2500.00" {...form.register('targetBalance')} />
+        <Field label="Adjustment Amount" error={form.formState.errors.amount?.message}>
+          <Input placeholder="e.g. 100.00 or -50.00" {...form.register('amount')} />
         </Field>
 
         <Field label="Note (optional)" error={form.formState.errors.note?.message}>

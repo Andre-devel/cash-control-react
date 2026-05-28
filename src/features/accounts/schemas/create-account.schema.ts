@@ -18,11 +18,12 @@ export const createAccountSchema = z.object({
     .string()
     .min(1, 'Currency is required')
     .max(10, 'Currency must be at most 10 characters'),
-  balance: z
+  initialBalance: z
     .string()
-    .regex(DECIMAL_PATTERN, 'Balance must be a valid decimal amount (e.g. 1500.00)'),
+    .regex(DECIMAL_PATTERN, 'Initial balance must be a valid decimal amount (e.g. 1500.00)'),
   color: z.string().min(1, 'Color is required'),
   icon: z.string().min(1, 'Icon is required'),
+  description: z.string().optional(),
 })
 
 export type CreateAccountFormValues = z.infer<typeof createAccountSchema>

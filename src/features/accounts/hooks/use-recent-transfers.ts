@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { listTransfers } from '@/features/accounts/api/accounts.api'
+import { listTransactions } from '@/features/transactions/api/transactions.api'
 
-export const TRANSFERS_QUERY_KEY = ['accounts', 'transfers'] as const
+export const RECENT_TRANSFERS_QUERY_KEY = ['transactions', 'recent-transfers'] as const
 
 export function useRecentTransfers(limit = 4) {
   return useQuery({
-    queryKey: [...TRANSFERS_QUERY_KEY, limit],
-    queryFn: listTransfers,
-    select: (data) => data.slice(0, limit),
+    queryKey: [...RECENT_TRANSFERS_QUERY_KEY, limit],
+    queryFn: () => listTransactions({ type: 'TRANSFER', size: limit }),
+    select: (data) => data.content,
   })
 }

@@ -5,7 +5,7 @@ const VALID_INPUT = {
   name: 'Nubank',
   type: 'CHECKING' as const,
   currency: 'BRL',
-  balance: '1500.00',
+  initialBalance: '1500.00',
   color: '#820AD1',
   icon: 'wallet',
 }
@@ -43,29 +43,35 @@ describe('createAccountSchema', () => {
     },
   )
 
-  it('rejects non-decimal balance (integer string without decimals is OK)', () => {
-    const result = createAccountSchema.safeParse({ ...VALID_INPUT, balance: 'abc' })
+  it('rejects non-decimal initialBalance', () => {
+    const result = createAccountSchema.safeParse({ ...VALID_INPUT, initialBalance: 'abc' })
     expect(result.success).toBe(false)
     if (!result.success) {
-      expect(result.error.issues.some((i) => i.path[0] === 'balance')).toBe(true)
+      expect(result.error.issues.some((i) => i.path[0] === 'initialBalance')).toBe(true)
     }
   })
 
-  it('rejects float balance (too many decimal places)', () => {
-    const result = createAccountSchema.safeParse({ ...VALID_INPUT, balance: '1500.123' })
+  it('rejects initialBalance with too many decimal places', () => {
+    const result = createAccountSchema.safeParse({ ...VALID_INPUT, initialBalance: '1500.123' })
     expect(result.success).toBe(false)
   })
 
-  it('accepts integer balance string', () => {
-    expect(createAccountSchema.safeParse({ ...VALID_INPUT, balance: '1500' }).success).toBe(true)
+  it('accepts integer initialBalance string', () => {
+    expect(createAccountSchema.safeParse({ ...VALID_INPUT, initialBalance: '1500' }).success).toBe(
+      true,
+    )
   })
 
-  it('accepts balance with two decimal places', () => {
-    expect(createAccountSchema.safeParse({ ...VALID_INPUT, balance: '1500.50' }).success).toBe(true)
+  it('accepts initialBalance with two decimal places', () => {
+    expect(
+      createAccountSchema.safeParse({ ...VALID_INPUT, initialBalance: '1500.50' }).success,
+    ).toBe(true)
   })
 
-  it('accepts zero balance', () => {
-    expect(createAccountSchema.safeParse({ ...VALID_INPUT, balance: '0.00' }).success).toBe(true)
+  it('accepts zero initialBalance', () => {
+    expect(createAccountSchema.safeParse({ ...VALID_INPUT, initialBalance: '0.00' }).success).toBe(
+      true,
+    )
   })
 
   it('rejects empty color', () => {
@@ -85,5 +91,15 @@ describe('createAccountSchema', () => {
 
   it('rejects missing required fields', () => {
     expect(createAccountSchema.safeParse({}).success).toBe(false)
+  })
+
+  it('accepts optional description', () => {
+    expect(
+      createAccountSchema.safeParse({ ...VALID_INPUT, description: 'My main account' }).success,
+    ).toBe(true)
+  })
+
+  it('accepts without description', () => {
+    expect(createAccountSchema.safeParse(VALID_INPUT).success).toBe(true)
   })
 })

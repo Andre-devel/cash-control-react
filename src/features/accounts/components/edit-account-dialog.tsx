@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
@@ -38,9 +39,9 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
       name: '',
       type: 'CHECKING',
       currency: 'BRL',
-      balance: '0.00',
       color: '#4CAF50',
       icon: 'wallet',
+      description: '',
     },
   })
 
@@ -50,9 +51,9 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
         name: account.name,
         type: account.type,
         currency: account.currency,
-        balance: account.balance,
         color: account.color,
         icon: account.icon,
+        description: account.description ?? '',
       })
     }
   }, [account, form])
@@ -139,16 +140,16 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
           <Input placeholder="e.g. BRL" {...form.register('currency')} />
         </Field>
 
-        <Field label="Balance" error={form.formState.errors.balance?.message}>
-          <Input placeholder="e.g. 1500.00" {...form.register('balance')} />
-        </Field>
-
         <Field label="Color" error={form.formState.errors.color?.message}>
           <Input placeholder="#4CAF50" {...form.register('color')} />
         </Field>
 
         <Field label="Icon" error={form.formState.errors.icon?.message}>
           <Input placeholder="e.g. wallet" {...form.register('icon')} />
+        </Field>
+
+        <Field label="Description (optional)" error={form.formState.errors.description?.message}>
+          <Textarea placeholder="e.g. Main spending account" {...form.register('description')} />
         </Field>
       </form>
     </Modal>

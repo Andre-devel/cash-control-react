@@ -1,11 +1,11 @@
 import { z } from 'zod'
 
-const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/
+const SIGNED_DECIMAL_PATTERN = /^-?\d+(\.\d{1,2})?$/
 
 export const adjustBalanceSchema = z.object({
-  targetBalance: z
+  amount: z
     .string()
-    .regex(DECIMAL_PATTERN, 'Target balance must be a valid decimal amount (e.g. 2500.00)'),
+    .regex(SIGNED_DECIMAL_PATTERN, 'Amount must be a signed decimal (e.g. 100.00 or -50.00)'),
   note: z.string().optional(),
 })
 

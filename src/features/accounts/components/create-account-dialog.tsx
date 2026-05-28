@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
@@ -25,9 +26,10 @@ const DEFAULT_VALUES: CreateAccountFormValues = {
   name: '',
   type: 'CHECKING',
   currency: 'BRL',
-  balance: '0.00',
+  initialBalance: '0.00',
   color: '#4CAF50',
   icon: 'wallet',
+  description: '',
 }
 
 interface CreateAccountDialogProps {
@@ -123,8 +125,8 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
           <Input placeholder="e.g. BRL" {...form.register('currency')} />
         </Field>
 
-        <Field label="Initial Balance" error={form.formState.errors.balance?.message}>
-          <Input placeholder="e.g. 1500.00" {...form.register('balance')} />
+        <Field label="Initial Balance" error={form.formState.errors.initialBalance?.message}>
+          <Input placeholder="e.g. 1500.00" {...form.register('initialBalance')} />
         </Field>
 
         <Field label="Color" error={form.formState.errors.color?.message}>
@@ -133,6 +135,10 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
 
         <Field label="Icon" error={form.formState.errors.icon?.message}>
           <Input placeholder="e.g. wallet" {...form.register('icon')} />
+        </Field>
+
+        <Field label="Description (optional)" error={form.formState.errors.description?.message}>
+          <Textarea placeholder="e.g. Main spending account" {...form.register('description')} />
         </Field>
       </form>
     </Modal>

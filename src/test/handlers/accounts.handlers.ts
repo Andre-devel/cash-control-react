@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
-import type { Account, Transfer } from '@/features/accounts/types'
+import type { Account } from '@/features/accounts/types'
+import type { CreateAccountRequest } from '@/features/accounts/types'
 
 export const MOCK_ACCOUNT_1: Account = {
   id: 'account-1',
@@ -25,18 +26,6 @@ export const MOCK_ACCOUNT_2: Account = {
   createdAt: '2026-01-01T00:00:00Z',
 }
 
-export const MOCK_TRANSFER_1: Transfer = {
-  id: 'transfer-1',
-  groupId: 'group-1',
-  description: 'Nubank → Savings',
-  amount: '500.00',
-  fromAccountId: 'account-1',
-  fromAccountName: 'Nubank',
-  toAccountId: 'account-2',
-  toAccountName: 'Savings',
-  date: '2026-05-04',
-}
-
 export const MOCK_ARCHIVED_ACCOUNT: Account = {
   id: 'account-archived',
   name: 'Old Account',
@@ -56,10 +45,6 @@ export function resetAccountsStore() {
 }
 
 export const accountsHandlers = [
-  http.get('*/accounts/transfers', () => {
-    return HttpResponse.json([MOCK_TRANSFER_1])
-  }),
-
   http.get('*/accounts', ({ request }) => {
     const url = new URL(request.url)
     const includeArchived = url.searchParams.get('includeArchived') === 'true'
@@ -83,12 +68,15 @@ export const accountsHandlers = [
   }),
 
   http.post('*/accounts', async ({ request }) => {
-    const body = (await request.json()) as Omit<Account, 'id' | 'archived' | 'createdAt'>
+    const body = (await request.json()) as CreateAccountRequest
+    const { initialBalance, description, ...rest } = body
     const created: Account = {
       id: `account-${Date.now()}`,
+      balance: initialBalance,
       archived: false,
       createdAt: new Date().toISOString(),
-      ...body,
+      description: description ?? undefined,
+      ...rest,
     }
     accountsStore = [...accountsStore, created]
     return HttpResponse.json(created, { status: 201 })
@@ -118,18 +106,21 @@ export const accountsHandlers = [
 
   http.post('*/accounts/:id/archive', ({ params }) => {
     accountsStore = accountsStore.map((a) => (a.id === params.id ? { ...a, archived: true } : a))
-    return new HttpResponse(null, { status: 204 })
+    const updated = accountsStore.find((a) => a.id === params.id)
+    return HttpResponse.json(updated)
   }),
 
   http.post('*/accounts/:id/unarchive', ({ params }) => {
     accountsStore = accountsStore.map((a) => (a.id === params.id ? { ...a, archived: false } : a))
-    return new HttpResponse(null, { status: 204 })
+    const updated = accountsStore.find((a) => a.id === params.id)
+    return HttpResponse.json(updated)
   }),
 
   http.post('*/accounts/:id/adjust', async ({ params, request }) => {
-    const body = (await request.json()) as { targetBalance: string; note?: string }
+    const body = (await request.json()) as { amount: string; note?: string }
+    const delta = parseFloat(body.amount)
     accountsStore = accountsStore.map((a) =>
-      a.id === params.id ? { ...a, balance: body.targetBalance } : a,
+      a.id === params.id ? { ...a, balance: (parseFloat(a.balance) + delta).toFixed(2) } : a,
     )
     const updated = accountsStore.find((a) => a.id === params.id)
     return HttpResponse.json(updated)

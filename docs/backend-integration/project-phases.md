@@ -203,14 +203,14 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - **There is no `GET /accounts/transfers` endpoint**
 
 **Implementation Tasks:**
-- [ ] Remove `listTransfers(): Promise<Transfer[]>` from `accounts.api.ts` entirely
-- [ ] Remove `Transfer` type from `accounts/types/index.ts` if unused by components (or move to a `_deprecated` comment)
-- [ ] Find all call sites of `listTransfers()` in hooks/components and remove or replace with transaction list filtered by `type=TRANSFER`
-- [ ] Add `deleteTransfer(groupId: string): Promise<void>` if not already present (it is, verify path is `/accounts/transfers/{groupId}`)
+- [x] Remove `listTransfers(): Promise<Transfer[]>` from `accounts.api.ts` entirely
+- [x] Remove `Transfer` type from `accounts/types/index.ts` if unused by components (or move to a `_deprecated` comment)
+- [x] Find all call sites of `listTransfers()` in hooks/components and remove or replace with transaction list filtered by `type=TRANSFER`
+- [x] Add `deleteTransfer(groupId: string): Promise<void>` if not already present (it is, verify path is `/accounts/transfers/{groupId}`)
 
 **Acceptance Criteria:**
-- [ ] No component calls `GET /accounts/transfers` at runtime
-- [ ] Transfer creation and deletion still work via `POST /accounts/transfers` and `DELETE /accounts/transfers/{groupId}`
+- [x] No component calls `GET /accounts/transfers` at runtime
+- [x] Transfer creation and deletion still work via `POST /accounts/transfers` and `DELETE /accounts/transfers/{groupId}`
 
 ---
 
@@ -220,15 +220,15 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `POST /api/v1/accounts/{id}/adjust` with `ManualAdjustmentRequest` — creates a delta transaction (positive = income, negative = expense). The field is a **delta amount**, not a target balance.
 
 **Implementation Tasks:**
-- [ ] Rename `AdjustBalanceRequest.targetBalance` → `amount` (signed decimal delta, e.g., `"-50.00"`)
-- [ ] Add optional `note?: string` field (kept as-is)
-- [ ] Update `adjustBalance()` in `accounts.api.ts` to match new shape
-- [ ] Update any UI components/hooks that build the `AdjustBalanceRequest`
-- [ ] Update the balance adjustment modal/form label from "Target balance" to "Adjustment amount"
+- [x] Rename `AdjustBalanceRequest.targetBalance` → `amount` (signed decimal delta, e.g., `"-50.00"`)
+- [x] Add optional `note?: string` field (kept as-is)
+- [x] Update `adjustBalance()` in `accounts.api.ts` to match new shape
+- [x] Update any UI components/hooks that build the `AdjustBalanceRequest`
+- [x] Update the balance adjustment modal/form label from "Target balance" to "Adjustment amount"
 
 **Acceptance Criteria:**
-- [ ] Submitting a +100 adjustment creates an income transaction that increases the account balance by 100
-- [ ] Submitting a -50 adjustment creates an expense transaction that decreases the balance by 50
+- [x] Submitting a +100 adjustment creates an income transaction that increases the account balance by 100
+- [x] Submitting a -50 adjustment creates an expense transaction that decreases the balance by 50
 
 ---
 
@@ -239,12 +239,12 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `POST /api/v1/accounts/{id}/unarchive` → `AccountResponse` (200, updated account)
 
 **Implementation Tasks:**
-- [ ] Change `archiveAccount(id: string): Promise<void>` → `Promise<Account>` in `accounts.api.ts`
-- [ ] Change `unarchiveAccount(id: string): Promise<void>` → `Promise<Account>` in `accounts.api.ts`
-- [ ] Update TanStack Query mutations for archive/unarchive to use returned `Account` for optimistic cache update (instead of full `invalidateQueries`)
+- [x] Change `archiveAccount(id: string): Promise<void>` → `Promise<Account>` in `accounts.api.ts`
+- [x] Change `unarchiveAccount(id: string): Promise<void>` → `Promise<Account>` in `accounts.api.ts`
+- [x] Update TanStack Query mutations for archive/unarchive to use returned `Account` for optimistic cache update (instead of full `invalidateQueries`)
 
 **Acceptance Criteria:**
-- [ ] Archiving an account immediately reflects in the UI without a separate refetch round-trip
+- [x] Archiving an account immediately reflects in the UI without a separate refetch round-trip
 
 ---
 
@@ -255,14 +255,14 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `CreateAccountRequest` likely includes: `name`, `type`, `currency`, `initialBalance`, `color`, `icon`, `description`
 
 **Implementation Tasks:**
-- [ ] Add `description?: string` and `displayOrder?: number` to `Account` type
-- [ ] Rename `balance` field in `CreateAccountRequest` to `initialBalance` if backend uses that name (verify)
-- [ ] Add `description?: string` to `CreateAccountRequest`
-- [ ] Verify `color` and `icon` fields are accepted by backend (check if they are in `CreateAccountRequest` DTO)
+- [x] Add `description?: string` and `displayOrder?: number` to `Account` type
+- [x] Rename `balance` field in `CreateAccountRequest` to `initialBalance` if backend uses that name (verify)
+- [x] Add `description?: string` to `CreateAccountRequest`
+- [x] Verify `color` and `icon` fields are accepted by backend (check if they are in `CreateAccountRequest` DTO)
 
 **Acceptance Criteria:**
-- [ ] Account creation form successfully sends `initialBalance` and all fields accepted by backend
-- [ ] Account list renders `description` if provided
+- [x] Account creation form successfully sends `initialBalance` and all fields accepted by backend
+- [x] Account list renders `description` if provided
 
 ---
 
@@ -584,8 +584,8 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - [x] Change password: wrong current password → inline error; success → session cleared
 - [x] Dashboard widgets: all four render from plain arrays without `.bills`, `.invoices`, etc. accessors
 - [x] Dashboard overview: all metric fields render without `undefined`
-- [ ] Account balance adjust: sends `{ amount: "-50.00" }` (delta), not `{ targetBalance }`
-- [ ] Archive account: response is the updated Account object, no extra refetch needed
+- [x] Account balance adjust: sends `{ amount: "-50.00" }` (delta), not `{ targetBalance }`
+- [x] Archive account: response is the updated Account object, no extra refetch needed
 - [ ] Transaction type: `ADJUSTMENT` value rejected by TypeScript; `TRANSFER` renders correctly
 - [ ] Attachment upload: `files` field name; returns array; single file upload handled
 - [ ] Category picker: renders root + subcategory tree; system categories not editable

@@ -9,6 +9,8 @@ export interface Account {
   color: string
   icon: string
   archived: boolean
+  description?: string
+  displayOrder?: number
   createdAt: string
 }
 
@@ -20,15 +22,23 @@ export interface CreateAccountRequest {
   name: string
   type: AccountType
   currency: string
-  balance: string
+  initialBalance: string
   color: string
   icon: string
+  description?: string
 }
 
-export type UpdateAccountRequest = CreateAccountRequest
+export interface UpdateAccountRequest {
+  name: string
+  type: AccountType
+  currency: string
+  color: string
+  icon: string
+  description?: string
+}
 
 export interface AdjustBalanceRequest {
-  targetBalance: string
+  amount: string
   note?: string
 }
 
@@ -38,16 +48,4 @@ export interface CreateTransferRequest {
   amount: string
   date: string
   description?: string
-}
-
-export interface Transfer {
-  id: string
-  groupId: string
-  description: string
-  amount: string
-  fromAccountId: string
-  fromAccountName?: string
-  toAccountId: string
-  toAccountName?: string
-  date: string
 }

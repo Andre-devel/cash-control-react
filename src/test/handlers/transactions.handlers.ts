@@ -53,6 +53,19 @@ export const MOCK_TRANSACTION_CANCELLED: Transaction = {
   createdAt: '2026-05-15T00:00:00Z',
 }
 
+export const MOCK_TRANSFER_TX: Transaction = {
+  id: 'tx-transfer-1',
+  description: 'Nubank → Savings',
+  amount: '500.00',
+  type: 'TRANSFER',
+  status: 'PAID',
+  accountId: 'account-1',
+  categoryId: null,
+  competenceDate: '2026-05-04',
+  paymentDate: '2026-05-04',
+  createdAt: '2026-05-04T10:00:00Z',
+}
+
 export const MOCK_ATTACHMENT_1: Attachment = {
   id: 'att-1',
   transactionId: 'tx-1',
@@ -68,6 +81,7 @@ let transactionsStore: Transaction[] = [
   MOCK_TRANSACTION_2,
   MOCK_TRANSACTION_PENDING,
   MOCK_TRANSACTION_CANCELLED,
+  MOCK_TRANSFER_TX,
 ]
 
 let attachmentsStore: Attachment[] = [MOCK_ATTACHMENT_1]
@@ -78,6 +92,7 @@ export function resetTransactionsStore() {
     MOCK_TRANSACTION_2,
     MOCK_TRANSACTION_PENDING,
     MOCK_TRANSACTION_CANCELLED,
+    MOCK_TRANSFER_TX,
   ]
   attachmentsStore = [MOCK_ATTACHMENT_1]
 }
