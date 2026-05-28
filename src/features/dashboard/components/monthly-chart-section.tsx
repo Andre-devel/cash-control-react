@@ -59,14 +59,14 @@ export function MonthlyChartSection() {
               Retry
             </Button>
           </div>
-        ) : !data || data.entries.length === 0 ? (
+        ) : !data || data.data.length === 0 ? (
           <p className="text-sm text-dim" style={{ padding: '32px 0', textAlign: 'center' }}>
             No data available for the selected period.
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <BarChart
-              data={data.entries.map((e) => ({
+              data={data.data.map((e) => ({
                 month: e.month,
                 Income: parseFloat(e.income),
                 Expenses: parseFloat(e.expenses),

@@ -2,10 +2,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useUpcomingBills } from '@/features/dashboard/hooks/use-upcoming-bills'
 
-function isOverdue(dueDate: string): boolean {
-  return new Date(dueDate) < new Date(new Date().toDateString())
-}
-
 function WidgetSkeleton() {
   return (
     <div className="space-y-2 animate-pulse" aria-busy="true" aria-label="Loading upcoming bills">
@@ -56,14 +52,14 @@ export function UpcomingBillsWidget() {
               Retry
             </Button>
           </div>
-        ) : !data || data.bills.length === 0 ? (
+        ) : !data || data.length === 0 ? (
           <p className="text-sm text-dim" style={{ textAlign: 'center', padding: '16px 0' }}>
             No upcoming bills in the next {daysAhead} days.
           </p>
         ) : (
           <ul className="divide-y" role="list">
-            {data.bills.map((bill) => {
-              const overdue = isOverdue(bill.dueDate)
+            {data.map((bill) => {
+              const overdue = bill.status === 'OVERDUE'
               return (
                 <li
                   key={bill.id}

@@ -40,7 +40,7 @@ export function BarChartCard() {
   const chartW = W - PAD_L - PAD_R
   const chartH = H - PAD_T - PAD_B
 
-  const entries = data?.entries ?? []
+  const entries = data?.data ?? []
   const parsed = entries.map((e) => ({
     m: MONTH_ABBR_PT[e.month.slice(5, 7)] ?? e.month.slice(5, 7),
     income: parseFloat(e.income),

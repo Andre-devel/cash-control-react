@@ -8,10 +8,10 @@ import type {
   NetWorthChartParams,
   MonthComparison,
   ComparisonChartParams,
-  UpcomingBillsResponse,
-  UpcomingInvoicesResponse,
-  LargestExpensesResponse,
-  RecentTransactionsResponse,
+  UpcomingBillItem,
+  UpcomingInvoiceItem,
+  LargestExpenseItem,
+  RecentTransactionItem,
 } from '@/features/dashboard/types'
 
 export async function getOverview(): Promise<DashboardOverview> {
@@ -47,31 +47,31 @@ export async function getComparisonChart(params: ComparisonChartParams): Promise
   return response.data
 }
 
-export async function getUpcomingBills(daysAhead?: number): Promise<UpcomingBillsResponse> {
-  const response = await axiosInstance.get<UpcomingBillsResponse>(
+export async function getUpcomingBills(daysAhead?: number): Promise<UpcomingBillItem[]> {
+  const response = await axiosInstance.get<UpcomingBillItem[]>(
     '/dashboard/widgets/upcoming-bills',
     { params: daysAhead !== undefined ? { daysAhead } : undefined },
   )
   return response.data
 }
 
-export async function getUpcomingInvoices(): Promise<UpcomingInvoicesResponse> {
-  const response = await axiosInstance.get<UpcomingInvoicesResponse>(
+export async function getUpcomingInvoices(): Promise<UpcomingInvoiceItem[]> {
+  const response = await axiosInstance.get<UpcomingInvoiceItem[]>(
     '/dashboard/widgets/upcoming-invoices',
   )
   return response.data
 }
 
-export async function getLargestExpenses(limit?: number): Promise<LargestExpensesResponse> {
-  const response = await axiosInstance.get<LargestExpensesResponse>(
+export async function getLargestExpenses(limit?: number): Promise<LargestExpenseItem[]> {
+  const response = await axiosInstance.get<LargestExpenseItem[]>(
     '/dashboard/widgets/largest-expenses',
     { params: limit !== undefined ? { limit } : undefined },
   )
   return response.data
 }
 
-export async function getRecentTransactions(limit?: number): Promise<RecentTransactionsResponse> {
-  const response = await axiosInstance.get<RecentTransactionsResponse>(
+export async function getRecentTransactions(limit?: number): Promise<RecentTransactionItem[]> {
+  const response = await axiosInstance.get<RecentTransactionItem[]>(
     '/dashboard/widgets/recent-transactions',
     { params: limit !== undefined ? { limit } : undefined },
   )

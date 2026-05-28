@@ -99,7 +99,7 @@ function TableSkeleton() {
 
 export function RecentTransactionsCard() {
   const { data, isLoading, isError, refetch } = useRecentTransactions(7)
-  const transactions = data?.transactions ?? []
+  const transactions = data ?? []
 
   return (
     <div className="card">

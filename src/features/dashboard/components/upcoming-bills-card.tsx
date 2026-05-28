@@ -35,13 +35,6 @@ function daysUntil(iso: string): number {
   return Math.max(0, Math.ceil((d.getTime() - today.getTime()) / 86400000))
 }
 
-function isOverdue(iso: string): boolean {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const d = new Date(iso + 'T00:00:00')
-  return d.getTime() < today.getTime()
-}
-
 function CardSkeleton() {
   return (
     <div
@@ -74,7 +67,7 @@ function CardSkeleton() {
 
 export function UpcomingBillsCard() {
   const { data, isLoading, isError, refetch } = useUpcomingBills(14)
-  const bills = data?.bills.slice(0, 5) ?? []
+  const bills = data?.slice(0, 5) ?? []
 
   return (
     <div className="card">
@@ -122,7 +115,7 @@ export function UpcomingBillsCard() {
       ) : (
         <div className="card-b flush">
           {bills.map((bill) => {
-            const overdue = isOverdue(bill.dueDate)
+            const overdue = bill.status === 'OVERDUE'
             const days = daysUntil(bill.dueDate)
             return (
               <div className="list-row" key={bill.id}>

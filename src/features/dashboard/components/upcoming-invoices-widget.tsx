@@ -37,13 +37,13 @@ export function UpcomingInvoicesWidget() {
               Retry
             </Button>
           </div>
-        ) : !data || data.invoices.length === 0 ? (
+        ) : !data || data.length === 0 ? (
           <p className="text-sm text-dim" style={{ textAlign: 'center', padding: '16px 0' }}>
             No upcoming invoices.
           </p>
         ) : (
           <ul className="divide-y" role="list">
-            {data.invoices.map((inv) => (
+            {data.map((inv) => (
               <li key={`${inv.cardId}-${inv.referenceMonth}`} className="py-2 text-sm">
                 <Link
                   to={ROUTES.CARD_DETAIL.replace(':id', inv.cardId)}

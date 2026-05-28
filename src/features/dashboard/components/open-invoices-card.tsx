@@ -56,7 +56,7 @@ function CardSkeleton() {
 
 export function OpenInvoicesCard() {
   const { data, isLoading, isError, refetch } = useUpcomingInvoices()
-  const invoices = data?.invoices ?? []
+  const invoices = data ?? []
 
   return (
     <div className="card">

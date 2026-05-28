@@ -149,18 +149,18 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `GET /api/v1/dashboard/widgets/recent-transactions` → `RecentTransactionResponse[]`
 
 **Implementation Tasks:**
-- [ ] In `dashboard/types/index.ts`: change `UpcomingBillsResponse = { bills: UpcomingBill[] }` → `UpcomingBill[]` (remove wrapper type, rename to `UpcomingBillItem`)
-- [ ] Same pattern for: `UpcomingInvoicesResponse` → `UpcomingInvoiceItem[]`; `LargestExpensesResponse` → `LargestExpenseItem[]`; `RecentTransactionsResponse` → `RecentTransactionItem[]`
-- [ ] Update `dashboard.api.ts`: change return types of all four widget functions to plain arrays
-- [ ] Update all four dashboard widget hooks (`use-upcoming-bills`, `use-upcoming-invoices`, `use-largest-expenses`, `use-recent-transactions`) return signatures
-- [ ] Update all four dashboard widget UI components to read the array directly instead of `data?.bills`, `data?.invoices`, etc.
-- [ ] Add the field `status` to `UpcomingBillItem` (backend returns `PENDING | OVERDUE`)
-- [ ] Add `daysUntilDue` or keep computing it client-side from `dueDate`
+- [x] In `dashboard/types/index.ts`: change `UpcomingBillsResponse = { bills: UpcomingBill[] }` → `UpcomingBill[]` (remove wrapper type, rename to `UpcomingBillItem`)
+- [x] Same pattern for: `UpcomingInvoicesResponse` → `UpcomingInvoiceItem[]`; `LargestExpensesResponse` → `LargestExpenseItem[]`; `RecentTransactionsResponse` → `RecentTransactionItem[]`
+- [x] Update `dashboard.api.ts`: change return types of all four widget functions to plain arrays
+- [x] Update all four dashboard widget hooks (`use-upcoming-bills`, `use-upcoming-invoices`, `use-largest-expenses`, `use-recent-transactions`) return signatures
+- [x] Update all four dashboard widget UI components to read the array directly instead of `data?.bills`, `data?.invoices`, etc.
+- [x] Add the field `status` to `UpcomingBillItem` (backend returns `PENDING | OVERDUE`)
+- [x] Add `daysUntilDue` or keep computing it client-side from `dueDate`
 
 **Acceptance Criteria:**
-- [ ] `UpcomingBillsCard` renders real bill data without runtime errors
-- [ ] `UpcomingInvoicesCard`, `LargestExpensesCard`, `RecentTransactionsCard` render without runtime errors
-- [ ] TypeScript strict mode passes with no `as` casts on widget data
+- [x] `UpcomingBillsCard` renders real bill data without runtime errors
+- [x] `UpcomingInvoicesCard`, `LargestExpensesCard`, `RecentTransactionsCard` render without runtime errors
+- [x] TypeScript strict mode passes with no `as` casts on widget data
 
 ---
 
@@ -174,19 +174,19 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `GET /api/v1/dashboard/charts/comparison` → `MonthlyComparisonResponse`
 
 **Implementation Tasks:**
-- [ ] Obtain the actual DTO field names from the backend (run the API once against a live instance or read the backend DTO source). Until confirmed, document each as `TODO: verify against backend DTO`
-- [ ] Update `DashboardOverview` — expected additional fields: `netWorth`, `monthlySavings`, `cashFlow`, `activeAccountsCount`; verify all field names
-- [ ] Update `CategoriesChart` to match `CategoryPieChartResponse` shape
-- [ ] Update `MonthlyChart` to match `MonthlyBarChartResponse` shape (likely `{ data: [{ month, income, expenses }] }`)
-- [ ] Update `NetWorthChart` to match `NetWorthEvolutionResponse` shape
-- [ ] Update `MonthComparison` to match `MonthlyComparisonResponse` shape
-- [ ] Update `CategoriesChartParams` to include optional `accountId` and `type` fields (backend supports them)
-- [ ] Update `NetWorthChartParams` to include optional `granularity: 'DAILY' | 'WEEKLY' | 'MONTHLY'`
+- [x] Obtain the actual DTO field names from the backend (run the API once against a live instance or read the backend DTO source). Until confirmed, document each as `TODO: verify against backend DTO`
+- [x] Update `DashboardOverview` — expected additional fields: `netWorth`, `monthlySavings`, `cashFlow`, `activeAccountsCount`; verify all field names
+- [x] Update `CategoriesChart` to match `CategoryPieChartResponse` shape
+- [x] Update `MonthlyChart` to match `MonthlyBarChartResponse` shape (likely `{ data: [{ month, income, expenses }] }`)
+- [x] Update `NetWorthChart` to match `NetWorthEvolutionResponse` shape
+- [x] Update `MonthComparison` to match `MonthlyComparisonResponse` shape
+- [x] Update `CategoriesChartParams` to include optional `accountId` and `type` fields (backend supports them)
+- [x] Update `NetWorthChartParams` to include optional `granularity: 'DAILY' | 'WEEKLY' | 'MONTHLY'`
 
 **Acceptance Criteria:**
-- [ ] Dashboard overview card renders all metric fields with no `undefined` values
-- [ ] All four chart components render without runtime type errors on real API data
-- [ ] TypeScript compilation passes with no unchecked casts
+- [x] Dashboard overview card renders all metric fields with no `undefined` values
+- [x] All four chart components render without runtime type errors on real API data
+- [x] TypeScript compilation passes with no unchecked casts
 
 ---
 
@@ -582,8 +582,8 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - [x] Email verification: valid token activates account; invalid token shows resend form
 - [x] Password reset: request always shows generic feedback; confirm success redirects to login
 - [x] Change password: wrong current password → inline error; success → session cleared
-- [ ] Dashboard widgets: all four render from plain arrays without `.bills`, `.invoices`, etc. accessors
-- [ ] Dashboard overview: all metric fields render without `undefined`
+- [x] Dashboard widgets: all four render from plain arrays without `.bills`, `.invoices`, etc. accessors
+- [x] Dashboard overview: all metric fields render without `undefined`
 - [ ] Account balance adjust: sends `{ amount: "-50.00" }` (delta), not `{ targetBalance }`
 - [ ] Archive account: response is the updated Account object, no extra refetch needed
 - [ ] Transaction type: `ADJUSTMENT` value rejected by TypeScript; `TRANSFER` renders correctly

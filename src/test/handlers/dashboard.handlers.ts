@@ -5,10 +5,10 @@ import type {
   MonthlyChart,
   NetWorthChart,
   MonthComparison,
-  UpcomingBillsResponse,
-  UpcomingInvoicesResponse,
-  LargestExpensesResponse,
-  RecentTransactionsResponse,
+  UpcomingBillItem,
+  UpcomingInvoiceItem,
+  LargestExpenseItem,
+  RecentTransactionItem,
 } from '@/features/dashboard/types'
 
 export const MOCK_OVERVIEW: DashboardOverview = {
@@ -27,7 +27,7 @@ export const MOCK_CATEGORIES_CHART: CategoriesChart = {
 }
 
 export const MOCK_MONTHLY_CHART: MonthlyChart = {
-  entries: [
+  data: [
     { month: '2026-01', income: '4500.00', expenses: '3000.00' },
     { month: '2026-02', income: '4800.00', expenses: '3200.00' },
     { month: '2026-03', income: '5000.00', expenses: '2900.00' },
@@ -62,84 +62,78 @@ export const MOCK_COMPARISON: MonthComparison = {
   },
 }
 
-export const MOCK_UPCOMING_BILLS: UpcomingBillsResponse = {
-  bills: [
-    {
-      id: 'bill-1',
-      description: 'Electricity',
-      amount: '150.00',
-      dueDate: '2026-06-01',
-      accountId: 'account-1',
-      accountName: 'Checking',
-    },
-    {
-      id: 'bill-2',
-      description: 'Internet',
-      amount: '80.00',
-      dueDate: '2026-05-25',
-      accountId: 'account-1',
-      accountName: 'Checking',
-    },
-  ],
-}
+export const MOCK_UPCOMING_BILLS: UpcomingBillItem[] = [
+  {
+    id: 'bill-1',
+    description: 'Electricity',
+    amount: '150.00',
+    dueDate: '2026-06-01',
+    accountId: 'account-1',
+    accountName: 'Checking',
+    status: 'PENDING',
+  },
+  {
+    id: 'bill-2',
+    description: 'Internet',
+    amount: '80.00',
+    dueDate: '2026-05-25',
+    accountId: 'account-1',
+    accountName: 'Checking',
+    status: 'PENDING',
+  },
+]
 
-export const MOCK_UPCOMING_INVOICES: UpcomingInvoicesResponse = {
-  invoices: [
-    {
-      cardId: 'card-1',
-      cardName: 'Nubank',
-      referenceMonth: '2026-05',
-      totalAmount: '800.00',
-      dueDate: '2026-06-10',
-    },
-  ],
-}
+export const MOCK_UPCOMING_INVOICES: UpcomingInvoiceItem[] = [
+  {
+    cardId: 'card-1',
+    cardName: 'Nubank',
+    referenceMonth: '2026-05',
+    totalAmount: '800.00',
+    dueDate: '2026-06-10',
+  },
+]
 
-export const MOCK_LARGEST_EXPENSES: LargestExpensesResponse = {
-  expenses: [
-    {
-      id: 'tx-1',
-      description: 'Laptop',
-      categoryId: 'cat-2',
-      categoryName: 'Electronics',
-      amount: '3500.00',
-      date: '2026-05-01',
-    },
-    {
-      id: 'tx-2',
-      description: 'Rent',
-      categoryId: 'cat-3',
-      categoryName: 'Housing',
-      amount: '2000.00',
-      date: '2026-05-05',
-    },
-  ],
-}
+export const MOCK_LARGEST_EXPENSES: LargestExpenseItem[] = [
+  {
+    id: 'tx-1',
+    description: 'Laptop',
+    categoryId: 'cat-2',
+    categoryName: 'Electronics',
+    amount: '3500.00',
+    date: '2026-05-01',
+  },
+  {
+    id: 'tx-2',
+    description: 'Rent',
+    categoryId: 'cat-3',
+    categoryName: 'Housing',
+    amount: '2000.00',
+    date: '2026-05-05',
+  },
+]
 
-export const MOCK_RECENT_TRANSACTIONS: RecentTransactionsResponse = {
-  transactions: [
-    {
-      id: 'tx-1',
-      description: 'Supermarket',
-      type: 'EXPENSE',
-      amount: '150.75',
-      accountId: 'account-1',
-      accountName: 'Checking',
-      date: '2026-05-26',
-      status: 'PAID',
-    },
-    {
-      id: 'tx-2',
-      description: 'Salary',
-      type: 'INCOME',
-      amount: '5000.00',
-      accountId: 'account-1',
-      accountName: 'Checking',
-      date: '2026-05-25',
-      status: 'PAID',
-    },
-  ],
-}
+export const MOCK_RECENT_TRANSACTIONS: RecentTransactionItem[] = [
+  {
+    id: 'tx-1',
+    description: 'Supermarket',
+    type: 'EXPENSE',
+    amount: '150.75',
+    accountId: 'account-1',
+    accountName: 'Checking',
+    date: '2026-05-26',
+    status: 'PAID',
+  },
+  {
+    id: 'tx-2',
+    description: 'Salary',
+    type: 'INCOME',
+    amount: '5000.00',
+    accountId: 'account-1',
+    accountName: 'Checking',
+    date: '2026-05-25',
+    status: 'PAID',
+  },
+]
 
 export const dashboardHandlers = [
   http.get('*/dashboard/overview', () => {

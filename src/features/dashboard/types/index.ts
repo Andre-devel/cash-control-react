@@ -2,6 +2,9 @@ export interface DashboardOverview {
   totalBalance: string
   monthlyIncome: string
   monthlyExpenses: string
+  netWorth?: string
+  monthlySavings?: string
+  cashFlow?: string
   activeAccountsCount: number
 }
 
@@ -23,7 +26,7 @@ export interface MonthlyChartEntry {
 }
 
 export interface MonthlyChart {
-  entries: MonthlyChartEntry[]
+  data: MonthlyChartEntry[]
 }
 
 export interface NetWorthPoint {
@@ -47,20 +50,17 @@ export interface MonthComparison {
   month2: ComparisonMonth
 }
 
-export interface UpcomingBill {
+export interface UpcomingBillItem {
   id: string
   description: string
   amount: string
   dueDate: string
   accountId: string
   accountName: string | null
+  status: 'PENDING' | 'OVERDUE'
 }
 
-export interface UpcomingBillsResponse {
-  bills: UpcomingBill[]
-}
-
-export interface UpcomingInvoice {
+export interface UpcomingInvoiceItem {
   cardId: string
   cardName: string
   referenceMonth: string
@@ -68,11 +68,7 @@ export interface UpcomingInvoice {
   dueDate: string
 }
 
-export interface UpcomingInvoicesResponse {
-  invoices: UpcomingInvoice[]
-}
-
-export interface LargestExpense {
+export interface LargestExpenseItem {
   id: string
   description: string
   categoryId: string | null
@@ -81,11 +77,7 @@ export interface LargestExpense {
   date: string
 }
 
-export interface LargestExpensesResponse {
-  expenses: LargestExpense[]
-}
-
-export interface RecentTransaction {
+export interface RecentTransactionItem {
   id: string
   description: string
   type: string
@@ -96,18 +88,17 @@ export interface RecentTransaction {
   status: string
 }
 
-export interface RecentTransactionsResponse {
-  transactions: RecentTransaction[]
-}
-
 export interface CategoriesChartParams {
   from: string
   to: string
+  accountId?: string
+  type?: string
 }
 
 export interface NetWorthChartParams {
   from: string
   to: string
+  granularity?: 'DAILY' | 'WEEKLY' | 'MONTHLY'
 }
 
 export interface ComparisonChartParams {
