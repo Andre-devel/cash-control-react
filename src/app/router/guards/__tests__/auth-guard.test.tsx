@@ -116,8 +116,6 @@ describe('AuthGuard', () => {
     await user.type(screen.getByLabelText(/^senha/i), 'password123')
     await user.click(screen.getByRole('button', { name: 'Entrar' }))
 
-    expect(
-      await screen.findByRole('heading', { name: /dashboard/i }, { timeout: 10000 }),
-    ).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: /olá/i }, { timeout: 10000 })).toBeTruthy()
   }, 30000)
 })

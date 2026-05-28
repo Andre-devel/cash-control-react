@@ -202,27 +202,27 @@ Reference files:
   Goal: Rebuild the dashboard to match screens-dashboard.jsx.
 
   Tasks:
-  - [ ] Page header (.page-h): title "Olá, {name}", subtitle with month,
+  - [x] Page header (.page-h): title "Olá, {name}", subtitle with month,
         period tabs (7d / 30d / Mês / Ano), Export button, "Nova transação" primary button.
 
-  - [ ] KPI row (.grid.grid-4): four .kpi cards:
+  - [x] KPI row (.grid.grid-4): four .kpi cards:
         - Patrimônio total (wallet icon, total balance, delta)
         - Receitas do mês (arrowDown icon, green toned)
         - Despesas do mês (arrowUp icon, red toned)
         - Saldo do mês (chart icon, signed, green if positive)
 
-  - [ ] Main row (grid 1.65fr 1fr):
+  - [x] Main row (grid 1.65fr 1fr):
         - Left: Bar chart card "Receitas vs Despesas"
           (SVG, last 6 months, income=green bars, expense=red bars, gridlines, axis labels, legend)
         - Right: "Próximos lançamentos" card
           (upcoming bills list: IconBubble + title/date + amount + StatusBadge)
 
-  - [ ] Bottom row (grid 1fr 1.4fr):
+  - [x] Bottom row (grid 1fr 1.4fr):
         - Left: "Faturas em aberto" card (credit card invoices)
         - Right: "Transações recentes" card (last 5 transactions)
 
-  - [ ] Wire to real data via existing hooks.
-  - [ ] Show loading skeleton (pulse animation) while data is fetching.
+  - [x] Wire to real data via existing hooks.
+  - [x] Show loading skeleton (pulse animation) while data is fetching.
 
   Deliverable: Dashboard renders with real data in the Cash Control visual style.
 

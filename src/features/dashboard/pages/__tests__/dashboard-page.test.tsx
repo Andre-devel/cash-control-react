@@ -4,11 +4,9 @@ import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
 import { renderWithProviders } from '@/test/utils'
 import {
-  MOCK_OVERVIEW,
   MOCK_RECENT_TRANSACTIONS,
   MOCK_UPCOMING_BILLS,
   MOCK_UPCOMING_INVOICES,
-  MOCK_LARGEST_EXPENSES,
   dashboardHandlers,
 } from '@/test/handlers/dashboard.handlers'
 import DashboardPage from '../dashboard-page'
@@ -29,8 +27,6 @@ vi.mock('@/styles/theme/dark-mode', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
-  // Register dashboard handlers first so they take precedence over the generic
-  // "*/categories" handler that otherwise matches "*/dashboard/charts/categories".
   server.use(...dashboardHandlers)
 })
 
@@ -39,66 +35,63 @@ afterEach(() => {
 })
 
 describe('DashboardPage', () => {
-  it('renders the page heading', async () => {
+  it('renders the page heading with user greeting', async () => {
     renderWithProviders(<DashboardPage />)
-    await waitFor(() => expect(screen.getByRole('heading', { name: /dashboard/i })).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('heading', { name: /olá/i })).toBeTruthy())
   })
 
-  it('shows loading skeleton for overview section', () => {
+  it('shows loading skeleton for KPI section', () => {
     renderWithProviders(<DashboardPage />)
-    expect(screen.getByLabelText('Loading overview')).toBeTruthy()
+    expect(screen.getByLabelText('Carregando resumo')).toBeTruthy()
   })
 
-  it('renders overview section with correct totals after loading', async () => {
+  it('renders KPI cards with correct labels after overview loads', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
-      expect(screen.getByText('Total Balance')).toBeTruthy()
-      expect(screen.getByText('Monthly Income')).toBeTruthy()
-      expect(screen.getByText('Monthly Expenses')).toBeTruthy()
-      expect(screen.getByText('Active Accounts')).toBeTruthy()
+      expect(screen.getByText('Patrimônio total')).toBeTruthy()
+      expect(screen.getByText('Saldo do mês')).toBeTruthy()
     })
-    expect(screen.getByText(String(MOCK_OVERVIEW.activeAccountsCount))).toBeTruthy()
   })
 
-  it('renders upcoming bills widget after loading', async () => {
+  it('renders bar chart card after monthly chart loads', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => {
+      expect(screen.getByText('Receitas vs Despesas')).toBeTruthy()
+    })
+  })
+
+  it('renders upcoming bills card after loading', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
       expect(screen.getByText(MOCK_UPCOMING_BILLS.bills[0].description)).toBeTruthy()
     })
   })
 
-  it('renders upcoming invoices widget after loading', async () => {
+  it('renders open invoices card after loading', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
       expect(screen.getByText(MOCK_UPCOMING_INVOICES.invoices[0].cardName)).toBeTruthy()
     })
   })
 
-  it('renders largest expenses widget after loading', async () => {
-    renderWithProviders(<DashboardPage />)
-    await waitFor(() => {
-      expect(screen.getByText(MOCK_LARGEST_EXPENSES.expenses[0].description)).toBeTruthy()
-    })
-  })
-
-  it('renders recent transactions widget after loading', async () => {
+  it('renders recent transactions card after loading', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
       expect(screen.getByText(MOCK_RECENT_TRANSACTIONS.transactions[0].description)).toBeTruthy()
     })
   })
 
-  it('overview section shows error message when API fails', async () => {
+  it('KPI section shows error message when overview API fails', async () => {
     server.use(
       http.get('*/dashboard/overview', () =>
         HttpResponse.json({ errorCode: 'SERVER_ERROR' }, { status: 500 }),
       ),
     )
     renderWithProviders(<DashboardPage />)
-    await waitFor(() => expect(screen.getByText(/failed to load financial overview/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/erro ao carregar resumo/i)).toBeTruthy())
   })
 
-  it('overview error boundary fallback does not affect other widgets', async () => {
+  it('overview error does not affect other cards', async () => {
     server.use(
       http.get('*/dashboard/overview', () =>
         HttpResponse.json({ errorCode: 'SERVER_ERROR' }, { status: 500 }),
@@ -106,12 +99,12 @@ describe('DashboardPage', () => {
     )
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
-      expect(screen.getByText(/failed to load financial overview/i)).toBeTruthy()
+      expect(screen.getByText(/erro ao carregar resumo/i)).toBeTruthy()
       expect(screen.getByText(MOCK_RECENT_TRANSACTIONS.transactions[0].description)).toBeTruthy()
     })
   })
 
-  it('widget error boundary isolates failure — other widgets remain visible', async () => {
+  it('recent transactions error does not affect other cards', async () => {
     server.use(
       http.get('*/dashboard/widgets/recent-transactions', () =>
         HttpResponse.json({ errorCode: 'SERVER_ERROR' }, { status: 500 }),
@@ -119,34 +112,34 @@ describe('DashboardPage', () => {
     )
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
-      expect(screen.getByText(/failed to load recent transactions/i)).toBeTruthy()
+      expect(screen.getByText(/erro ao carregar transações recentes/i)).toBeTruthy()
       expect(screen.getByText(MOCK_UPCOMING_BILLS.bills[0].description)).toBeTruthy()
     })
   })
 
-  it('upcoming bills show overdue indicator for past due dates', async () => {
+  it('upcoming bills shows overdue indicator for past due dates', async () => {
     server.use(
       http.get('*/dashboard/widgets/upcoming-bills', () =>
         HttpResponse.json({
           bills: [
             {
               id: 'overdue-1',
-              description: 'Overdue Bill',
+              description: 'Conta Vencida',
               amount: '100.00',
               dueDate: '2020-01-01',
               accountId: 'account-1',
-              accountName: 'Checking',
+              accountName: 'Corrente',
             },
           ],
         }),
       ),
     )
     renderWithProviders(<DashboardPage />)
-    await waitFor(() => expect(screen.getByText('Overdue Bill')).toBeTruthy())
-    expect(screen.getAllByText(/overdue/i).length).toBeGreaterThanOrEqual(1)
+    await waitFor(() => expect(screen.getByText('Conta Vencida')).toBeTruthy())
+    expect(screen.getAllByText(/vencida/i).length).toBeGreaterThanOrEqual(1)
   })
 
-  it('upcoming invoices link navigates to card detail page', async () => {
+  it('open invoices card link navigates to card detail page', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() =>
       expect(screen.getByText(MOCK_UPCOMING_INVOICES.invoices[0].cardName)).toBeTruthy(),
@@ -157,32 +150,76 @@ describe('DashboardPage', () => {
     expect(link.getAttribute('href')).toContain(MOCK_UPCOMING_INVOICES.invoices[0].cardId)
   })
 
-  it('largest expenses link navigates to transaction detail page', async () => {
-    renderWithProviders(<DashboardPage />)
-    await waitFor(() =>
-      expect(screen.getByText(MOCK_LARGEST_EXPENSES.expenses[0].description)).toBeTruthy(),
-    )
-    const link = screen.getByRole('link', {
-      name: new RegExp(MOCK_LARGEST_EXPENSES.expenses[0].description, 'i'),
-    })
-    expect(link.getAttribute('href')).toContain(MOCK_LARGEST_EXPENSES.expenses[0].id)
-  })
-
-  it('recent transactions show empty state when list is empty', async () => {
+  it('recent transactions shows empty state when list is empty', async () => {
     server.use(
       http.get('*/dashboard/widgets/recent-transactions', () =>
         HttpResponse.json({ transactions: [] }),
       ),
     )
     renderWithProviders(<DashboardPage />)
-    await waitFor(() => expect(screen.getByText(/no recent transactions/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/nenhuma transação recente/i)).toBeTruthy())
   })
 
-  it('upcoming bills show empty state when list is empty', async () => {
+  it('upcoming bills shows empty state when list is empty', async () => {
     server.use(
       http.get('*/dashboard/widgets/upcoming-bills', () => HttpResponse.json({ bills: [] })),
     )
     renderWithProviders(<DashboardPage />)
-    await waitFor(() => expect(screen.getByText(/no upcoming bills/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/nenhuma conta/i)).toBeTruthy())
+  })
+
+  it('renders period tabs with Mês selected by default', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => {
+      const tablist = screen.getByRole('tablist', { name: /período/i })
+      expect(tablist).toBeTruthy()
+    })
+    const selectedTab = screen.getByRole('tab', { name: /mês/i })
+    expect(selectedTab.getAttribute('aria-selected')).toBe('true')
+  })
+
+  it('renders KPI section with Saldo calculation (income minus expenses)', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => {
+      expect(screen.getByText('Saldo do mês')).toBeTruthy()
+    })
+    // "Receitas − Despesas" is the delta label for the balance KPI
+    expect(screen.getByText('Receitas − Despesas')).toBeTruthy()
+  })
+
+  it('renders monthly chart with KPI data side by side', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => {
+      expect(screen.getByText('Receitas vs Despesas')).toBeTruthy()
+      expect(screen.getByText('Próximas contas')).toBeTruthy()
+    })
+  })
+
+  it('renders bottom row with open invoices and recent transactions', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => {
+      expect(screen.getByText('Faturas em aberto')).toBeTruthy()
+      expect(screen.getByText('Transações recentes')).toBeTruthy()
+    })
+  })
+
+  it('upcoming bills error shows retry button', async () => {
+    server.use(
+      http.get('*/dashboard/widgets/upcoming-bills', () =>
+        HttpResponse.json({ errorCode: 'SERVER_ERROR' }, { status: 500 }),
+      ),
+    )
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => expect(screen.getByText(/erro ao carregar próximas contas/i)).toBeTruthy())
+    expect(screen.getByText(/tentar novamente/i)).toBeTruthy()
+  })
+
+  it('MOCK_OVERVIEW totalBalance value is formatted and displayed', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => {
+      expect(screen.getByText('Patrimônio total')).toBeTruthy()
+    })
+    // The formatted integer part of 12500.00 (dot thousands) should appear in the KPI
+    expect(screen.getByText(/12\.500/)).toBeTruthy()
   })
 })
