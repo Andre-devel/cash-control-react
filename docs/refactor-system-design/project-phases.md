@@ -142,12 +142,12 @@ Reference files:
   Goal: Rebuild the main authenticated layout to match the Cash Control shell.
 
   Tasks:
-  - [ ] Create src/app/layouts/authenticated-layout.tsx:
+  - [x] Create src/app/layouts/authenticated-layout.tsx:
         - Outer <div className="app"> (CSS grid: var(--sidebar-w) 1fr)
         - Left: <Sidebar> component
         - Right: <div className="shell"> containing <Topbar> + <main className="content">
 
-  - [ ] Create src/components/layout/sidebar.tsx:
+  - [x] Create src/components/layout/sidebar.tsx:
         - Sections: Geral (Dashboard, Transações, Contas, Cartões),
                     Gestão (Categorias, Parcelamentos, Recorrências),
                     Sistema (Configurações)
@@ -157,13 +157,13 @@ Reference files:
         - Read active route from React Router's useLocation()
         - Navigate using useNavigate() (or Link)
 
-  - [ ] Create src/components/layout/topbar.tsx:
+  - [x] Create src/components/layout/topbar.tsx:
         - .topbar with breadcrumb (array of strings, last one is <b>)
         - Right slot: children (notification bell, logout button)
 
-  - [ ] Update src/app/router/ to use AuthenticatedLayout as the parent route wrapper.
+  - [x] Update src/app/router/ to use AuthenticatedLayout as the parent route wrapper.
 
-  - [ ] Theme toggle must call document.documentElement.setAttribute("data-theme", ...)
+  - [x] Theme toggle must call document.documentElement.setAttribute("data-theme", ...)
         and persist choice in localStorage.
 
   Deliverable: Every authenticated page renders inside the Cash Control shell.

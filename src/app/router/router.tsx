@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
 import { AuthProvider } from '@/app/providers/auth-provider'
 import { PublicLayout } from '@/app/layouts/public-layout'
-import { ProtectedLayout } from '@/app/layouts/protected-layout'
+import { AuthenticatedLayout } from '@/app/layouts/authenticated-layout'
 import { AuthGuard } from '@/app/router/guards/auth-guard'
 import { RoleGuard } from '@/app/router/guards/role-guard'
 import { PermissionGuard } from '@/app/router/guards/permission-guard'
@@ -79,7 +79,7 @@ export const routeConfig: RouteObject[] = [
         element: <AuthGuard />,
         children: [
           {
-            element: <ProtectedLayout />,
+            element: <AuthenticatedLayout />,
             children: [
               {
                 path: ROUTES.DASHBOARD,
