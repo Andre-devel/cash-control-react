@@ -1,40 +1,86 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
+import { Money } from '@/components/ui/money'
+import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import {
   createPayInvoiceSchema,
   type PayInvoiceFormValues,
 } from '@/features/cards/schemas/pay-invoice.schema'
 import { usePayInvoice } from '@/features/cards/hooks/use-pay-invoice'
+import type { Invoice } from '@/features/cards/types'
+
+function fmtDate(dateStr: string) {
+  const d = new Date(dateStr + 'T00:00:00')
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+}
+
+function toDecimalString(value: number): string {
+  return value.toFixed(2)
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+interface MiniStatProps {
+  label: string
+  value: number
+  tone?: 'pending' | 'paid' | ''
+}
+
+function MiniStat({ label, value, tone }: MiniStatProps) {
+  const color =
+    tone === 'pending' ? 'var(--pending)' : tone === 'paid' ? 'var(--paid)' : 'var(--text)'
+  return (
+    <div
+      style={{
+        padding: 12,
+        background: 'var(--surface-2)',
+        borderRadius: 8,
+        border: '1px solid var(--border)',
+      }}
+    >
+      <div className="text-xs text-dim">{label}</div>
+      <div className="text-lg mono fw-500 mt-2" style={{ color }}>
+        <Money value={value} />
+      </div>
+    </div>
+  )
+}
 
 interface PayInvoiceDialogProps {
-  invoiceId: string
-  remainingAmount: string
+  invoice: Invoice
+  cardName: string
   open: boolean
   onClose: () => void
 }
 
-export function PayInvoiceDialog({
-  invoiceId,
-  remainingAmount,
-  open,
-  onClose,
-}: PayInvoiceDialogProps) {
+export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoiceDialogProps) {
   const { mutate: payInvoice, isPending } = usePayInvoice()
+  const { data: accounts } = useAccounts()
 
-  const schema = createPayInvoiceSchema(remainingAmount)
+  const totalAmount = parseFloat(invoice.totalAmount)
+  const paidAmount = parseFloat(invoice.paidAmount)
+  const remainingAmount = parseFloat(invoice.remainingAmount)
 
+  const schema = createPayInvoiceSchema(invoice.remainingAmount)
   const form = useForm<PayInvoiceFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { amount: remainingAmount, accountId: '' },
+    defaultValues: {
+      amount: invoice.remainingAmount,
+      accountId: '',
+    },
   })
 
   function onSubmit(data: PayInvoiceFormValues) {
     payInvoice(
-      { invoiceId, data },
+      { invoiceId: invoice.id, data },
       {
         onSuccess: () => {
           form.reset()
@@ -49,26 +95,17 @@ export function PayInvoiceDialog({
     onClose()
   }
 
-  const formatAmount = (amount: string) => {
-    const num = parseFloat(amount)
-    if (isNaN(num)) return amount
-    return new Intl.NumberFormat(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(num)
-  }
-
   if (!open) return null
 
   return (
     <Modal
-      title="Pay Invoice"
-      subtitle={`Remaining balance: ${formatAmount(remainingAmount)}`}
+      title={`Pagar fatura · ${cardName}`}
+      subtitle={`Vence em ${fmtDate(invoice.dueDate)}`}
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -92,10 +129,10 @@ export function PayInvoiceDialog({
                   }}
                   aria-hidden="true"
                 />
-                Processing…
+                Processando…
               </>
             ) : (
-              'Pay Invoice'
+              'Confirmar pagamento'
             )}
           </Button>
         </>
@@ -107,12 +144,70 @@ export function PayInvoiceDialog({
         noValidate
         className="col gap-4"
       >
-        <Field label="Payment Amount" error={form.formState.errors.amount?.message}>
-          <Input placeholder="e.g. 500.00" {...form.register('amount')} />
+        {/* Mini stats */}
+        <div className="grid grid-3" style={{ marginBottom: 8 }}>
+          <MiniStat label="Total da fatura" value={totalAmount} tone="" />
+          <MiniStat label="Já pago" value={paidAmount} tone="paid" />
+          <MiniStat label="Restante" value={remainingAmount} tone="pending" />
+        </div>
+
+        <Field
+          label="Valor a pagar"
+          required
+          hint="Pagamento parcial ou total"
+          error={form.formState.errors.amount?.message}
+        >
+          <MoneyInput placeholder="0,00" {...form.register('amount')} />
         </Field>
 
-        <Field label="Source Account ID" error={form.formState.errors.accountId?.message}>
-          <Input placeholder="Account UUID" {...form.register('accountId')} />
+        {/* Quick preset buttons */}
+        <div className="row gap-2">
+          <Button
+            size="sm"
+            type="button"
+            onClick={() =>
+              form.setValue('amount', invoice.remainingAmount, { shouldValidate: true })
+            }
+          >
+            Pagar tudo
+          </Button>
+          <Button
+            size="sm"
+            type="button"
+            onClick={() =>
+              form.setValue('amount', toDecimalString(remainingAmount / 2), {
+                shouldValidate: true,
+              })
+            }
+          >
+            50%
+          </Button>
+          <Button
+            size="sm"
+            type="button"
+            onClick={() =>
+              form.setValue('amount', toDecimalString(totalAmount * 0.15), {
+                shouldValidate: true,
+              })
+            }
+          >
+            Mínimo (15%)
+          </Button>
+        </div>
+
+        <Field label="Conta de origem" required error={form.formState.errors.accountId?.message}>
+          <Select aria-label="Conta de origem" {...form.register('accountId')}>
+            <option value="">Selecionar conta</option>
+            {accounts?.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field label="Data do pagamento" required>
+          <Input type="date" defaultValue={todayIso()} />
         </Field>
       </form>
     </Modal>

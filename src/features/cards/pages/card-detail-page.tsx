@@ -318,8 +318,8 @@ export default function CardDetailPage() {
           />
           {invoice && (
             <PayInvoiceDialog
-              invoiceId={invoice.id}
-              remainingAmount={invoice.remainingAmount}
+              invoice={invoice}
+              cardName={card.name}
               open={payOpen}
               onClose={() => setPayOpen(false)}
             />

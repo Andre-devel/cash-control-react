@@ -288,10 +288,10 @@ Reference files:
   Goal: Rebuild cards page to match CardsScreen in screens-money.jsx.
 
   Tasks:
-  - [ ] Page header: title "Cartões de crédito", count subtitle,
-        "Nova fatura" + "Novo cartão" buttons.
+  - [x] Page header: title "Cartões de crédito", count subtitle,
+        "Novo lançamento" + "Novo cartão" buttons.
 
-  - [ ] Cards grid (.grid.grid-3):
+  - [x] Cards grid (.grid.grid-3):
         - Gradient background using card color
         - Card name, last 4 digits, network logo area
         - Current invoice amount (large mono)
@@ -299,7 +299,7 @@ Reference files:
         - Due date badge
         - "Pagar fatura" + "Ver detalhes" actions
 
-  - [ ] Bottom: invoices table — card name, due date, amount, status, pay action.
+  - [x] Bottom: invoices table — card name, due date, amount, status, pay action.
 
   Deliverable: Cards page matches design system.
 
