@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useRole, useUpdateRole, useDeleteRole, useRolePermissions } from '@/features/roles/hooks'
 import { RolePermissionsPanel } from '../components/role-permissions-panel'
 import { RoleForm } from '../components/role-form'
@@ -14,7 +13,7 @@ function BackLink() {
   return (
     <Link
       to={ROUTES.ROLES}
-      className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+      className="inline-flex items-center text-sm text-dim"
       aria-label="Back to roles list"
     >
       ← Back to Roles
@@ -50,8 +49,11 @@ export default function RoleDetailPage() {
   if (isLoading) {
     return (
       <div className="space-y-4" aria-busy="true" aria-label="Loading role details">
-        <div className="h-8 w-64 rounded bg-muted animate-pulse" />
-        <div className="h-32 rounded bg-muted animate-pulse" />
+        <div
+          className="h-8 w-64 rounded animate-pulse"
+          style={{ background: 'var(--surface-3)' }}
+        />
+        <div className="h-32 rounded animate-pulse" style={{ background: 'var(--surface-3)' }} />
       </div>
     )
   }
@@ -64,10 +66,8 @@ export default function RoleDetailPage() {
           <BackLink />
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <h1 className="mb-2 text-2xl font-bold">Role Not Found</h1>
-            <p className="mb-4 text-muted-foreground">
-              The role you are looking for does not exist.
-            </p>
-            <Button asChild variant="outline">
+            <p className="mb-4 text-dim">The role you are looking for does not exist.</p>
+            <Button asChild variant="ghost">
               <Link to={ROUTES.ROLES}>Back to Roles</Link>
             </Button>
           </div>
@@ -77,7 +77,9 @@ export default function RoleDetailPage() {
     return (
       <div className="space-y-4">
         <BackLink />
-        <p className="text-sm text-destructive">Failed to load role.</p>
+        <p className="text-sm" style={{ color: 'var(--expense)' }}>
+          Failed to load role.
+        </p>
       </div>
     )
   }
@@ -85,140 +87,131 @@ export default function RoleDetailPage() {
   if (!role) return null
 
   return (
-    <TooltipProvider>
-      <div className="space-y-6">
-        <BackLink />
+    <div className="space-y-6">
+      <BackLink />
 
-        <div className="card">
-          <div className="card-h" style={{ alignItems: 'flex-start' }}>
-            <div className="space-y-1 flex-1">
-              <div className="flex items-center gap-2">
-                <h3>{role.name}</h3>
-                {role.systemRole && (
-                  <span className="badge muted" aria-label="System role">
-                    System
-                  </span>
-                )}
-              </div>
-              {role.description && (
-                <p className="text-sm text-muted-foreground">{role.description}</p>
+      <div className="card">
+        <div className="card-h" style={{ alignItems: 'flex-start' }}>
+          <div className="space-y-1 flex-1">
+            <div className="flex items-center gap-2">
+              <h3>{role.name}</h3>
+              {role.systemRole && (
+                <span className="badge muted" aria-label="System role">
+                  System
+                </span>
               )}
             </div>
-            <div className="flex shrink-0 gap-2">
-              {canUpdateRole && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="min-h-[44px]"
-                  onClick={() => setIsEditOpen(true)}
-                >
-                  Edit Role
-                </Button>
-              )}
+            {role.description && <p className="text-sm text-dim">{role.description}</p>}
+          </div>
+          <div className="flex shrink-0 gap-2">
+            {canUpdateRole && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="min-h-[44px]"
+                onClick={() => setIsEditOpen(true)}
+              >
+                Edit Role
+              </Button>
+            )}
 
-              {canDeleteRole &&
-                (role.systemRole ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span tabIndex={0} className="inline-flex">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          disabled
-                          aria-disabled="true"
-                          className="pointer-events-none min-h-[44px]"
-                        >
-                          Delete Role
-                        </Button>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>System roles cannot be deleted</TooltipContent>
-                  </Tooltip>
-                ) : (
+            {canDeleteRole &&
+              (role.systemRole ? (
+                <span tabIndex={0} className="inline-flex" title="System roles cannot be deleted">
                   <Button
                     variant="destructive"
                     size="sm"
-                    className="min-h-[44px]"
-                    onClick={() => setIsDeleteOpen(true)}
+                    disabled
+                    aria-disabled="true"
+                    className="pointer-events-none min-h-[44px]"
                   >
                     Delete Role
                   </Button>
-                ))}
-            </div>
-          </div>
-          <div className="card-b">
-            <RolePermissionsPanel role={role} />
-          </div>
-        </div>
-
-        {isEditOpen && (
-          <Modal title="Edit Role" onClose={() => setIsEditOpen(false)}>
-            <RoleForm
-              mode="update"
-              roleName={role.name}
-              defaultValues={{ description: role.description }}
-              isPending={updateRole.isPending}
-              onSubmit={handleUpdate}
-              onCancel={() => setIsEditOpen(false)}
-            />
-          </Modal>
-        )}
-
-        {isDeleteOpen && (
-          <Modal
-            alert
-            title="Delete Role"
-            subtitle={
-              <>
-                Are you sure you want to delete the role <strong>{role.name}</strong>? This action
-                cannot be undone.
-              </>
-            }
-            onClose={() => setIsDeleteOpen(false)}
-            footer={
-              <>
+                </span>
+              ) : (
                 <Button
-                  variant="ghost"
+                  variant="destructive"
                   size="sm"
                   className="min-h-[44px]"
-                  onClick={() => setIsDeleteOpen(false)}
-                  disabled={deleteRole.isPending}
+                  onClick={() => setIsDeleteOpen(true)}
                 >
-                  Cancel
+                  Delete Role
                 </Button>
-                <div className="spacer" />
-                <Button
-                  variant="danger"
-                  size="lg"
-                  onClick={handleDelete}
-                  disabled={deleteRole.isPending}
-                  aria-busy={deleteRole.isPending}
-                >
-                  {deleteRole.isPending ? (
-                    <>
-                      <span
-                        className="animate-spin"
-                        style={{
-                          width: 14,
-                          height: 14,
-                          border: '2px solid currentColor',
-                          borderTopColor: 'transparent',
-                          borderRadius: '50%',
-                          display: 'inline-block',
-                        }}
-                        aria-hidden="true"
-                      />
-                      Deleting…
-                    </>
-                  ) : (
-                    'Delete'
-                  )}
-                </Button>
-              </>
-            }
-          />
-        )}
+              ))}
+          </div>
+        </div>
+        <div className="card-b">
+          <RolePermissionsPanel role={role} />
+        </div>
       </div>
-    </TooltipProvider>
+
+      {isEditOpen && (
+        <Modal title="Edit Role" onClose={() => setIsEditOpen(false)}>
+          <RoleForm
+            mode="update"
+            roleName={role.name}
+            defaultValues={{ description: role.description }}
+            isPending={updateRole.isPending}
+            onSubmit={handleUpdate}
+            onCancel={() => setIsEditOpen(false)}
+          />
+        </Modal>
+      )}
+
+      {isDeleteOpen && (
+        <Modal
+          alert
+          title="Delete Role"
+          subtitle={
+            <>
+              Are you sure you want to delete the role <strong>{role.name}</strong>? This action
+              cannot be undone.
+            </>
+          }
+          onClose={() => setIsDeleteOpen(false)}
+          footer={
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="min-h-[44px]"
+                onClick={() => setIsDeleteOpen(false)}
+                disabled={deleteRole.isPending}
+              >
+                Cancel
+              </Button>
+              <div className="spacer" />
+              <Button
+                variant="danger"
+                size="lg"
+                onClick={handleDelete}
+                disabled={deleteRole.isPending}
+                aria-busy={deleteRole.isPending}
+              >
+                {deleteRole.isPending ? (
+                  <>
+                    <span
+                      className="animate-spin"
+                      style={{
+                        width: 14,
+                        height: 14,
+                        border: '2px solid currentColor',
+                        borderTopColor: 'transparent',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                      }}
+                      aria-hidden="true"
+                    />
+                    Deleting…
+                  </>
+                ) : (
+                  'Delete'
+                )}
+              </Button>
+            </>
+          }
+        />
+      )}
+    </div>
   )
 }

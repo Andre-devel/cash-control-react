@@ -25,8 +25,8 @@ const STATUS_LABELS: Record<string, string> = {
 function DetailSkeleton() {
   return (
     <div className="space-y-4" aria-busy="true" aria-label="Loading transaction">
-      <div className="h-8 w-48 rounded bg-muted animate-pulse" />
-      <div className="h-32 rounded-md bg-muted animate-pulse" />
+      <div className="h-8 w-48 rounded animate-pulse" style={{ background: 'var(--surface-3)' }} />
+      <div className="h-32 rounded animate-pulse" style={{ background: 'var(--surface-3)' }} />
     </div>
   )
 }
@@ -47,9 +47,11 @@ export default function TransactionDetailPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">Transaction</h1>
         <div role="alert">
-          <p className="text-sm text-destructive">Failed to load transaction.</p>
+          <p className="text-sm" style={{ color: 'var(--expense)' }}>
+            Failed to load transaction.
+          </p>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => void navigate(ROUTES.TRANSACTIONS)}
             className="mt-2"
@@ -81,7 +83,7 @@ export default function TransactionDetailPage() {
           {transaction.status !== 'CANCELLED' && (
             <>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => setEditOpen(true)}
@@ -89,7 +91,7 @@ export default function TransactionDetailPage() {
                 Edit
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => setCancelOpen(true)}
@@ -113,29 +115,29 @@ export default function TransactionDetailPage() {
         <div className="card-b space-y-3">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div>
-              <p className="text-xs text-muted-foreground">Amount</p>
+              <p className="text-xs text-dim">Amount</p>
               <p className="text-sm font-semibold">{transaction.amount}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Type</p>
+              <p className="text-xs text-dim">Type</p>
               <p className="text-sm">{TYPE_LABELS[transaction.type]}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Status</p>
+              <p className="text-xs text-dim">Status</p>
               <p className="text-sm">{STATUS_LABELS[transaction.status]}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Date</p>
+              <p className="text-xs text-dim">Date</p>
               <p className="text-sm">{transaction.competenceDate}</p>
             </div>
             {transaction.paymentDate && (
               <div>
-                <p className="text-xs text-muted-foreground">Payment Date</p>
+                <p className="text-xs text-dim">Payment Date</p>
                 <p className="text-sm">{transaction.paymentDate}</p>
               </div>
             )}
             <div>
-              <p className="text-xs text-muted-foreground">Created</p>
+              <p className="text-xs text-dim">Created</p>
               <p className="text-sm">{new Date(transaction.createdAt).toLocaleDateString()}</p>
             </div>
           </div>

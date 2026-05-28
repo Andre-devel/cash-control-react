@@ -103,16 +103,21 @@ export function AdvanceInstallmentsDialog({
 
       {series && (
         <div
-          className="rounded-md border border-border bg-muted/40 px-4 py-3 space-y-1 text-sm"
-          style={{ marginTop: 12 }}
+          className="rounded space-y-1 text-sm"
+          style={{
+            border: '1px solid var(--border)',
+            background: 'var(--surface-3)',
+            padding: '12px 16px',
+            marginTop: 12,
+          }}
         >
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Remaining installments</span>
+            <span className="text-dim">Remaining installments</span>
             <span className="font-medium">{remaining}</span>
           </div>
           {series.nextDueDate && (
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Next due date</span>
+              <span className="text-dim">Next due date</span>
               <span className="font-medium">{series.nextDueDate}</span>
             </div>
           )}
@@ -140,7 +145,7 @@ export function AdvanceInstallmentsDialog({
         </Field>
       </form>
 
-      <p className="text-xs text-muted-foreground" style={{ marginTop: 8 }}>
+      <p className="text-xs text-dim" style={{ marginTop: 8 }}>
         The selected installments will have their due dates moved to the current billing period.
       </p>
     </Modal>

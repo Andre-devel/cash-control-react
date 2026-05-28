@@ -55,7 +55,7 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
   if (isLoadingRolePermissions) {
     return (
       <div
-        className="h-20 rounded bg-muted animate-pulse"
+        className="h-20 rounded bg-surface-3 animate-pulse"
         aria-busy="true"
         aria-label="Loading permissions"
       />
@@ -69,7 +69,7 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
           <h3 className="text-sm font-semibold">Permissions</h3>
           {canGrantPermission && permissions.length > 0 && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               className="min-h-[44px]"
               onClick={() => setIsAssignOpen(true)}
@@ -82,10 +82,10 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
 
         {permissions.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center">
-            <p className="mb-3 text-sm text-muted-foreground">No permissions assigned.</p>
+            <p className="mb-3 text-sm text-dim">No permissions assigned.</p>
             {canGrantPermission && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => setIsAssignOpen(true)}
@@ -103,18 +103,16 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
                 className="flex items-center justify-between rounded-lg border p-3"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{permission.name}</p>
+                  <p className="text-sm font-medium truncate">{permission.name}</p>
                   {permission.description && (
-                    <p className="mt-0.5 text-xs text-muted-foreground truncate">
-                      {permission.description}
-                    </p>
+                    <p className="mt-0.5 text-xs text-dim truncate">{permission.description}</p>
                   )}
                 </div>
                 {canRevokePermission && (
                   <Button
-                    variant="ghost"
+                    variant="danger"
                     size="sm"
-                    className="ml-2 shrink-0 min-h-[44px] text-destructive hover:text-destructive"
+                    className="ml-2 shrink-0 min-h-[44px]"
                     aria-label={`Remove permission ${permission.name}`}
                     onClick={() => setPermissionToRevoke(permission)}
                   >
@@ -176,7 +174,7 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
         >
           <div>
             {isLoadingPermissions ? (
-              <p className="text-sm text-muted-foreground">Loading permissions…</p>
+              <p className="text-sm text-dim">Loading permissions…</p>
             ) : (
               <Select
                 value={selectedPermissionId}

@@ -33,7 +33,8 @@ function fmt(v: number): string {
 function ChartSkeleton() {
   return (
     <div
-      className="h-64 rounded bg-muted animate-pulse"
+      className="h-64 rounded animate-pulse"
+      style={{ background: 'var(--surface-3)' }}
       aria-busy="true"
       aria-label="Loading comparison chart"
     />
@@ -79,10 +80,11 @@ export function MonthComparisonSection() {
             type="month"
             value={month1}
             onChange={(e) => setMonth1(e.target.value)}
-            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            className="input"
+            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
             aria-label="Month 1"
           />
-          <span className="text-muted-foreground text-xs">vs</span>
+          <span className="text-dim text-xs">vs</span>
           <label className="sr-only" htmlFor="cmp-month2">
             Month 2
           </label>
@@ -91,7 +93,8 @@ export function MonthComparisonSection() {
             type="month"
             value={month2}
             onChange={(e) => setMonth2(e.target.value)}
-            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            className="input"
+            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
             aria-label="Month 2"
           />
         </div>
@@ -101,18 +104,22 @@ export function MonthComparisonSection() {
           <ChartSkeleton />
         ) : isError ? (
           <div role="alert" className="space-y-2">
-            <p className="text-sm text-destructive">Failed to load comparison chart.</p>
-            <Button variant="outline" size="sm" onClick={() => void refetch()}>
+            <p className="text-sm" style={{ color: 'var(--expense)' }}>
+              Failed to load comparison chart.
+            </p>
+            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
               Retry
             </Button>
           </div>
         ) : !data ? (
-          <p className="text-sm text-muted-foreground py-8 text-center">No comparison data.</p>
+          <p className="text-sm text-dim" style={{ padding: '32px 0', textAlign: 'center' }}>
+            No comparison data.
+          </p>
         ) : (
           <div className="space-y-4">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                 <YAxis
                   tick={{ fontSize: 12 }}
@@ -127,30 +134,37 @@ export function MonthComparisonSection() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey={data.month1.month} fill="#6366f1" radius={[4, 4, 0, 0]} />
-                <Bar dataKey={data.month2.month} fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                <Bar dataKey={data.month1.month} fill="var(--accent)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey={data.month2.month} fill="var(--info)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
 
             <div className="grid grid-cols-2 gap-4 text-sm">
               {[data.month1, data.month2].map((m) => (
-                <div key={m.month} className="space-y-1 rounded border p-3">
-                  <p className="font-medium text-xs text-muted-foreground">{m.month}</p>
+                <div
+                  key={m.month}
+                  className="space-y-1 rounded"
+                  style={{ border: '1px solid var(--border)', padding: 12 }}
+                >
+                  <p className="fw-500 text-xs text-dim">{m.month}</p>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Income</span>
-                    <span className="font-mono text-green-600 dark:text-green-400">
+                    <span className="text-dim">Income</span>
+                    <span className="mono" style={{ color: 'var(--income)' }}>
                       {fmt(parseFloat(m.income))}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Expenses</span>
-                    <span className="font-mono text-destructive">
+                    <span className="text-dim">Expenses</span>
+                    <span className="mono" style={{ color: 'var(--expense)' }}>
                       {fmt(parseFloat(m.expenses))}
                     </span>
                   </div>
-                  <div className="flex justify-between border-t pt-1">
-                    <span className="font-medium">Balance</span>
-                    <span className="font-mono font-semibold">{fmt(parseFloat(m.balance))}</span>
+                  <div
+                    className="flex justify-between"
+                    style={{ borderTop: '1px solid var(--border)', paddingTop: 4 }}
+                  >
+                    <span className="fw-500">Balance</span>
+                    <span className="mono fw-600">{fmt(parseFloat(m.balance))}</span>
                   </div>
                 </div>
               ))}

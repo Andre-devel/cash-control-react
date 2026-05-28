@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { useAccount } from '@/features/accounts/hooks/use-account'
 import { EditAccountDialog } from '@/features/accounts/components/edit-account-dialog'
 import { AdjustBalanceDialog } from '@/features/accounts/components/adjust-balance-dialog'
@@ -15,17 +16,11 @@ const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   OTHER: 'Other',
 }
 
-function formatBalance(balance: string, currency: string): string {
-  const num = parseFloat(balance)
-  if (isNaN(num)) return balance
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(num)
-}
-
 function AccountDetailSkeleton() {
   return (
     <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Loading account">
-      <div className="h-6 w-48 rounded bg-muted" />
-      <div className="h-20 rounded bg-muted" />
+      <div className="h-6 w-48 rounded" style={{ background: 'var(--surface-3)' }} />
+      <div className="h-20 rounded" style={{ background: 'var(--surface-3)' }} />
     </div>
   )
 }
@@ -44,14 +39,18 @@ export default function AccountDetailPage() {
         </Button>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight">{account?.name ?? 'Account'}</h1>
+      <h1 className="fw-700" style={{ fontSize: 24, letterSpacing: '-0.01em' }}>
+        {account?.name ?? 'Account'}
+      </h1>
 
       {isLoading ? (
         <AccountDetailSkeleton />
       ) : isError ? (
         <div className="space-y-2" role="alert">
-          <p className="text-sm text-destructive">Failed to load account.</p>
-          <Button variant="outline" size="sm" onClick={() => void refetch()}>
+          <p className="text-sm" style={{ color: 'var(--expense)' }}>
+            Failed to load account.
+          </p>
+          <Button variant="ghost" size="sm" onClick={() => void refetch()}>
             Retry
           </Button>
         </div>
@@ -65,14 +64,14 @@ export default function AccountDetailPage() {
                 aria-hidden="true"
               />
               {account.archived && (
-                <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400 border border-yellow-500 rounded px-1.5 py-0.5">
+                <Badge kind="pending" dot={false} square>
                   Archived
-                </span>
+                </Badge>
               )}
             </div>
             <div className="flex gap-2">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => setEditOpen(true)}
@@ -80,7 +79,7 @@ export default function AccountDetailPage() {
                 Edit
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => setAdjustOpen(true)}
@@ -97,26 +96,24 @@ export default function AccountDetailPage() {
             <div className="card-b space-y-3">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <div>
-                  <p className="text-xs text-muted-foreground">Type</p>
-                  <p className="font-medium">{ACCOUNT_TYPE_LABELS[account.type] ?? account.type}</p>
+                  <p className="text-xs text-dim">Type</p>
+                  <p className="fw-500">{ACCOUNT_TYPE_LABELS[account.type] ?? account.type}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Balance</p>
-                  <p className="font-mono font-semibold">
-                    {formatBalance(account.balance, account.currency)}
-                  </p>
+                  <p className="text-xs text-dim">Balance</p>
+                  <p className="mono fw-600">{account.balance}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Currency</p>
-                  <p className="font-medium">{account.currency}</p>
+                  <p className="text-xs text-dim">Currency</p>
+                  <p className="fw-500">{account.currency}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Icon</p>
-                  <p className="font-medium">{account.icon}</p>
+                  <p className="text-xs text-dim">Icon</p>
+                  <p className="fw-500">{account.icon}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Created</p>
-                  <p className="font-medium">{new Date(account.createdAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-dim">Created</p>
+                  <p className="fw-500">{new Date(account.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
             </div>

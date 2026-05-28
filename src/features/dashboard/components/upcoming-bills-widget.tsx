@@ -2,15 +2,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useUpcomingBills } from '@/features/dashboard/hooks/use-upcoming-bills'
 
-function fmt(amount: string): string {
-  const n = parseFloat(amount)
-  if (isNaN(n)) return amount
-  return new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n)
-}
-
 function isOverdue(dueDate: string): boolean {
   return new Date(dueDate) < new Date(new Date().toDateString())
 }
@@ -19,7 +10,7 @@ function WidgetSkeleton() {
   return (
     <div className="space-y-2 animate-pulse" aria-busy="true" aria-label="Loading upcoming bills">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="h-10 rounded bg-muted" />
+        <div key={i} className="h-10 rounded" style={{ background: 'var(--surface-3)' }} />
       ))}
     </div>
   )
@@ -34,14 +25,15 @@ export function UpcomingBillsWidget() {
       <div className="card-h">
         <h3>Upcoming Bills</h3>
         <div className="flex items-center gap-2 text-sm">
-          <label htmlFor="days-ahead" className="text-xs text-muted-foreground">
+          <label htmlFor="days-ahead" className="text-xs text-dim">
             Days ahead:
           </label>
           <select
             id="days-ahead"
             value={daysAhead}
             onChange={(e) => setDaysAhead(Number(e.target.value))}
-            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            className="select"
+            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
             aria-label="Days ahead"
           >
             {[7, 14, 30].map((d) => (
@@ -57,13 +49,15 @@ export function UpcomingBillsWidget() {
           <WidgetSkeleton />
         ) : isError ? (
           <div role="alert" className="space-y-2">
-            <p className="text-sm text-destructive">Failed to load upcoming bills.</p>
-            <Button variant="outline" size="sm" onClick={() => void refetch()}>
+            <p className="text-sm" style={{ color: 'var(--expense)' }}>
+              Failed to load upcoming bills.
+            </p>
+            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
               Retry
             </Button>
           </div>
         ) : !data || data.bills.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">
+          <p className="text-sm text-dim" style={{ textAlign: 'center', padding: '16px 0' }}>
             No upcoming bills in the next {daysAhead} days.
           </p>
         ) : (
@@ -73,20 +67,20 @@ export function UpcomingBillsWidget() {
               return (
                 <li
                   key={bill.id}
-                  className={`flex items-center justify-between py-2 text-sm ${
-                    overdue ? 'text-destructive' : ''
-                  }`}
+                  className="flex items-center justify-between py-2 text-sm"
+                  style={overdue ? { color: 'var(--expense)' } : undefined}
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{bill.description}</p>
+                    <p className="truncate fw-500">{bill.description}</p>
                     <p
-                      className={`text-xs ${overdue ? 'text-destructive' : 'text-muted-foreground'}`}
+                      className="text-xs"
+                      style={{ color: overdue ? 'var(--expense)' : 'var(--text-dim)' }}
                     >
                       Due: {new Date(bill.dueDate).toLocaleDateString()}
                       {overdue && ' — Overdue'}
                     </p>
                   </div>
-                  <span className="font-mono font-semibold ml-4">{fmt(bill.amount)}</span>
+                  <span className="mono fw-600 ml-4">{bill.amount}</span>
                 </li>
               )
             })}

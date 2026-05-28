@@ -22,7 +22,8 @@ function getDefaultRange() {
 function ChartSkeleton() {
   return (
     <div
-      className="h-64 rounded bg-muted animate-pulse"
+      className="h-64 rounded animate-pulse"
+      style={{ background: 'var(--surface-3)' }}
       aria-busy="true"
       aria-label="Loading net worth chart"
     />
@@ -49,10 +50,11 @@ export function NetWorthChartSection() {
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            className="input"
+            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
             aria-label="From date"
           />
-          <span className="text-muted-foreground">–</span>
+          <span className="text-dim">–</span>
           <label className="sr-only" htmlFor="nw-to">
             To
           </label>
@@ -61,7 +63,8 @@ export function NetWorthChartSection() {
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            className="input"
+            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
             aria-label="To date"
           />
         </div>
@@ -71,13 +74,15 @@ export function NetWorthChartSection() {
           <ChartSkeleton />
         ) : isError ? (
           <div role="alert" className="space-y-2">
-            <p className="text-sm text-destructive">Failed to load net worth chart.</p>
-            <Button variant="outline" size="sm" onClick={() => void refetch()}>
+            <p className="text-sm" style={{ color: 'var(--expense)' }}>
+              Failed to load net worth chart.
+            </p>
+            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
               Retry
             </Button>
           </div>
         ) : !data || data.data.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-8 text-center">
+          <p className="text-sm text-dim" style={{ padding: '32px 0', textAlign: 'center' }}>
             No net worth data for the selected period.
           </p>
         ) : (
@@ -88,7 +93,7 @@ export function NetWorthChartSection() {
                 'Net Worth': parseFloat(p.netWorth),
               }))}
             >
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
               <YAxis
                 tick={{ fontSize: 12 }}
@@ -110,7 +115,7 @@ export function NetWorthChartSection() {
               <Line
                 type="monotone"
                 dataKey="Net Worth"
-                stroke="#6366f1"
+                stroke="var(--accent)"
                 strokeWidth={2}
                 dot={false}
               />

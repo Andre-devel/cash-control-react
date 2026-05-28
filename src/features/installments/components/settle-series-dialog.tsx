@@ -67,21 +67,26 @@ export function SettleSeriesDialog({ series, open, onClose }: SettleSeriesDialog
 
       {series && (
         <div
-          className="rounded-md border border-border bg-muted/40 px-4 py-3 space-y-1 text-sm"
-          style={{ marginTop: 12 }}
+          className="rounded space-y-1 text-sm"
+          style={{
+            border: '1px solid var(--border)',
+            background: 'var(--surface-3)',
+            padding: '12px 16px',
+            marginTop: 12,
+          }}
         >
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Remaining installments</span>
+            <span className="text-dim">Remaining installments</span>
             <span className="font-medium">{remaining}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Settlement amount</span>
+            <span className="text-dim">Settlement amount</span>
             <span className="font-semibold tabular-nums">{series.remainingAmount}</span>
           </div>
         </div>
       )}
 
-      <p className="text-sm text-muted-foreground" style={{ marginTop: 12 }}>
+      <p className="text-sm text-dim" style={{ marginTop: 12 }}>
         All remaining installments will be cancelled and a single settlement transaction will be
         recorded. This action cannot be undone.
       </p>

@@ -84,9 +84,14 @@ export function DeleteAccountDialog({ account, open, onClose }: DeleteAccountDia
       </p>
       {conflictError && (
         <div
-          className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          className="rounded px-4 py-3 text-sm"
+          style={{
+            border: '1px solid var(--expense-soft)',
+            background: 'var(--expense-soft)',
+            color: 'var(--expense)',
+            marginTop: 12,
+          }}
           role="alert"
-          style={{ marginTop: 12 }}
         >
           {conflictError}
         </div>

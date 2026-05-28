@@ -15,10 +15,12 @@ function DefaultFallback() {
       role="alert"
       className="flex flex-col items-center justify-center min-h-[200px] gap-4 p-8 text-center"
     >
-      <p className="text-sm font-medium text-destructive">Something went wrong.</p>
+      <p className="text-sm fw-500" style={{ color: 'var(--expense)' }}>
+        Something went wrong.
+      </p>
       <button
         type="button"
-        className="text-sm underline text-muted-foreground hover:text-foreground"
+        className="text-sm underline text-dim"
         onClick={() => window.location.reload()}
       >
         Reload page

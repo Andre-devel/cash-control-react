@@ -97,9 +97,14 @@ export function DeleteRecurrenceDialog({ recurrence, open, onClose }: DeleteRecu
       </p>
 
       <div
-        className="rounded-md border border-muted bg-muted/40 px-4 py-3 space-y-2 text-sm"
+        className="rounded space-y-2 text-sm"
         role="note"
-        style={{ marginTop: 12 }}
+        style={{
+          marginTop: 12,
+          border: '1px solid var(--border)',
+          background: 'var(--surface-3)',
+          padding: '12px 16px',
+        }}
       >
         <p>
           <span className="font-medium">Future Only:</span> Transactions already recorded are kept.

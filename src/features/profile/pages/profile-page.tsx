@@ -13,9 +13,9 @@ import type { UpdateProfileFormValues } from '@/features/profile/schemas/update-
 function ProfileSkeleton() {
   return (
     <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Loading profile">
-      <div className="h-6 w-32 rounded bg-muted" />
-      <div className="h-10 w-full rounded bg-muted" />
-      <div className="h-10 w-24 rounded bg-muted" />
+      <div className="h-6 w-32 rounded bg-surface-3" />
+      <div className="h-10 w-full rounded bg-surface-3" />
+      <div className="h-10 w-24 rounded bg-surface-3" />
     </div>
   )
 }
@@ -52,8 +52,10 @@ export default function ProfilePage() {
             <ProfileSkeleton />
           ) : isError ? (
             <div className="space-y-2" role="alert">
-              <p className="text-sm text-destructive">Failed to load profile.</p>
-              <Button variant="outline" size="sm" onClick={() => void refetch()}>
+              <p className="text-sm" style={{ color: 'var(--expense)' }}>
+                Failed to load profile.
+              </p>
+              <Button variant="ghost" size="sm" onClick={() => void refetch()}>
                 Retry
               </Button>
             </div>
@@ -61,8 +63,8 @@ export default function ProfilePage() {
             <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="col gap-4">
               {profile?.email && (
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground">Email</p>
-                  <p className="text-sm text-muted-foreground">{profile.email}</p>
+                  <p className="text-sm fw-500">Email</p>
+                  <p className="text-sm text-dim">{profile.email}</p>
                 </div>
               )}
 

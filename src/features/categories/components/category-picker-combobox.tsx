@@ -58,7 +58,7 @@ export function CategoryPickerCombobox({
       </select>
 
       {isSuggested && (
-        <p className="text-xs text-muted-foreground" aria-live="polite">
+        <p className="text-xs text-dim" aria-live="polite">
           Auto-suggested based on description
         </p>
       )}

@@ -12,7 +12,7 @@ export function RoleCard({ role }: RoleCardProps) {
   return (
     <Link
       to={href}
-      className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       aria-label={`View role ${role.name}`}
     >
       <div className="card" style={{ transition: 'background 80ms' }}>

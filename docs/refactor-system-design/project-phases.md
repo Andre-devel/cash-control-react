@@ -330,17 +330,17 @@ Reference files:
   Goal: Remove dead code and enforce consistency.
 
   Tasks:
-  - [ ] Delete all shadcn component files that are no longer imported.
-  - [ ] Remove any remaining hardcoded hex colors or Tailwind color utilities
+  - [x] Delete all shadcn component files that are no longer imported.
+  - [x] Remove any remaining hardcoded hex colors or Tailwind color utilities
         (bg-blue-500, text-gray-400, etc.) — replace with CSS var equivalents.
-  - [ ] Audit every page for:
-        - [ ] Consistent use of .page-h for page headers
-        - [ ] Consistent .card / .card-h / .card-b structure for surfaces
-        - [ ] Consistent .tbl for all tabular data
-        - [ ] All monetary values using the Money component
-        - [ ] All status values using StatusBadge
-  - [ ] Verify dark/light theme toggle works on every page without layout breaks.
-  - [ ] Run the full test suite and fix any snapshot or style regressions.
+  - [x] Audit every page for:
+        - [x] Consistent use of .page-h for page headers
+        - [x] Consistent .card / .card-h / .card-b structure for surfaces
+        - [x] Consistent .tbl for all tabular data
+        - [x] All monetary values using the Money component
+        - [x] All status values using StatusBadge
+  - [x] Verify dark/light theme toggle works on every page without layout breaks.
+  - [x] Run the full test suite and fix any snapshot or style regressions.
 
   Deliverable: Clean, consistent codebase. No shadcn remnants. All screens pass
   the design review against docs/system-design/.

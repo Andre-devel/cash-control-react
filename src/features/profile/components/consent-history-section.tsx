@@ -15,7 +15,11 @@ export function ConsentHistorySection() {
     return (
       <div className="space-y-2" aria-busy="true" aria-label="Loading consent history">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-10 rounded-md bg-muted animate-pulse" />
+          <div
+            key={i}
+            className="h-10 rounded animate-pulse"
+            style={{ background: 'var(--surface-3)' }}
+          />
         ))}
       </div>
     )
@@ -23,11 +27,11 @@ export function ConsentHistorySection() {
 
   if (isError) {
     return (
-      <div className="text-sm text-destructive" role="alert">
+      <div className="text-sm" role="alert" style={{ color: 'var(--expense)' }}>
         Failed to load consent history.{' '}
         <button
           type="button"
-          className="underline underline-offset-2 hover:text-destructive/80"
+          className="underline underline-offset-2"
           onClick={() => void refetch()}
         >
           Retry
@@ -37,7 +41,7 @@ export function ConsentHistorySection() {
   }
 
   if (!consents || consents.length === 0) {
-    return <p className="text-sm text-muted-foreground">No consent records found.</p>
+    return <p className="text-sm text-dim">No consent records found.</p>
   }
 
   return (
@@ -45,16 +49,13 @@ export function ConsentHistorySection() {
       {consents.map((record) => (
         <li
           key={record.id}
-          className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm"
+          className="flex items-center justify-between rounded px-3 py-2 text-sm"
+          style={{ border: '1px solid var(--border)' }}
         >
-          <span className="font-medium">{record.type}</span>
-          <span className="text-muted-foreground">{formatDate(record.date)}</span>
+          <span className="fw-500">{record.type}</span>
+          <span className="text-dim">{formatDate(record.date)}</span>
           <span
-            className={
-              record.status === 'ACCEPTED'
-                ? 'text-green-600 dark:text-green-400'
-                : 'text-destructive'
-            }
+            style={{ color: record.status === 'ACCEPTED' ? 'var(--income)' : 'var(--expense)' }}
           >
             {record.status}
           </span>

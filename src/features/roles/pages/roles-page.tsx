@@ -53,10 +53,15 @@ export default function RolesPage() {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-bold tracking-tight">Roles</h1>
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-          <p className="text-sm text-destructive">Failed to load roles.</p>
+        <div
+          className="rounded-lg p-4"
+          style={{ border: '1px solid var(--expense-soft)', background: 'var(--expense-soft)' }}
+        >
+          <p className="text-sm" style={{ color: 'var(--expense)' }}>
+            Failed to load roles.
+          </p>
         </div>
-        <Button variant="outline" className="min-h-[44px]" onClick={() => refetch()}>
+        <Button variant="ghost" className="min-h-[44px]" onClick={() => refetch()}>
           Retry
         </Button>
       </div>
@@ -76,7 +81,7 @@ export default function RolesPage() {
 
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="mb-4 text-muted-foreground">No roles found.</p>
+          <p className="mb-4 text-dim">No roles found.</p>
           {canCreateRole && (
             <Button size="sm" className="min-h-[44px]" onClick={() => setIsCreateOpen(true)}>
               New Role
@@ -90,7 +95,7 @@ export default function RolesPage() {
       {!isLoading && !isEmpty && totalPages > 1 && (
         <div className="flex items-center justify-between pt-2">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             className="min-h-[44px]"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -99,11 +104,11 @@ export default function RolesPage() {
           >
             Previous
           </Button>
-          <span className="text-sm text-muted-foreground" aria-live="polite">
+          <span className="text-sm text-dim" aria-live="polite">
             Page {page + 1} of {totalPages}
           </span>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             className="min-h-[44px]"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}

@@ -19,8 +19,8 @@ function OverviewSkeleton() {
       {[1, 2, 3, 4].map((i) => (
         <div key={i} className="card">
           <div className="card-b animate-pulse space-y-2">
-            <div className="h-3 w-24 rounded bg-muted" />
-            <div className="h-6 w-32 rounded bg-muted" />
+            <div className="h-3 w-24 rounded" style={{ background: 'var(--surface-3)' }} />
+            <div className="h-6 w-32 rounded" style={{ background: 'var(--surface-3)' }} />
           </div>
         </div>
       ))}
@@ -31,12 +31,10 @@ function OverviewSkeleton() {
 function OverviewError({ onRetry }: { onRetry: () => void }) {
   return (
     <div role="alert" className="space-y-2">
-      <p className="text-sm text-destructive">Failed to load financial overview.</p>
-      <button
-        type="button"
-        className="text-sm underline text-muted-foreground hover:text-foreground"
-        onClick={onRetry}
-      >
+      <p className="text-sm" style={{ color: 'var(--expense)' }}>
+        Failed to load financial overview.
+      </p>
+      <button type="button" className="text-sm underline text-dim" onClick={onRetry}>
         Retry
       </button>
     </div>
@@ -62,8 +60,11 @@ export function OverviewSection() {
       {stats.map((s) => (
         <div key={s.label} className="card">
           <div className="card-b space-y-1">
-            <p className="text-xs text-muted-foreground">{s.label}</p>
-            <p className={`text-xl font-bold tracking-tight ${s.mono ? 'font-mono' : ''}`}>
+            <p className="text-xs text-dim">{s.label}</p>
+            <p
+              className={`fw-700${s.mono ? ' mono' : ''}`}
+              style={{ fontSize: 20, letterSpacing: '-0.02em' }}
+            >
               {s.value}
             </p>
           </div>

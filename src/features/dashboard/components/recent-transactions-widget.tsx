@@ -11,21 +11,6 @@ const TYPE_LABELS: Record<string, string> = {
   TRANSFER: 'Transfer',
 }
 
-const STATUS_CLASSES: Record<string, string> = {
-  PAID: 'text-green-600 dark:text-green-400',
-  PENDING: 'text-yellow-600 dark:text-yellow-400',
-  CANCELLED: 'text-muted-foreground line-through',
-}
-
-function fmt(amount: string): string {
-  const n = parseFloat(amount)
-  if (isNaN(n)) return amount
-  return new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n)
-}
-
 function WidgetSkeleton() {
   return (
     <div
@@ -34,7 +19,7 @@ function WidgetSkeleton() {
       aria-label="Loading recent transactions"
     >
       {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="h-10 rounded bg-muted" />
+        <div key={i} className="h-10 rounded" style={{ background: 'var(--surface-3)' }} />
       ))}
     </div>
   )
@@ -53,38 +38,51 @@ export function RecentTransactionsWidget() {
           <WidgetSkeleton />
         ) : isError ? (
           <div role="alert" className="space-y-2">
-            <p className="text-sm text-destructive">Failed to load recent transactions.</p>
-            <Button variant="outline" size="sm" onClick={() => void refetch()}>
+            <p className="text-sm" style={{ color: 'var(--expense)' }}>
+              Failed to load recent transactions.
+            </p>
+            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
               Retry
             </Button>
           </div>
         ) : !data || data.transactions.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No recent transactions.</p>
+          <p className="text-sm text-dim" style={{ textAlign: 'center', padding: '16px 0' }}>
+            No recent transactions.
+          </p>
         ) : (
           <ul className="divide-y" role="list">
             {data.transactions.map((tx) => {
               const isExpense = tx.type === 'EXPENSE'
-              const amountClass = isExpense
-                ? 'text-destructive'
-                : 'text-green-600 dark:text-green-400'
-              const statusClass = STATUS_CLASSES[tx.status] ?? ''
+              const isCancelled = tx.status === 'CANCELLED'
+              const amountColor = isExpense ? 'var(--expense)' : 'var(--income)'
+              const statusColor =
+                tx.status === 'PAID'
+                  ? 'var(--income)'
+                  : tx.status === 'PENDING'
+                    ? 'var(--pending)'
+                    : 'var(--cancelled)'
 
               return (
                 <li key={tx.id} className="py-2 text-sm">
                   <Link
                     to={ROUTES.TRANSACTION_DETAIL.replace(':id', tx.id)}
                     className="flex items-center justify-between hover:underline focus:outline-none focus:underline"
-                    aria-label={`${tx.description}: ${fmt(tx.amount)}`}
+                    aria-label={`${tx.description}: ${tx.amount}`}
                   >
                     <div className="min-w-0 flex-1">
-                      <p className={`truncate font-medium ${statusClass}`}>{tx.description}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p
+                        className={`truncate fw-500${isCancelled ? ' line-through' : ''}`}
+                        style={{ color: statusColor }}
+                      >
+                        {tx.description}
+                      </p>
+                      <p className="text-xs text-dim">
                         {TYPE_LABELS[tx.type] ?? tx.type} · {new Date(tx.date).toLocaleDateString()}
                       </p>
                     </div>
-                    <span className={`font-mono font-semibold ml-4 ${amountClass}`}>
+                    <span className="mono fw-600 ml-4" style={{ color: amountColor }}>
                       {isExpense ? '-' : '+'}
-                      {fmt(tx.amount)}
+                      {tx.amount}
                     </span>
                   </Link>
                 </li>

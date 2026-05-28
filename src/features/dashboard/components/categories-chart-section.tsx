@@ -3,15 +3,15 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 import { Button } from '@/components/ui/button'
 import { useCategoriesChart } from '@/features/dashboard/hooks/use-categories-chart'
 
-const COLORS = [
-  '#6366f1',
-  '#f59e0b',
-  '#10b981',
-  '#ef4444',
-  '#3b82f6',
-  '#8b5cf6',
-  '#ec4899',
-  '#14b8a6',
+const CAT_COLORS = [
+  'var(--cat-1)',
+  'var(--cat-2)',
+  'var(--cat-3)',
+  'var(--cat-4)',
+  'var(--cat-5)',
+  'var(--cat-6)',
+  'var(--cat-7)',
+  'var(--cat-8)',
 ]
 
 function getDefaultRange() {
@@ -26,7 +26,8 @@ function getDefaultRange() {
 function ChartSkeleton() {
   return (
     <div
-      className="h-64 rounded bg-muted animate-pulse"
+      className="h-64 rounded animate-pulse"
+      style={{ background: 'var(--surface-3)' }}
       aria-busy="true"
       aria-label="Loading categories chart"
     />
@@ -53,10 +54,11 @@ export function CategoriesChartSection() {
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            className="input"
+            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
             aria-label="From date"
           />
-          <span className="text-muted-foreground">–</span>
+          <span className="text-dim">–</span>
           <label className="sr-only" htmlFor="cat-to">
             To
           </label>
@@ -65,7 +67,8 @@ export function CategoriesChartSection() {
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            className="input"
+            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
             aria-label="To date"
           />
         </div>
@@ -75,13 +78,15 @@ export function CategoriesChartSection() {
           <ChartSkeleton />
         ) : isError ? (
           <div role="alert" className="space-y-2">
-            <p className="text-sm text-destructive">Failed to load categories chart.</p>
-            <Button variant="outline" size="sm" onClick={() => void refetch()}>
+            <p className="text-sm" style={{ color: 'var(--expense)' }}>
+              Failed to load categories chart.
+            </p>
+            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
               Retry
             </Button>
           </div>
         ) : !data || data.items.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-8 text-center">
+          <p className="text-sm text-dim" style={{ padding: '32px 0', textAlign: 'center' }}>
             No expense data for the selected period.
           </p>
         ) : (
@@ -102,7 +107,7 @@ export function CategoriesChartSection() {
                 }
               >
                 {data.items.map((_, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={index} fill={CAT_COLORS[index % CAT_COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip

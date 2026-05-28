@@ -14,7 +14,7 @@ export function PayTransactionButton({ transaction }: PayTransactionButtonProps)
   return (
     <Button
       size="sm"
-      variant="outline"
+      variant="ghost"
       className="min-h-[44px]"
       disabled={isPending}
       aria-busy={isPending}

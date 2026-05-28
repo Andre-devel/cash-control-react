@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { useCard } from '@/features/cards/hooks/use-card'
 import { useInvoice } from '@/features/cards/hooks/use-invoice'
 import { useLimitUsage } from '@/features/cards/hooks/use-limit-usage'
@@ -15,15 +16,6 @@ const INVOICE_STATUS_LABELS: Record<string, string> = {
   CLOSED: 'Closed',
   PAID: 'Paid',
   PARTIALLY_PAID: 'Partially Paid',
-}
-
-function formatAmount(amount: string): string {
-  const num = parseFloat(amount)
-  if (isNaN(num)) return amount
-  return new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(num)
 }
 
 function getPreviousMonth(yyyyMm: string): string {
@@ -46,8 +38,8 @@ function getCurrentMonth(): string {
 function CardDetailSkeleton() {
   return (
     <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Loading card">
-      <div className="h-6 w-48 rounded bg-muted" />
-      <div className="h-32 rounded bg-muted" />
+      <div className="h-6 w-48 rounded" style={{ background: 'var(--surface-3)' }} />
+      <div className="h-32 rounded" style={{ background: 'var(--surface-3)' }} />
     </div>
   )
 }
@@ -91,14 +83,18 @@ export default function CardDetailPage() {
         </Button>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight">{card?.name ?? 'Card'}</h1>
+      <h1 className="fw-700" style={{ fontSize: 24, letterSpacing: '-0.01em' }}>
+        {card?.name ?? 'Card'}
+      </h1>
 
       {cardLoading ? (
         <CardDetailSkeleton />
       ) : cardError ? (
         <div className="space-y-2" role="alert">
-          <p className="text-sm text-destructive">Failed to load card.</p>
-          <Button variant="outline" size="sm" onClick={() => void refetchCard()}>
+          <p className="text-sm" style={{ color: 'var(--expense)' }}>
+            Failed to load card.
+          </p>
+          <Button variant="ghost" size="sm" onClick={() => void refetchCard()}>
             Retry
           </Button>
         </div>
@@ -111,18 +107,16 @@ export default function CardDetailPage() {
                 style={{ backgroundColor: card.color }}
                 aria-hidden="true"
               />
-              <span className="text-sm text-muted-foreground font-mono">
-                •••• {card.lastFourDigits}
-              </span>
+              <span className="text-sm mono text-dim">•••• {card.lastFourDigits}</span>
               {card.archived && (
-                <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400 border border-yellow-500 rounded px-1.5 py-0.5">
+                <Badge kind="pending" dot={false} square>
                   Archived
-                </span>
+                </Badge>
               )}
             </div>
             <div className="flex gap-2">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => setChargeOpen(true)}
@@ -130,7 +124,7 @@ export default function CardDetailPage() {
                 Record Charge
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => setEditOpen(true)}
@@ -140,7 +134,6 @@ export default function CardDetailPage() {
             </div>
           </div>
 
-          {/* Limit Usage */}
           {limitUsage && (
             <div className="card">
               <div className="card-h">
@@ -148,33 +141,27 @@ export default function CardDetailPage() {
               </div>
               <div className="card-b space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Used</span>
-                  <span className="font-mono font-semibold">
-                    {formatAmount(limitUsage.usedAmount)}
-                  </span>
+                  <span className="text-dim">Used</span>
+                  <span className="mono fw-600">{limitUsage.usedAmount}</span>
                 </div>
                 <div
-                  className="h-2 rounded-full bg-muted overflow-hidden"
+                  className="bar"
                   role="progressbar"
                   aria-valuenow={limitPercent}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-label="Limit usage"
                 >
-                  <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: `${limitPercent}%` }}
-                  />
+                  <i style={{ width: `${limitPercent}%`, background: 'var(--accent)' }} />
                 </div>
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Available: {formatAmount(limitUsage.availableAmount)}</span>
-                  <span>Limit: {formatAmount(limitUsage.creditLimit)}</span>
+                <div className="flex justify-between text-xs text-dim">
+                  <span>Available: {limitUsage.availableAmount}</span>
+                  <span>Limit: {limitUsage.creditLimit}</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Invoice */}
           <div className="card">
             <div className="card-h">
               <h3>Invoice</h3>
@@ -187,7 +174,9 @@ export default function CardDetailPage() {
                 >
                   ‹
                 </Button>
-                <span className="text-sm font-medium w-20 text-center">{referenceMonth}</span>
+                <span className="text-sm fw-500" style={{ width: 80, textAlign: 'center' }}>
+                  {referenceMonth}
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -205,37 +194,35 @@ export default function CardDetailPage() {
                   aria-busy="true"
                   aria-label="Loading invoice"
                 >
-                  <div className="h-4 w-32 rounded bg-muted" />
-                  <div className="h-4 w-24 rounded bg-muted" />
+                  <div className="h-4 w-32 rounded" style={{ background: 'var(--surface-3)' }} />
+                  <div className="h-4 w-24 rounded" style={{ background: 'var(--surface-3)' }} />
                 </div>
               ) : invoice ? (
                 <>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     <div>
-                      <p className="text-xs text-muted-foreground">Status</p>
-                      <p className="font-medium">
+                      <p className="text-xs text-dim">Status</p>
+                      <p className="fw-500">
                         {INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Total</p>
-                      <p className="font-mono font-semibold">{formatAmount(invoice.totalAmount)}</p>
+                      <p className="text-xs text-dim">Total</p>
+                      <p className="mono fw-600">{invoice.totalAmount}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Paid</p>
-                      <p className="font-mono font-semibold">{formatAmount(invoice.paidAmount)}</p>
+                      <p className="text-xs text-dim">Paid</p>
+                      <p className="mono fw-600">{invoice.paidAmount}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Remaining</p>
-                      <p className="font-mono font-semibold text-destructive">
-                        {formatAmount(invoice.remainingAmount)}
+                      <p className="text-xs text-dim">Remaining</p>
+                      <p className="mono fw-600" style={{ color: 'var(--expense)' }}>
+                        {invoice.remainingAmount}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Due Date</p>
-                      <p className="font-medium">
-                        {new Date(invoice.dueDate).toLocaleDateString()}
-                      </p>
+                      <p className="text-xs text-dim">Due Date</p>
+                      <p className="fw-500">{new Date(invoice.dueDate).toLocaleDateString()}</p>
                     </div>
                   </div>
 
@@ -247,7 +234,7 @@ export default function CardDetailPage() {
 
                   {invoice.items.length > 0 ? (
                     <div className="space-y-2">
-                      <p className="text-sm font-medium">Charges</p>
+                      <p className="text-sm fw-500">Charges</p>
                       <div className="divide-y">
                         {invoice.items.map((item) => (
                           <div
@@ -256,28 +243,25 @@ export default function CardDetailPage() {
                           >
                             <div className="min-w-0 flex-1">
                               <p className="truncate">{item.description}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-dim">
                                 {new Date(item.date).toLocaleDateString()}
                               </p>
                             </div>
-                            <span className="font-mono font-semibold ml-4">
-                              {formatAmount(item.amount)}
-                            </span>
+                            <span className="mono fw-600 ml-4">{item.amount}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No charges for this period.</p>
+                    <p className="text-sm text-dim">No charges for this period.</p>
                   )}
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">No invoice found for this month.</p>
+                <p className="text-sm text-dim">No invoice found for this month.</p>
               )}
             </div>
           </div>
 
-          {/* Spending Breakdown */}
           {spending && spending.items.length > 0 && (
             <div className="card">
               <div className="card-h">
@@ -290,20 +274,19 @@ export default function CardDetailPage() {
                       key={item.categoryId ?? i}
                       className="flex items-center justify-between text-sm"
                     >
-                      <span className="text-muted-foreground">
-                        {item.categoryName ?? 'Uncategorized'}
-                      </span>
+                      <span className="text-dim">{item.categoryName ?? 'Uncategorized'}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">{item.percentage}%</span>
-                        <span className="font-mono font-semibold">{formatAmount(item.amount)}</span>
+                        <span className="text-xs text-dim">{item.percentage}%</span>
+                        <span className="mono fw-600">{item.amount}</span>
                       </div>
                     </div>
                   ))}
-                  <div className="flex items-center justify-between text-sm border-t pt-2 mt-2">
-                    <span className="font-medium">Total</span>
-                    <span className="font-mono font-semibold">
-                      {formatAmount(spending.totalAmount)}
-                    </span>
+                  <div
+                    className="flex items-center justify-between text-sm"
+                    style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 8 }}
+                  >
+                    <span className="fw-500">Total</span>
+                    <span className="mono fw-600">{spending.totalAmount}</span>
                   </div>
                 </div>
               </div>

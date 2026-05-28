@@ -58,7 +58,7 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
           <h3 className="text-sm font-semibold">Roles</h3>
           {canUpdateRole && roles.length > 0 && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               className="min-h-[44px]"
               onClick={() => setIsAssignOpen(true)}
@@ -71,10 +71,10 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
 
         {roles.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center">
-            <p className="mb-3 text-sm text-muted-foreground">No roles assigned.</p>
+            <p className="mb-3 text-sm text-dim">No roles assigned.</p>
             {canUpdateRole && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => setIsAssignOpen(true)}
@@ -89,18 +89,16 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
             {roles.map((role) => (
               <li key={role.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{role.name}</p>
+                  <p className="text-sm font-medium truncate">{role.name}</p>
                   {role.description && (
-                    <p className="mt-0.5 text-xs text-muted-foreground truncate">
-                      {role.description}
-                    </p>
+                    <p className="mt-0.5 text-xs text-dim truncate">{role.description}</p>
                   )}
                 </div>
                 {canUpdateRole && (
                   <Button
-                    variant="ghost"
+                    variant="danger"
                     size="sm"
-                    className="ml-2 shrink-0 min-h-[44px] text-destructive hover:text-destructive"
+                    className="ml-2 shrink-0 min-h-[44px]"
                     aria-label={`Remove role ${role.name}`}
                     onClick={() => setRoleToRevoke(role)}
                   >
@@ -161,7 +159,7 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
         >
           <div>
             {isLoadingRoles ? (
-              <p className="text-sm text-muted-foreground">Loading roles…</p>
+              <p className="text-sm text-dim">Loading roles…</p>
             ) : (
               <Select
                 value={selectedRoleId}
