@@ -62,11 +62,12 @@ export async function uploadAttachment(
 ): Promise<Attachment[]> {
   const formData = new FormData()
   formData.append('files', file)
+  // Do NOT set Content-Type manually — Axios removes it for FormData so the browser/
+  // XHR can auto-set multipart/form-data with the correct boundary.
   const response = await axiosInstance.post<Attachment[]>(
     `/transactions/${id}/attachments`,
     formData,
     {
-      headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: (event) => {
         if (onProgress && event.total) {
           onProgress(Math.round((event.loaded * 100) / event.total))

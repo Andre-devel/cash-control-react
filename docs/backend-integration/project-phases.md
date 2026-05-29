@@ -517,31 +517,31 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 ### Phase 9.1 — MSW Handler Updates
 
 **Implementation Tasks:**
-- [ ] Update `POST /auth/register` handler to return `{ message: "..." }` (201) instead of `{ token }`
-- [ ] Update all four dashboard widget handlers to return plain arrays instead of wrapped objects
-- [ ] Update `POST /accounts/{id}/adjust` handler to accept `{ amount }` not `{ targetBalance }`
-- [ ] Update `POST /transactions/{id}/attachments` handler to expect `files` field
-- [ ] Add handlers for new endpoints: `GET /auth/email/verify`, `POST /auth/email/verify/resend`, `POST /auth/password-reset/request`, `POST /auth/password-reset/confirm`, `POST /auth/password/change`
+- [x] Update `POST /auth/register` handler to return `{ message: "..." }` (201) instead of `{ token }`
+- [x] Update all four dashboard widget handlers to return plain arrays instead of wrapped objects
+- [x] Update `POST /accounts/{id}/adjust` handler to accept `{ amount }` not `{ targetBalance }`
+- [x] Update `POST /transactions/{id}/attachments` handler to expect `files` field
+- [x] Add handlers for new endpoints: `GET /auth/email/verify`, `POST /auth/email/verify/resend`, `POST /auth/password-reset/request`, `POST /auth/password-reset/confirm`, `POST /auth/password/change`
 
 **Acceptance Criteria:**
-- [ ] `pnpm test` passes with 0 failures on the updated handler set
+- [x] `pnpm test` passes with 0 failures on the updated handler set
 
 ---
 
 ### Phase 9.2 — Integration Test Coverage for New Flows
 
 **Implementation Tasks:**
-- [ ] Add integration test: register → expect success toast + redirect to `/verify-email?pending=true` (no token in store)
-- [ ] Add integration test: email verification success path
-- [ ] Add integration test: forgot password → always shows success feedback
-- [ ] Add integration test: reset password success + redirect to `/login`
-- [ ] Add integration test: dashboard widget renders when API returns an array (regression guard)
-- [ ] Add integration test: attachment upload with `files` field (regression guard)
-- [ ] Update existing account creation test to verify 409 conflict shows inline field error
+- [x] Add integration test: register → expect success toast + redirect to `/verify-email?pending=true` (no token in store)
+- [x] Add integration test: email verification success path
+- [x] Add integration test: forgot password → always shows success feedback
+- [x] Add integration test: reset password success + redirect to `/login`
+- [x] Add integration test: dashboard widget renders when API returns an array (regression guard)
+- [x] Add integration test: attachment upload with `files` field (regression guard)
+- [x] Update existing account creation test to verify 409 conflict shows inline field error
 
 **Acceptance Criteria:**
-- [ ] `pnpm test --coverage` shows ≥ 80% on modified feature files
-- [ ] All new flows (email verification, password reset) have at least one happy-path integration test
+- [x] `pnpm test --coverage` shows ≥ 80% on modified feature files
+- [x] All new flows (email verification, password reset) have at least one happy-path integration test
 
 ---
 

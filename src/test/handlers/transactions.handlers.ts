@@ -199,6 +199,10 @@ export const transactionsHandlers = [
   }),
 
   http.post('*/transactions/:id/attachments', async ({ params }) => {
+    // Note: request.formData() hangs in the JSDOM+Axios multipart environment because
+    // Axios sets Content-Type: multipart/form-data without a boundary parameter. The
+    // "files" field-name regression guard is enforced at the unit-test level in
+    // transactions-phase4.test.tsx (spy on axiosInstance.post + formData.get assertion).
     const created: Attachment = {
       id: `att-${Date.now()}`,
       transactionId: params.id as string,
