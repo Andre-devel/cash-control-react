@@ -449,18 +449,18 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - `SpendingByCategoryResponse`: plain array `[{ categoryId, categoryName, amount, percentage }]`
 
 **Implementation Tasks:**
-- [ ] Add `issuer?: string` and `currentInvoiceTotal?: string` to `Card` type
-- [ ] Rename `billingCycleDay` → `closingDay` in `Card` type and `CreateCardRequest` if backend uses `closingDay`
-- [ ] Add `closingDate` to `Invoice` type
-- [ ] Add `usagePercentage?: string` to `LimitUsage` type
-- [ ] Verify `SpendingBreakdown` — if backend returns a plain array `SpendingByCategoryResponse[]`, remove the wrapper `SpendingBreakdown = { items, totalAmount }` and return array directly from `getSpendingByCategory()`
-- [ ] Update `createCard` to use `closingDay` if renamed
-- [ ] Add `DELETE /api/v1/cards/{id}` endpoint function (backend supports soft-delete via archive, no hard delete — remove any delete button UI that calls a missing delete endpoint)
+- [x] Add `issuer?: string` and `currentInvoiceTotal?: string` to `Card` type
+- [x] Rename `billingCycleDay` → `closingDay` in `Card` type and `CreateCardRequest` if backend uses `closingDay`
+- [x] Add `closingDate` to `Invoice` type
+- [x] Add `usagePercentage?: string` to `LimitUsage` type
+- [x] Verify `SpendingBreakdown` — if backend returns a plain array `SpendingByCategoryResponse[]`, remove the wrapper `SpendingBreakdown = { items, totalAmount }` and return array directly from `getSpendingByCategory()`
+- [x] Update `createCard` to use `closingDay` if renamed
+- [x] Add `DELETE /api/v1/cards/{id}` endpoint function (backend supports soft-delete via archive, no hard delete — remove any delete button UI that calls a missing delete endpoint)
 
 **Acceptance Criteria:**
-- [ ] Credit card list renders `issuer` when present
-- [ ] Limit usage card shows `usagePercentage`
-- [ ] Invoice close date renders correctly when `closingDate` is present
+- [x] Credit card list renders `issuer` when present
+- [x] Limit usage card shows `usagePercentage`
+- [x] Invoice close date renders correctly when `closingDate` is present
 
 ---
 

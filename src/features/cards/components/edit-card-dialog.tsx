@@ -39,7 +39,7 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
       brand: 'VISA',
       lastFourDigits: '',
       creditLimit: '0.00',
-      billingCycleDay: 1,
+      closingDay: 1,
       dueDay: 10,
       color: '#820AD1',
     },
@@ -52,7 +52,7 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
         brand: card.brand,
         lastFourDigits: card.lastFourDigits,
         creditLimit: card.creditLimit,
-        billingCycleDay: card.billingCycleDay,
+        closingDay: card.closingDay,
         dueDay: card.dueDay,
         color: card.color,
       })
@@ -146,12 +146,12 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Billing Cycle Day" error={form.formState.errors.billingCycleDay?.message}>
+          <Field label="Closing Day" error={form.formState.errors.closingDay?.message}>
             <Input
               type="number"
               min={1}
               max={31}
-              {...form.register('billingCycleDay', { valueAsNumber: true })}
+              {...form.register('closingDay', { valueAsNumber: true })}
             />
           </Field>
 

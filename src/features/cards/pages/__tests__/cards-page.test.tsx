@@ -8,6 +8,7 @@ import {
   MOCK_CARD_1,
   MOCK_CARD_2,
   MOCK_INVOICE,
+  MOCK_LIMIT_USAGE,
   resetCardsStore,
 } from '@/test/handlers/cards.handlers'
 import CardsPage from '../cards-page'
@@ -350,6 +351,60 @@ describe('CardsPage — record charge dialog', () => {
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeTruthy()
       expect(screen.getByRole('heading', { name: /record charge/i })).toBeTruthy()
+    })
+  })
+})
+
+describe('CardsPage — Phase 7 acceptance criteria', () => {
+  it('renders issuer in card details when present', async () => {
+    renderWithProviders(<CardsPage />)
+    await waitFor(() => expect(screen.getByText('Emissor')).toBeTruthy())
+    expect(screen.getByText(MOCK_CARD_1.issuer!)).toBeTruthy()
+  })
+
+  it('does not render issuer row when issuer is absent', async () => {
+    server.use(http.get('*/cards', () => HttpResponse.json([MOCK_CARD_2])))
+    renderWithProviders(<CardsPage />)
+    await waitFor(() => screen.getByText(/detalhes do cartão/i))
+    expect(screen.queryByText('Emissor')).toBeNull()
+  })
+
+  it('shows usagePercentage from backend in limit usage section', async () => {
+    renderWithProviders(<CardsPage />)
+    await waitFor(() => {
+      const pctEl = screen.getByText(
+        `${Math.round(parseFloat(MOCK_LIMIT_USAGE.usagePercentage!))}%`,
+      )
+      expect(pctEl).toBeTruthy()
+    })
+  })
+
+  it('uses closingDate from invoice for the period display', async () => {
+    renderWithProviders(<CardsPage />)
+    await waitFor(() => expect(screen.getByText(/fatura — nubank/i)).toBeTruthy())
+    // The invoice has closingDate '2026-05-01' — period should show a formatted date
+    // InvoiceCard renders fmtDateShort(closesAt) and fmtDate(closesAt)
+    // closingDate='2026-05-01' → fmtDateShort → '01/05' (pt-BR)
+    await waitFor(() => {
+      const periodText = screen.getByText(/período/i)
+      expect(periodText.textContent).toMatch(/01\/05/)
+    })
+  })
+
+  it('shows closing day from card.closingDay in sidebar details', async () => {
+    renderWithProviders(<CardsPage />)
+    await waitFor(() => {
+      expect(screen.getByText(`Dia ${MOCK_CARD_1.closingDay}`)).toBeTruthy()
+    })
+  })
+
+  it('invoice close date renders correctly when closingDate present', async () => {
+    renderWithProviders(<CardsPage />)
+    await waitFor(() => expect(screen.getByText(/fatura — nubank/i)).toBeTruthy())
+    await waitFor(() => {
+      // closingDate is '2026-05-01' which fmtDate converts to '01/05/2026'
+      const sub = screen.getByText(/fecha em 01\/05\/2026/i)
+      expect(sub).toBeTruthy()
     })
   })
 })

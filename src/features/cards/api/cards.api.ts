@@ -3,7 +3,7 @@ import type {
   Card,
   Invoice,
   LimitUsage,
-  SpendingBreakdown,
+  SpendingItem,
   CreateCardRequest,
   UpdateCardRequest,
   RecordChargeRequest,
@@ -56,7 +56,11 @@ export async function getLimitUsage(id: string): Promise<LimitUsage> {
 export async function getSpendingBreakdown(
   id: string,
   params: SpendingBreakdownParams,
-): Promise<SpendingBreakdown> {
-  const response = await axiosInstance.get<SpendingBreakdown>(`/cards/${id}/spending`, { params })
+): Promise<SpendingItem[]> {
+  const response = await axiosInstance.get<SpendingItem[]>(`/cards/${id}/spending`, { params })
   return response.data
+}
+
+export async function deleteCard(id: string): Promise<void> {
+  await axiosInstance.delete(`/cards/${id}`)
 }

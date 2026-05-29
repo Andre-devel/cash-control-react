@@ -1,13 +1,15 @@
 import { http, HttpResponse } from 'msw'
-import type { Card, Invoice, LimitUsage, SpendingBreakdown } from '@/features/cards/types'
+import type { Card, Invoice, LimitUsage, SpendingItem } from '@/features/cards/types'
 
 export const MOCK_CARD_1: Card = {
   id: 'card-1',
   name: 'Nubank',
   brand: 'VISA',
   lastFourDigits: '1234',
+  issuer: 'Nu Pagamentos S.A.',
   creditLimit: '5000.00',
-  billingCycleDay: 1,
+  currentInvoiceTotal: '800.00',
+  closingDay: 1,
   dueDay: 10,
   color: '#820AD1',
   archived: false,
@@ -20,7 +22,7 @@ export const MOCK_CARD_2: Card = {
   brand: 'MASTERCARD',
   lastFourDigits: '5678',
   creditLimit: '10000.00',
-  billingCycleDay: 15,
+  closingDay: 15,
   dueDay: 25,
   color: '#FF6600',
   archived: false,
@@ -31,6 +33,7 @@ export const MOCK_INVOICE: Invoice = {
   id: 'invoice-1',
   cardId: 'card-1',
   referenceMonth: '2026-05',
+  closingDate: '2026-05-01',
   totalAmount: '800.00',
   paidAmount: '300.00',
   remainingAmount: '500.00',
@@ -58,25 +61,23 @@ export const MOCK_LIMIT_USAGE: LimitUsage = {
   creditLimit: '5000.00',
   usedAmount: '800.00',
   availableAmount: '4200.00',
+  usagePercentage: '16.00',
 }
 
-export const MOCK_SPENDING: SpendingBreakdown = {
-  items: [
-    {
-      categoryId: 'category-1',
-      categoryName: 'Food',
-      amount: '350.00',
-      percentage: '43.75',
-    },
-    {
-      categoryId: null,
-      categoryName: null,
-      amount: '450.00',
-      percentage: '56.25',
-    },
-  ],
-  totalAmount: '800.00',
-}
+export const MOCK_SPENDING: SpendingItem[] = [
+  {
+    categoryId: 'category-1',
+    categoryName: 'Food',
+    amount: '350.00',
+    percentage: '43.75',
+  },
+  {
+    categoryId: null,
+    categoryName: null,
+    amount: '450.00',
+    percentage: '56.25',
+  },
+]
 
 let cardsStore: Card[] = [MOCK_CARD_1, MOCK_CARD_2]
 
@@ -110,7 +111,12 @@ export const cardsHandlers = [
 
   http.get('*/cards/:id/spending', ({ params }) => {
     if (params.id === 'card-1') return HttpResponse.json(MOCK_SPENDING)
-    return HttpResponse.json({ items: [], totalAmount: '0.00' })
+    return HttpResponse.json([])
+  }),
+
+  http.delete('*/cards/:id', ({ params }) => {
+    cardsStore = cardsStore.filter((c) => c.id !== params.id)
+    return new HttpResponse(null, { status: 204 })
   }),
 
   http.get('*/cards/:id', ({ params }) => {

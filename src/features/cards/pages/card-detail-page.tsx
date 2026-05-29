@@ -69,10 +69,14 @@ export default function CardDetailPage() {
   const { data: spending } = useSpendingBreakdown(id ?? '', { from: spendingFrom, to: spendingTo })
 
   const limitPercent = limitUsage
-    ? Math.min(
-        100,
-        Math.round((parseFloat(limitUsage.usedAmount) / parseFloat(limitUsage.creditLimit)) * 100),
-      )
+    ? limitUsage.usagePercentage
+      ? Math.round(parseFloat(limitUsage.usagePercentage))
+      : Math.min(
+          100,
+          Math.round(
+            (parseFloat(limitUsage.usedAmount) / parseFloat(limitUsage.creditLimit)) * 100,
+          ),
+        )
     : 0
 
   return (
@@ -262,14 +266,14 @@ export default function CardDetailPage() {
             </div>
           </div>
 
-          {spending && spending.items.length > 0 && (
+          {spending && spending.length > 0 && (
             <div className="card">
               <div className="card-h">
                 <h3>Spending Breakdown</h3>
               </div>
               <div className="card-b">
                 <div className="space-y-2">
-                  {spending.items.map((item, i) => (
+                  {spending.map((item, i) => (
                     <div
                       key={item.categoryId ?? i}
                       className="flex items-center justify-between text-sm"
@@ -286,7 +290,9 @@ export default function CardDetailPage() {
                     style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 8 }}
                   >
                     <span className="fw-500">Total</span>
-                    <span className="mono fw-600">{spending.totalAmount}</span>
+                    <span className="mono fw-600">
+                      {spending.reduce((sum, item) => sum + parseFloat(item.amount), 0).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>

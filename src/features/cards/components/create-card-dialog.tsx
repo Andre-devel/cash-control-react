@@ -26,7 +26,7 @@ const DEFAULT_VALUES: CreateCardFormValues = {
   brand: 'VISA',
   lastFourDigits: '',
   creditLimit: '0.00',
-  billingCycleDay: 1,
+  closingDay: 1,
   dueDay: 10,
   color: '#820AD1',
 }
@@ -129,13 +129,13 @@ export function CreateCardDialog({ open, onClose }: CreateCardDialogProps) {
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Billing Cycle Day" error={form.formState.errors.billingCycleDay?.message}>
+          <Field label="Closing Day" error={form.formState.errors.closingDay?.message}>
             <Input
               type="number"
               min={1}
               max={31}
               placeholder="e.g. 1"
-              {...form.register('billingCycleDay', { valueAsNumber: true })}
+              {...form.register('closingDay', { valueAsNumber: true })}
             />
           </Field>
 

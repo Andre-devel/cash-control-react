@@ -73,8 +73,8 @@ export function InvoiceCard({
     { key: shiftMonth(currentMonth, -2), label: getMonthLabel(shiftMonth(currentMonth, -2)) },
   ]
 
-  const closesAtDay = String(card.billingCycleDay).padStart(2, '0')
-  const closesAt = `${referenceMonth}-${closesAtDay}`
+  const closesAtDay = String(card.closingDay).padStart(2, '0')
+  const closesAt = invoice?.closingDate ?? `${referenceMonth}-${closesAtDay}`
 
   const daysUntilDue = invoice
     ? Math.max(0, Math.ceil((new Date(invoice.dueDate).getTime() - Date.now()) / 86400000))

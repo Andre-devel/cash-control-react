@@ -6,7 +6,7 @@ const VALID_INPUT = {
   brand: 'VISA' as const,
   lastFourDigits: '1234',
   creditLimit: '5000.00',
-  billingCycleDay: 1,
+  closingDay: 1,
   dueDay: 10,
   color: '#820AD1',
 }
@@ -79,25 +79,25 @@ describe('createCardSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects billingCycleDay below 1', () => {
-    const result = createCardSchema.safeParse({ ...VALID_INPUT, billingCycleDay: 0 })
+  it('rejects closingDay below 1', () => {
+    const result = createCardSchema.safeParse({ ...VALID_INPUT, closingDay: 0 })
     expect(result.success).toBe(false)
     if (!result.success) {
-      expect(result.error.issues.some((i) => i.path[0] === 'billingCycleDay')).toBe(true)
+      expect(result.error.issues.some((i) => i.path[0] === 'closingDay')).toBe(true)
     }
   })
 
-  it('rejects billingCycleDay above 31', () => {
-    const result = createCardSchema.safeParse({ ...VALID_INPUT, billingCycleDay: 32 })
+  it('rejects closingDay above 31', () => {
+    const result = createCardSchema.safeParse({ ...VALID_INPUT, closingDay: 32 })
     expect(result.success).toBe(false)
   })
 
-  it('accepts billingCycleDay 1', () => {
-    expect(createCardSchema.safeParse({ ...VALID_INPUT, billingCycleDay: 1 }).success).toBe(true)
+  it('accepts closingDay 1', () => {
+    expect(createCardSchema.safeParse({ ...VALID_INPUT, closingDay: 1 }).success).toBe(true)
   })
 
-  it('accepts billingCycleDay 31', () => {
-    expect(createCardSchema.safeParse({ ...VALID_INPUT, billingCycleDay: 31 }).success).toBe(true)
+  it('accepts closingDay 31', () => {
+    expect(createCardSchema.safeParse({ ...VALID_INPUT, closingDay: 31 }).success).toBe(true)
   })
 
   it('rejects dueDay below 1', () => {

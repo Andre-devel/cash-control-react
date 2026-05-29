@@ -14,11 +14,11 @@ export const createCardSchema = z.object({
   creditLimit: z
     .string()
     .regex(DECIMAL_PATTERN, 'Credit limit must be a valid decimal amount (e.g. 5000.00)'),
-  billingCycleDay: z
+  closingDay: z
     .number()
-    .int('Billing cycle day must be an integer')
-    .min(1, 'Billing cycle day must be between 1 and 31')
-    .max(31, 'Billing cycle day must be between 1 and 31'),
+    .int('Closing day must be an integer')
+    .min(1, 'Closing day must be between 1 and 31')
+    .max(31, 'Closing day must be between 1 and 31'),
   dueDay: z
     .number()
     .int('Due day must be an integer')

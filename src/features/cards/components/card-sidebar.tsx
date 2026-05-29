@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Money } from '@/components/ui/money'
-import type { Card, LimitUsage, SpendingBreakdown } from '@/features/cards/types'
+import type { Card, LimitUsage, SpendingItem } from '@/features/cards/types'
 
 const BRAND_LABELS: Record<string, string> = {
   VISA: 'Visa',
@@ -29,17 +29,21 @@ function DetailRow({ label, value, mono }: DetailRowProps) {
 interface CardSidebarProps {
   card: Card
   limitUsage: LimitUsage | undefined
-  spending: SpendingBreakdown | undefined
+  spending: SpendingItem[] | undefined
 }
 
 export function CardSidebar({ card, limitUsage, spending }: CardSidebarProps) {
   const creditLimit = parseFloat(card.creditLimit)
   const usedAmount = limitUsage ? parseFloat(limitUsage.usedAmount) : 0
   const availableAmount = limitUsage ? parseFloat(limitUsage.availableAmount) : creditLimit
-  const usedPct = creditLimit > 0 ? Math.min(100, (usedAmount / creditLimit) * 100) : 0
+  const usedPct = limitUsage?.usagePercentage
+    ? parseFloat(limitUsage.usagePercentage)
+    : creditLimit > 0
+      ? Math.min(100, (usedAmount / creditLimit) * 100)
+      : 0
 
-  const spendingItems = spending?.items ?? []
-  const spendingTotal = spending ? parseFloat(spending.totalAmount) : 0
+  const spendingItems = spending ?? []
+  const spendingTotal = spendingItems.reduce((sum, item) => sum + parseFloat(item.amount), 0)
 
   return (
     <div className="col gap-4">
@@ -116,8 +120,9 @@ export function CardSidebar({ card, limitUsage, spending }: CardSidebarProps) {
         </div>
         <div className="card-b col gap-3">
           <DetailRow label="Bandeira" value={BRAND_LABELS[card.brand] ?? card.brand} />
+          {card.issuer && <DetailRow label="Emissor" value={card.issuer} />}
           <DetailRow label="Final" value={`•••• ${card.lastFourDigits}`} mono />
-          <DetailRow label="Fechamento" value={`Dia ${card.billingCycleDay}`} />
+          <DetailRow label="Fechamento" value={`Dia ${card.closingDay}`} />
           <DetailRow label="Vencimento" value={`Dia ${card.dueDay}`} />
           <DetailRow label="Limite total" value={<Money value={creditLimit} />} mono />
         </div>

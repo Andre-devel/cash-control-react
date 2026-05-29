@@ -6,8 +6,10 @@ export interface Card {
   name: string
   brand: CardBrand
   lastFourDigits: string
+  issuer?: string
   creditLimit: string
-  billingCycleDay: number
+  currentInvoiceTotal?: string
+  closingDay: number
   dueDay: number
   color: string
   archived: boolean
@@ -26,6 +28,7 @@ export interface Invoice {
   id: string
   cardId: string
   referenceMonth: string
+  closingDate?: string
   totalAmount: string
   paidAmount: string
   remainingAmount: string
@@ -38,6 +41,7 @@ export interface LimitUsage {
   creditLimit: string
   usedAmount: string
   availableAmount: string
+  usagePercentage?: string
 }
 
 export interface SpendingItem {
@@ -47,17 +51,12 @@ export interface SpendingItem {
   percentage: string
 }
 
-export interface SpendingBreakdown {
-  items: SpendingItem[]
-  totalAmount: string
-}
-
 export interface CreateCardRequest {
   name: string
   brand: CardBrand
   lastFourDigits: string
   creditLimit: string
-  billingCycleDay: number
+  closingDay: number
   dueDay: number
   color: string
 }
