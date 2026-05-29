@@ -11,6 +11,7 @@ import {
   type CreateCardFormValues,
 } from '@/features/cards/schemas/create-card.schema'
 import { useCreateCard } from '@/features/cards/hooks/use-create-card'
+import { setFormErrors } from '@/lib/form-errors'
 
 const BRAND_LABELS: Record<string, string> = {
   VISA: 'Visa',
@@ -37,11 +38,13 @@ interface CreateCardDialogProps {
 }
 
 export function CreateCardDialog({ open, onClose }: CreateCardDialogProps) {
-  const { mutate: createCard, isPending } = useCreateCard()
-
   const form = useForm<CreateCardFormValues>({
     resolver: zodResolver(createCardSchema),
     defaultValues: DEFAULT_VALUES,
+  })
+
+  const { mutate: createCard, isPending } = useCreateCard({
+    onFieldError: (error) => setFormErrors(error, form.setError),
   })
 
   function onSubmit(data: CreateCardFormValues) {
@@ -106,6 +109,11 @@ export function CreateCardDialog({ open, onClose }: CreateCardDialogProps) {
         noValidate
         className="col gap-4"
       >
+        {form.formState.errors.root && (
+          <div role="alert" className="err">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <Field label="Name" error={form.formState.errors.name?.message}>
           <Input placeholder="e.g. Nubank" {...form.register('name')} />
         </Field>

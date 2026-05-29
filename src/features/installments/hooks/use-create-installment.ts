@@ -10,7 +10,11 @@ import type {
 } from '@/features/installments/types'
 import type { NormalizedError } from '@/features/auth/types'
 
-export function useCreateInstallment() {
+interface UseCreateInstallmentOptions {
+  onFieldError?: (error: NormalizedError) => void
+}
+
+export function useCreateInstallment(options?: UseCreateInstallmentOptions) {
   const queryClient = useQueryClient()
 
   return useMutation<InstallmentSeries, NormalizedError, CreateInstallmentSeriesRequest>({
@@ -22,7 +26,11 @@ export function useCreateInstallment() {
       toast.success(`Installment series created with ${data.installmentCount} installments.`)
     },
     onError: (error) => {
-      toast.error(error.message)
+      if ((error.status === 409 || error.status === 422) && options?.onFieldError) {
+        options.onFieldError(error)
+        return
+      }
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }

@@ -21,7 +21,7 @@ export function useAdjustBalance() {
       toast.success('Balance adjusted successfully.')
     },
     onError: (error) => {
-      toast.error(error.message)
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }

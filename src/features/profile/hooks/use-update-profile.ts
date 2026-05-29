@@ -15,7 +15,7 @@ export function useUpdateProfile() {
       toast.success('Profile updated successfully.')
     },
     onError: (error) => {
-      toast.error(error.message)
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }

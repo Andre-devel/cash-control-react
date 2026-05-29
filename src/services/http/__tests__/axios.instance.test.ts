@@ -133,4 +133,71 @@ describe('normalizeError', () => {
     const result = normalizeError(error)
     expect(result.path).toBe('')
   })
+
+  it('extracts fieldErrors from 400 response when present', () => {
+    const error = makeAxiosError({
+      response: {
+        status: 400,
+        data: {
+          errorCode: 'VALIDATION_ERROR',
+          message: 'Validation failed',
+          correlationId: 'corr-1',
+          fieldErrors: { name: 'Name is required', amount: 'Must be positive' },
+        },
+      } as unknown as AxiosError['response'],
+    })
+
+    const result = normalizeError(error)
+
+    expect(result.fieldErrors).toEqual({ name: 'Name is required', amount: 'Must be positive' })
+  })
+
+  it('sets fieldErrors to undefined when not present in response', () => {
+    const error = makeAxiosError({
+      response: {
+        status: 400,
+        data: { errorCode: 'VALIDATION_ERROR', message: 'Bad input' },
+      } as unknown as AxiosError['response'],
+    })
+
+    const result = normalizeError(error)
+
+    expect(result.fieldErrors).toBeUndefined()
+  })
+
+  it('sets fieldErrors to undefined when fieldErrors is not an object', () => {
+    const error = makeAxiosError({
+      response: {
+        status: 400,
+        data: {
+          errorCode: 'VALIDATION_ERROR',
+          message: 'Bad input',
+          fieldErrors: 'invalid',
+        },
+      } as unknown as AxiosError['response'],
+    })
+
+    const result = normalizeError(error)
+
+    expect(result.fieldErrors).toBeUndefined()
+  })
+
+  it('extracts fieldErrors from 409 conflict response', () => {
+    const error = makeAxiosError({
+      response: {
+        status: 409,
+        data: {
+          errorCode: 'CONFLICT',
+          message: 'Name already in use',
+          correlationId: 'corr-2',
+          fieldErrors: { name: 'An account with this name already exists' },
+        },
+      } as unknown as AxiosError['response'],
+    })
+
+    const result = normalizeError(error)
+
+    expect(result.status).toBe(409)
+    expect(result.fieldErrors).toEqual({ name: 'An account with this name already exists' })
+  })
 })

@@ -12,6 +12,7 @@ import {
   type CreateAccountFormValues,
 } from '@/features/accounts/schemas/create-account.schema'
 import { useCreateAccount } from '@/features/accounts/hooks/use-create-account'
+import { setFormErrors } from '@/lib/form-errors'
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   CHECKING: 'Checking',
@@ -38,11 +39,13 @@ interface CreateAccountDialogProps {
 }
 
 export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps) {
-  const { mutate: createAccount, isPending } = useCreateAccount()
-
   const form = useForm<CreateAccountFormValues>({
     resolver: zodResolver(createAccountSchema),
     defaultValues: DEFAULT_VALUES,
+  })
+
+  const { mutate: createAccount, isPending } = useCreateAccount({
+    onFieldError: (error) => setFormErrors(error, form.setError),
   })
 
   function onSubmit(data: CreateAccountFormValues) {
@@ -107,6 +110,11 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
         noValidate
         className="col gap-4"
       >
+        {form.formState.errors.root && (
+          <div role="alert" className="err">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <Field label="Name" error={form.formState.errors.name?.message}>
           <Input placeholder="e.g. Nubank" {...form.register('name')} />
         </Field>

@@ -5,7 +5,11 @@ import { CARDS_QUERY_KEY } from './use-cards'
 import type { CreateCardRequest, Card } from '@/features/cards/types'
 import type { NormalizedError } from '@/features/auth/types'
 
-export function useCreateCard() {
+interface UseCreateCardOptions {
+  onFieldError?: (error: NormalizedError) => void
+}
+
+export function useCreateCard(options?: UseCreateCardOptions) {
   const queryClient = useQueryClient()
 
   return useMutation<Card, NormalizedError, CreateCardRequest>({
@@ -15,7 +19,11 @@ export function useCreateCard() {
       toast.success('Card created successfully.')
     },
     onError: (error) => {
-      toast.error(error.message)
+      if ((error.status === 409 || error.status === 422) && options?.onFieldError) {
+        options.onFieldError(error)
+        return
+      }
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }

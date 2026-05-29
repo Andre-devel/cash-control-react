@@ -5,7 +5,11 @@ import { CATEGORIES_QUERY_KEY } from './use-categories'
 import type { CreateCategoryRequest, Category } from '@/features/categories/types'
 import type { NormalizedError } from '@/features/auth/types'
 
-export function useCreateCategory() {
+interface UseCreateCategoryOptions {
+  onFieldError?: (error: NormalizedError) => void
+}
+
+export function useCreateCategory(options?: UseCreateCategoryOptions) {
   const queryClient = useQueryClient()
 
   return useMutation<Category, NormalizedError, CreateCategoryRequest>({
@@ -15,7 +19,11 @@ export function useCreateCategory() {
       toast.success('Category created successfully.')
     },
     onError: (error) => {
-      toast.error(error.message)
+      if ((error.status === 409 || error.status === 422) && options?.onFieldError) {
+        options.onFieldError(error)
+        return
+      }
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }

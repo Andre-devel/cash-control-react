@@ -41,7 +41,7 @@ axiosInstance.interceptors.response.use(
 
     if (normalized.status === 401 && !isHandling401) {
       isHandling401 = true
-      handle401().finally(() => {
+      handle401(normalized.correlationId).finally(() => {
         setTimeout(() => {
           isHandling401 = false
         }, 0)
@@ -52,7 +52,7 @@ axiosInstance.interceptors.response.use(
   },
 )
 
-async function handle401(): Promise<void> {
+async function handle401(correlationId: string): Promise<void> {
   logger.log({ event: LOG_EVENTS.SESSION_EXPIRED })
 
   const { clearSession } = await getAuthStore()
@@ -67,7 +67,7 @@ async function handle401(): Promise<void> {
   router.navigate('/login', { replace: true })
 
   const { toast } = await import('@/lib/toast')
-  toast.warn('Your session has expired. Please sign in again.')
+  toast.warn('Your session has expired. Please sign in again.', correlationId)
 }
 
 export function normalizeError(error: AxiosError): NormalizedError {
@@ -75,12 +75,19 @@ export function normalizeError(error: AxiosError): NormalizedError {
   const data = error.response?.data as Record<string, unknown> | undefined
   const path = (error.config?.url as string | undefined) ?? ''
 
+  const rawFieldErrors = data?.fieldErrors
+  const fieldErrors =
+    rawFieldErrors !== null && typeof rawFieldErrors === 'object' && !Array.isArray(rawFieldErrors)
+      ? (rawFieldErrors as Record<string, string>)
+      : undefined
+
   return {
     status,
     errorCode: typeof data?.errorCode === 'string' ? data.errorCode : 'UNKNOWN_ERROR',
     message: typeof data?.message === 'string' ? data.message : 'An unexpected error occurred.',
     correlationId:
       typeof data?.correlationId === 'string' ? data.correlationId : crypto.randomUUID(),
+    fieldErrors,
     path,
   }
 }

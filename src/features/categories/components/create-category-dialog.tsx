@@ -11,6 +11,7 @@ import {
   type CreateCategoryFormValues,
 } from '@/features/categories/schemas/create-category.schema'
 import { useCreateCategory } from '@/features/categories/hooks/use-create-category'
+import { setFormErrors } from '@/lib/form-errors'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 
@@ -33,12 +34,15 @@ interface CreateCategoryDialogProps {
 }
 
 export function CreateCategoryDialog({ open, onClose }: CreateCategoryDialogProps) {
-  const { mutate: createCategory, isPending } = useCreateCategory()
   const { data: categories } = useCategories()
 
   const form = useForm<CreateCategoryFormValues>({
     resolver: zodResolver(createCategorySchema),
     defaultValues: DEFAULT_VALUES,
+  })
+
+  const { mutate: createCategory, isPending } = useCreateCategory({
+    onFieldError: (error) => setFormErrors(error, form.setError),
   })
 
   function onSubmit(data: CreateCategoryFormValues) {
@@ -110,6 +114,11 @@ export function CreateCategoryDialog({ open, onClose }: CreateCategoryDialogProp
         noValidate
         className="col gap-4"
       >
+        {form.formState.errors.root && (
+          <div role="alert" className="err">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <Field label="Name" error={form.formState.errors.name?.message}>
           <Input placeholder="e.g. Food" {...form.register('name')} />
         </Field>

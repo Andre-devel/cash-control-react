@@ -21,7 +21,7 @@ export function useUpdateRecurrence() {
       toast.success('Recurrence rule updated successfully.')
     },
     onError: (error) => {
-      toast.error(error.message)
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }

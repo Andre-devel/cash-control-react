@@ -17,7 +17,7 @@ export function useUpdateTransaction() {
       toast.success('Transaction updated successfully.')
     },
     onError: (error) => {
-      toast.error(error.message)
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }

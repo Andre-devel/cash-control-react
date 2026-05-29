@@ -478,16 +478,16 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - 422 `BUSINESS_RULE_VIOLATION` is returned for invalid state transitions (e.g., archiving an already-archived account)
 
 **Implementation Tasks:**
-- [ ] In `axios.instance.ts`, extract `fieldErrors` map from 400 responses and include in `NormalizedError`
-- [ ] Add `fieldErrors?: Record<string, string>` to `NormalizedError` type
-- [ ] Create a utility `setFormErrors(error: NormalizedError, setError: UseFormSetError): void` in `lib/form-errors.ts` that calls `setError(field, { message })` for each field
-- [ ] Apply `setFormErrors` in `onError` handlers for: account creation (409), category creation (409), card creation (409), transaction creation (422), installment creation (422)
-- [ ] For 422 errors without field errors: show the `message` from the response as a form-level error (not toast)
+- [x] In `axios.instance.ts`, extract `fieldErrors` map from 400 responses and include in `NormalizedError`
+- [x] Add `fieldErrors?: Record<string, string>` to `NormalizedError` type
+- [x] Create a utility `setFormErrors(error: NormalizedError, setError: UseFormSetError): void` in `lib/form-errors.ts` that calls `setError(field, { message })` for each field
+- [x] Apply `setFormErrors` in `onError` handlers for: account creation (409), category creation (409), card creation (409), transaction creation (422), installment creation (422)
+- [x] For 422 errors without field errors: show the `message` from the response as a form-level error (not toast)
 
 **Acceptance Criteria:**
-- [ ] Creating an account with a duplicate name shows "name already exists" inline on the name field
-- [ ] Trying to archive an already-archived account shows the business rule message as a form or dialog error
-- [ ] No 409/422 surfaces as a generic "An error occurred" toast
+- [x] Creating an account with a duplicate name shows "name already exists" inline on the name field
+- [x] Trying to archive an already-archived account shows the business rule message as a form or dialog error
+- [x] No 409/422 surfaces as a generic "An error occurred" toast
 
 ---
 
@@ -497,14 +497,14 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - All error responses include `correlationId: string` (UUID)
 
 **Implementation Tasks:**
-- [ ] Update `NormalizedError` to always populate `correlationId` (already typed, verify it's never `undefined` in the interceptor)
-- [ ] Update `lib/toast.ts` `toast.error()` wrapper to accept an optional `correlationId` and append it as small text: `"Erro interno. Ref: <correlationId>"`
-- [ ] Update the Axios 401 session-expiry toast to include the correlationId
-- [ ] Update all mutation `onError` handlers in feature hooks that show toast.error to pass `error.correlationId`
+- [x] Update `NormalizedError` to always populate `correlationId` (already typed, verify it's never `undefined` in the interceptor)
+- [x] Update `lib/toast.ts` `toast.error()` wrapper to accept an optional `correlationId` and append it as small text: `"Erro interno. Ref: <correlationId>"`
+- [x] Update the Axios 401 session-expiry toast to include the correlationId
+- [x] Update all mutation `onError` handlers in feature hooks that show toast.error to pass `error.correlationId`
 
 **Acceptance Criteria:**
-- [ ] Every error toast for 5xx errors shows a `Ref: <uuid>` line for support traceability
-- [ ] 4xx user-facing errors (validation, not-found) do NOT show correlationId (it clutters UX for expected errors)
+- [x] Every error toast for 5xx errors shows a `Ref: <uuid>` line for support traceability
+- [x] 4xx user-facing errors (validation, not-found) do NOT show correlationId (it clutters UX for expected errors)
 
 ---
 
@@ -590,9 +590,9 @@ Each phase fixes **types first**, then **API call corrections**, then **UI/hook 
 - [x] Attachment upload: `files` field name; returns array; single file upload handled
 - [x] Category picker: renders root + subcategory tree; system categories not editable
 - [x] Advance installments: sends `{ transactionIds[], newDate }` not `{ seriesId, count }`
-- [ ] 409 conflict on duplicate name: inline form error, not generic toast
-- [ ] 422 business rule violation: form-level error, not toast
-- [ ] Error toast for 5xx: shows `Ref: <correlationId>`
+- [x] 409 conflict on duplicate name: inline form error, not generic toast
+- [x] 422 business rule violation: form-level error, not toast
+- [x] Error toast for 5xx: shows `Ref: <correlationId>`
 
 ---
 

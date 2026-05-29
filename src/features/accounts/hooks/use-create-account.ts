@@ -5,7 +5,11 @@ import { ACCOUNTS_QUERY_KEY } from './use-accounts'
 import type { CreateAccountRequest, Account } from '@/features/accounts/types'
 import type { NormalizedError } from '@/features/auth/types'
 
-export function useCreateAccount() {
+interface UseCreateAccountOptions {
+  onFieldError?: (error: NormalizedError) => void
+}
+
+export function useCreateAccount(options?: UseCreateAccountOptions) {
   const queryClient = useQueryClient()
 
   return useMutation<Account, NormalizedError, CreateAccountRequest>({
@@ -15,7 +19,11 @@ export function useCreateAccount() {
       toast.success('Account created successfully.')
     },
     onError: (error) => {
-      toast.error(error.message)
+      if ((error.status === 409 || error.status === 422) && options?.onFieldError) {
+        options.onFieldError(error)
+        return
+      }
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }

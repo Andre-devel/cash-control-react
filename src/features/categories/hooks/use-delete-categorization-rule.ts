@@ -14,7 +14,7 @@ export function useDeleteCategorizationRule() {
       toast.success('Rule deleted.')
     },
     onError: (error) => {
-      toast.error(error.message)
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }

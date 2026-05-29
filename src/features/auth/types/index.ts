@@ -37,6 +37,7 @@ export interface NormalizedError {
   errorCode: string
   message: string
   correlationId: string
+  fieldErrors?: Record<string, string>
   path?: string
 }
 

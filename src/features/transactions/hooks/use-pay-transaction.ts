@@ -23,7 +23,7 @@ export function usePayTransaction() {
       toast.success('Transaction marked as paid.')
     },
     onError: (error) => {
-      toast.error(error.message)
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }

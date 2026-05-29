@@ -11,6 +11,7 @@ import {
   type CreateInstallmentFormValues,
 } from '@/features/installments/schemas/create-installment.schema'
 import { useCreateInstallment } from '@/features/installments/hooks/use-create-installment'
+import { setFormErrors } from '@/lib/form-errors'
 import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
@@ -36,13 +37,16 @@ interface CreateInstallmentDialogProps {
 }
 
 export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDialogProps) {
-  const { mutate: createInstallment, isPending } = useCreateInstallment()
   const { data: categories = [] } = useCategories()
   const { data: accounts = [] } = useAccounts()
 
   const form = useForm<CreateInstallmentFormValues>({
     resolver: zodResolver(createInstallmentSchema),
     defaultValues: DEFAULT_VALUES,
+  })
+
+  const { mutate: createInstallment, isPending } = useCreateInstallment({
+    onFieldError: (error) => setFormErrors(error, form.setError),
   })
 
   const description = form.watch('description')
@@ -113,6 +117,11 @@ export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDial
         noValidate
         className="col gap-4"
       >
+        {form.formState.errors.root && (
+          <div role="alert" className="err">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <Field label="Description" error={form.formState.errors.description?.message}>
           <Input placeholder="e.g. New laptop" {...form.register('description')} />
         </Field>

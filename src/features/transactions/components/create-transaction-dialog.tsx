@@ -12,6 +12,7 @@ import {
   type CreateTransactionFormValues,
 } from '@/features/transactions/schemas/create-transaction.schema'
 import { useCreateTransaction } from '@/features/transactions/hooks/use-create-transaction'
+import { setFormErrors } from '@/lib/form-errors'
 import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
@@ -44,13 +45,16 @@ interface CreateTransactionDialogProps {
 }
 
 export function CreateTransactionDialog({ open, onClose }: CreateTransactionDialogProps) {
-  const { mutate: createTransaction, isPending } = useCreateTransaction()
   const { data: categories = [] } = useCategories()
   const { data: accounts = [] } = useAccounts()
 
   const form = useForm<CreateTransactionFormValues>({
     resolver: zodResolver(createTransactionSchema),
     defaultValues: DEFAULT_VALUES,
+  })
+
+  const { mutate: createTransaction, isPending } = useCreateTransaction({
+    onFieldError: (error) => setFormErrors(error, form.setError),
   })
 
   const description = form.watch('description')
@@ -123,6 +127,11 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
         noValidate
         className="col gap-4"
       >
+        {form.formState.errors.root && (
+          <div role="alert" className="err">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <Field label="Descrição" required error={form.formState.errors.description?.message}>
           <Input
             placeholder="Ex: Supermercado, salário, aluguel…"

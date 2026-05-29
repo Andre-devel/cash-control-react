@@ -100,6 +100,6 @@ describe('useUpdateProfile', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true))
 
-    expect(toast.error).toHaveBeenCalledWith('Name is invalid.')
+    expect(toast.error).toHaveBeenCalledWith('Name is invalid.', undefined)
   })
 })

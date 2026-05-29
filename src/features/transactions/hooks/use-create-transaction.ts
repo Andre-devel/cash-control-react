@@ -6,7 +6,11 @@ import { ACCOUNTS_QUERY_KEY } from '@/features/accounts/hooks/use-accounts'
 import type { CreateTransactionRequest, Transaction } from '@/features/transactions/types'
 import type { NormalizedError } from '@/features/auth/types'
 
-export function useCreateTransaction() {
+interface UseCreateTransactionOptions {
+  onFieldError?: (error: NormalizedError) => void
+}
+
+export function useCreateTransaction(options?: UseCreateTransactionOptions) {
   const queryClient = useQueryClient()
 
   return useMutation<Transaction, NormalizedError, CreateTransactionRequest>({
@@ -17,7 +21,11 @@ export function useCreateTransaction() {
       toast.success('Transaction created successfully.')
     },
     onError: (error) => {
-      toast.error(error.message)
+      if ((error.status === 409 || error.status === 422) && options?.onFieldError) {
+        options.onFieldError(error)
+        return
+      }
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }
