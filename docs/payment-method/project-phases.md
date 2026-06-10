@@ -14,7 +14,7 @@
 |---------------------------------------------------|--------|
 | `PaymentMethod` type                              | `[x]` Implemented |
 | `payment-methods.api.ts`                          | `[x]` Implemented |
-| `use-payment-methods` hook                        | `[ ]` Pending |
+| `use-payment-methods` hook                        | `[x]` Implemented |
 | `PaymentMethodSelect` component                   | `[ ]` Pending |
 | `CreditCardSelect` component                      | `[ ]` Pending |
 | `create-transaction.schema.ts` updated            | `[ ]` Pending |
@@ -28,7 +28,7 @@
 | MSW handlers updated                              | `[x]` Implemented (Phase 1 dependency) |
 | Tests updated                                     | `[x]` Implemented (Phase 1 tests) |
 
-**Overall status:** Phase 1 complete.
+**Overall status:** Phase 2 complete.
 
 ---
 
@@ -96,10 +96,10 @@ that fetches the list from the backend.
 
 **Implementation Tasks:**
 
-- [ ] Create `src/features/transactions/hooks/use-payment-methods.ts`
-- [ ] Query key: `['payment-methods']`
-- [ ] `staleTime: Infinity` — lookup data never changes at runtime
-- [ ] Export `usePaymentMethods` returning `UseQueryResult<PaymentMethod[]>`
+- [x] Create `src/features/transactions/hooks/use-payment-methods.ts`
+- [x] Query key: `['payment-methods']`
+- [x] `staleTime: Infinity` — lookup data never changes at runtime
+- [x] Export `usePaymentMethods` returning `UseQueryResult<PaymentMethod[]>`
 
 ---
 
