@@ -23,12 +23,12 @@
 | `CreateTransactionDialog` updated                 | `[x]` Implemented |
 | `EditTransactionDialog` updated                   | `[x]` Implemented |
 | `CreateInstallmentDialog` updated                 | `[x]` Implemented |
-| Transaction list — payment method display         | `[ ]` Pending |
+| Transaction list — payment method display         | `[x]` Implemented |
 | Transaction filter — payment method               | `[ ]` Pending |
 | MSW handlers updated                              | `[x]` Implemented (Phase 1 dependency) |
 | Tests updated                                     | `[x]` Implemented (Phase 1 tests) |
 
-**Overall status:** Phase 5 complete.
+**Overall status:** Phase 6 complete.
 
 ---
 
@@ -216,10 +216,10 @@ the conditional refinement that enforces the credit card requirement.
 
 **Implementation Tasks:**
 
-- [ ] Locate the component rendering individual transaction rows
-- [ ] Add a label or badge displaying `transaction.paymentMethod.name`
-- [ ] For `slug = OTHER`, display "Outro"
-- [ ] Ensure the layout adapts on mobile (no overflow)
+- [x] Locate the component rendering individual transaction rows
+- [x] Add a label or badge displaying `transaction.paymentMethod.name`
+- [x] For `slug = OTHER`, display "Outro"
+- [x] Ensure the layout adapts on mobile (no overflow)
 
 ---
 

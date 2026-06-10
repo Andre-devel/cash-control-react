@@ -119,7 +119,7 @@ function GroupDateRow({ date, rows }: GroupDateRowProps) {
   return (
     <tr style={{ background: 'var(--surface-2)' }}>
       <td
-        colSpan={10}
+        colSpan={11}
         style={{
           padding: '8px 16px',
           color: 'var(--text-dim)',
@@ -196,7 +196,7 @@ function TableSkeleton() {
                   }}
                 />
               </td>
-              {[1, 2, 3, 4, 5, 6, 7].map((j) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((j) => (
                 <td key={j}>
                   <div
                     style={{
@@ -396,6 +396,7 @@ export default function TransactionsPage() {
                   <th>Descrição</th>
                   <th>Categoria</th>
                   <th>Conta</th>
+                  <th>Forma de pagamento</th>
                   <th>Tipo</th>
                   <th>Status</th>
                   <th>Competência</th>

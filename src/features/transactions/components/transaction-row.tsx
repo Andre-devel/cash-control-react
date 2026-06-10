@@ -131,7 +131,7 @@ export const TransactionRow = memo(function TransactionRow({
                 width: 8,
                 height: 8,
                 borderRadius: 99,
-                background: account.color,
+                background: 'var(--accent)',
                 display: 'inline-block',
                 flexShrink: 0,
               }}
@@ -141,6 +141,16 @@ export const TransactionRow = memo(function TransactionRow({
         ) : (
           <span style={{ color: 'var(--text-faint)' }}>—</span>
         )}
+      </td>
+      <td
+        style={{
+          whiteSpace: 'nowrap',
+          maxWidth: 140,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        <span style={{ fontSize: 12.5 }}>{transaction.paymentMethod.name}</span>
       </td>
       <td>
         <TypeBadge type={transaction.type} />
