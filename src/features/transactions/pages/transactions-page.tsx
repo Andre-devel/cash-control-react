@@ -73,6 +73,7 @@ function buildParams(searchParams: URLSearchParams): ListTransactionsParams {
     type: get('type') as ListTransactionsParams['type'],
     status: get('status') as ListTransactionsParams['status'],
     categoryId: get('categoryId'),
+    paymentMethod: get('paymentMethod') as ListTransactionsParams['paymentMethod'],
     competenceDateFrom: get('competenceDateFrom'),
     competenceDateTo: get('competenceDateTo'),
     paymentDateFrom: get('paymentDateFrom'),
@@ -93,6 +94,7 @@ function paramsToSearchParams(params: ListTransactionsParams): Record<string, st
   if (params.type) out.type = params.type
   if (params.status) out.status = params.status
   if (params.categoryId) out.categoryId = params.categoryId
+  if (params.paymentMethod) out.paymentMethod = params.paymentMethod
   if (params.competenceDateFrom) out.competenceDateFrom = params.competenceDateFrom
   if (params.competenceDateTo) out.competenceDateTo = params.competenceDateTo
   if (params.amountMin) out.amountMin = params.amountMin

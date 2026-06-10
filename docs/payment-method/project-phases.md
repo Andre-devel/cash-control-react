@@ -24,11 +24,11 @@
 | `EditTransactionDialog` updated                   | `[x]` Implemented |
 | `CreateInstallmentDialog` updated                 | `[x]` Implemented |
 | Transaction list — payment method display         | `[x]` Implemented |
-| Transaction filter — payment method               | `[ ]` Pending |
+| Transaction filter — payment method               | `[x]` Implemented |
 | MSW handlers updated                              | `[x]` Implemented (Phase 1 dependency) |
 | Tests updated                                     | `[x]` Implemented (Phase 1 tests) |
 
-**Overall status:** Phase 6 complete.
+**Overall status:** Phase 8 complete.
 
 ---
 
@@ -235,11 +235,11 @@ the conditional refinement that enforces the credit card requirement.
 
 **Implementation Tasks:**
 
-- [ ] Add a `paymentMethod` state to the transaction filter state (alongside existing filters)
-- [ ] Add a `<PaymentMethodSelect>` to the filter panel with an empty "Todas as formas" default option
-- [ ] Pass `paymentMethod` as a query param to `GET /api/v1/transactions` when non-empty
-- [ ] Add a "clear" action for this filter
-- [ ] Display an active filter chip when a payment method is selected
+- [x] Add a `paymentMethod` state to the transaction filter state (alongside existing filters)
+- [x] Add a `<PaymentMethodSelect>` to the filter panel with an empty "Todas as formas" default option
+- [x] Pass `paymentMethod` as a query param to `GET /api/v1/transactions` when non-empty
+- [x] Add a "clear" action for this filter
+- [x] Display an active filter chip when a payment method is selected
 
 ---
 
@@ -256,18 +256,18 @@ new payment method fields.
 
 **Implementation Tasks:**
 
-- [ ] Add `GET /api/v1/payment-methods` handler in `src/test/handlers/payment-methods.handlers.ts`
+- [x] Add `GET /api/v1/payment-methods` handler in `src/test/handlers/payment-methods.handlers.ts`
   returning the seven canonical payment method objects
-- [ ] Update existing transaction handlers to include `paymentMethod` and `creditCard` in responses
-- [ ] Add handler variant for transaction create with `CREDIT_CARD` + `creditCardId`
+- [x] Update existing transaction handlers to include `paymentMethod` and `creditCard` in responses
+- [x] Add handler variant for transaction create with `CREDIT_CARD` + `creditCardId`
 
 ### Phase 8.2 — Component Tests
 
 **Implementation Tasks:**
 
-- [ ] `CreateTransactionDialog.test.tsx`: credit card picker hidden by default; appears when
+- [x] `CreateTransactionDialog.test.tsx`: credit card picker hidden by default; appears when
       `CREDIT_CARD` selected; submit blocked without card selection
-- [ ] `CreateTransactionDialog.test.tsx`: switching from `CREDIT_CARD` to `PIX` hides picker
+- [x] `CreateTransactionDialog.test.tsx`: switching from `CREDIT_CARD` to `PIX` hides picker
       and clears selection
-- [ ] `PaymentMethodSelect.test.tsx`: renders all seven options from mocked API
-- [ ] `CreditCardSelect.test.tsx`: shows disabled option when card list is empty
+- [x] `PaymentMethodSelect.test.tsx`: renders all seven options from mocked API
+- [x] `CreditCardSelect.test.tsx`: shows disabled option when card list is empty

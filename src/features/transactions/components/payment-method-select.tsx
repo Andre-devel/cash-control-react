@@ -6,6 +6,8 @@ interface PaymentMethodSelectProps {
   onChange: (value: string) => void
   name?: string
   'aria-label'?: string
+  allowAll?: string
+  className?: string
 }
 
 export function PaymentMethodSelect({
@@ -13,6 +15,8 @@ export function PaymentMethodSelect({
   onChange,
   name,
   'aria-label': ariaLabel,
+  allowAll,
+  className,
 }: PaymentMethodSelectProps) {
   const { data: paymentMethods, isLoading } = usePaymentMethods()
 
@@ -23,15 +27,19 @@ export function PaymentMethodSelect({
       name={name}
       aria-label={ariaLabel}
       disabled={isLoading}
+      className={className}
     >
       {isLoading ? (
         <option value="">Carregando formas de pagamento…</option>
       ) : (
-        paymentMethods?.map((pm) => (
-          <option key={pm.id} value={pm.slug}>
-            {pm.name}
-          </option>
-        ))
+        <>
+          {allowAll !== undefined && <option value="">{allowAll}</option>}
+          {paymentMethods?.map((pm) => (
+            <option key={pm.id} value={pm.slug}>
+              {pm.name}
+            </option>
+          ))}
+        </>
       )}
     </Select>
   )

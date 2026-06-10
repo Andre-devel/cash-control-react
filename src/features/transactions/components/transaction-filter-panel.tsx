@@ -1,12 +1,14 @@
 import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TRANSACTION_FILTER_TYPES, TRANSACTION_STATUSES } from '@/features/transactions/schemas'
+import { PaymentMethodSelect } from '@/features/transactions/components/payment-method-select'
 import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
 import type {
   ListTransactionsParams,
   TransactionType,
   TransactionStatus,
+  PaymentMethodSlug,
 } from '@/features/transactions/types'
 
 const TRANSACTION_TYPE_LABELS: Record<string, string> = {
@@ -111,6 +113,14 @@ export function TransactionFilterPanel({
           </option>
         ))}
       </select>
+
+      <PaymentMethodSelect
+        aria-label="Filtrar por forma de pagamento"
+        value={filters.paymentMethod ?? ''}
+        onChange={(value) => update({ paymentMethod: (value as PaymentMethodSlug) || undefined })}
+        allowAll="Todas as formas"
+        className={filters.paymentMethod ? 'chip on' : 'chip'}
+      />
 
       <div style={{ flex: 1 }} />
 

@@ -46,6 +46,7 @@ describe('TransactionType enum — Phase 4.1', () => {
     accountId: 'acc-1',
     competenceDate: '2026-06-01',
     status: 'PENDING' as const,
+    paymentMethod: 'OTHER' as const,
   }
 
   it('rejects ADJUSTMENT as a transaction type', () => {

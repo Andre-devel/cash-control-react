@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, waitFor, cleanup } from '@testing-library/react'
+import { screen, waitFor, cleanup, within } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
 import { renderWithProviders } from '@/test/utils'
@@ -70,8 +70,9 @@ describe('Phase 6 — Transaction list payment method display', () => {
     renderWithProviders(<TransactionsPage />)
     await waitFor(() => expect(screen.getByText(tx1WithCash.description)).toBeTruthy())
 
-    expect(screen.getByText(cashMethod.name)).toBeTruthy()
-    expect(screen.getByText(pixMethod.name)).toBeTruthy()
+    const table = document.querySelector('.tbl')!
+    expect(within(table as HTMLElement).getByText(cashMethod.name)).toBeTruthy()
+    expect(within(table as HTMLElement).getByText(pixMethod.name)).toBeTruthy()
   })
 
   it('displays "Outro" for transactions with slug OTHER', async () => {
@@ -91,7 +92,8 @@ describe('Phase 6 — Transaction list payment method display', () => {
     renderWithProviders(<TransactionsPage />)
     await waitFor(() => expect(screen.getByText(MOCK_TRANSACTION_PENDING.description)).toBeTruthy())
 
-    expect(screen.getByText('Outro')).toBeTruthy()
+    const table = document.querySelector('.tbl')!
+    expect(within(table as HTMLElement).getByText('Outro')).toBeTruthy()
   })
 
   it('payment method cell does not overflow — uses text-overflow: ellipsis', async () => {

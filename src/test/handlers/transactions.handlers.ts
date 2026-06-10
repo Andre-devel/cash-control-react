@@ -1,6 +1,14 @@
 import { http, HttpResponse } from 'msw'
 import type { Transaction, Attachment, PaginatedResponse } from '@/features/transactions/types'
-import { MOCK_PAYMENT_METHOD_OTHER } from '@/test/handlers/payment-methods.handlers'
+import {
+  MOCK_PAYMENT_METHOD_OTHER,
+  MOCK_PAYMENT_METHODS,
+} from '@/test/handlers/payment-methods.handlers'
+
+const MOCK_PAYMENT_METHOD_CASH = MOCK_PAYMENT_METHODS.find((pm) => pm.slug === 'CASH')!
+const MOCK_PAYMENT_METHOD_CREDIT_CARD = MOCK_PAYMENT_METHODS.find(
+  (pm) => pm.slug === 'CREDIT_CARD',
+)!
 
 export const MOCK_TRANSACTION_1: Transaction = {
   id: 'tx-1',
@@ -77,6 +85,36 @@ export const MOCK_TRANSFER_TX: Transaction = {
   creditCard: null,
 }
 
+export const MOCK_TRANSACTION_CASH: Transaction = {
+  id: 'tx-cash-1',
+  description: 'Cash payment',
+  amount: '25.00',
+  type: 'EXPENSE',
+  status: 'PAID',
+  accountId: 'account-1',
+  categoryId: 'cat-1',
+  competenceDate: '2026-05-06',
+  paymentDate: '2026-05-06',
+  createdAt: '2026-05-06T09:00:00Z',
+  paymentMethod: MOCK_PAYMENT_METHOD_CASH,
+  creditCard: null,
+}
+
+export const MOCK_TRANSACTION_CREDIT_CARD: Transaction = {
+  id: 'tx-cc-1',
+  description: 'Credit card purchase',
+  amount: '199.90',
+  type: 'EXPENSE',
+  status: 'PENDING',
+  accountId: 'account-1',
+  categoryId: 'cat-1',
+  competenceDate: '2026-05-07',
+  paymentDate: null,
+  createdAt: '2026-05-07T11:00:00Z',
+  paymentMethod: MOCK_PAYMENT_METHOD_CREDIT_CARD,
+  creditCard: { id: 'card-1', name: 'Nubank', brand: 'VISA' },
+}
+
 export const MOCK_ATTACHMENT_1: Attachment = {
   id: 'att-1',
   transactionId: 'tx-1',
@@ -93,6 +131,8 @@ let transactionsStore: Transaction[] = [
   MOCK_TRANSACTION_PENDING,
   MOCK_TRANSACTION_CANCELLED,
   MOCK_TRANSFER_TX,
+  MOCK_TRANSACTION_CASH,
+  MOCK_TRANSACTION_CREDIT_CARD,
 ]
 
 let attachmentsStore: Attachment[] = [MOCK_ATTACHMENT_1]
@@ -104,6 +144,8 @@ export function resetTransactionsStore() {
     MOCK_TRANSACTION_PENDING,
     MOCK_TRANSACTION_CANCELLED,
     MOCK_TRANSFER_TX,
+    MOCK_TRANSACTION_CASH,
+    MOCK_TRANSACTION_CREDIT_CARD,
   ]
   attachmentsStore = [MOCK_ATTACHMENT_1]
 }
@@ -123,6 +165,7 @@ export const transactionsHandlers = [
     const type = url.searchParams.get('type')
     const status = url.searchParams.get('status')
     const accountId = url.searchParams.get('accountId')
+    const paymentMethod = url.searchParams.get('paymentMethod')
     const searchText = url.searchParams.get('searchText')
     const page = parseInt(url.searchParams.get('page') ?? '0', 10)
     const size = parseInt(url.searchParams.get('size') ?? '20', 10)
@@ -133,6 +176,7 @@ export const transactionsHandlers = [
     if (type) result = result.filter((t) => t.type === type)
     if (status) result = result.filter((t) => t.status === status)
     if (accountId) result = result.filter((t) => t.accountId === accountId)
+    if (paymentMethod) result = result.filter((t) => t.paymentMethod.slug === paymentMethod)
     if (searchText) {
       const lower = searchText.toLowerCase()
       result = result.filter((t) => t.description.toLowerCase().includes(lower))

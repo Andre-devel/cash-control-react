@@ -81,6 +81,7 @@ export interface ListTransactionsParams {
   type?: TransactionType
   status?: TransactionStatus
   categoryId?: string
+  paymentMethod?: PaymentMethodSlug
   competenceDateFrom?: string
   competenceDateTo?: string
   paymentDateFrom?: string
