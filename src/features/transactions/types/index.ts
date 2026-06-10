@@ -1,6 +1,23 @@
 export type TransactionType = 'INCOME' | 'EXPENSE' | 'REFUND' | 'TRANSFER'
 export type TransactionStatus = 'PENDING' | 'PAID' | 'CANCELLED'
 
+export const PAYMENT_METHOD_SLUGS = [
+  'CASH',
+  'PIX',
+  'DEBIT_CARD',
+  'CREDIT_CARD',
+  'BANK_TRANSFER',
+  'BOLETO',
+  'OTHER',
+] as const
+export type PaymentMethodSlug = (typeof PAYMENT_METHOD_SLUGS)[number]
+
+export interface PaymentMethod {
+  id: string
+  slug: PaymentMethodSlug
+  name: string
+}
+
 export interface Transaction {
   id: string
   description: string
@@ -12,6 +29,8 @@ export interface Transaction {
   competenceDate: string
   paymentDate: string | null
   createdAt: string
+  paymentMethod: PaymentMethod
+  creditCard: { id: string; name: string; brand: string } | null
   notes?: string
   accountName?: string
   categoryName?: string
@@ -36,6 +55,7 @@ export interface TransactionSummary {
   competenceDate: string
   paymentDate: string | null
   createdAt: string
+  paymentMethod: PaymentMethod
 }
 
 export interface Attachment {

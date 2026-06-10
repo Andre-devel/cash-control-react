@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import type { Transaction, Attachment, PaginatedResponse } from '@/features/transactions/types'
+import { MOCK_PAYMENT_METHOD_OTHER } from '@/test/handlers/payment-methods.handlers'
 
 export const MOCK_TRANSACTION_1: Transaction = {
   id: 'tx-1',
@@ -12,6 +13,8 @@ export const MOCK_TRANSACTION_1: Transaction = {
   competenceDate: '2026-05-01',
   paymentDate: '2026-05-01',
   createdAt: '2026-05-01T10:00:00Z',
+  paymentMethod: MOCK_PAYMENT_METHOD_OTHER,
+  creditCard: null,
 }
 
 export const MOCK_TRANSACTION_2: Transaction = {
@@ -25,6 +28,8 @@ export const MOCK_TRANSACTION_2: Transaction = {
   competenceDate: '2026-05-05',
   paymentDate: '2026-05-05',
   createdAt: '2026-05-05T08:00:00Z',
+  paymentMethod: MOCK_PAYMENT_METHOD_OTHER,
+  creditCard: null,
 }
 
 export const MOCK_TRANSACTION_PENDING: Transaction = {
@@ -38,6 +43,8 @@ export const MOCK_TRANSACTION_PENDING: Transaction = {
   competenceDate: '2026-05-10',
   paymentDate: null,
   createdAt: '2026-05-10T00:00:00Z',
+  paymentMethod: MOCK_PAYMENT_METHOD_OTHER,
+  creditCard: null,
 }
 
 export const MOCK_TRANSACTION_CANCELLED: Transaction = {
@@ -51,6 +58,8 @@ export const MOCK_TRANSACTION_CANCELLED: Transaction = {
   competenceDate: '2026-05-15',
   paymentDate: null,
   createdAt: '2026-05-15T00:00:00Z',
+  paymentMethod: MOCK_PAYMENT_METHOD_OTHER,
+  creditCard: null,
 }
 
 export const MOCK_TRANSFER_TX: Transaction = {
@@ -64,6 +73,8 @@ export const MOCK_TRANSFER_TX: Transaction = {
   competenceDate: '2026-05-04',
   paymentDate: '2026-05-04',
   createdAt: '2026-05-04T10:00:00Z',
+  paymentMethod: MOCK_PAYMENT_METHOD_OTHER,
+  creditCard: null,
 }
 
 export const MOCK_ATTACHMENT_1: Attachment = {
@@ -153,6 +164,8 @@ export const transactionsHandlers = [
       createdAt: new Date().toISOString(),
       ...body,
       categoryId: body.categoryId ?? null,
+      paymentMethod: body.paymentMethod ?? MOCK_PAYMENT_METHOD_OTHER,
+      creditCard: body.creditCard ?? null,
     }
     transactionsStore = [...transactionsStore, created]
     return HttpResponse.json(created, { status: 201 })
