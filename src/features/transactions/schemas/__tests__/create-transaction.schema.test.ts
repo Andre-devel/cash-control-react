@@ -4,6 +4,7 @@ import {
   TRANSACTION_TYPES,
   TRANSACTION_STATUSES,
 } from '../create-transaction.schema'
+import { PAYMENT_METHOD_SLUGS } from '@/features/transactions/types'
 
 const VALID_INPUT = {
   description: 'Supermarket',
@@ -13,6 +14,7 @@ const VALID_INPUT = {
   categoryId: 'cat-1',
   competenceDate: '2026-05-01',
   status: 'PAID' as const,
+  paymentMethod: 'OTHER' as const,
 }
 
 describe('createTransactionSchema', () => {
@@ -103,5 +105,96 @@ describe('createTransactionSchema', () => {
 
   it('rejects missing required fields', () => {
     expect(createTransactionSchema.safeParse({}).success).toBe(false)
+  })
+})
+
+describe('createTransactionSchema — paymentMethod field', () => {
+  it('rejects when paymentMethod is missing', () => {
+    const { paymentMethod: _, ...rest } = VALID_INPUT
+    expect(createTransactionSchema.safeParse(rest).success).toBe(false)
+  })
+
+  it.each(PAYMENT_METHOD_SLUGS.filter((s) => s !== 'CREDIT_CARD'))(
+    'accepts non-credit-card paymentMethod %s',
+    (slug) => {
+      expect(
+        createTransactionSchema.safeParse({ ...VALID_INPUT, paymentMethod: slug }).success,
+      ).toBe(true)
+    },
+  )
+
+  it('accepts CREDIT_CARD when creditCardId is provided', () => {
+    expect(
+      createTransactionSchema.safeParse({
+        ...VALID_INPUT,
+        paymentMethod: 'CREDIT_CARD',
+        creditCardId: 'card-uuid-1234',
+      }).success,
+    ).toBe(true)
+  })
+
+  it('rejects an invalid paymentMethod slug', () => {
+    const result = createTransactionSchema.safeParse({ ...VALID_INPUT, paymentMethod: 'WIRE' })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path[0] === 'paymentMethod')).toBe(true)
+    }
+  })
+})
+
+describe('createTransactionSchema — creditCardId refinement', () => {
+  it('accepts CREDIT_CARD with a creditCardId', () => {
+    expect(
+      createTransactionSchema.safeParse({
+        ...VALID_INPUT,
+        paymentMethod: 'CREDIT_CARD',
+        creditCardId: 'card-uuid-1234',
+      }).success,
+    ).toBe(true)
+  })
+
+  it('rejects CREDIT_CARD without a creditCardId', () => {
+    const result = createTransactionSchema.safeParse({
+      ...VALID_INPUT,
+      paymentMethod: 'CREDIT_CARD',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path[0] === 'creditCardId')).toBe(true)
+    }
+  })
+
+  it('rejects CREDIT_CARD with an empty creditCardId', () => {
+    const result = createTransactionSchema.safeParse({
+      ...VALID_INPUT,
+      paymentMethod: 'CREDIT_CARD',
+      creditCardId: '',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path[0] === 'creditCardId')).toBe(true)
+    }
+  })
+
+  it('accepts non-CREDIT_CARD without a creditCardId', () => {
+    expect(
+      createTransactionSchema.safeParse({ ...VALID_INPUT, paymentMethod: 'PIX' }).success,
+    ).toBe(true)
+  })
+
+  it('rejects non-CREDIT_CARD when creditCardId is provided', () => {
+    const result = createTransactionSchema.safeParse({
+      ...VALID_INPUT,
+      paymentMethod: 'PIX',
+      creditCardId: 'card-uuid-1234',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path[0] === 'creditCardId')).toBe(true)
+    }
+  })
+
+  it('accepts default OTHER without a creditCardId', () => {
+    expect(createTransactionSchema.safeParse(VALID_INPUT).success).toBe(true)
   })
 })

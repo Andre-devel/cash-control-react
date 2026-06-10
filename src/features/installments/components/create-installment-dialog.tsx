@@ -7,7 +7,6 @@ import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
 import {
   createInstallmentSchema,
-  INSTALLMENT_TYPES,
   type CreateInstallmentFormValues,
 } from '@/features/installments/schemas/create-installment.schema'
 import { useCreateInstallment } from '@/features/installments/hooks/use-create-installment'
@@ -16,19 +15,15 @@ import { CategoryPickerCombobox } from '@/features/categories/components/categor
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 
-const INSTALLMENT_TYPE_LABELS: Record<string, string> = {
-  EXPENSE: 'Expense',
-  INCOME: 'Income',
-}
-
 const DEFAULT_VALUES: CreateInstallmentFormValues = {
   description: '',
   totalAmount: '0.00',
-  installmentCount: 2,
+  totalInstallments: 2,
   accountId: '',
   categoryId: '',
-  firstDueDate: new Date().toISOString().split('T')[0],
-  type: 'EXPENSE',
+  firstPaymentDate: new Date().toISOString().split('T')[0],
+  paymentMethod: 'OTHER',
+  creditCardId: '',
 }
 
 interface CreateInstallmentDialogProps {
@@ -73,12 +68,12 @@ export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDial
 
   return (
     <Modal
-      title="Create Installment Series"
+      title="Nova série de parcelamentos"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -102,10 +97,10 @@ export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDial
                   }}
                   aria-hidden="true"
                 />
-                Creating…
+                Criando…
               </>
             ) : (
-              'Create Series'
+              'Criar série'
             )}
           </Button>
         </>
@@ -122,39 +117,26 @@ export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDial
             {form.formState.errors.root.message}
           </div>
         )}
-        <Field label="Description" error={form.formState.errors.description?.message}>
-          <Input placeholder="e.g. New laptop" {...form.register('description')} />
+        <Field label="Descrição" error={form.formState.errors.description?.message}>
+          <Input placeholder="ex: Notebook novo" {...form.register('description')} />
         </Field>
 
-        <Field label="Total Amount" error={form.formState.errors.totalAmount?.message}>
-          <Input placeholder="e.g. 3600.00" {...form.register('totalAmount')} />
+        <Field label="Valor total" error={form.formState.errors.totalAmount?.message}>
+          <Input placeholder="ex: 3600.00" {...form.register('totalAmount')} />
         </Field>
 
-        <Field
-          label="Number of Installments"
-          error={form.formState.errors.installmentCount?.message}
-        >
+        <Field label="Número de parcelas" error={form.formState.errors.totalInstallments?.message}>
           <Input
             type="number"
             min={2}
-            placeholder="e.g. 12"
-            {...form.register('installmentCount', { valueAsNumber: true })}
+            placeholder="ex: 12"
+            {...form.register('totalInstallments', { valueAsNumber: true })}
           />
         </Field>
 
-        <Field label="Type" error={form.formState.errors.type?.message}>
-          <Select aria-label="Type" {...form.register('type')}>
-            {INSTALLMENT_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {INSTALLMENT_TYPE_LABELS[type]}
-              </option>
-            ))}
-          </Select>
-        </Field>
-
-        <Field label="Account" error={form.formState.errors.accountId?.message}>
-          <Select aria-label="Account" {...form.register('accountId')}>
-            <option value="">Select an account</option>
+        <Field label="Conta" error={form.formState.errors.accountId?.message}>
+          <Select aria-label="Conta" {...form.register('accountId')}>
+            <option value="">Selecionar conta</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>
                 {account.name}
@@ -167,20 +149,23 @@ export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDial
           control={form.control}
           name="categoryId"
           render={({ field, fieldState }) => (
-            <Field label="Category" error={fieldState.error?.message}>
+            <Field label="Categoria" error={fieldState.error?.message}>
               <CategoryPickerCombobox
                 value={field.value ?? ''}
                 onChange={field.onChange}
                 categories={categories}
                 description={description}
-                aria-label="Category"
+                aria-label="Categoria"
               />
             </Field>
           )}
         />
 
-        <Field label="First Due Date" error={form.formState.errors.firstDueDate?.message}>
-          <Input type="date" {...form.register('firstDueDate')} />
+        <Field
+          label="Data do primeiro pagamento"
+          error={form.formState.errors.firstPaymentDate?.message}
+        >
+          <Input type="date" {...form.register('firstPaymentDate')} />
         </Field>
       </form>
     </Modal>

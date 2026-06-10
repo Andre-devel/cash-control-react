@@ -17,9 +17,9 @@
 | `use-payment-methods` hook                        | `[x]` Implemented |
 | `PaymentMethodSelect` component                   | `[x]` Implemented |
 | `CreditCardSelect` component                      | `[x]` Implemented |
-| `create-transaction.schema.ts` updated            | `[ ]` Pending |
-| `update-transaction.schema.ts` updated            | `[ ]` Pending |
-| `create-installment.schema.ts` updated            | `[ ]` Pending |
+| `create-transaction.schema.ts` updated            | `[x]` Implemented |
+| `update-transaction.schema.ts` updated            | `[x]` Implemented |
+| `create-installment.schema.ts` updated            | `[x]` Implemented |
 | `CreateTransactionDialog` updated                 | `[ ]` Pending |
 | `EditTransactionDialog` updated                   | `[ ]` Pending |
 | `CreateInstallmentDialog` updated                 | `[ ]` Pending |
@@ -28,7 +28,7 @@
 | MSW handlers updated                              | `[x]` Implemented (Phase 1 dependency) |
 | Tests updated                                     | `[x]` Implemented (Phase 1 tests) |
 
-**Overall status:** Phase 3 complete.
+**Overall status:** Phase 4 complete.
 
 ---
 
@@ -146,25 +146,25 @@ the conditional refinement that enforces the credit card requirement.
 
 **Implementation Tasks:**
 
-- [ ] Add `paymentMethod: z.enum(PAYMENT_METHOD_SLUGS).default('OTHER')` to schema
-- [ ] Add `creditCardId: z.string().uuid().optional()` to schema
-- [ ] Add `.refine()` for `CREDIT_CARD` requires `creditCardId`
-- [ ] Add `.refine()` for non-`CREDIT_CARD` must not have `creditCardId`
-- [ ] Update `CreateTransactionFormValues` type
+- [x] Add `paymentMethod: z.enum(PAYMENT_METHOD_SLUGS).default('OTHER')` to schema
+- [x] Add `creditCardId: z.string().uuid().optional()` to schema
+- [x] Add `.refine()` for `CREDIT_CARD` requires `creditCardId`
+- [x] Add `.refine()` for non-`CREDIT_CARD` must not have `creditCardId`
+- [x] Update `CreateTransactionFormValues` type
 
 ### Phase 4.2 — update-transaction.schema.ts
 
 **Implementation Tasks:**
 
-- [ ] Same additions as Phase 4.1, with all fields as optional patches
-- [ ] Update `UpdateTransactionFormValues` type
+- [x] Same additions as Phase 4.1, with all fields as optional patches
+- [x] Update `UpdateTransactionFormValues` type
 
 ### Phase 4.3 — create-installment.schema.ts
 
 **Implementation Tasks:**
 
-- [ ] Same additions as Phase 4.1
-- [ ] Update `CreateInstallmentFormValues` type
+- [x] Same additions as Phase 4.1
+- [x] Update `CreateInstallmentFormValues` type
 
 ---
 

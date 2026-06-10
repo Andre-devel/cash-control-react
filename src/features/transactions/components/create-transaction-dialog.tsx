@@ -37,6 +37,8 @@ const DEFAULT_VALUES: CreateTransactionFormValues = {
   categoryId: '',
   competenceDate: new Date().toISOString().split('T')[0],
   status: 'PENDING',
+  paymentMethod: 'OTHER',
+  creditCardId: '',
 }
 
 interface CreateTransactionDialogProps {
