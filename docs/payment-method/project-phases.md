@@ -15,8 +15,8 @@
 | `PaymentMethod` type                              | `[x]` Implemented |
 | `payment-methods.api.ts`                          | `[x]` Implemented |
 | `use-payment-methods` hook                        | `[x]` Implemented |
-| `PaymentMethodSelect` component                   | `[ ]` Pending |
-| `CreditCardSelect` component                      | `[ ]` Pending |
+| `PaymentMethodSelect` component                   | `[x]` Implemented |
+| `CreditCardSelect` component                      | `[x]` Implemented |
 | `create-transaction.schema.ts` updated            | `[ ]` Pending |
 | `update-transaction.schema.ts` updated            | `[ ]` Pending |
 | `create-installment.schema.ts` updated            | `[ ]` Pending |
@@ -28,7 +28,7 @@
 | MSW handlers updated                              | `[x]` Implemented (Phase 1 dependency) |
 | Tests updated                                     | `[x]` Implemented (Phase 1 tests) |
 
-**Overall status:** Phase 2 complete.
+**Overall status:** Phase 3 complete.
 
 ---
 
@@ -116,20 +116,20 @@ components before integrating them into forms.
 
 **Implementation Tasks:**
 
-- [ ] Create `src/features/transactions/components/payment-method-select.tsx`
-- [ ] Props: `value: string`, `onChange: (value: string) => void`, `name?: string`, `aria-label?: string`
-- [ ] Internally calls `usePaymentMethods()` to populate options
-- [ ] Renders a `<Select>` with one `<option>` per payment method
-- [ ] While loading, renders a disabled select with placeholder text
+- [x] Create `src/features/transactions/components/payment-method-select.tsx`
+- [x] Props: `value: string`, `onChange: (value: string) => void`, `name?: string`, `aria-label?: string`
+- [x] Internally calls `usePaymentMethods()` to populate options
+- [x] Renders a `<Select>` with one `<option>` per payment method
+- [x] While loading, renders a disabled select with placeholder text
 
 ### Phase 3.2 — CreditCardSelect
 
 **Implementation Tasks:**
 
-- [ ] Create `src/features/transactions/components/credit-card-select.tsx`
-- [ ] Props: `value: string`, `onChange: (value: string) => void`, `cards: CreditCard[]`, `name?: string`, `aria-label?: string`
-- [ ] Renders a `<Select>` with a default empty option and one `<option>` per card (name + brand)
-- [ ] If `cards` is empty, renders a single disabled option: "Nenhum cartão cadastrado"
+- [x] Create `src/features/transactions/components/credit-card-select.tsx`
+- [x] Props: `value: string`, `onChange: (value: string) => void`, `cards: CreditCard[]`, `name?: string`, `aria-label?: string`
+- [x] Renders a `<Select>` with a default empty option and one `<option>` per card (name + brand)
+- [x] If `cards` is empty, renders a single disabled option: "Nenhum cartão cadastrado"
 
 ---
 
