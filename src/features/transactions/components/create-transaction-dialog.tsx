@@ -16,6 +16,9 @@ import { setFormErrors } from '@/lib/form-errors'
 import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
+import { PaymentMethodSelect } from './payment-method-select'
+import { CreditCardSelect } from './credit-card-select'
+import { useCards } from '@/features/cards/hooks/use-cards'
 
 const TRANSACTION_TYPE_LABELS: Record<string, string> = {
   INCOME: 'Receita',
@@ -49,6 +52,8 @@ interface CreateTransactionDialogProps {
 export function CreateTransactionDialog({ open, onClose }: CreateTransactionDialogProps) {
   const { data: categories = [] } = useCategories()
   const { data: accounts = [] } = useAccounts()
+  const { data: allCards = [] } = useCards()
+  const cards = allCards.filter((c) => !c.archivedAt)
 
   const form = useForm<CreateTransactionFormValues>({
     resolver: zodResolver(createTransactionSchema),
@@ -60,11 +65,13 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
   })
 
   const description = form.watch('description')
+  const paymentMethod = form.watch('paymentMethod')
 
   function onSubmit(data: CreateTransactionFormValues) {
     const payload = {
       ...data,
       categoryId: data.categoryId || undefined,
+      creditCardId: data.creditCardId || undefined,
     }
     createTransaction(payload, {
       onSuccess: () => {
@@ -199,6 +206,42 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
             ))}
           </Select>
         </Field>
+
+        <Controller
+          control={form.control}
+          name="paymentMethod"
+          render={({ field, fieldState }) => (
+            <Field label="Forma de pagamento" error={fieldState.error?.message}>
+              <PaymentMethodSelect
+                value={field.value}
+                onChange={(value) => {
+                  field.onChange(value)
+                  if (value !== 'CREDIT_CARD') {
+                    form.setValue('creditCardId', '')
+                  }
+                }}
+                aria-label="Forma de pagamento"
+              />
+            </Field>
+          )}
+        />
+
+        {paymentMethod === 'CREDIT_CARD' && (
+          <Controller
+            control={form.control}
+            name="creditCardId"
+            render={({ field, fieldState }) => (
+              <Field label="Cartão de crédito" error={fieldState.error?.message}>
+                <CreditCardSelect
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  cards={cards}
+                  aria-label="Cartão de crédito"
+                />
+              </Field>
+            )}
+          />
+        )}
       </form>
     </Modal>
   )

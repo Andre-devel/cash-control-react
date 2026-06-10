@@ -14,6 +14,9 @@ import { setFormErrors } from '@/lib/form-errors'
 import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
+import { PaymentMethodSelect } from '@/features/transactions/components/payment-method-select'
+import { CreditCardSelect } from '@/features/transactions/components/credit-card-select'
+import { useCards } from '@/features/cards/hooks/use-cards'
 
 const DEFAULT_VALUES: CreateInstallmentFormValues = {
   description: '',
@@ -34,6 +37,8 @@ interface CreateInstallmentDialogProps {
 export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDialogProps) {
   const { data: categories = [] } = useCategories()
   const { data: accounts = [] } = useAccounts()
+  const { data: allCards = [] } = useCards()
+  const cards = allCards.filter((c) => !c.archivedAt)
 
   const form = useForm<CreateInstallmentFormValues>({
     resolver: zodResolver(createInstallmentSchema),
@@ -45,11 +50,13 @@ export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDial
   })
 
   const description = form.watch('description')
+  const paymentMethod = form.watch('paymentMethod')
 
   function onSubmit(data: CreateInstallmentFormValues) {
     const payload = {
       ...data,
       categoryId: data.categoryId || undefined,
+      creditCardId: data.creditCardId || undefined,
     }
     createInstallment(payload, {
       onSuccess: () => {
@@ -167,6 +174,42 @@ export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDial
         >
           <Input type="date" {...form.register('firstPaymentDate')} />
         </Field>
+
+        <Controller
+          control={form.control}
+          name="paymentMethod"
+          render={({ field, fieldState }) => (
+            <Field label="Forma de pagamento" error={fieldState.error?.message}>
+              <PaymentMethodSelect
+                value={field.value}
+                onChange={(value) => {
+                  field.onChange(value)
+                  if (value !== 'CREDIT_CARD') {
+                    form.setValue('creditCardId', '')
+                  }
+                }}
+                aria-label="Forma de pagamento"
+              />
+            </Field>
+          )}
+        />
+
+        {paymentMethod === 'CREDIT_CARD' && (
+          <Controller
+            control={form.control}
+            name="creditCardId"
+            render={({ field, fieldState }) => (
+              <Field label="Cartão de crédito" error={fieldState.error?.message}>
+                <CreditCardSelect
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  cards={cards}
+                  aria-label="Cartão de crédito"
+                />
+              </Field>
+            )}
+          />
+        )}
       </form>
     </Modal>
   )

@@ -13,6 +13,19 @@ import { useUpdateTransaction } from '@/features/transactions/hooks/use-update-t
 import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import type { Transaction } from '@/features/transactions/types'
+import { PaymentMethodSelect } from './payment-method-select'
+import { CreditCardSelect } from './credit-card-select'
+import { useCards } from '@/features/cards/hooks/use-cards'
+
+const DEFAULT_VALUES: UpdateTransactionFormValues = {
+  description: '',
+  amount: '0.00',
+  categoryId: '',
+  competenceDate: new Date().toISOString().split('T')[0],
+  notes: '',
+  paymentMethod: 'OTHER',
+  creditCardId: '',
+}
 
 interface EditTransactionDialogProps {
   transaction: Transaction | null
@@ -23,19 +36,16 @@ interface EditTransactionDialogProps {
 export function EditTransactionDialog({ transaction, open, onClose }: EditTransactionDialogProps) {
   const { mutate: updateTransaction, isPending } = useUpdateTransaction()
   const { data: categories = [] } = useCategories()
+  const { data: allCards = [] } = useCards()
+  const cards = allCards.filter((c) => !c.archivedAt)
 
   const form = useForm<UpdateTransactionFormValues>({
     resolver: zodResolver(updateTransactionSchema),
-    defaultValues: {
-      description: '',
-      amount: '0.00',
-      categoryId: '',
-      competenceDate: new Date().toISOString().split('T')[0],
-      notes: '',
-    },
+    defaultValues: DEFAULT_VALUES,
   })
 
   const description = form.watch('description')
+  const paymentMethod = form.watch('paymentMethod')
 
   useEffect(() => {
     if (transaction) {
@@ -45,6 +55,8 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
         categoryId: transaction.categoryId ?? '',
         competenceDate: transaction.competenceDate,
         notes: transaction.notes ?? '',
+        paymentMethod: transaction.paymentMethod.slug,
+        creditCardId: transaction.creditCard?.id ?? '',
       })
     }
   }, [transaction, form])
@@ -55,6 +67,7 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
       ...data,
       categoryId: data.categoryId || undefined,
       notes: data.notes || undefined,
+      creditCardId: data.creditCardId || undefined,
     }
     updateTransaction(
       { id: transaction.id, data: payload },
@@ -67,6 +80,7 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
   }
 
   function handleClose() {
+    form.reset(DEFAULT_VALUES)
     onClose()
   }
 
@@ -154,6 +168,42 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
         <Field label="Notas" error={form.formState.errors.notes?.message}>
           <Input placeholder="Observações opcionais…" {...form.register('notes')} />
         </Field>
+
+        <Controller
+          control={form.control}
+          name="paymentMethod"
+          render={({ field, fieldState }) => (
+            <Field label="Forma de pagamento" error={fieldState.error?.message}>
+              <PaymentMethodSelect
+                value={field.value ?? 'OTHER'}
+                onChange={(value) => {
+                  field.onChange(value)
+                  if (value !== 'CREDIT_CARD') {
+                    form.setValue('creditCardId', '')
+                  }
+                }}
+                aria-label="Forma de pagamento"
+              />
+            </Field>
+          )}
+        />
+
+        {paymentMethod === 'CREDIT_CARD' && (
+          <Controller
+            control={form.control}
+            name="creditCardId"
+            render={({ field, fieldState }) => (
+              <Field label="Cartão de crédito" error={fieldState.error?.message}>
+                <CreditCardSelect
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  cards={cards}
+                  aria-label="Cartão de crédito"
+                />
+              </Field>
+            )}
+          />
+        )}
       </form>
     </Modal>
   )

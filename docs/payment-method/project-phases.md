@@ -20,15 +20,15 @@
 | `create-transaction.schema.ts` updated            | `[x]` Implemented |
 | `update-transaction.schema.ts` updated            | `[x]` Implemented |
 | `create-installment.schema.ts` updated            | `[x]` Implemented |
-| `CreateTransactionDialog` updated                 | `[ ]` Pending |
-| `EditTransactionDialog` updated                   | `[ ]` Pending |
-| `CreateInstallmentDialog` updated                 | `[ ]` Pending |
+| `CreateTransactionDialog` updated                 | `[x]` Implemented |
+| `EditTransactionDialog` updated                   | `[x]` Implemented |
+| `CreateInstallmentDialog` updated                 | `[x]` Implemented |
 | Transaction list — payment method display         | `[ ]` Pending |
 | Transaction filter — payment method               | `[ ]` Pending |
 | MSW handlers updated                              | `[x]` Implemented (Phase 1 dependency) |
 | Tests updated                                     | `[x]` Implemented (Phase 1 tests) |
 
-**Overall status:** Phase 4 complete.
+**Overall status:** Phase 5 complete.
 
 ---
 
@@ -180,27 +180,27 @@ the conditional refinement that enforces the credit card requirement.
 
 **Implementation Tasks:**
 
-- [ ] Add `paymentMethod: 'OTHER'` and `creditCardId: ''` to `DEFAULT_VALUES`
-- [ ] Add `const paymentMethod = form.watch('paymentMethod')` to track selection
-- [ ] Add `<Field label="Forma de pagamento">` with `<PaymentMethodSelect>` via `Controller`
-- [ ] Add conditional block: `{paymentMethod === 'CREDIT_CARD' && <Field label="Cartão de crédito"><CreditCardSelect /></Field>}`
-- [ ] On `paymentMethod` change away from `CREDIT_CARD`, call `form.setValue('creditCardId', '')`
-- [ ] Pass `creditCardId: data.creditCardId || undefined` in submit payload
+- [x] Add `paymentMethod: 'OTHER'` and `creditCardId: ''` to `DEFAULT_VALUES`
+- [x] Add `const paymentMethod = form.watch('paymentMethod')` to track selection
+- [x] Add `<Field label="Forma de pagamento">` with `<PaymentMethodSelect>` via `Controller`
+- [x] Add conditional block: `{paymentMethod === 'CREDIT_CARD' && <Field label="Cartão de crédito"><CreditCardSelect /></Field>}`
+- [x] On `paymentMethod` change away from `CREDIT_CARD`, call `form.setValue('creditCardId', '')`
+- [x] Pass `creditCardId: data.creditCardId || undefined` in submit payload
 
 ### Phase 5.2 — EditTransactionDialog
 
 **Implementation Tasks:**
 
-- [ ] Pre-populate `paymentMethod` from `transaction.paymentMethod.slug`
-- [ ] Pre-populate `creditCardId` from `transaction.creditCard?.id ?? ''`
-- [ ] Same field additions as Phase 5.1
-- [ ] Ensure form reset on dialog close preserves correct defaults
+- [x] Pre-populate `paymentMethod` from `transaction.paymentMethod.slug`
+- [x] Pre-populate `creditCardId` from `transaction.creditCard?.id ?? ''`
+- [x] Same field additions as Phase 5.1
+- [x] Ensure form reset on dialog close preserves correct defaults
 
 ### Phase 5.3 — CreateInstallmentDialog
 
 **Implementation Tasks:**
 
-- [ ] Same additions as Phase 5.1 (using installment schema and hook)
+- [x] Same additions as Phase 5.1 (using installment schema and hook)
 
 ---
 
