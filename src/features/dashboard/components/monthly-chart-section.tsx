@@ -20,7 +20,7 @@ function ChartSkeleton() {
       className="h-64 rounded animate-pulse"
       style={{ background: 'var(--surface-3)' }}
       aria-busy="true"
-      aria-label="Loading monthly chart"
+      aria-label="Carregando gráfico mensal"
     />
   )
 }
@@ -32,8 +32,8 @@ export function MonthlyChartSection() {
   return (
     <div className="card">
       <div className="card-h">
-        <h3>Monthly Income vs Expenses</h3>
-        <div className="flex gap-1" role="group" aria-label="Select number of months">
+        <h3>Receita vs Despesas mensais</h3>
+        <div className="flex gap-1" role="group" aria-label="Selecionar número de meses">
           {MONTH_OPTIONS.map((m) => (
             <Button
               key={m}
@@ -53,23 +53,23 @@ export function MonthlyChartSection() {
         ) : isError ? (
           <div role="alert" className="space-y-2">
             <p className="text-sm" style={{ color: 'var(--expense)' }}>
-              Failed to load monthly chart.
+              Falha ao carregar gráfico mensal.
             </p>
             <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              Retry
+              Tentar novamente
             </Button>
           </div>
-        ) : !data || data.data.length === 0 ? (
+        ) : !data || data.months.length === 0 ? (
           <p className="text-sm text-dim" style={{ padding: '32px 0', textAlign: 'center' }}>
-            No data available for the selected period.
+            Nenhum dado disponível para o período selecionado.
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <BarChart
-              data={data.data.map((e) => ({
+              data={data.months.map((e) => ({
                 month: e.month,
-                Income: parseFloat(e.income),
-                Expenses: parseFloat(e.expenses),
+                Receita: parseFloat(e.income),
+                Despesas: parseFloat(e.expenses),
               }))}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -92,8 +92,8 @@ export function MonthlyChartSection() {
                 }}
               />
               <Legend />
-              <Bar dataKey="Income" fill="var(--income)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Expenses" fill="var(--expense)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Receita" fill="var(--income)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Despesas" fill="var(--expense)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}

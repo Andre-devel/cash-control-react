@@ -8,6 +8,7 @@ export const ROUTES = {
   ADMIN: '/admin',
   ROLES: '/admin/roles',
   ROLE_DETAIL: '/admin/roles/:roleId',
+  AUDIT: '/admin/audit',
   FORBIDDEN: '/forbidden',
   ACCOUNTS: '/accounts',
   ACCOUNT_DETAIL: '/accounts/:id',

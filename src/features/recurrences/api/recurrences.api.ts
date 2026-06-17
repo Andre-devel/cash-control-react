@@ -1,10 +1,12 @@
 import { axiosInstance } from '@/services/http'
 import type {
   Recurrence,
+  RecurrenceCreationResponse,
   CreateRecurrenceRequest,
   UpdateRecurrenceRequest,
   PauseRecurrenceRequest,
   DeleteRecurrenceStrategy,
+  EditRecurrenceResult,
 } from '@/features/recurrences/types'
 
 export async function listRecurrences(): Promise<Recurrence[]> {
@@ -17,16 +19,18 @@ export async function getRecurrence(id: string): Promise<Recurrence> {
   return response.data
 }
 
-export async function createRecurrence(data: CreateRecurrenceRequest): Promise<Recurrence> {
-  const response = await axiosInstance.post<Recurrence>('/recurrences', data)
+export async function createRecurrence(
+  data: CreateRecurrenceRequest,
+): Promise<RecurrenceCreationResponse> {
+  const response = await axiosInstance.post<RecurrenceCreationResponse>('/recurrences', data)
   return response.data
 }
 
 export async function updateRecurrence(
   id: string,
   data: UpdateRecurrenceRequest,
-): Promise<Recurrence> {
-  const response = await axiosInstance.put<Recurrence>(`/recurrences/${id}`, data)
+): Promise<EditRecurrenceResult> {
+  const response = await axiosInstance.put<EditRecurrenceResult>(`/recurrences/${id}`, data)
   return response.data
 }
 

@@ -10,9 +10,10 @@ interface CreditCardVisualProps {
 
 export function CreditCardVisual({ card, selected, onSelect }: CreditCardVisualProps) {
   const { data: limitUsage } = useLimitUsage(card.id)
-  const usedAmount = limitUsage ? parseFloat(limitUsage.usedAmount) : null
+  const usedAmount = limitUsage ? parseFloat(limitUsage.usedLimit) : null
   const creditLimit = parseFloat(card.creditLimit)
   const usedPct = usedAmount !== null && creditLimit > 0 ? (usedAmount / creditLimit) * 100 : 0
+  const cardColor = 'var(--accent)'
 
   return (
     <button
@@ -26,16 +27,16 @@ export function CreditCardVisual({ card, selected, onSelect }: CreditCardVisualP
         height: 170,
         borderRadius: 14,
         padding: 18,
-        border: `1px solid ${selected ? card.color : 'var(--border)'}`,
+        border: `1px solid ${selected ? cardColor : 'var(--border)'}`,
         background: `
-          radial-gradient(140% 80% at 0% 0%, ${card.color}55, transparent 55%),
-          linear-gradient(135deg, ${card.color}22, transparent 70%),
+          radial-gradient(140% 80% at 0% 0%, ${cardColor}55, transparent 55%),
+          linear-gradient(135deg, ${cardColor}22, transparent 70%),
           var(--surface-2)
         `,
         position: 'relative',
         textAlign: 'left',
         cursor: 'pointer',
-        boxShadow: selected ? `0 0 0 2px ${card.color}, 0 12px 32px -8px ${card.color}44` : 'none',
+        boxShadow: selected ? `0 0 0 2px ${cardColor}, 0 12px 32px -8px ${cardColor}44` : 'none',
         color: 'var(--text)',
         transition: 'box-shadow 120ms, border-color 120ms',
       }}
@@ -63,7 +64,7 @@ export function CreditCardVisual({ card, selected, onSelect }: CreditCardVisualP
         className="mono"
         style={{ marginTop: 24, fontSize: 18, letterSpacing: '0.08em', color: 'var(--text)' }}
       >
-        ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;{card.lastFourDigits}
+        ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••
       </div>
 
       <div className="row between" style={{ marginTop: 16 }}>

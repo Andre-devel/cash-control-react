@@ -10,7 +10,7 @@ export const MOCK_RECURRENCE_1: Recurrence = {
   accountId: 'account-1',
   categoryId: 'category-1',
   startDate: '2026-01-01',
-  nextExecutionDate: '2026-06-01',
+  nextOccurrenceDate: '2026-06-01',
   status: 'ACTIVE',
   createdAt: '2026-01-01T00:00:00Z',
 }
@@ -24,9 +24,9 @@ export const MOCK_RECURRENCE_2: Recurrence = {
   accountId: 'account-1',
   categoryId: null,
   startDate: '2026-01-01',
-  nextExecutionDate: '2026-06-10',
+  nextOccurrenceDate: '2026-06-10',
   status: 'PAUSED',
-  pausedUntil: '2026-07-01',
+  resumeAt: '2026-07-01',
   createdAt: '2026-01-01T00:00:00Z',
 }
 
@@ -59,12 +59,12 @@ export const recurrencesHandlers = [
   http.post('*/recurrences', async ({ request }) => {
     const body = (await request.json()) as Omit<
       Recurrence,
-      'id' | 'status' | 'nextExecutionDate' | 'createdAt'
+      'id' | 'status' | 'nextOccurrenceDate' | 'createdAt'
     >
     const created: Recurrence = {
       id: `recurrence-${Date.now()}`,
       status: 'ACTIVE',
-      nextExecutionDate: body.startDate,
+      nextOccurrenceDate: body.startDate,
       createdAt: new Date().toISOString(),
       ...body,
       categoryId: body.categoryId ?? null,
@@ -81,16 +81,16 @@ export const recurrencesHandlers = [
   }),
 
   http.post('*/recurrences/:id/pause', async ({ params, request }) => {
-    let pausedUntil: string | undefined
+    let resumeAt: string | undefined
     try {
-      const body = (await request.json()) as { pausedUntil?: string }
-      pausedUntil = body.pausedUntil
+      const body = (await request.json()) as { resumeAt?: string }
+      resumeAt = body.resumeAt
     } catch {
       // body is optional
     }
     recurrencesStore = recurrencesStore.map((r) =>
       r.id === params.id
-        ? { ...r, status: 'PAUSED' as const, ...(pausedUntil ? { pausedUntil } : {}) }
+        ? { ...r, status: 'PAUSED' as const, ...(resumeAt ? { resumeAt } : {}) }
         : r,
     )
     return new HttpResponse(null, { status: 204 })
@@ -98,7 +98,7 @@ export const recurrencesHandlers = [
 
   http.post('*/recurrences/:id/resume', ({ params }) => {
     recurrencesStore = recurrencesStore.map((r) =>
-      r.id === params.id ? { ...r, status: 'ACTIVE' as const, pausedUntil: undefined } : r,
+      r.id === params.id ? { ...r, status: 'ACTIVE' as const, resumeAt: undefined } : r,
     )
     return new HttpResponse(null, { status: 204 })
   }),

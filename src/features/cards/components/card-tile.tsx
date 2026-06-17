@@ -10,7 +10,7 @@ const BRAND_LABELS: Record<string, string> = {
   ELO: 'Elo',
   AMEX: 'Amex',
   HIPERCARD: 'Hipercard',
-  OTHER: 'Other',
+  OTHER: 'Outro',
 }
 
 interface CardTileProps {
@@ -24,20 +24,19 @@ export function CardTile({ card, onEdit, onArchive }: CardTileProps) {
     <div className="card">
       <div className="card-b" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div className="flex items-start gap-3">
-          <div
-            className="w-3 h-3 rounded-full mt-1 shrink-0"
-            style={{ backgroundColor: card.color }}
-            aria-hidden="true"
-          />
           <div className="min-w-0 flex-1">
             <p className="fw-600 truncate">{card.name}</p>
             <div className="flex flex-wrap items-center gap-2 mt-1">
               <span className="text-xs text-dim">{BRAND_LABELS[card.brand] ?? card.brand}</span>
-              <span className="text-xs text-dim">·</span>
-              <span className="text-xs mono text-dim">•••• {card.lastFourDigits}</span>
-              {card.archived && (
+              {card.issuer && (
+                <>
+                  <span className="text-xs text-dim">·</span>
+                  <span className="text-xs text-dim">{card.issuer}</span>
+                </>
+              )}
+              {card.archivedAt && (
                 <Badge kind="pending" dot={false} square>
-                  Archived
+                  Arquivado
                 </Badge>
               )}
             </div>
@@ -45,7 +44,7 @@ export function CardTile({ card, onEdit, onArchive }: CardTileProps) {
         </div>
 
         <div className="text-sm">
-          <p className="text-xs text-dim">Credit Limit</p>
+          <p className="text-xs text-dim">Limite de crédito</p>
           <p className="mono fw-600">{card.creditLimit}</p>
         </div>
 
@@ -53,27 +52,27 @@ export function CardTile({ card, onEdit, onArchive }: CardTileProps) {
           <Button variant="ghost" size="sm" asChild>
             <Link
               to={ROUTES.CARD_DETAIL.replace(':id', card.id)}
-              aria-label={`View details for ${card.name}`}
+              aria-label={`Ver detalhes de ${card.name}`}
             >
-              View
+              Ver
             </Link>
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onEdit(card)}
-            aria-label={`Edit ${card.name}`}
+            aria-label={`Editar ${card.name}`}
           >
-            Edit
+            Editar
           </Button>
-          {!card.archived && (
+          {!card.archivedAt && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onArchive(card)}
-              aria-label={`Archive ${card.name}`}
+              aria-label={`Arquivar ${card.name}`}
             >
-              Archive
+              Arquivar
             </Button>
           )}
         </div>

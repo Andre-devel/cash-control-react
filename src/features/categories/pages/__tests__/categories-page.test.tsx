@@ -85,8 +85,8 @@ describe('CategoriesPage', () => {
           MOCK_CATEGORY_ARCHIVED,
         ]
         let result = all
-        if (!includeHidden) result = result.filter((c) => !c.hidden)
-        if (!includeArchived) result = result.filter((c) => !c.archived)
+        if (!includeHidden) result = result.filter((c) => !c.isHidden)
+        if (!includeArchived) result = result.filter((c) => !c.isArchived)
         return HttpResponse.json(result)
       }),
     )
@@ -112,8 +112,8 @@ describe('CategoriesPage', () => {
           MOCK_CATEGORY_ARCHIVED,
         ]
         let result = all
-        if (!includeHidden) result = result.filter((c) => !c.hidden)
-        if (!includeArchived) result = result.filter((c) => !c.archived)
+        if (!includeHidden) result = result.filter((c) => !c.isHidden)
+        if (!includeArchived) result = result.filter((c) => !c.isArchived)
         return HttpResponse.json(result)
       }),
     )

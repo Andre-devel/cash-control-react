@@ -15,21 +15,19 @@ import { useCreateAccount } from '@/features/accounts/hooks/use-create-account'
 import { setFormErrors } from '@/lib/form-errors'
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
-  CHECKING: 'Checking',
-  SAVINGS: 'Savings',
-  CASH: 'Cash',
-  INVESTMENT: 'Investment',
-  CREDIT: 'Credit',
-  OTHER: 'Other',
+  CHECKING: 'Conta corrente',
+  SAVINGS: 'Poupança',
+  CASH: 'Carteira',
+  INVESTMENT: 'Investimento',
+  CREDIT: 'Crédito',
+  OTHER: 'Outros',
 }
 
 const DEFAULT_VALUES: CreateAccountFormValues = {
   name: '',
   type: 'CHECKING',
-  currency: 'BRL',
+  currencyCode: 'BRL',
   initialBalance: '0.00',
-  color: '#4CAF50',
-  icon: 'wallet',
   description: '',
 }
 
@@ -49,12 +47,15 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
   })
 
   function onSubmit(data: CreateAccountFormValues) {
-    createAccount(data, {
-      onSuccess: () => {
-        form.reset(DEFAULT_VALUES)
-        onClose()
+    createAccount(
+      { ...data, initialBalance: data.initialBalance || undefined },
+      {
+        onSuccess: () => {
+          form.reset(DEFAULT_VALUES)
+          onClose()
+        },
       },
-    })
+    )
   }
 
   function handleClose() {
@@ -66,12 +67,12 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
 
   return (
     <Modal
-      title="Create Account"
+      title="Nova conta"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -95,10 +96,10 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
                   }}
                   aria-hidden="true"
                 />
-                Creating…
+                Criando…
               </>
             ) : (
-              'Create Account'
+              'Criar conta'
             )}
           </Button>
         </>
@@ -115,12 +116,12 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
             {form.formState.errors.root.message}
           </div>
         )}
-        <Field label="Name" error={form.formState.errors.name?.message}>
-          <Input placeholder="e.g. Nubank" {...form.register('name')} />
+        <Field label="Nome" error={form.formState.errors.name?.message}>
+          <Input placeholder="ex: Nubank" {...form.register('name')} />
         </Field>
 
-        <Field label="Type" error={form.formState.errors.type?.message}>
-          <Select aria-label="Type" {...form.register('type')}>
+        <Field label="Tipo" error={form.formState.errors.type?.message}>
+          <Select aria-label="Tipo" {...form.register('type')}>
             {ACCOUNT_TYPES.map((type) => (
               <option key={type} value={type}>
                 {ACCOUNT_TYPE_LABELS[type]}
@@ -129,24 +130,16 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
           </Select>
         </Field>
 
-        <Field label="Currency" error={form.formState.errors.currency?.message}>
-          <Input placeholder="e.g. BRL" {...form.register('currency')} />
+        <Field label="Moeda" error={form.formState.errors.currencyCode?.message}>
+          <Input placeholder="ex: BRL" {...form.register('currencyCode')} />
         </Field>
 
-        <Field label="Initial Balance" error={form.formState.errors.initialBalance?.message}>
-          <Input placeholder="e.g. 1500.00" {...form.register('initialBalance')} />
+        <Field label="Saldo inicial" error={form.formState.errors.initialBalance?.message}>
+          <Input placeholder="ex: 1500.00" {...form.register('initialBalance')} />
         </Field>
 
-        <Field label="Color" error={form.formState.errors.color?.message}>
-          <Input placeholder="#4CAF50" {...form.register('color')} />
-        </Field>
-
-        <Field label="Icon" error={form.formState.errors.icon?.message}>
-          <Input placeholder="e.g. wallet" {...form.register('icon')} />
-        </Field>
-
-        <Field label="Description (optional)" error={form.formState.errors.description?.message}>
-          <Textarea placeholder="e.g. Main spending account" {...form.register('description')} />
+        <Field label="Descrição (opcional)" error={form.formState.errors.description?.message}>
+          <Textarea placeholder="ex: Conta principal de gastos" {...form.register('description')} />
         </Field>
       </form>
     </Modal>

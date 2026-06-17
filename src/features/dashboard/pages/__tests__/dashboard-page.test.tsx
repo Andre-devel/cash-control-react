@@ -125,8 +125,7 @@ describe('DashboardPage', () => {
             id: 'overdue-1',
             description: 'Conta Vencida',
             amount: '100.00',
-            dueDate: '2020-01-01',
-            accountId: 'account-1',
+            paymentDate: '2020-01-01',
             accountName: 'Corrente',
             status: 'OVERDUE',
           },
@@ -144,7 +143,7 @@ describe('DashboardPage', () => {
     const link = screen.getByRole('link', {
       name: new RegExp(MOCK_UPCOMING_INVOICES[0].cardName, 'i'),
     })
-    expect(link.getAttribute('href')).toContain(MOCK_UPCOMING_INVOICES[0].cardId)
+    expect(link.getAttribute('href')).toContain('/cards')
   })
 
   it('recent transactions shows empty state when list is empty', async () => {

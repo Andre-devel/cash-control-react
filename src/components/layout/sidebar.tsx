@@ -9,6 +9,7 @@ import {
   Layers,
   Repeat,
   Settings,
+  ShieldCheck,
   Sun,
   Moon,
 } from 'lucide-react'
@@ -28,6 +29,7 @@ type NavLink_ = {
   badge?: string
   path: string
   end?: boolean
+  requirePermission?: string
 }
 type NavItem = NavSection | NavLink_
 
@@ -47,14 +49,34 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'recurrences', label: 'Recorrências', icon: Repeat, path: ROUTES.RECURRENCES },
   { sec: 'Sistema' },
   { id: 'settings', label: 'Configurações', icon: Settings, path: ROUTES.PROFILE },
+  {
+    id: 'audit',
+    label: 'Auditoria',
+    icon: ShieldCheck,
+    path: ROUTES.AUDIT,
+    requirePermission: 'audit:view',
+  },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  open?: boolean
+  onClose?: () => void
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const user = useAuthStore((s) => s.user)
   const theme = useAuthStore((s) => s.theme)
   const setTheme = useAuthStore((s) => s.setTheme)
 
   const resolvedTheme = resolveTheme(theme)
+
+  const userPermissions = user?.permissions ?? []
+
+  const visibleItems = NAV_ITEMS.filter((item) => {
+    if (!isNavLink(item)) return true
+    if (!item.requirePermission) return true
+    return userPermissions.includes(item.requirePermission)
+  })
 
   const initials = user?.name
     ? user.name
@@ -70,61 +92,67 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <span className="logo">C</span>
-        <div className="name">
-          Cash Control
-          <small>cashcontrol.app</small>
+    <>
+      {open && <div className="sidebar-overlay" aria-hidden="true" onClick={onClose} />}
+      <aside className={`sidebar${open ? ' open' : ''}`}>
+        <div className="sidebar-brand">
+          <span className="logo">C</span>
+          <div className="name">
+            Cash Control
+            <small>cashcontrol.app</small>
+          </div>
         </div>
-      </div>
 
-      <nav className="sidebar-nav" aria-label="Navegação principal">
-        {NAV_ITEMS.map((item, i) =>
-          !isNavLink(item) ? (
-            <div className="nav-section" key={`sec-${i}`}>
-              {item.sec}
-            </div>
-          ) : (
-            <NavLink
-              key={item.id}
-              to={item.path}
-              end={item.end}
-              className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-              aria-current={undefined}
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon size={16} className="ico" aria-hidden="true" />
-                  <span>{item.label}</span>
-                  {item.badge && <span className="badge">{item.badge}</span>}
-                  <span className="sr-only">{isActive ? '(página atual)' : ''}</span>
-                </>
-              )}
-            </NavLink>
-          ),
-        )}
-      </nav>
-
-      <div className="sidebar-foot">
-        <Avatar name={initials} color="var(--accent)" />
-        <div className="who">
-          <div className="n">{user?.name ?? 'Usuário'}</div>
-          <div className="e">{user?.email ?? ''}</div>
-        </div>
-        <button
-          className="btn btn-ghost btn-icon btn-sm"
-          title="Alternar tema"
-          onClick={toggleTheme}
-          aria-label={resolvedTheme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
-        >
-          {resolvedTheme === 'dark' ? (
-            <Sun size={14} aria-hidden="true" />
-          ) : (
-            <Moon size={14} aria-hidden="true" />
+        <nav className="sidebar-nav" aria-label="Navegação principal">
+          {visibleItems.map((item, i) =>
+            !isNavLink(item) ? (
+              <div className="nav-section" key={`sec-${i}`}>
+                {item.sec}
+              </div>
+            ) : (
+              <NavLink
+                key={item.id}
+                to={item.path}
+                end={item.end}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+                aria-current={undefined}
+                onClick={onClose}
+              >
+                {({ isActive }) => (
+                  <>
+                    <item.icon size={16} className="ico" aria-hidden="true" />
+                    <span>{item.label}</span>
+                    {item.badge && <span className="badge">{item.badge}</span>}
+                    <span className="sr-only">{isActive ? '(página atual)' : ''}</span>
+                  </>
+                )}
+              </NavLink>
+            ),
           )}
-        </button>
-      </div>
-    </aside>
+        </nav>
+
+        <div className="sidebar-foot">
+          <Avatar name={initials} color="var(--accent)" />
+          <div className="who">
+            <div className="n">{user?.name ?? 'Usuário'}</div>
+            <div className="e">{user?.email ?? ''}</div>
+          </div>
+          <button
+            className="btn btn-ghost btn-icon btn-sm"
+            title="Alternar tema"
+            onClick={toggleTheme}
+            aria-label={
+              resolvedTheme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'
+            }
+          >
+            {resolvedTheme === 'dark' ? (
+              <Sun size={14} aria-hidden="true" />
+            ) : (
+              <Moon size={14} aria-hidden="true" />
+            )}
+          </button>
+        </div>
+      </aside>
+    </>
   )
 }

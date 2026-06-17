@@ -5,30 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
-import { Select } from '@/components/ui/select'
 import {
   updateRecurrenceSchema,
-  RECURRENCE_FREQUENCIES,
-  RECURRENCE_TYPES,
   type UpdateRecurrenceFormValues,
 } from '@/features/recurrences/schemas/update-recurrence.schema'
 import { useUpdateRecurrence } from '@/features/recurrences/hooks/use-update-recurrence'
 import type { Recurrence } from '@/features/recurrences/types'
-
-const FREQUENCY_LABELS: Record<string, string> = {
-  DAILY: 'Daily',
-  WEEKLY: 'Weekly',
-  BIWEEKLY: 'Biweekly',
-  MONTHLY: 'Monthly',
-  QUARTERLY: 'Quarterly',
-  YEARLY: 'Yearly',
-}
-
-const TYPE_LABELS: Record<string, string> = {
-  INCOME: 'Receita',
-  EXPENSE: 'Despesa',
-  REFUND: 'Reembolso',
-}
 
 interface EditRecurrenceDialogProps {
   recurrence: Recurrence | null
@@ -44,12 +26,8 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
     defaultValues: {
       description: '',
       amount: '0.00',
-      frequency: 'MONTHLY',
-      type: 'EXPENSE',
       accountId: '',
       categoryId: '',
-      startDate: '',
-      endDate: '',
     },
   })
 
@@ -58,12 +36,8 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
       form.reset({
         description: recurrence.description,
         amount: recurrence.amount,
-        frequency: recurrence.frequency,
-        type: recurrence.type,
         accountId: recurrence.accountId,
         categoryId: recurrence.categoryId ?? '',
-        startDate: recurrence.startDate,
-        endDate: recurrence.endDate ?? '',
       })
     }
   }, [recurrence, form])
@@ -73,7 +47,6 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
     const payload = {
       ...data,
       categoryId: data.categoryId || undefined,
-      endDate: data.endDate || undefined,
     }
     updateRecurrence(
       { id: recurrence.id, data: payload },
@@ -93,12 +66,12 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
 
   return (
     <Modal
-      title="Edit Recurrence Rule"
+      title="Editar regra de recorrência"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -122,10 +95,10 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
                   }}
                   aria-hidden="true"
                 />
-                Saving…
+                Salvando…
               </>
             ) : (
-              'Save Changes'
+              'Salvar alterações'
             )}
           </Button>
         </>
@@ -137,48 +110,20 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
         noValidate
         className="col gap-4"
       >
-        <Field label="Description" error={form.formState.errors.description?.message}>
-          <Input placeholder="e.g. Monthly rent" {...form.register('description')} />
+        <Field label="Descrição" error={form.formState.errors.description?.message}>
+          <Input placeholder="ex: Aluguel mensal" {...form.register('description')} />
         </Field>
 
-        <Field label="Amount" error={form.formState.errors.amount?.message}>
-          <Input placeholder="e.g. 1500.00" {...form.register('amount')} />
+        <Field label="Valor" error={form.formState.errors.amount?.message}>
+          <Input placeholder="ex: 1500.00" {...form.register('amount')} />
         </Field>
 
-        <Field label="Type" error={form.formState.errors.type?.message}>
-          <Select aria-label="Type" {...form.register('type')}>
-            {RECURRENCE_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {TYPE_LABELS[type]}
-              </option>
-            ))}
-          </Select>
+        <Field label="ID da conta" error={form.formState.errors.accountId?.message}>
+          <Input placeholder="UUID da conta" {...form.register('accountId')} />
         </Field>
 
-        <Field label="Frequency" error={form.formState.errors.frequency?.message}>
-          <Select aria-label="Frequency" {...form.register('frequency')}>
-            {RECURRENCE_FREQUENCIES.map((freq) => (
-              <option key={freq} value={freq}>
-                {FREQUENCY_LABELS[freq]}
-              </option>
-            ))}
-          </Select>
-        </Field>
-
-        <Field label="Account ID" error={form.formState.errors.accountId?.message}>
-          <Input placeholder="Account UUID" {...form.register('accountId')} />
-        </Field>
-
-        <Field label="Category ID (optional)" error={form.formState.errors.categoryId?.message}>
-          <Input placeholder="Category UUID" {...form.register('categoryId')} />
-        </Field>
-
-        <Field label="Start Date" error={form.formState.errors.startDate?.message}>
-          <Input type="date" {...form.register('startDate')} />
-        </Field>
-
-        <Field label="End Date (optional)" error={form.formState.errors.endDate?.message}>
-          <Input type="date" {...form.register('endDate')} />
+        <Field label="ID da categoria (opcional)" error={form.formState.errors.categoryId?.message}>
+          <Input placeholder="UUID da categoria" {...form.register('categoryId')} />
         </Field>
       </form>
     </Modal>

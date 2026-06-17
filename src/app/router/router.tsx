@@ -32,13 +32,14 @@ const CategoriesPage = lazy(() => import('@/features/categories/pages/categories
 const CardsPage = lazy(() => import('@/features/cards/pages/cards-page'))
 const CardDetailPage = lazy(() => import('@/features/cards/pages/card-detail-page'))
 const ProfilePage = lazy(() => import('@/features/profile/pages/profile-page'))
+const AuditPage = lazy(() => import('@/features/audit/pages/audit-page'))
 
 function PageLoader() {
   return (
     <div
       className="flex items-center justify-center min-h-screen"
       aria-busy="true"
-      aria-label="Loading page"
+      aria-label="Carregando página"
     >
       <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
@@ -216,6 +217,19 @@ export const routeConfig: RouteObject[] = [
                     element: (
                       <Suspense fallback={<PageLoader />}>
                         <RoleDetailPage />
+                      </Suspense>
+                    ),
+                  },
+                ],
+              },
+              {
+                element: <PermissionGuard requiredPermissions={['audit:view']} />,
+                children: [
+                  {
+                    path: ROUTES.AUDIT,
+                    element: (
+                      <Suspense fallback={<PageLoader />}>
+                        <AuditPage />
                       </Suspense>
                     ),
                   },

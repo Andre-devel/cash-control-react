@@ -172,7 +172,7 @@ export function RecentTransactionsCard() {
                       <StatusBadge status={status} />
                     </td>
                     <td className="text-xs text-dim" style={{ width: 90 }}>
-                      {fmtDateShort(tx.date)}
+                      {fmtDateShort(tx.competenceDate)}
                     </td>
                     <td
                       className="num"

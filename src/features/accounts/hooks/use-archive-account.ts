@@ -16,7 +16,7 @@ export function useArchiveAccount() {
         if (!Array.isArray(old)) return old
         const updated = old.map((a) => (a.id === updatedAccount.id ? updatedAccount : a))
         // If no archived items existed before, this is a non-archived list — filter the account out
-        return old.some((a) => a.archived) ? updated : updated.filter((a) => !a.archived)
+        return old.some((a) => a.archivedAt) ? updated : updated.filter((a) => !a.archivedAt)
       })
       toast.success('Account archived.')
     },

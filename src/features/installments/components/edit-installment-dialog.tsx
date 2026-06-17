@@ -11,13 +11,13 @@ import type { InstallmentSeries } from '@/features/installments/types'
 const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/
 
 const editInstallmentSchema = z.object({
-  transactionId: z.string().min(1, 'Transaction ID is required'),
+  transactionId: z.string().min(1, 'ID da transação é obrigatório'),
   description: z
     .string()
-    .min(1, 'Description is required')
-    .max(255, 'Description must be at most 255 characters'),
-  amount: z.string().regex(DECIMAL_PATTERN, 'Amount must be a valid decimal amount (e.g. 300.00)'),
-  dueDate: z.string().min(1, 'Due date is required'),
+    .min(1, 'Descrição é obrigatória')
+    .max(255, 'Descrição deve ter no máximo 255 caracteres'),
+  amount: z.string().regex(DECIMAL_PATTERN, 'Valor deve ser um decimal válido (ex: 300.00)'),
+  competenceDate: z.string().min(1, 'Data de vencimento é obrigatória'),
 })
 
 type EditInstallmentFormValues = z.infer<typeof editInstallmentSchema>
@@ -26,7 +26,7 @@ const DEFAULT_VALUES: EditInstallmentFormValues = {
   transactionId: '',
   description: '',
   amount: '0.00',
-  dueDate: new Date().toISOString().split('T')[0],
+  competenceDate: new Date().toISOString().split('T')[0],
 }
 
 interface EditInstallmentDialogProps {
@@ -65,13 +65,13 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
 
   return (
     <Modal
-      title="Edit Individual Installment"
-      subtitle={`Individual override — applies only to this installment, not the entire series${series ? ` "${series.description}"` : ''}.`}
+      title="Editar parcela individual"
+      subtitle={`Substituição individual — aplica-se apenas a esta parcela, não à série inteira${series ? ` "${series.description}"` : ''}.`}
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -95,10 +95,10 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
                   }}
                   aria-hidden="true"
                 />
-                Saving…
+                Salvando…
               </>
             ) : (
-              'Save Installment'
+              'Salvar parcela'
             )}
           </Button>
         </>
@@ -110,23 +110,23 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
         noValidate
         className="col gap-4"
       >
-        <Field label="Transaction ID" error={form.formState.errors.transactionId?.message}>
+        <Field label="ID da transação" error={form.formState.errors.transactionId?.message}>
           <Input
-            placeholder="Paste the transaction ID from the transactions list"
+            placeholder="Cole o ID da transação da lista de transações"
             {...form.register('transactionId')}
           />
         </Field>
 
-        <Field label="Description" error={form.formState.errors.description?.message}>
-          <Input placeholder="e.g. New laptop — installment 3" {...form.register('description')} />
+        <Field label="Descrição" error={form.formState.errors.description?.message}>
+          <Input placeholder="ex: Notebook novo — parcela 3" {...form.register('description')} />
         </Field>
 
-        <Field label="Amount" error={form.formState.errors.amount?.message}>
-          <Input placeholder="e.g. 300.00" {...form.register('amount')} />
+        <Field label="Valor" error={form.formState.errors.amount?.message}>
+          <Input placeholder="ex: 300.00" {...form.register('amount')} />
         </Field>
 
-        <Field label="Due Date" error={form.formState.errors.dueDate?.message}>
-          <Input type="date" {...form.register('dueDate')} />
+        <Field label="Data de vencimento" error={form.formState.errors.competenceDate?.message}>
+          <Input type="date" {...form.register('competenceDate')} />
         </Field>
       </form>
     </Modal>

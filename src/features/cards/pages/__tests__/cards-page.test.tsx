@@ -218,9 +218,9 @@ describe('CardsPage — card sidebar', () => {
     await waitFor(() => expect(screen.getByText('Visa')).toBeTruthy())
   })
 
-  it('shows card last four digits in details', async () => {
+  it('shows card brand in details (VISA)', async () => {
     renderWithProviders(<CardsPage />)
-    await waitFor(() => expect(screen.getByText(`•••• ${MOCK_CARD_1.lastFourDigits}`)).toBeTruthy())
+    await waitFor(() => expect(screen.getAllByText('Visa').length).toBeGreaterThan(0))
   })
 
   it('shows "Uso do limite" section', async () => {
@@ -307,9 +307,6 @@ describe('CardsPage — create card dialog', () => {
 
     await user.clear(screen.getByRole('textbox', { name: /^name$/i }))
     await user.type(screen.getByRole('textbox', { name: /^name$/i }), 'My Test Card')
-    const lastFourInput = screen.getByRole('textbox', { name: /last four digits/i })
-    await user.clear(lastFourInput)
-    await user.type(lastFourInput, '9999')
     await user.click(screen.getByRole('button', { name: /create card/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())

@@ -28,8 +28,12 @@ function ChartSkeleton() {
   )
 }
 
-export function BarChartCard() {
-  const { data, isLoading, isError } = useMonthlyChart(6)
+interface BarChartCardProps {
+  months?: number
+}
+
+export function BarChartCard({ months = 6 }: BarChartCardProps) {
+  const { data, isLoading, isError } = useMonthlyChart(months)
 
   const W = 620,
     H = 280,
@@ -40,7 +44,7 @@ export function BarChartCard() {
   const chartW = W - PAD_L - PAD_R
   const chartH = H - PAD_T - PAD_B
 
-  const entries = data?.data ?? []
+  const entries = data?.months ?? []
   const parsed = entries.map((e) => ({
     m: MONTH_ABBR_PT[e.month.slice(5, 7)] ?? e.month.slice(5, 7),
     income: parseFloat(e.income),
@@ -61,7 +65,9 @@ export function BarChartCard() {
       <div className="card-h">
         <div>
           <h3>Receitas vs Despesas</h3>
-          <div className="sub">Últimos 6 meses · R$ mil</div>
+          <div className="sub">
+            Últimos {months} {months === 1 ? 'mês' : 'meses'} · R$ mil
+          </div>
         </div>
         <div className="right">
           <span className="legend">

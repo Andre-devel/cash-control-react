@@ -16,7 +16,7 @@ export function useAdvanceInstallments() {
       void queryClient.invalidateQueries({ queryKey: INSTALLMENTS_QUERY_KEY })
       void queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
       void queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY })
-      const count = variables.transactionIds.length
+      const count = variables.installmentIds.length
       toast.success(`${count} installment${count > 1 ? 's' : ''} advanced successfully.`)
     },
     onError: (error) => {

@@ -1,18 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { TypeBadge } from '@/components/ui/type-badge'
 import { Money } from '@/components/ui/money'
 import type { InstallmentSeries } from '@/features/installments/types'
-
-const STATUS_LABELS: Record<string, string> = {
-  ACTIVE: 'Active',
-  SETTLED: 'Settled',
-}
-
-const STATUS_KINDS: Record<string, 'paid' | 'muted'> = {
-  ACTIVE: 'paid',
-  SETTLED: 'muted',
-}
 
 interface InstallmentSeriesCardProps {
   series: InstallmentSeries
@@ -29,9 +18,7 @@ export function InstallmentSeriesCard({
   onSettle,
   onAdvance,
 }: InstallmentSeriesCardProps) {
-  const remaining = series.installmentCount - series.paidCount
-  const progress =
-    series.installmentCount > 0 ? Math.round((series.paidCount / series.installmentCount) * 100) : 0
+  const isSettled = series.settled
 
   return (
     <div className="card">
@@ -49,9 +36,8 @@ export function InstallmentSeriesCard({
               {series.description}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <TypeBadge type={series.type} />
-              <Badge kind={STATUS_KINDS[series.status] ?? 'muted'} dot={false} square>
-                {STATUS_LABELS[series.status] ?? series.status}
+              <Badge kind={isSettled ? 'muted' : 'paid'} dot={false} square>
+                {isSettled ? 'Settled' : 'Active'}
               </Badge>
             </div>
           </div>
@@ -59,36 +45,28 @@ export function InstallmentSeriesCard({
             <div className="text-lg mono fw-500">
               <Money value={parseFloat(series.totalAmount)} />
             </div>
-            <div className="text-xs text-dim">
-              {series.paidCount}/{series.installmentCount} paid
-            </div>
+            <div className="text-xs text-dim">{series.totalInstallments}x</div>
           </div>
         </div>
 
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-            <span className="text-xs text-dim">Progresso</span>
-            <span className="text-xs text-dim mono">{progress}%</span>
-          </div>
-          <div
-            className="bar"
-            role="progressbar"
-            aria-valuenow={series.paidCount}
-            aria-valuemin={0}
-            aria-valuemax={series.installmentCount}
-            aria-label={`${series.paidCount} of ${series.installmentCount} installments paid`}
-          >
-            <i style={{ width: `${progress}%`, background: 'var(--accent)' }} />
-          </div>
+        <div
+          className="bar"
+          role="progressbar"
+          aria-valuenow={isSettled ? 100 : 0}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`${series.description} — ${isSettled ? 'settled' : 'active'}`}
+        >
+          <i style={{ width: isSettled ? '100%' : '0%', background: 'var(--accent)' }} />
         </div>
 
-        {series.nextDueDate && (
+        {series.firstPaymentDate && (
           <p className="text-xs text-dim">
-            Próximo vencimento: <span className="fw-500">{series.nextDueDate}</span>
+            Início: <span className="fw-500">{series.firstPaymentDate}</span>
           </p>
         )}
 
-        {series.status === 'ACTIVE' && (
+        {!isSettled && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             <Button
               type="button"
@@ -108,28 +86,24 @@ export function InstallmentSeriesCard({
             >
               Edit Installment
             </Button>
-            {remaining > 0 && (
-              <>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onAdvance(series)}
-                  aria-label={`Advance installment: ${series.description}`}
-                >
-                  Advance
-                </Button>
-                <Button
-                  type="button"
-                  variant="danger"
-                  size="sm"
-                  onClick={() => onSettle(series)}
-                  aria-label={`Settle early: ${series.description}`}
-                >
-                  Settle Early
-                </Button>
-              </>
-            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onAdvance(series)}
+              aria-label={`Advance installment: ${series.description}`}
+            >
+              Advance
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              onClick={() => onSettle(series)}
+              aria-label={`Settle early: ${series.description}`}
+            >
+              Settle Early
+            </Button>
           </div>
         )}
       </div>

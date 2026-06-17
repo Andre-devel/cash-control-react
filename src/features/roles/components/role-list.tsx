@@ -10,7 +10,7 @@ interface RoleListProps {
 export function RoleList({ roles, isLoading, isEmpty }: RoleListProps) {
   if (isLoading) {
     return (
-      <div className="space-y-2" aria-busy="true" aria-label="Loading roles">
+      <div className="space-y-2" aria-busy="true" aria-label="Carregando papéis">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="h-16 rounded-lg bg-surface-3 animate-pulse" />
         ))}
@@ -23,7 +23,7 @@ export function RoleList({ roles, isLoading, isEmpty }: RoleListProps) {
   }
 
   return (
-    <ul className="space-y-2" aria-label="Roles list">
+    <ul className="space-y-2" aria-label="Lista de papéis">
       {roles.map((role) => (
         <li key={role.id}>
           <RoleCard role={role} />

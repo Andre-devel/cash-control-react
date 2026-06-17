@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Receipt } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCards } from '@/features/cards/hooks/use-cards'
@@ -13,9 +13,15 @@ import { CreateCardDialog } from '@/features/cards/components/create-card-dialog
 import { RecordChargeDialog } from '@/features/cards/components/record-charge-dialog'
 import { PayInvoiceDialog } from '@/features/cards/components/pay-invoice-dialog'
 
-function getCurrentMonth(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+function getBillingCycleMonth(closingDay: number): string {
+  const today = new Date()
+  const day = today.getDate()
+  if (day <= closingDay) {
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+  } else {
+    const next = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+    return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`
+  }
 }
 
 function getSpendingRange(referenceMonth: string) {
@@ -55,19 +61,25 @@ function CardsSkeleton() {
 export default function CardsPage() {
   const { data: cards, isLoading, isError, refetch } = useCards()
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
-  const [referenceMonth, setReferenceMonth] = useState(getCurrentMonth)
+  const [referenceMonth, setReferenceMonth] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [chargeOpen, setChargeOpen] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
 
-  const activeCards = cards?.filter((c) => !c.archived) ?? []
+  const activeCards = cards?.filter((c) => !c.archivedAt) ?? []
   const selectedCard = activeCards.find((c) => c.id === selectedCardId) ?? activeCards[0] ?? null
 
-  const spendingRange = getSpendingRange(referenceMonth)
+  useEffect(() => {
+    if (selectedCard) {
+      setReferenceMonth(getBillingCycleMonth(selectedCard.closingDay))
+    }
+  }, [selectedCard])
+
+  const spendingRange = getSpendingRange(referenceMonth ?? '')
 
   const { data: invoice, isLoading: invoiceLoading } = useInvoice(
     selectedCard?.id ?? '',
-    referenceMonth,
+    referenceMonth ?? '',
   )
   const { data: limitUsage } = useLimitUsage(selectedCard?.id ?? '')
   const { data: spending } = useSpendingBreakdown(selectedCard?.id ?? '', spendingRange)
@@ -164,7 +176,7 @@ export default function CardsPage() {
                 card={selectedCard}
                 invoice={invoice}
                 invoiceLoading={invoiceLoading}
-                referenceMonth={referenceMonth}
+                referenceMonth={referenceMonth ?? ''}
                 onMonthChange={setReferenceMonth}
                 onPay={() => setPayOpen(true)}
               />

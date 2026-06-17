@@ -12,6 +12,7 @@ import {
   type CreateTransactionFormValues,
 } from '@/features/transactions/schemas/create-transaction.schema'
 import { useCreateTransaction } from '@/features/transactions/hooks/use-create-transaction'
+import { useCreateInstallment } from '@/features/installments/hooks/use-create-installment'
 import { setFormErrors } from '@/lib/form-errors'
 import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
@@ -42,6 +43,7 @@ const DEFAULT_VALUES: CreateTransactionFormValues = {
   status: 'PENDING',
   paymentMethod: 'OTHER',
   creditCardId: '',
+  installments: 1,
 }
 
 interface CreateTransactionDialogProps {
@@ -60,25 +62,47 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
     defaultValues: DEFAULT_VALUES,
   })
 
-  const { mutate: createTransaction, isPending } = useCreateTransaction({
+  const { mutate: createTransaction, isPending: isPendingTransaction } = useCreateTransaction({
     onFieldError: (error) => setFormErrors(error, form.setError),
   })
+  const { mutate: createInstallment, isPending: isPendingInstallment } = useCreateInstallment({
+    onFieldError: (error) => setFormErrors(error, form.setError),
+  })
+  const isPending = isPendingTransaction || isPendingInstallment
 
   const description = form.watch('description')
   const paymentMethod = form.watch('paymentMethod')
 
   function onSubmit(data: CreateTransactionFormValues) {
-    const payload = {
-      ...data,
-      categoryId: data.categoryId || undefined,
-      creditCardId: data.creditCardId || undefined,
+    const onSuccess = () => {
+      form.reset(DEFAULT_VALUES)
+      onClose()
     }
-    createTransaction(payload, {
-      onSuccess: () => {
-        form.reset(DEFAULT_VALUES)
-        onClose()
-      },
-    })
+
+    if (data.paymentMethod === 'CREDIT_CARD' && data.installments >= 2) {
+      createInstallment(
+        {
+          description: data.description,
+          totalAmount: data.amount,
+          totalInstallments: data.installments,
+          accountId: data.accountId,
+          categoryId: data.categoryId || undefined,
+          firstPaymentDate: data.competenceDate,
+          paymentMethod: data.paymentMethod,
+          creditCardId: data.creditCardId || undefined,
+        },
+        { onSuccess },
+      )
+    } else {
+      createTransaction(
+        {
+          ...data,
+          categoryId: data.categoryId || undefined,
+          creditCardId: data.creditCardId || undefined,
+        },
+        { onSuccess },
+      )
+    }
   }
 
   function handleClose() {
@@ -218,6 +242,7 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
                   field.onChange(value)
                   if (value !== 'CREDIT_CARD') {
                     form.setValue('creditCardId', '')
+                    form.setValue('installments', 1)
                   }
                 }}
                 aria-label="Forma de pagamento"
@@ -227,20 +252,31 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
         />
 
         {paymentMethod === 'CREDIT_CARD' && (
-          <Controller
-            control={form.control}
-            name="creditCardId"
-            render={({ field, fieldState }) => (
-              <Field label="Cartão de crédito" error={fieldState.error?.message}>
-                <CreditCardSelect
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  cards={cards}
-                  aria-label="Cartão de crédito"
-                />
-              </Field>
-            )}
-          />
+          <>
+            <Controller
+              control={form.control}
+              name="creditCardId"
+              render={({ field, fieldState }) => (
+                <Field label="Cartão de crédito" error={fieldState.error?.message}>
+                  <CreditCardSelect
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    cards={cards}
+                    aria-label="Cartão de crédito"
+                  />
+                </Field>
+              )}
+            />
+            <Field label="Número de parcelas" error={form.formState.errors.installments?.message}>
+              <Input
+                type="number"
+                min={1}
+                max={360}
+                placeholder="ex: 12"
+                {...form.register('installments', { valueAsNumber: true })}
+              />
+            </Field>
+          </>
         )}
       </form>
     </Modal>

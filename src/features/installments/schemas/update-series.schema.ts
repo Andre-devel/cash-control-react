@@ -3,11 +3,11 @@ import { z } from 'zod'
 export const updateSeriesSchema = z.object({
   description: z
     .string()
-    .min(1, 'Description is required')
-    .max(255, 'Description must be at most 255 characters'),
-  accountId: z.string().min(1, 'Account is required'),
+    .min(1, 'Descrição é obrigatória')
+    .max(255, 'Descrição deve ter no máximo 255 caracteres'),
+  accountId: z.string().min(1, 'Conta é obrigatória'),
   categoryId: z.string().optional(),
-  notes: z.string().max(255, 'Notes must be at most 255 characters').optional(),
+  notes: z.string().max(255, 'Observações devem ter no máximo 255 caracteres').optional(),
 })
 
 export type UpdateSeriesFormValues = z.infer<typeof updateSeriesSchema>

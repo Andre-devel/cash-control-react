@@ -5,28 +5,30 @@ export interface DashboardOverview {
   netWorth?: string
   monthlySavings?: string
   cashFlow?: string
-  activeAccountsCount: number
+  currentMonth?: string
 }
 
 export interface CategoryChartItem {
   categoryId: string | null
   categoryName: string | null
-  amount: string
+  totalAmount: string
   percentage: string
 }
 
 export interface CategoriesChart {
-  items: CategoryChartItem[]
+  entries: CategoryChartItem[]
+  totalAmount?: string
 }
 
 export interface MonthlyChartEntry {
   month: string
   income: string
   expenses: string
+  net?: string
 }
 
 export interface MonthlyChart {
-  data: MonthlyChartEntry[]
+  months: MonthlyChartEntry[]
 }
 
 export interface NetWorthPoint {
@@ -35,14 +37,15 @@ export interface NetWorthPoint {
 }
 
 export interface NetWorthChart {
-  data: NetWorthPoint[]
+  snapshots: NetWorthPoint[]
 }
 
 export interface ComparisonMonth {
   month: string
   income: string
   expenses: string
-  balance: string
+  savings?: string
+  balance?: string
 }
 
 export interface MonthComparison {
@@ -54,27 +57,28 @@ export interface UpcomingBillItem {
   id: string
   description: string
   amount: string
-  dueDate: string
-  accountId: string
+  paymentDate: string
   accountName: string | null
-  status: 'PENDING' | 'OVERDUE'
+  categoryName?: string | null
+  status: 'PENDING' | 'OVERDUE' | 'PAID' | 'CANCELLED'
 }
 
 export interface UpcomingInvoiceItem {
-  cardId: string
+  invoiceId?: string
   cardName: string
-  referenceMonth: string
+  referenceMonth?: string
   totalAmount: string
   dueDate: string
+  status?: string
 }
 
 export interface LargestExpenseItem {
   id: string
   description: string
-  categoryId: string | null
   categoryName: string | null
+  accountName?: string | null
   amount: string
-  date: string
+  paymentDate: string
 }
 
 export interface RecentTransactionItem {
@@ -82,9 +86,9 @@ export interface RecentTransactionItem {
   description: string
   type: string
   amount: string
-  accountId: string
   accountName: string | null
-  date: string
+  categoryName?: string | null
+  competenceDate: string
   status: string
 }
 

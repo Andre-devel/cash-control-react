@@ -116,7 +116,7 @@ export function UpcomingBillsCard() {
         <div className="card-b flush">
           {bills.map((bill) => {
             const overdue = bill.status === 'OVERDUE'
-            const days = daysUntil(bill.dueDate)
+            const days = daysUntil(bill.paymentDate)
             return (
               <div className="list-row" key={bill.id}>
                 <IconBubble
@@ -131,7 +131,7 @@ export function UpcomingBillsCard() {
                     {bill.description}
                   </div>
                   <div className="meta">
-                    {bill.accountName ?? 'Conta'} · vence {fmtDateShort(bill.dueDate)}
+                    {bill.accountName ?? 'Conta'} · vence {fmtDateShort(bill.paymentDate)}
                     {overdue && <span style={{ color: 'var(--expense)' }}> · vencida</span>}
                     {!overdue && days <= 3 && (
                       <span style={{ color: 'var(--pending)' }}> · em {days}d</span>

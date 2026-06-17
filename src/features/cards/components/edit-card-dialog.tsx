@@ -20,7 +20,7 @@ const BRAND_LABELS: Record<string, string> = {
   ELO: 'Elo',
   AMEX: 'Amex',
   HIPERCARD: 'Hipercard',
-  OTHER: 'Other',
+  OTHER: 'Outro',
 }
 
 interface EditCardDialogProps {
@@ -37,11 +37,9 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
     defaultValues: {
       name: '',
       brand: 'VISA',
-      lastFourDigits: '',
       creditLimit: '0.00',
       closingDay: 1,
       dueDay: 10,
-      color: '#820AD1',
     },
   })
 
@@ -50,11 +48,9 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
       form.reset({
         name: card.name,
         brand: card.brand,
-        lastFourDigits: card.lastFourDigits,
         creditLimit: card.creditLimit,
         closingDay: card.closingDay,
         dueDay: card.dueDay,
-        color: card.color,
       })
     }
   }, [card, form])
@@ -79,12 +75,12 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
 
   return (
     <Modal
-      title="Edit Credit Card"
+      title="Editar cartão de crédito"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -108,10 +104,10 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
                   }}
                   aria-hidden="true"
                 />
-                Saving…
+                Salvando…
               </>
             ) : (
-              'Save Changes'
+              'Salvar alterações'
             )}
           </Button>
         </>
@@ -123,12 +119,12 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
         noValidate
         className="col gap-4"
       >
-        <Field label="Name" error={form.formState.errors.name?.message}>
-          <Input placeholder="e.g. Nubank" {...form.register('name')} />
+        <Field label="Nome" error={form.formState.errors.name?.message}>
+          <Input placeholder="ex: Nubank" {...form.register('name')} />
         </Field>
 
-        <Field label="Brand" error={form.formState.errors.brand?.message}>
-          <Select aria-label="Brand" {...form.register('brand')}>
+        <Field label="Bandeira" error={form.formState.errors.brand?.message}>
+          <Select aria-label="Bandeira" {...form.register('brand')}>
             {CARD_BRANDS.map((brand) => (
               <option key={brand} value={brand}>
                 {BRAND_LABELS[brand]}
@@ -137,16 +133,12 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
           </Select>
         </Field>
 
-        <Field label="Last Four Digits" error={form.formState.errors.lastFourDigits?.message}>
-          <Input placeholder="e.g. 1234" maxLength={4} {...form.register('lastFourDigits')} />
-        </Field>
-
-        <Field label="Credit Limit" error={form.formState.errors.creditLimit?.message}>
-          <Input placeholder="e.g. 5000.00" {...form.register('creditLimit')} />
+        <Field label="Limite de crédito" error={form.formState.errors.creditLimit?.message}>
+          <Input placeholder="ex: 5000.00" {...form.register('creditLimit')} />
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Closing Day" error={form.formState.errors.closingDay?.message}>
+          <Field label="Dia de fechamento" error={form.formState.errors.closingDay?.message}>
             <Input
               type="number"
               min={1}
@@ -155,7 +147,7 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
             />
           </Field>
 
-          <Field label="Due Day" error={form.formState.errors.dueDay?.message}>
+          <Field label="Dia de vencimento" error={form.formState.errors.dueDay?.message}>
             <Input
               type="number"
               min={1}
@@ -164,10 +156,6 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
             />
           </Field>
         </div>
-
-        <Field label="Color" error={form.formState.errors.color?.message}>
-          <Input type="color" className="h-10 w-full cursor-pointer" {...form.register('color')} />
-        </Field>
       </form>
     </Modal>
   )

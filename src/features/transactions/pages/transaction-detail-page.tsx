@@ -17,14 +17,14 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Pending',
-  PAID: 'Paid',
-  CANCELLED: 'Cancelled',
+  PENDING: 'Pendente',
+  PAID: 'Pago',
+  CANCELLED: 'Cancelado',
 }
 
 function DetailSkeleton() {
   return (
-    <div className="space-y-4" aria-busy="true" aria-label="Loading transaction">
+    <div className="space-y-4" aria-busy="true" aria-label="Carregando transação">
       <div className="h-8 w-48 rounded animate-pulse" style={{ background: 'var(--surface-3)' }} />
       <div className="h-32 rounded animate-pulse" style={{ background: 'var(--surface-3)' }} />
     </div>
@@ -45,10 +45,10 @@ export default function TransactionDetailPage() {
   if (isError || !transaction) {
     return (
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Transaction</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Transação</h1>
         <div role="alert">
           <p className="text-sm" style={{ color: 'var(--expense)' }}>
-            Failed to load transaction.
+            Falha ao carregar transação.
           </p>
           <Button
             variant="ghost"
@@ -56,7 +56,7 @@ export default function TransactionDetailPage() {
             onClick={() => void navigate(ROUTES.TRANSACTIONS)}
             className="mt-2"
           >
-            Back to Transactions
+            Voltar para transações
           </Button>
         </div>
       </div>
@@ -73,7 +73,7 @@ export default function TransactionDetailPage() {
             onClick={() => void navigate(ROUTES.TRANSACTIONS)}
             className="mb-2"
           >
-            ← Back
+            ← Voltar
           </Button>
           <h1 className="text-2xl font-bold tracking-tight">{transaction.description}</h1>
         </div>
@@ -88,7 +88,7 @@ export default function TransactionDetailPage() {
                 className="min-h-[44px]"
                 onClick={() => setEditOpen(true)}
               >
-                Edit
+                Editar
               </Button>
               <Button
                 variant="ghost"
@@ -96,7 +96,7 @@ export default function TransactionDetailPage() {
                 className="min-h-[44px]"
                 onClick={() => setCancelOpen(true)}
               >
-                Cancel
+                Cancelar
               </Button>
             </>
           )}
@@ -106,7 +106,7 @@ export default function TransactionDetailPage() {
             className="min-h-[44px]"
             onClick={() => setDeleteOpen(true)}
           >
-            Delete
+            Excluir
           </Button>
         </div>
       </div>
@@ -115,24 +115,24 @@ export default function TransactionDetailPage() {
         <div className="card-b space-y-3">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div>
-              <p className="text-xs text-dim">Amount</p>
+              <p className="text-xs text-dim">Valor</p>
               <p className="text-sm font-semibold">{transaction.amount}</p>
             </div>
             <div>
-              <p className="text-xs text-dim">Type</p>
+              <p className="text-xs text-dim">Tipo</p>
               <p className="text-sm">{TYPE_LABELS[transaction.type]}</p>
             </div>
             <div>
-              <p className="text-xs text-dim">Status</p>
+              <p className="text-xs text-dim">Situação</p>
               <p className="text-sm">{STATUS_LABELS[transaction.status]}</p>
             </div>
             <div>
-              <p className="text-xs text-dim">Date</p>
+              <p className="text-xs text-dim">Data</p>
               <p className="text-sm">{transaction.competenceDate}</p>
             </div>
             {transaction.paymentDate && (
               <div>
-                <p className="text-xs text-dim">Payment Date</p>
+                <p className="text-xs text-dim">Data do pagamento</p>
                 <p className="text-sm">{transaction.paymentDate}</p>
               </div>
             )}

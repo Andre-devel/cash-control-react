@@ -179,42 +179,49 @@ function SummaryKpi({ kind, label, value, count }: SummaryKpiProps) {
 function TableSkeleton() {
   return (
     <div className="card flush animate-pulse" aria-busy="true" aria-label="Carregando transações">
-      <table className="tbl">
-        <tbody>
-          {[1, 2, 3, 4, 5].map((i) => (
-            <tr key={i}>
-              <td style={{ paddingLeft: 16, width: 32 }}>
-                <div
-                  style={{ width: 14, height: 14, background: 'var(--surface-3)', borderRadius: 3 }}
-                />
-              </td>
-              <td style={{ minWidth: 200 }}>
-                <div
-                  style={{
-                    height: 12,
-                    width: 160,
-                    background: 'var(--surface-3)',
-                    borderRadius: 4,
-                  }}
-                />
-              </td>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((j) => (
-                <td key={j}>
+      <div className="tbl-wrap">
+        <table className="tbl">
+          <tbody>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <tr key={i}>
+                <td style={{ paddingLeft: 16, width: 32 }}>
+                  <div
+                    style={{
+                      width: 14,
+                      height: 14,
+                      background: 'var(--surface-3)',
+                      borderRadius: 3,
+                    }}
+                  />
+                </td>
+                <td style={{ minWidth: 200 }}>
                   <div
                     style={{
                       height: 12,
-                      width: 70,
+                      width: 160,
                       background: 'var(--surface-3)',
                       borderRadius: 4,
                     }}
                   />
                 </td>
-              ))}
-              <td style={{ paddingRight: 8 }} />
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((j) => (
+                  <td key={j}>
+                    <div
+                      style={{
+                        height: 12,
+                        width: 70,
+                        background: 'var(--surface-3)',
+                        borderRadius: 4,
+                      }}
+                    />
+                  </td>
+                ))}
+                <td style={{ paddingRight: 8 }} />
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -389,45 +396,47 @@ export default function TransactionsPage() {
       ) : (
         <>
           <div className="card flush">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th style={{ paddingLeft: 16, width: 32 }}>
-                    <input type="checkbox" className="checkbox" />
-                  </th>
-                  <th>Descrição</th>
-                  <th>Categoria</th>
-                  <th>Conta</th>
-                  <th>Forma de pagamento</th>
-                  <th>Tipo</th>
-                  <th>Status</th>
-                  <th>Competência</th>
-                  <th>Pagamento</th>
-                  <th className="num">Valor</th>
-                  <th style={{ width: 32 }} />
-                </tr>
-              </thead>
-              <tbody>
-                {grouped.map(([date, rows]) => (
-                  <Fragment key={date}>
-                    <GroupDateRow date={date} rows={rows} />
-                    {rows.map((tx) => (
-                      <TransactionRow
-                        key={tx.id}
-                        transaction={tx}
-                        accounts={accounts}
-                        categories={categories}
-                        onEdit={setEditTarget}
-                        onDelete={setDeleteTarget}
-                        onPay={handlePay}
-                        onCancel={setCancelTarget}
-                        onView={handleView}
-                      />
-                    ))}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
+            <div className="tbl-wrap">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th style={{ paddingLeft: 16, width: 32 }}>
+                      <input type="checkbox" className="checkbox" />
+                    </th>
+                    <th>Descrição</th>
+                    <th>Categoria</th>
+                    <th>Conta</th>
+                    <th>Forma de pagamento</th>
+                    <th>Tipo</th>
+                    <th>Status</th>
+                    <th>Competência</th>
+                    <th>Pagamento</th>
+                    <th className="num">Valor</th>
+                    <th style={{ width: 32 }} />
+                  </tr>
+                </thead>
+                <tbody>
+                  {grouped.map(([date, rows]) => (
+                    <Fragment key={date}>
+                      <GroupDateRow date={date} rows={rows} />
+                      {rows.map((tx) => (
+                        <TransactionRow
+                          key={tx.id}
+                          transaction={tx}
+                          accounts={accounts}
+                          categories={categories}
+                          onEdit={setEditTarget}
+                          onDelete={setDeleteTarget}
+                          onPay={handlePay}
+                          onCancel={setCancelTarget}
+                          onView={handleView}
+                        />
+                      ))}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {totalPages > 1 && (

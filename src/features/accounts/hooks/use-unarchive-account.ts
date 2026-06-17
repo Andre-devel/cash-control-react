@@ -19,7 +19,7 @@ export function useUnarchiveAccount() {
           return old.map((a) => (a.id === updatedAccount.id ? updatedAccount : a))
         }
         // Account not in this list yet — add it if this is a non-archived list
-        const isNonArchivedList = !old.some((a) => a.archived)
+        const isNonArchivedList = !old.some((a) => a.archivedAt)
         return isNonArchivedList ? [...old, updatedAccount] : old
       })
       toast.success('Account restored.')

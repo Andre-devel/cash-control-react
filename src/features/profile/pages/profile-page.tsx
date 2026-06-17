@@ -13,7 +13,7 @@ import type { UpdateProfileFormValues } from '@/features/profile/schemas/update-
 
 function ProfileSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Loading profile">
+    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Carregando perfil">
       <div className="h-6 w-32 rounded bg-surface-3" />
       <div className="h-10 w-full rounded bg-surface-3" />
       <div className="h-10 w-24 rounded bg-surface-3" />
@@ -42,11 +42,11 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 max-w-lg">
-      <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
+      <h1 className="text-2xl font-bold tracking-tight">Perfil</h1>
 
       <div className="card">
         <div className="card-h">
-          <h3>Account Information</h3>
+          <h3>Informações da conta</h3>
         </div>
         <div className="card-b">
           {isLoading ? (
@@ -54,23 +54,23 @@ export default function ProfilePage() {
           ) : isError ? (
             <div className="space-y-2" role="alert">
               <p className="text-sm" style={{ color: 'var(--expense)' }}>
-                Failed to load profile.
+                Falha ao carregar perfil.
               </p>
               <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-                Retry
+                Tentar novamente
               </Button>
             </div>
           ) : (
             <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="col gap-4">
               {profile?.email && (
                 <div className="space-y-1">
-                  <p className="text-sm fw-500">Email</p>
+                  <p className="text-sm fw-500">E-mail</p>
                   <p className="text-sm text-dim">{profile.email}</p>
                 </div>
               )}
 
-              <Field label="Display Name" error={form.formState.errors.name?.message}>
-                <Input placeholder="Your name" autoComplete="name" {...form.register('name')} />
+              <Field label="Nome de exibição" error={form.formState.errors.name?.message}>
+                <Input placeholder="Seu nome" autoComplete="name" {...form.register('name')} />
               </Field>
 
               <Button type="submit" disabled={isPending} aria-busy={isPending}>
@@ -88,10 +88,10 @@ export default function ProfilePage() {
                       }}
                       aria-hidden="true"
                     />
-                    Saving…
+                    Salvando…
                   </>
                 ) : (
-                  'Save changes'
+                  'Salvar alterações'
                 )}
               </Button>
             </form>
@@ -101,7 +101,7 @@ export default function ProfilePage() {
 
       <div className="card">
         <div className="card-h">
-          <h3>Change Password</h3>
+          <h3>Alterar senha</h3>
         </div>
         <div className="card-b">
           <ChangePasswordSection />
@@ -110,7 +110,7 @@ export default function ProfilePage() {
 
       <div className="card">
         <div className="card-h">
-          <h3>Consent History</h3>
+          <h3>Histórico de consentimento</h3>
         </div>
         <div className="card-b">
           <ConsentHistorySection />

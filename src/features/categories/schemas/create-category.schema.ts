@@ -1,12 +1,15 @@
 import { z } from 'zod'
 
-export const CATEGORY_TYPES = ['INCOME', 'EXPENSE'] as const
+const COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/
 
 export const createCategorySchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be at most 100 characters'),
-  color: z.string().min(1, 'Color is required'),
-  icon: z.string().min(1, 'Icon is required'),
-  type: z.enum(CATEGORY_TYPES, { message: 'Type must be INCOME or EXPENSE' }),
+  name: z.string().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
+  color: z
+    .string()
+    .regex(COLOR_PATTERN, 'Cor deve ser um hexadecimal válido (ex: #4CAF50)')
+    .optional()
+    .or(z.literal('')),
+  icon: z.string().max(50).optional().or(z.literal('')),
   parentId: z.string().optional(),
 })
 

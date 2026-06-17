@@ -21,12 +21,12 @@ export function ArchiveCardDialog({ card, open, onClose }: ArchiveCardDialogProp
 
   return (
     <Modal
-      title="Archive Card"
+      title="Arquivar cartão"
       onClose={onClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -50,18 +50,18 @@ export function ArchiveCardDialog({ card, open, onClose }: ArchiveCardDialogProp
                   }}
                   aria-hidden="true"
                 />
-                Archiving…
+                Arquivando…
               </>
             ) : (
-              'Archive Card'
+              'Arquivar cartão'
             )}
           </Button>
         </>
       }
     >
       <p>
-        Are you sure you want to archive <strong>{card?.name}</strong>? The card's invoice history
-        will remain accessible.
+        Tem certeza que deseja arquivar <strong>{card?.name}</strong>? O histórico de faturas do
+        cartão continuará acessível.
       </p>
     </Modal>
   )

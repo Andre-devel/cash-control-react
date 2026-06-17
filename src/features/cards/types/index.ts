@@ -1,64 +1,71 @@
 export type CardBrand = 'VISA' | 'MASTERCARD' | 'ELO' | 'AMEX' | 'HIPERCARD' | 'OTHER'
-export type InvoiceStatus = 'OPEN' | 'CLOSED' | 'PAID' | 'PARTIALLY_PAID'
+export type InvoiceStatus = 'OPEN' | 'CLOSED' | 'PAID' | 'PARTIALLY_PAID' | 'PARTIAL' | 'OVERDUE'
 
 export interface Card {
   id: string
   name: string
   brand: CardBrand
-  lastFourDigits: string
   issuer?: string
   creditLimit: string
   currentInvoiceTotal?: string
   closingDay: number
   dueDay: number
-  color: string
-  archived: boolean
+  archivedAt: string | null
+  sharedLimitGroupId?: string | null
   createdAt: string
+  updatedAt?: string
 }
 
 export interface InvoiceItem {
   id: string
   description: string
   amount: string
-  date: string
+  competenceDate: string
   categoryId: string | null
+  categoryName?: string | null
+  subcategoryId?: string | null
+  subcategoryName?: string | null
+  notes?: string
+  isRevolving?: boolean
+  installmentNumber?: number | null
+  totalInstallments?: number | null
+  transactionId?: string | null
 }
 
 export interface Invoice {
   id: string
-  cardId: string
+  creditCardId: string
   referenceMonth: string
   closingDate?: string
   totalAmount: string
   paidAmount: string
-  remainingAmount: string
   status: InvoiceStatus
   dueDate: string
   items: InvoiceItem[]
 }
 
 export interface LimitUsage {
+  cardId?: string
   creditLimit: string
-  usedAmount: string
-  availableAmount: string
+  usedLimit: string
+  availableLimit: string
   usagePercentage?: string
 }
 
 export interface SpendingItem {
   categoryId: string | null
   categoryName: string | null
-  amount: string
+  totalAmount: string
   percentage: string
 }
 
 export interface CreateCardRequest {
   name: string
   brand: CardBrand
-  lastFourDigits: string
+  issuer?: string
   creditLimit: string
   closingDay: number
   dueDay: number
-  color: string
 }
 
 export type UpdateCardRequest = CreateCardRequest

@@ -24,7 +24,7 @@ export function DeleteAccountDialog({ account, open, onClose }: DeleteAccountDia
       onError: (error) => {
         if (error.status === 409) {
           setConflictError(
-            'This account cannot be deleted because it has linked transactions. Archive it instead to keep the history.',
+            'Esta conta não pode ser excluída pois possui transações vinculadas. Arquive-a para preservar o histórico.',
           )
         }
       },
@@ -40,12 +40,12 @@ export function DeleteAccountDialog({ account, open, onClose }: DeleteAccountDia
 
   return (
     <Modal
-      title="Delete Account"
+      title="Excluir conta"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -69,18 +69,18 @@ export function DeleteAccountDialog({ account, open, onClose }: DeleteAccountDia
                   }}
                   aria-hidden="true"
                 />
-                Deleting…
+                Excluindo…
               </>
             ) : (
-              'Delete Account'
+              'Excluir conta'
             )}
           </Button>
         </>
       }
     >
       <p>
-        Are you sure you want to permanently delete <strong>{account?.name}</strong>? This action
-        cannot be undone.
+        Tem certeza que deseja excluir permanentemente <strong>{account?.name}</strong>? Esta ação
+        não pode ser desfeita.
       </p>
       {conflictError && (
         <div

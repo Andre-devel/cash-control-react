@@ -4,7 +4,11 @@ import { useUpcomingBills } from '@/features/dashboard/hooks/use-upcoming-bills'
 
 function WidgetSkeleton() {
   return (
-    <div className="space-y-2 animate-pulse" aria-busy="true" aria-label="Loading upcoming bills">
+    <div
+      className="space-y-2 animate-pulse"
+      aria-busy="true"
+      aria-label="Carregando contas a pagar"
+    >
       {[1, 2, 3].map((i) => (
         <div key={i} className="h-10 rounded" style={{ background: 'var(--surface-3)' }} />
       ))}
@@ -19,10 +23,10 @@ export function UpcomingBillsWidget() {
   return (
     <div className="card">
       <div className="card-h">
-        <h3>Upcoming Bills</h3>
+        <h3>Contas a pagar</h3>
         <div className="flex items-center gap-2 text-sm">
           <label htmlFor="days-ahead" className="text-xs text-dim">
-            Days ahead:
+            Dias à frente:
           </label>
           <select
             id="days-ahead"
@@ -30,7 +34,7 @@ export function UpcomingBillsWidget() {
             onChange={(e) => setDaysAhead(Number(e.target.value))}
             className="select"
             style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
-            aria-label="Days ahead"
+            aria-label="Dias à frente"
           >
             {[7, 14, 30].map((d) => (
               <option key={d} value={d}>
@@ -46,15 +50,15 @@ export function UpcomingBillsWidget() {
         ) : isError ? (
           <div role="alert" className="space-y-2">
             <p className="text-sm" style={{ color: 'var(--expense)' }}>
-              Failed to load upcoming bills.
+              Falha ao carregar contas a pagar.
             </p>
             <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              Retry
+              Tentar novamente
             </Button>
           </div>
         ) : !data || data.length === 0 ? (
           <p className="text-sm text-dim" style={{ textAlign: 'center', padding: '16px 0' }}>
-            No upcoming bills in the next {daysAhead} days.
+            Nenhuma conta nos próximos {daysAhead} dias.
           </p>
         ) : (
           <ul className="divide-y" role="list">
@@ -72,8 +76,8 @@ export function UpcomingBillsWidget() {
                       className="text-xs"
                       style={{ color: overdue ? 'var(--expense)' : 'var(--text-dim)' }}
                     >
-                      Due: {new Date(bill.dueDate).toLocaleDateString()}
-                      {overdue && ' — Overdue'}
+                      Vencimento: {new Date(bill.paymentDate).toLocaleDateString()}
+                      {overdue && ' — Vencida'}
                     </p>
                   </div>
                   <span className="mono fw-600 ml-4">{bill.amount}</span>

@@ -22,6 +22,7 @@ export const createTransactionSchema = z
     status: z.enum(TRANSACTION_STATUSES),
     paymentMethod: z.enum(PAYMENT_METHOD_SLUGS),
     creditCardId: z.string().optional(),
+    installments: z.number().int('Número de parcelas deve ser inteiro').min(1, 'Mínimo 1 parcela'),
   })
   .refine((data) => data.paymentMethod !== 'CREDIT_CARD' || !!data.creditCardId, {
     message: 'Selecione um cartão de crédito',

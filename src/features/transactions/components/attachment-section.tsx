@@ -34,12 +34,12 @@ function DeleteAttachmentDialog({
 
   return (
     <Modal
-      title="Delete Attachment"
+      title="Excluir anexo"
       onClose={onClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -49,13 +49,13 @@ function DeleteAttachmentDialog({
             aria-busy={isPending}
             onClick={handleConfirm}
           >
-            {isPending ? 'Deleting…' : 'Delete'}
+            {isPending ? 'Excluindo…' : 'Excluir'}
           </Button>
         </>
       }
     >
       <p>
-        Are you sure you want to delete <strong>{attachment?.fileName}</strong>?
+        Tem certeza que deseja excluir <strong>{attachment?.fileName}</strong>?
       </p>
     </Modal>
   )
@@ -79,13 +79,13 @@ export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
     setClientError(null)
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      setClientError('Unsupported file type. Accepted: JPEG, PNG, PDF, GIF, WebP.')
+      setClientError('Tipo de arquivo não suportado. Aceitos: JPEG, PNG, PDF, GIF, WebP.')
       e.target.value = ''
       return
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      setClientError(`File is too large. Maximum size is ${MAX_FILE_SIZE_MB} MB.`)
+      setClientError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB} MB.`)
       e.target.value = ''
       return
     }
@@ -98,9 +98,9 @@ export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
   }
 
   return (
-    <section aria-label="Attachments" className="space-y-3">
+    <section aria-label="Anexos" className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Attachments</h3>
+        <h3 className="text-sm font-semibold">Anexos</h3>
         <Button
           type="button"
           variant="ghost"
@@ -109,14 +109,14 @@ export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
           disabled={uploading}
           onClick={() => fileInputRef.current?.click()}
         >
-          Upload
+          Enviar
         </Button>
         <input
           ref={fileInputRef}
           type="file"
           accept={ACCEPTED_TYPES.join(',')}
           className="hidden"
-          aria-label="Upload attachment"
+          aria-label="Enviar anexo"
           onChange={handleFileChange}
         />
       </div>
@@ -128,7 +128,7 @@ export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
       )}
 
       {uploading && (
-        <div className="space-y-1" aria-live="polite" aria-label="Upload progress">
+        <div className="space-y-1" aria-live="polite" aria-label="Progresso do envio">
           <div className="bar" style={{ borderRadius: 9999 }}>
             <i
               style={{
@@ -138,12 +138,12 @@ export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
               }}
             />
           </div>
-          <p className="text-xs text-dim">{progress}% uploaded</p>
+          <p className="text-xs text-dim">{progress}% enviado</p>
         </div>
       )}
 
       {isLoading ? (
-        <div className="space-y-2" aria-busy="true" aria-label="Loading attachments">
+        <div className="space-y-2" aria-busy="true" aria-label="Carregando anexos">
           {[1, 2].map((i) => (
             <div
               key={i}
@@ -153,9 +153,9 @@ export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
           ))}
         </div>
       ) : attachments.length === 0 ? (
-        <p className="text-sm text-dim">No attachments yet.</p>
+        <p className="text-sm text-dim">Nenhum anexo ainda.</p>
       ) : (
-        <ul className="space-y-2" aria-label="Attachment list">
+        <ul className="space-y-2" aria-label="Lista de anexos">
           {attachments.map((att) => (
             <li
               key={att.id}
@@ -175,10 +175,10 @@ export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
                 variant="danger"
                 size="sm"
                 className="shrink-0"
-                aria-label={`Delete ${att.fileName}`}
+                aria-label={`Excluir ${att.fileName}`}
                 onClick={() => setDeleteTarget(att)}
               >
-                Delete
+                Excluir
               </Button>
             </li>
           ))}

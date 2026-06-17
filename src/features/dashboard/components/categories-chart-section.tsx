@@ -29,7 +29,7 @@ function ChartSkeleton() {
       className="h-64 rounded animate-pulse"
       style={{ background: 'var(--surface-3)' }}
       aria-busy="true"
-      aria-label="Loading categories chart"
+      aria-label="Carregando gráfico de categorias"
     />
   )
 }
@@ -44,10 +44,10 @@ export function CategoriesChartSection() {
   return (
     <div className="card">
       <div className="card-h">
-        <h3>Spending by Category</h3>
+        <h3>Gastos por categoria</h3>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <label className="sr-only" htmlFor="cat-from">
-            From
+            De
           </label>
           <input
             id="cat-from"
@@ -56,11 +56,11 @@ export function CategoriesChartSection() {
             onChange={(e) => setFrom(e.target.value)}
             className="input"
             style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
-            aria-label="From date"
+            aria-label="Data de início"
           />
           <span className="text-dim">–</span>
           <label className="sr-only" htmlFor="cat-to">
-            To
+            Até
           </label>
           <input
             id="cat-to"
@@ -69,7 +69,7 @@ export function CategoriesChartSection() {
             onChange={(e) => setTo(e.target.value)}
             className="input"
             style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
-            aria-label="To date"
+            aria-label="Data de fim"
           />
         </div>
       </div>
@@ -79,23 +79,23 @@ export function CategoriesChartSection() {
         ) : isError ? (
           <div role="alert" className="space-y-2">
             <p className="text-sm" style={{ color: 'var(--expense)' }}>
-              Failed to load categories chart.
+              Falha ao carregar gráfico de categorias.
             </p>
             <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              Retry
+              Tentar novamente
             </Button>
           </div>
-        ) : !data || data.items.length === 0 ? (
+        ) : !data || data.entries.length === 0 ? (
           <p className="text-sm text-dim" style={{ padding: '32px 0', textAlign: 'center' }}>
-            No expense data for the selected period.
+            Nenhum dado de despesas para o período selecionado.
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Pie
-                data={data.items.map((item) => ({
-                  name: item.categoryName ?? 'Uncategorized',
-                  value: parseFloat(item.amount),
+                data={data.entries.map((item) => ({
+                  name: item.categoryName ?? 'Sem categoria',
+                  value: parseFloat(item.totalAmount),
                 }))}
                 dataKey="value"
                 nameKey="name"
@@ -106,7 +106,7 @@ export function CategoriesChartSection() {
                   `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`
                 }
               >
-                {data.items.map((_, index) => (
+                {data.entries.map((_, index) => (
                   <Cell key={index} fill={CAT_COLORS[index % CAT_COLORS.length]} />
                 ))}
               </Pie>

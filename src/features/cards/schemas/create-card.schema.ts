@@ -3,28 +3,24 @@ import { z } from 'zod'
 export const CARD_BRANDS = ['VISA', 'MASTERCARD', 'ELO', 'AMEX', 'HIPERCARD', 'OTHER'] as const
 
 const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/
-const FOUR_DIGITS_PATTERN = /^\d{4}$/
 
 export const createCardSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be at most 100 characters'),
-  brand: z.enum(CARD_BRANDS, { message: 'Brand is required' }),
-  lastFourDigits: z
-    .string()
-    .regex(FOUR_DIGITS_PATTERN, 'Last four digits must be exactly 4 numeric characters'),
+  name: z.string().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
+  brand: z.enum(CARD_BRANDS, { message: 'Bandeira é obrigatória' }),
+  issuer: z.string().max(100).optional(),
   creditLimit: z
     .string()
-    .regex(DECIMAL_PATTERN, 'Credit limit must be a valid decimal amount (e.g. 5000.00)'),
+    .regex(DECIMAL_PATTERN, 'Limite deve ser um valor decimal válido (ex: 5000.00)'),
   closingDay: z
     .number()
-    .int('Closing day must be an integer')
-    .min(1, 'Closing day must be between 1 and 31')
-    .max(31, 'Closing day must be between 1 and 31'),
+    .int('Dia de fechamento deve ser um número inteiro')
+    .min(1, 'Dia de fechamento deve estar entre 1 e 28')
+    .max(28, 'Dia de fechamento deve estar entre 1 e 28'),
   dueDay: z
     .number()
-    .int('Due day must be an integer')
-    .min(1, 'Due day must be between 1 and 31')
-    .max(31, 'Due day must be between 1 and 31'),
-  color: z.string().min(1, 'Color is required'),
+    .int('Dia de vencimento deve ser um número inteiro')
+    .min(1, 'Dia de vencimento deve estar entre 1 e 28')
+    .max(28, 'Dia de vencimento deve estar entre 1 e 28'),
 })
 
 export type CreateCardFormValues = z.infer<typeof createCardSchema>

@@ -14,12 +14,11 @@ import {
 import { useCreateRecurrence } from '@/features/recurrences/hooks/use-create-recurrence'
 
 const FREQUENCY_LABELS: Record<string, string> = {
-  DAILY: 'Daily',
-  WEEKLY: 'Weekly',
-  BIWEEKLY: 'Biweekly',
-  MONTHLY: 'Monthly',
-  QUARTERLY: 'Quarterly',
-  YEARLY: 'Yearly',
+  DAILY: 'Diário',
+  WEEKLY: 'Semanal',
+  BIWEEKLY: 'Quinzenal',
+  MONTHLY: 'Mensal',
+  YEARLY: 'Anual',
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -73,12 +72,12 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
 
   return (
     <Modal
-      title="Create Recurrence Rule"
+      title="Nova regra de recorrência"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -102,10 +101,10 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
                   }}
                   aria-hidden="true"
                 />
-                Creating…
+                Criando…
               </>
             ) : (
-              'Create Rule'
+              'Criar regra'
             )}
           </Button>
         </>
@@ -117,16 +116,16 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
         noValidate
         className="col gap-4"
       >
-        <Field label="Description" error={form.formState.errors.description?.message}>
-          <Input placeholder="e.g. Monthly rent" {...form.register('description')} />
+        <Field label="Descrição" error={form.formState.errors.description?.message}>
+          <Input placeholder="ex: Aluguel mensal" {...form.register('description')} />
         </Field>
 
-        <Field label="Amount" error={form.formState.errors.amount?.message}>
-          <Input placeholder="e.g. 1500.00" {...form.register('amount')} />
+        <Field label="Valor" error={form.formState.errors.amount?.message}>
+          <Input placeholder="ex: 1500.00" {...form.register('amount')} />
         </Field>
 
-        <Field label="Type" error={form.formState.errors.type?.message}>
-          <Select aria-label="Type" {...form.register('type')}>
+        <Field label="Tipo" error={form.formState.errors.type?.message}>
+          <Select aria-label="Tipo" {...form.register('type')}>
             {RECURRENCE_TYPES.map((type) => (
               <option key={type} value={type}>
                 {TYPE_LABELS[type]}
@@ -135,8 +134,8 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
           </Select>
         </Field>
 
-        <Field label="Frequency" error={form.formState.errors.frequency?.message}>
-          <Select aria-label="Frequency" {...form.register('frequency')}>
+        <Field label="Frequência" error={form.formState.errors.frequency?.message}>
+          <Select aria-label="Frequência" {...form.register('frequency')}>
             {RECURRENCE_FREQUENCIES.map((freq) => (
               <option key={freq} value={freq}>
                 {FREQUENCY_LABELS[freq]}
@@ -145,15 +144,15 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
           </Select>
         </Field>
 
-        <Field label="Account ID" error={form.formState.errors.accountId?.message}>
-          <Input placeholder="Account UUID" {...form.register('accountId')} />
+        <Field label="ID da conta" error={form.formState.errors.accountId?.message}>
+          <Input placeholder="UUID da conta" {...form.register('accountId')} />
         </Field>
 
-        <Field label="Category ID (optional)" error={form.formState.errors.categoryId?.message}>
-          <Input placeholder="Category UUID" {...form.register('categoryId')} />
+        <Field label="ID da categoria (opcional)" error={form.formState.errors.categoryId?.message}>
+          <Input placeholder="UUID da categoria" {...form.register('categoryId')} />
         </Field>
 
-        <Field label="Start Date" error={form.formState.errors.startDate?.message}>
+        <Field label="Data de início" error={form.formState.errors.startDate?.message}>
           <Input type="date" {...form.register('startDate')} />
         </Field>
       </form>

@@ -6,18 +6,18 @@ function makeCategory(overrides: Partial<Category> & { id: string; name: string 
   return {
     color: '#000',
     icon: 'tag',
-    type: 'EXPENSE',
+    sortOrder: 1,
     parentId: null,
-    hidden: false,
-    archived: false,
-    isSystem: false,
+    isDefault: false,
+    isHidden: false,
+    isArchived: false,
     ...overrides,
   }
 }
 
 const FOOD = makeCategory({ id: 'cat-1', name: 'Food' })
 const RESTAURANT = makeCategory({ id: 'cat-3', name: 'Restaurant', parentId: 'cat-1' })
-const SALARY = makeCategory({ id: 'cat-2', name: 'Salary', type: 'INCOME' })
+const SALARY = makeCategory({ id: 'cat-2', name: 'Salary' })
 
 describe('flattenCategories', () => {
   it('returns empty array for empty input', () => {
@@ -66,7 +66,7 @@ describe('flattenCategories', () => {
     expect(result[0]).toMatchObject({
       id: 'cat-1',
       name: 'Food',
-      isSystem: false,
+      isDefault: false,
     })
   })
 })

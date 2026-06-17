@@ -1,16 +1,18 @@
-export type CategoryType = 'INCOME' | 'EXPENSE'
-
 export interface Category {
   id: string
   name: string
   color: string
   icon: string
-  type: CategoryType
   parentId: string | null
-  hidden: boolean
-  archived: boolean
-  isSystem: boolean
+  parentName?: string | null
+  sortOrder: number
+  isDefault: boolean
+  isHidden: boolean
+  isArchived: boolean
+  archivedAt?: string | null
   subcategories?: Category[]
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface ListCategoriesParams {
@@ -20,10 +22,10 @@ export interface ListCategoriesParams {
 
 export interface CreateCategoryRequest {
   name: string
-  color: string
-  icon: string
-  type: CategoryType
+  color?: string
+  icon?: string
   parentId?: string
+  sortOrder?: number
 }
 
 export type UpdateCategoryRequest = CreateCategoryRequest
@@ -44,4 +46,5 @@ export interface CreateCategorizationRuleRequest {
   categoryId: string
   subcategoryId?: string
   accountId?: string
+  priority?: number
 }

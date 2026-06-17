@@ -53,12 +53,12 @@ export function RecordChargeDialog({ cardId, open, onClose }: RecordChargeDialog
 
   return (
     <Modal
-      title="Record Charge"
+      title="Registrar cobrança"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -82,10 +82,10 @@ export function RecordChargeDialog({ cardId, open, onClose }: RecordChargeDialog
                   }}
                   aria-hidden="true"
                 />
-                Recording…
+                Registrando…
               </>
             ) : (
-              'Record Charge'
+              'Registrar'
             )}
           </Button>
         </>
@@ -97,20 +97,20 @@ export function RecordChargeDialog({ cardId, open, onClose }: RecordChargeDialog
         noValidate
         className="col gap-4"
       >
-        <Field label="Description" error={form.formState.errors.description?.message}>
-          <Input placeholder="e.g. Supermarket" {...form.register('description')} />
+        <Field label="Descrição" error={form.formState.errors.description?.message}>
+          <Input placeholder="ex: Supermercado" {...form.register('description')} />
         </Field>
 
-        <Field label="Amount" error={form.formState.errors.amount?.message}>
-          <Input placeholder="e.g. 150.00" {...form.register('amount')} />
+        <Field label="Valor" error={form.formState.errors.amount?.message}>
+          <Input placeholder="ex: 150.00" {...form.register('amount')} />
         </Field>
 
-        <Field label="Date" error={form.formState.errors.date?.message}>
+        <Field label="Data" error={form.formState.errors.date?.message}>
           <Input type="date" {...form.register('date')} />
         </Field>
 
-        <Field label="Category ID (optional)" error={form.formState.errors.categoryId?.message}>
-          <Input placeholder="Category UUID" {...form.register('categoryId')} />
+        <Field label="Categoria (opcional)" error={form.formState.errors.categoryId?.message}>
+          <Input placeholder="UUID da categoria" {...form.register('categoryId')} />
         </Field>
       </form>
     </Modal>

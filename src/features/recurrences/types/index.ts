@@ -1,12 +1,6 @@
-export type RecurrenceFrequency =
-  | 'DAILY'
-  | 'WEEKLY'
-  | 'BIWEEKLY'
-  | 'MONTHLY'
-  | 'QUARTERLY'
-  | 'YEARLY'
+export type RecurrenceFrequency = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'YEARLY'
 
-export type RecurrenceStatus = 'ACTIVE' | 'PAUSED'
+export type RecurrenceStatus = 'ACTIVE' | 'PAUSED' | 'ENDED' | 'DELETED'
 
 export type RecurrenceType = 'INCOME' | 'EXPENSE' | 'REFUND'
 
@@ -19,13 +13,17 @@ export interface Recurrence {
   type: RecurrenceType
   frequency: RecurrenceFrequency
   accountId: string
+  accountName?: string | null
   categoryId: string | null
+  categoryName?: string | null
   startDate: string
-  nextExecutionDate: string | null
+  endDate?: string | null
+  nextOccurrenceDate: string | null
   status: RecurrenceStatus
-  pausedUntil?: string
-  endDate?: string
+  pausedAt?: string | null
+  resumeAt?: string | null
   createdAt: string
+  updatedAt?: string
 }
 
 export interface CreateRecurrenceRequest {
@@ -42,19 +40,25 @@ export interface CreateRecurrenceRequest {
 export interface UpdateRecurrenceRequest {
   description: string
   amount: string
-  frequency: RecurrenceFrequency
-  type: RecurrenceType
   accountId: string
   categoryId?: string
-  startDate: string
-  endDate?: string
 }
 
 export interface PauseRecurrenceRequest {
-  pausedUntil?: string
+  resumeAt?: string
 }
 
 export interface DeleteRecurrenceParams {
   id: string
   strategy: DeleteRecurrenceStrategy
+}
+
+export interface RecurrenceCreationResponse {
+  rule: Recurrence
+  firstInstance: unknown
+}
+
+export interface EditRecurrenceResult {
+  rule: Recurrence
+  updatedInstances: number
 }

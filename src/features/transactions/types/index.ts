@@ -104,6 +104,8 @@ export interface CreateTransactionRequest {
   competenceDate: string
   status: TransactionStatus
   notes?: string
+  paymentMethod?: PaymentMethodSlug
+  creditCardId?: string
 }
 
 export interface UpdateTransactionRequest {

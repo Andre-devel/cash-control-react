@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,10 +12,21 @@ import { PayInvoiceDialog } from '@/features/cards/components/pay-invoice-dialog
 import { ROUTES } from '@/app/router/routes'
 
 const INVOICE_STATUS_LABELS: Record<string, string> = {
-  OPEN: 'Open',
-  CLOSED: 'Closed',
-  PAID: 'Paid',
-  PARTIALLY_PAID: 'Partially Paid',
+  OPEN: 'Aberta',
+  CLOSED: 'Fechada',
+  PAID: 'Paga',
+  PARTIALLY_PAID: 'Parcialmente paga',
+}
+
+function getBillingCycleMonth(closingDay: number): string {
+  const today = new Date()
+  const day = today.getDate()
+  if (day <= closingDay) {
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+  } else {
+    const next = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+    return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`
+  }
 }
 
 function getPreviousMonth(yyyyMm: string): string {
@@ -30,14 +41,9 @@ function getNextMonth(yyyyMm: string): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
 
-function getCurrentMonth(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-}
-
 function CardDetailSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Loading card">
+    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Carregando cartão">
       <div className="h-6 w-48 rounded" style={{ background: 'var(--surface-3)' }} />
       <div className="h-32 rounded" style={{ background: 'var(--surface-3)' }} />
     </div>
@@ -46,17 +52,19 @@ function CardDetailSkeleton() {
 
 export default function CardDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const [referenceMonth, setReferenceMonth] = useState(getCurrentMonth())
+  const [referenceMonth, setReferenceMonth] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [chargeOpen, setChargeOpen] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
 
-  const spendingFrom = `${referenceMonth}-01`
-  const spendingTo = (() => {
-    const [y, m] = referenceMonth.split('-').map(Number)
-    const lastDay = new Date(y, m, 0).getDate()
-    return `${referenceMonth}-${String(lastDay).padStart(2, '0')}`
-  })()
+  const spendingFrom = referenceMonth ? `${referenceMonth}-01` : ''
+  const spendingTo = referenceMonth
+    ? (() => {
+        const [y, m] = referenceMonth.split('-').map(Number)
+        const lastDay = new Date(y, m, 0).getDate()
+        return `${referenceMonth}-${String(lastDay).padStart(2, '0')}`
+      })()
+    : ''
 
   const {
     data: card,
@@ -64,7 +72,14 @@ export default function CardDetailPage() {
     isError: cardError,
     refetch: refetchCard,
   } = useCard(id ?? '')
-  const { data: invoice, isLoading: invoiceLoading } = useInvoice(id ?? '', referenceMonth)
+
+  useEffect(() => {
+    if (card && referenceMonth === null) {
+      setReferenceMonth(getBillingCycleMonth(card.closingDay))
+    }
+  }, [card, referenceMonth])
+
+  const { data: invoice, isLoading: invoiceLoading } = useInvoice(id ?? '', referenceMonth ?? '')
   const { data: limitUsage } = useLimitUsage(id ?? '')
   const { data: spending } = useSpendingBreakdown(id ?? '', { from: spendingFrom, to: spendingTo })
 
@@ -73,9 +88,7 @@ export default function CardDetailPage() {
       ? Math.round(parseFloat(limitUsage.usagePercentage))
       : Math.min(
           100,
-          Math.round(
-            (parseFloat(limitUsage.usedAmount) / parseFloat(limitUsage.creditLimit)) * 100,
-          ),
+          Math.round((parseFloat(limitUsage.usedLimit) / parseFloat(limitUsage.creditLimit)) * 100),
         )
     : 0
 
@@ -83,7 +96,7 @@ export default function CardDetailPage() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" asChild>
-          <Link to={ROUTES.CARDS}>&larr; Cards</Link>
+          <Link to={ROUTES.CARDS}>&larr; Cartões</Link>
         </Button>
       </div>
 
@@ -96,25 +109,19 @@ export default function CardDetailPage() {
       ) : cardError ? (
         <div className="space-y-2" role="alert">
           <p className="text-sm" style={{ color: 'var(--expense)' }}>
-            Failed to load card.
+            Falha ao carregar cartão.
           </p>
           <Button variant="ghost" size="sm" onClick={() => void refetchCard()}>
-            Retry
+            Tentar novamente
           </Button>
         </div>
       ) : card ? (
         <>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: card.color }}
-                aria-hidden="true"
-              />
-              <span className="text-sm mono text-dim">•••• {card.lastFourDigits}</span>
-              {card.archived && (
+              {card.archivedAt && (
                 <Badge kind="pending" dot={false} square>
-                  Archived
+                  Arquivado
                 </Badge>
               )}
             </div>
@@ -125,7 +132,7 @@ export default function CardDetailPage() {
                 className="min-h-[44px]"
                 onClick={() => setChargeOpen(true)}
               >
-                Record Charge
+                Registrar cobrança
               </Button>
               <Button
                 variant="ghost"
@@ -133,7 +140,7 @@ export default function CardDetailPage() {
                 className="min-h-[44px]"
                 onClick={() => setEditOpen(true)}
               >
-                Edit
+                Editar
               </Button>
             </div>
           </div>
@@ -141,12 +148,12 @@ export default function CardDetailPage() {
           {limitUsage && (
             <div className="card">
               <div className="card-h">
-                <h3>Limit Usage</h3>
+                <h3>Uso do limite</h3>
               </div>
               <div className="card-b space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-dim">Used</span>
-                  <span className="mono fw-600">{limitUsage.usedAmount}</span>
+                  <span className="text-dim">Utilizado</span>
+                  <span className="mono fw-600">{limitUsage.usedLimit}</span>
                 </div>
                 <div
                   className="bar"
@@ -154,13 +161,13 @@ export default function CardDetailPage() {
                   aria-valuenow={limitPercent}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  aria-label="Limit usage"
+                  aria-label="Uso do limite"
                 >
                   <i style={{ width: `${limitPercent}%`, background: 'var(--accent)' }} />
                 </div>
                 <div className="flex justify-between text-xs text-dim">
-                  <span>Available: {limitUsage.availableAmount}</span>
-                  <span>Limit: {limitUsage.creditLimit}</span>
+                  <span>Disponível: {limitUsage.availableLimit}</span>
+                  <span>Limite: {limitUsage.creditLimit}</span>
                 </div>
               </div>
             </div>
@@ -168,24 +175,26 @@ export default function CardDetailPage() {
 
           <div className="card">
             <div className="card-h">
-              <h3>Invoice</h3>
+              <h3>Fatura</h3>
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
-                  aria-label="Previous month"
-                  onClick={() => setReferenceMonth(getPreviousMonth(referenceMonth))}
+                  aria-label="Mês anterior"
+                  onClick={() =>
+                    referenceMonth && setReferenceMonth(getPreviousMonth(referenceMonth))
+                  }
                 >
                   ‹
                 </Button>
                 <span className="text-sm fw-500" style={{ width: 80, textAlign: 'center' }}>
-                  {referenceMonth}
+                  {referenceMonth ?? '—'}
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  aria-label="Next month"
-                  onClick={() => setReferenceMonth(getNextMonth(referenceMonth))}
+                  aria-label="Próximo mês"
+                  onClick={() => referenceMonth && setReferenceMonth(getNextMonth(referenceMonth))}
                 >
                   ›
                 </Button>
@@ -196,7 +205,7 @@ export default function CardDetailPage() {
                 <div
                   className="space-y-2 animate-pulse"
                   aria-busy="true"
-                  aria-label="Loading invoice"
+                  aria-label="Carregando fatura"
                 >
                   <div className="h-4 w-32 rounded" style={{ background: 'var(--surface-3)' }} />
                   <div className="h-4 w-24 rounded" style={{ background: 'var(--surface-3)' }} />
@@ -205,7 +214,7 @@ export default function CardDetailPage() {
                 <>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     <div>
-                      <p className="text-xs text-dim">Status</p>
+                      <p className="text-xs text-dim">Situação</p>
                       <p className="fw-500">
                         {INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}
                       </p>
@@ -215,30 +224,32 @@ export default function CardDetailPage() {
                       <p className="mono fw-600">{invoice.totalAmount}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-dim">Paid</p>
+                      <p className="text-xs text-dim">Pago</p>
                       <p className="mono fw-600">{invoice.paidAmount}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-dim">Remaining</p>
+                      <p className="text-xs text-dim">Restante</p>
                       <p className="mono fw-600" style={{ color: 'var(--expense)' }}>
-                        {invoice.remainingAmount}
+                        {(parseFloat(invoice.totalAmount) - parseFloat(invoice.paidAmount)).toFixed(
+                          2,
+                        )}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-dim">Due Date</p>
+                      <p className="text-xs text-dim">Vencimento</p>
                       <p className="fw-500">{new Date(invoice.dueDate).toLocaleDateString()}</p>
                     </div>
                   </div>
 
-                  {parseFloat(invoice.remainingAmount) > 0 && (
+                  {parseFloat(invoice.totalAmount) - parseFloat(invoice.paidAmount) > 0 && (
                     <Button size="sm" className="min-h-[44px]" onClick={() => setPayOpen(true)}>
-                      Pay Invoice
+                      Pagar fatura
                     </Button>
                   )}
 
                   {invoice.items.length > 0 ? (
                     <div className="space-y-2">
-                      <p className="text-sm fw-500">Charges</p>
+                      <p className="text-sm fw-500">Cobranças</p>
                       <div className="divide-y">
                         {invoice.items.map((item) => (
                           <div
@@ -248,7 +259,10 @@ export default function CardDetailPage() {
                             <div className="min-w-0 flex-1">
                               <p className="truncate">{item.description}</p>
                               <p className="text-xs text-dim">
-                                {new Date(item.date).toLocaleDateString()}
+                                {new Date(item.competenceDate).toLocaleDateString()}
+                                {item.installmentNumber && item.totalInstallments
+                                  ? ` · Parcela ${item.installmentNumber}/${item.totalInstallments}`
+                                  : ''}
                               </p>
                             </div>
                             <span className="mono fw-600 ml-4">{item.amount}</span>
@@ -257,11 +271,11 @@ export default function CardDetailPage() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-dim">No charges for this period.</p>
+                    <p className="text-sm text-dim">Nenhuma cobrança neste período.</p>
                   )}
                 </>
               ) : (
-                <p className="text-sm text-dim">No invoice found for this month.</p>
+                <p className="text-sm text-dim">Nenhuma fatura encontrada para este mês.</p>
               )}
             </div>
           </div>
@@ -269,7 +283,7 @@ export default function CardDetailPage() {
           {spending && spending.length > 0 && (
             <div className="card">
               <div className="card-h">
-                <h3>Spending Breakdown</h3>
+                <h3>Resumo de gastos</h3>
               </div>
               <div className="card-b">
                 <div className="space-y-2">
@@ -278,10 +292,10 @@ export default function CardDetailPage() {
                       key={item.categoryId ?? i}
                       className="flex items-center justify-between text-sm"
                     >
-                      <span className="text-dim">{item.categoryName ?? 'Uncategorized'}</span>
+                      <span className="text-dim">{item.categoryName ?? 'Sem categoria'}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-dim">{item.percentage}%</span>
-                        <span className="mono fw-600">{item.amount}</span>
+                        <span className="mono fw-600">{item.totalAmount}</span>
                       </div>
                     </div>
                   ))}
@@ -291,7 +305,9 @@ export default function CardDetailPage() {
                   >
                     <span className="fw-500">Total</span>
                     <span className="mono fw-600">
-                      {spending.reduce((sum, item) => sum + parseFloat(item.amount), 0).toFixed(2)}
+                      {spending
+                        .reduce((sum, item) => sum + parseFloat(item.totalAmount), 0)
+                        .toFixed(2)}
                     </span>
                   </div>
                 </div>

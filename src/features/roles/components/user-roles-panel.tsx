@@ -55,37 +55,37 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
     <>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">Roles</h3>
+          <h3 className="text-sm font-semibold">Papéis</h3>
           {canUpdateRole && roles.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
               className="min-h-[44px]"
               onClick={() => setIsAssignOpen(true)}
-              aria-label="Assign role"
+              aria-label="Atribuir papel"
             >
-              Assign Role
+              Atribuir papel
             </Button>
           )}
         </div>
 
         {roles.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center">
-            <p className="mb-3 text-sm text-dim">No roles assigned.</p>
+            <p className="mb-3 text-sm text-dim">Nenhum papel atribuído.</p>
             {canUpdateRole && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => setIsAssignOpen(true)}
-                aria-label="Assign role"
+                aria-label="Atribuir papel"
               >
-                Assign Role
+                Atribuir papel
               </Button>
             )}
           </div>
         ) : (
-          <ul className="space-y-2" aria-label="Assigned roles">
+          <ul className="space-y-2" aria-label="Papéis atribuídos">
             {roles.map((role) => (
               <li key={role.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div className="min-w-0">
@@ -99,10 +99,10 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
                     variant="danger"
                     size="sm"
                     className="ml-2 shrink-0 min-h-[44px]"
-                    aria-label={`Remove role ${role.name}`}
+                    aria-label={`Remover papel ${role.name}`}
                     onClick={() => setRoleToRevoke(role)}
                   >
-                    Remove
+                    Remover
                   </Button>
                 )}
               </li>
@@ -113,8 +113,8 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
 
       {isAssignOpen && (
         <Modal
-          title="Assign Role"
-          subtitle={`Select a role to assign to ${userName}.`}
+          title="Atribuir papel"
+          subtitle={`Selecione um papel para atribuir a ${userName}.`}
           onClose={handleAssignClose}
           footer={
             <>
@@ -124,7 +124,7 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
                 onClick={handleAssignClose}
                 disabled={assignRole.isPending}
               >
-                Cancel
+                Cancelar
               </Button>
               <div className="spacer" />
               <Button
@@ -148,10 +148,10 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
                       }}
                       aria-hidden="true"
                     />
-                    Assigning…
+                    Atribuindo…
                   </>
                 ) : (
-                  'Assign'
+                  'Atribuir'
                 )}
               </Button>
             </>
@@ -159,14 +159,14 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
         >
           <div>
             {isLoadingRoles ? (
-              <p className="text-sm text-dim">Loading roles…</p>
+              <p className="text-sm text-dim">Carregando papéis…</p>
             ) : (
               <Select
                 value={selectedRoleId}
                 onChange={(e) => setSelectedRoleId(e.target.value)}
-                aria-label="Select role"
+                aria-label="Selecionar papel"
               >
-                <option value="">Select a role…</option>
+                <option value="">Selecione um papel…</option>
                 {availableRoles.map((role) => (
                   <option key={role.id} value={role.id}>
                     {role.name}
@@ -181,8 +181,8 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
       {roleToRevoke !== null && (
         <Modal
           alert
-          title="Remove Role"
-          subtitle={`Remove ${roleToRevoke.name} from ${userName}? This action cannot be undone.`}
+          title="Remover papel"
+          subtitle={`Remover ${roleToRevoke.name} de ${userName}? Esta ação não pode ser desfeita.`}
           onClose={() => setRoleToRevoke(null)}
           footer={
             <>
@@ -192,7 +192,7 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
                 onClick={() => setRoleToRevoke(null)}
                 disabled={revokeRole.isPending}
               >
-                Cancel
+                Cancelar
               </Button>
               <div className="spacer" />
               <Button
@@ -216,10 +216,10 @@ export function UserRolesPanel({ userId, userName, roles }: UserRolesPanelProps)
                       }}
                       aria-hidden="true"
                     />
-                    Removing…
+                    Removendo…
                   </>
                 ) : (
-                  'Remove'
+                  'Remover'
                 )}
               </Button>
             </>

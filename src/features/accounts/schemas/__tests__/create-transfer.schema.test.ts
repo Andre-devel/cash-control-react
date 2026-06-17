@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { createTransferSchema } from '../create-transfer.schema'
 
 const VALID_INPUT = {
-  fromAccountId: 'account-1',
-  toAccountId: 'account-2',
+  sourceAccountId: 'account-1',
+  destinationAccountId: 'account-2',
   amount: '500.00',
   date: '2026-05-27',
   description: 'Monthly savings',
@@ -17,12 +17,12 @@ describe('createTransferSchema', () => {
   it('rejects same-account transfer', () => {
     const result = createTransferSchema.safeParse({
       ...VALID_INPUT,
-      fromAccountId: 'account-1',
-      toAccountId: 'account-1',
+      sourceAccountId: 'account-1',
+      destinationAccountId: 'account-1',
     })
     expect(result.success).toBe(false)
     if (!result.success) {
-      expect(result.error.issues.some((i) => i.path.includes('toAccountId'))).toBe(true)
+      expect(result.error.issues.some((i) => i.path.includes('destinationAccountId'))).toBe(true)
     }
   })
 
@@ -51,13 +51,13 @@ describe('createTransferSchema', () => {
     expect(createTransferSchema.safeParse({ ...VALID_INPUT, amount: '500' }).success).toBe(true)
   })
 
-  it('rejects empty fromAccountId', () => {
-    const result = createTransferSchema.safeParse({ ...VALID_INPUT, fromAccountId: '' })
+  it('rejects empty sourceAccountId', () => {
+    const result = createTransferSchema.safeParse({ ...VALID_INPUT, sourceAccountId: '' })
     expect(result.success).toBe(false)
   })
 
-  it('rejects empty toAccountId', () => {
-    const result = createTransferSchema.safeParse({ ...VALID_INPUT, toAccountId: '' })
+  it('rejects empty destinationAccountId', () => {
+    const result = createTransferSchema.safeParse({ ...VALID_INPUT, destinationAccountId: '' })
     expect(result.success).toBe(false)
   })
 

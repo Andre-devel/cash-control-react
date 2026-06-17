@@ -26,7 +26,7 @@ export function AuthProvider() {
             const profile = await getMeApi()
             setUser({
               id: profile.id,
-              email: profile.email,
+              email: profile.maskedEmail,
               name: profile.displayName,
               roles: profile.roles,
               permissions: profile.permissions,
@@ -48,7 +48,7 @@ export function AuthProvider() {
       <div
         className="flex items-center justify-center min-h-screen"
         aria-busy="true"
-        aria-label="Initializing application"
+        aria-label="Inicializando aplicativo"
       >
         <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>

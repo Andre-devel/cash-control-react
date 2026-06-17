@@ -51,12 +51,12 @@ export function AdjustBalanceDialog({ account, open, onClose }: AdjustBalanceDia
 
   return (
     <Modal
-      title={`Adjust Balance — ${account?.name}`}
+      title={`Ajustar saldo — ${account?.name}`}
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -80,10 +80,10 @@ export function AdjustBalanceDialog({ account, open, onClose }: AdjustBalanceDia
                   }}
                   aria-hidden="true"
                 />
-                Adjusting…
+                Ajustando…
               </>
             ) : (
-              'Adjust Balance'
+              'Ajustar saldo'
             )}
           </Button>
         </>
@@ -95,15 +95,12 @@ export function AdjustBalanceDialog({ account, open, onClose }: AdjustBalanceDia
         noValidate
         className="col gap-4"
       >
-        <Field label="Adjustment Amount" error={form.formState.errors.amount?.message}>
-          <Input placeholder="e.g. 100.00 or -50.00" {...form.register('amount')} />
+        <Field label="Valor do ajuste" error={form.formState.errors.amount?.message}>
+          <Input placeholder="ex: 100.00 ou -50.00" {...form.register('amount')} />
         </Field>
 
-        <Field label="Note (optional)" error={form.formState.errors.note?.message}>
-          <Textarea
-            placeholder="e.g. Reconciliation with bank statement"
-            {...form.register('note')}
-          />
+        <Field label="Observação (opcional)" error={form.formState.errors.note?.message}>
+          <Textarea placeholder="ex: Conciliação com extrato bancário" {...form.register('note')} />
         </Field>
       </form>
     </Modal>

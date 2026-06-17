@@ -1,53 +1,56 @@
 export type InstallmentType = 'EXPENSE' | 'INCOME'
-export type InstallmentSeriesStatus = 'ACTIVE' | 'SETTLED'
 export type InstallmentTransactionStatus = 'PENDING' | 'PAID' | 'OVERDUE'
 
 export interface InstallmentTransaction {
   id: string
   description: string
   amount: string
-  dueDate: string
+  competenceDate: string
+  paymentDate?: string | null
   status: InstallmentTransactionStatus
-  installmentNumber: number
+  installmentNumber?: number
+  accountId?: string
+  accountName?: string
+  categoryId?: string | null
+  categoryName?: string | null
 }
 
 export interface InstallmentSeries {
   id: string
   description: string
   totalAmount: string
-  installmentCount: number
-  paidCount: number
-  remainingAmount: string
-  remainingCount?: number
+  totalInstallments: number
+  firstPaymentDate: string
   accountId: string
+  accountName?: string | null
   categoryId: string | null
-  firstDueDate: string
-  nextDueDate: string | null
-  type: InstallmentType
-  status: InstallmentSeriesStatus
-  createdAt: string
+  categoryName?: string | null
+  settled: boolean
+  settledAt?: string | null
+  createdAt?: string | null
+  updatedAt?: string | null
 }
 
-export interface InstallmentSeriesDetail extends InstallmentSeries {
-  amount: string
-  remainingCount: number
-  notes?: string
-  transactions: InstallmentTransaction[]
+export interface InstallmentSeriesDetail {
+  series: InstallmentSeries
+  installments: InstallmentTransaction[]
 }
 
 export interface CreateInstallmentSeriesRequest {
   description: string
   totalAmount: string
-  installmentCount: number
+  totalInstallments: number
   accountId: string
   categoryId?: string
-  firstDueDate: string
-  type: InstallmentType
+  firstPaymentDate: string
+  notes?: string
+  paymentMethod?: string
+  creditCardId?: string
 }
 
 export interface EditSeriesRequest {
-  description: string
-  accountId: string
+  description?: string
+  accountId?: string
   categoryId?: string
   notes?: string
 }
@@ -55,11 +58,11 @@ export interface EditSeriesRequest {
 export interface UpdateInstallmentRequest {
   description: string
   amount: string
-  dueDate: string
+  competenceDate: string
 }
 
 export interface AdvanceInstallmentsRequest {
-  transactionIds: string[]
-  newDate: string
-  newAmount?: string
+  installmentIds: string[]
+  newPaymentDate: string
+  adjustedAmount?: string
 }

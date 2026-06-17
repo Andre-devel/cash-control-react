@@ -8,17 +8,17 @@ import { AdjustBalanceDialog } from '@/features/accounts/components/adjust-balan
 import { ROUTES } from '@/app/router/routes'
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
-  CHECKING: 'Checking',
-  SAVINGS: 'Savings',
-  CASH: 'Cash',
-  INVESTMENT: 'Investment',
-  CREDIT: 'Credit',
-  OTHER: 'Other',
+  CHECKING: 'Conta corrente',
+  SAVINGS: 'Poupança',
+  CASH: 'Carteira',
+  INVESTMENT: 'Investimento',
+  CREDIT: 'Crédito',
+  OTHER: 'Outros',
 }
 
 function AccountDetailSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Loading account">
+    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Carregando conta">
       <div className="h-6 w-48 rounded" style={{ background: 'var(--surface-3)' }} />
       <div className="h-20 rounded" style={{ background: 'var(--surface-3)' }} />
     </div>
@@ -35,12 +35,12 @@ export default function AccountDetailPage() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" asChild>
-          <Link to={ROUTES.ACCOUNTS}>&larr; Accounts</Link>
+          <Link to={ROUTES.ACCOUNTS}>&larr; Contas</Link>
         </Button>
       </div>
 
       <h1 className="fw-700" style={{ fontSize: 24, letterSpacing: '-0.01em' }}>
-        {account?.name ?? 'Account'}
+        {account?.name ?? 'Conta'}
       </h1>
 
       {isLoading ? (
@@ -48,24 +48,19 @@ export default function AccountDetailPage() {
       ) : isError ? (
         <div className="space-y-2" role="alert">
           <p className="text-sm" style={{ color: 'var(--expense)' }}>
-            Failed to load account.
+            Falha ao carregar conta.
           </p>
           <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-            Retry
+            Tentar novamente
           </Button>
         </div>
       ) : account ? (
         <>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: account.color }}
-                aria-hidden="true"
-              />
-              {account.archived && (
+              {account.archivedAt && (
                 <Badge kind="pending" dot={false} square>
-                  Archived
+                  Arquivada
                 </Badge>
               )}
             </div>
@@ -76,7 +71,7 @@ export default function AccountDetailPage() {
                 className="min-h-[44px]"
                 onClick={() => setEditOpen(true)}
               >
-                Edit
+                Editar
               </Button>
               <Button
                 variant="ghost"
@@ -84,35 +79,31 @@ export default function AccountDetailPage() {
                 className="min-h-[44px]"
                 onClick={() => setAdjustOpen(true)}
               >
-                Adjust Balance
+                Ajustar saldo
               </Button>
             </div>
           </div>
 
           <div className="card">
             <div className="card-h">
-              <h3>Account Details</h3>
+              <h3>Detalhes da conta</h3>
             </div>
             <div className="card-b space-y-3">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <div>
-                  <p className="text-xs text-dim">Type</p>
+                  <p className="text-xs text-dim">Tipo</p>
                   <p className="fw-500">{ACCOUNT_TYPE_LABELS[account.type] ?? account.type}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-dim">Balance</p>
+                  <p className="text-xs text-dim">Saldo</p>
                   <p className="mono fw-600">{account.balance}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-dim">Currency</p>
-                  <p className="fw-500">{account.currency}</p>
+                  <p className="text-xs text-dim">Moeda</p>
+                  <p className="fw-500">{account.currencyCode}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-dim">Icon</p>
-                  <p className="fw-500">{account.icon}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-dim">Created</p>
+                  <p className="text-xs text-dim">Criada em</p>
                   <p className="fw-500">{new Date(account.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>

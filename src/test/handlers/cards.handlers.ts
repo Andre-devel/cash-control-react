@@ -5,14 +5,12 @@ export const MOCK_CARD_1: Card = {
   id: 'card-1',
   name: 'Nubank',
   brand: 'VISA',
-  lastFourDigits: '1234',
   issuer: 'Nu Pagamentos S.A.',
   creditLimit: '5000.00',
   currentInvoiceTotal: '800.00',
   closingDay: 1,
   dueDay: 10,
-  color: '#820AD1',
-  archived: false,
+  archivedAt: null,
   createdAt: '2026-01-01T00:00:00Z',
 }
 
@@ -20,23 +18,20 @@ export const MOCK_CARD_2: Card = {
   id: 'card-2',
   name: 'Itaú',
   brand: 'MASTERCARD',
-  lastFourDigits: '5678',
   creditLimit: '10000.00',
   closingDay: 15,
   dueDay: 25,
-  color: '#FF6600',
-  archived: false,
+  archivedAt: null,
   createdAt: '2026-01-01T00:00:00Z',
 }
 
 export const MOCK_INVOICE: Invoice = {
   id: 'invoice-1',
-  cardId: 'card-1',
+  creditCardId: 'card-1',
   referenceMonth: '2026-05',
   closingDate: '2026-05-01',
   totalAmount: '800.00',
   paidAmount: '300.00',
-  remainingAmount: '500.00',
   status: 'PARTIALLY_PAID',
   dueDate: '2026-06-10',
   items: [
@@ -44,14 +39,14 @@ export const MOCK_INVOICE: Invoice = {
       id: 'item-1',
       description: 'Supermarket',
       amount: '350.00',
-      date: '2026-05-10',
+      competenceDate: '2026-05-10',
       categoryId: 'category-1',
     },
     {
       id: 'item-2',
       description: 'Gas station',
       amount: '450.00',
-      date: '2026-05-15',
+      competenceDate: '2026-05-15',
       categoryId: null,
     },
   ],
@@ -59,8 +54,8 @@ export const MOCK_INVOICE: Invoice = {
 
 export const MOCK_LIMIT_USAGE: LimitUsage = {
   creditLimit: '5000.00',
-  usedAmount: '800.00',
-  availableAmount: '4200.00',
+  usedLimit: '800.00',
+  availableLimit: '4200.00',
   usagePercentage: '16.00',
 }
 
@@ -68,13 +63,13 @@ export const MOCK_SPENDING: SpendingItem[] = [
   {
     categoryId: 'category-1',
     categoryName: 'Food',
-    amount: '350.00',
+    totalAmount: '350.00',
     percentage: '43.75',
   },
   {
     categoryId: null,
     categoryName: null,
-    amount: '450.00',
+    totalAmount: '450.00',
     percentage: '56.25',
   },
 ]
@@ -104,8 +99,8 @@ export const cardsHandlers = [
     if (params.id === 'card-1') return HttpResponse.json(MOCK_LIMIT_USAGE)
     return HttpResponse.json({
       creditLimit: '10000.00',
-      usedAmount: '0.00',
-      availableAmount: '10000.00',
+      usedLimit: '0.00',
+      availableLimit: '10000.00',
     })
   }),
 
@@ -131,10 +126,10 @@ export const cardsHandlers = [
   }),
 
   http.post('*/cards', async ({ request }) => {
-    const body = (await request.json()) as Omit<Card, 'id' | 'archived' | 'createdAt'>
+    const body = (await request.json()) as Omit<Card, 'id' | 'archivedAt' | 'createdAt'>
     const created: Card = {
       id: `card-${Date.now()}`,
-      archived: false,
+      archivedAt: null,
       createdAt: new Date().toISOString(),
       ...body,
     }
@@ -150,7 +145,9 @@ export const cardsHandlers = [
   }),
 
   http.post('*/cards/:id/archive', ({ params }) => {
-    cardsStore = cardsStore.map((c) => (c.id === params.id ? { ...c, archived: true } : c))
+    cardsStore = cardsStore.map((c) =>
+      c.id === params.id ? { ...c, archivedAt: new Date().toISOString() } : c,
+    )
     return new HttpResponse(null, { status: 204 })
   }),
 

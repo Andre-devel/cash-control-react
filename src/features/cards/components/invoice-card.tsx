@@ -36,9 +36,15 @@ function getMonthLabel(yyyyMm: string) {
   return MONTH_LABELS[m - 1]
 }
 
-function getCurrentMonth() {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+function getBillingCycleMonth(closingDay: number): string {
+  const today = new Date()
+  const day = today.getDate()
+  if (day <= closingDay) {
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+  } else {
+    const next = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+    return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`
+  }
 }
 
 function shiftMonth(yyyyMm: string, delta: number) {
@@ -66,11 +72,12 @@ export function InvoiceCard({
 }: InvoiceCardProps) {
   const { data: categories } = useCategories()
 
-  const currentMonth = getCurrentMonth()
+  const billingMonth = getBillingCycleMonth(card.closingDay)
   const tabs = [
-    { key: currentMonth, label: 'Atual' },
-    { key: shiftMonth(currentMonth, -1), label: getMonthLabel(shiftMonth(currentMonth, -1)) },
-    { key: shiftMonth(currentMonth, -2), label: getMonthLabel(shiftMonth(currentMonth, -2)) },
+    { key: shiftMonth(billingMonth, -2), label: getMonthLabel(shiftMonth(billingMonth, -2)) },
+    { key: shiftMonth(billingMonth, -1), label: getMonthLabel(shiftMonth(billingMonth, -1)) },
+    { key: billingMonth, label: 'Atual' },
+    { key: shiftMonth(billingMonth, 1), label: getMonthLabel(shiftMonth(billingMonth, 1)) },
   ]
 
   const closesAtDay = String(card.closingDay).padStart(2, '0')
@@ -82,7 +89,7 @@ export function InvoiceCard({
 
   const totalAmount = invoice ? parseFloat(invoice.totalAmount) : 0
   const paidAmount = invoice ? parseFloat(invoice.paidAmount) : 0
-  const remainingAmount = invoice ? parseFloat(invoice.remainingAmount) : 0
+  const remainingAmount = totalAmount - paidAmount
   const paidPct = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
 
   return (
@@ -206,7 +213,7 @@ export function InvoiceCard({
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="title">{item.description}</div>
                         <div className="meta">
-                          {cat?.name ?? '—'} · {fmtDate(item.date)}
+                          {cat?.name ?? '—'} · {fmtDate(item.competenceDate)}
                         </div>
                       </div>
                       <div className="amount mono">

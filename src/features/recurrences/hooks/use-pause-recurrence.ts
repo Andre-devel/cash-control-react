@@ -6,15 +6,14 @@ import type { NormalizedError } from '@/features/auth/types'
 
 export interface PauseRecurrenceVariables {
   id: string
-  pausedUntil?: string
+  resumeAt?: string
 }
 
 export function usePauseRecurrence() {
   const queryClient = useQueryClient()
 
   return useMutation<void, NormalizedError, PauseRecurrenceVariables>({
-    mutationFn: ({ id, pausedUntil }) =>
-      pauseRecurrence(id, pausedUntil ? { pausedUntil } : undefined),
+    mutationFn: ({ id, resumeAt }) => pauseRecurrence(id, resumeAt ? { resumeAt } : undefined),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: RECURRENCES_QUERY_KEY })
       toast.success('Recurrence rule paused.')

@@ -11,6 +11,15 @@ const ACCOUNT_TYPE_LABELS_PT: Record<string, string> = {
   OTHER: 'Outros',
 }
 
+const ACCOUNT_TYPE_COLORS: Record<string, string> = {
+  CHECKING: '#2196F3',
+  SAVINGS: '#4CAF50',
+  CASH: '#FF9800',
+  INVESTMENT: '#9C27B0',
+  CREDIT: '#F44336',
+  OTHER: '#607D8B',
+}
+
 interface DistributionCardProps {
   accounts: Account[]
   totalBalance: number
@@ -22,7 +31,7 @@ export function DistributionCard({ accounts, totalBalance }: DistributionCardPro
       const balance = parseFloat(a.balance)
       if (balance <= 0) return acc
       if (!acc[a.type]) {
-        acc[a.type] = { value: 0, color: a.color }
+        acc[a.type] = { value: 0, color: ACCOUNT_TYPE_COLORS[a.type] ?? 'var(--accent)' }
       }
       acc[a.type].value += balance
       return acc
@@ -31,7 +40,11 @@ export function DistributionCard({ accounts, totalBalance }: DistributionCardPro
   )
 
   const segments = accounts
-    .map((a) => ({ value: parseFloat(a.balance), color: a.color, label: a.name }))
+    .map((a) => ({
+      value: parseFloat(a.balance),
+      color: ACCOUNT_TYPE_COLORS[a.type] ?? 'var(--accent)',
+      label: a.name,
+    }))
     .filter((s) => s.value > 0)
 
   return (

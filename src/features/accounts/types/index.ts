@@ -5,13 +5,12 @@ export interface Account {
   name: string
   type: AccountType
   balance: string
-  currency: string
-  color: string
-  icon: string
-  archived: boolean
+  currencyCode: string
   description?: string
-  displayOrder?: number
+  sortOrder: number
+  archivedAt: string | null
   createdAt: string
+  updatedAt?: string
 }
 
 export interface ListAccountsParams {
@@ -21,19 +20,15 @@ export interface ListAccountsParams {
 export interface CreateAccountRequest {
   name: string
   type: AccountType
-  currency: string
-  initialBalance: string
-  color: string
-  icon: string
+  currencyCode?: string
+  initialBalance?: string
   description?: string
 }
 
 export interface UpdateAccountRequest {
   name: string
   type: AccountType
-  currency: string
-  color: string
-  icon: string
+  currencyCode?: string
   description?: string
 }
 
@@ -43,8 +38,8 @@ export interface AdjustBalanceRequest {
 }
 
 export interface CreateTransferRequest {
-  fromAccountId: string
-  toAccountId: string
+  sourceAccountId: string
+  destinationAccountId: string
   amount: string
   date: string
   description?: string

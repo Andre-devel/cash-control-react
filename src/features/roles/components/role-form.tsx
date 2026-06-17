@@ -71,7 +71,7 @@ export function RoleForm(props: RoleFormProps) {
           onClick={onCancel}
           disabled={isPending}
         >
-          Cancel
+          Cancelar
         </Button>
       )}
       <Button type="submit" size="lg" variant="primary" disabled={isPending} aria-busy={isPending}>
@@ -91,39 +91,39 @@ export function RoleForm(props: RoleFormProps) {
     return (
       <form onSubmit={createForm.handleSubmit(props.onSubmit)} noValidate className="col gap-4">
         <Field
-          label="Name"
+          label="Nome"
           error={
             createForm.formState.errors.name?.message ||
             (props.nameError && !createForm.formState.errors.name ? props.nameError : undefined)
           }
         >
-          <Input placeholder="MODERATOR" autoComplete="off" {...createForm.register('name')} />
+          <Input placeholder="MODERADOR" autoComplete="off" {...createForm.register('name')} />
         </Field>
-        <Field label="Description" error={createForm.formState.errors.description?.message}>
+        <Field label="Descrição" error={createForm.formState.errors.description?.message}>
           <Textarea
-            placeholder="Describe the role's purpose"
+            placeholder="Descreva o propósito do papel"
             rows={3}
             {...createForm.register('description')}
           />
         </Field>
-        {formActions('Create Role')}
+        {formActions('Criar papel')}
       </form>
     )
   }
 
   return (
     <form onSubmit={updateForm.handleSubmit(props.onSubmit)} noValidate className="col gap-4">
-      <Field label="Name" htmlFor="update-role-name">
+      <Field label="Nome" htmlFor="update-role-name">
         <Input id="update-role-name" value={props.roleName} readOnly disabled />
       </Field>
-      <Field label="Description" error={updateForm.formState.errors.description?.message}>
+      <Field label="Descrição" error={updateForm.formState.errors.description?.message}>
         <Textarea
-          placeholder="Describe the role's purpose"
+          placeholder="Descreva o propósito do papel"
           rows={3}
           {...updateForm.register('description')}
         />
       </Field>
-      {formActions('Save Changes')}
+      {formActions('Salvar alterações')}
     </form>
   )
 }

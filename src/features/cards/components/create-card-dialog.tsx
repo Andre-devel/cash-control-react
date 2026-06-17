@@ -19,17 +19,15 @@ const BRAND_LABELS: Record<string, string> = {
   ELO: 'Elo',
   AMEX: 'Amex',
   HIPERCARD: 'Hipercard',
-  OTHER: 'Other',
+  OTHER: 'Outro',
 }
 
 const DEFAULT_VALUES: CreateCardFormValues = {
   name: '',
   brand: 'VISA',
-  lastFourDigits: '',
   creditLimit: '0.00',
   closingDay: 1,
   dueDay: 10,
-  color: '#820AD1',
 }
 
 interface CreateCardDialogProps {
@@ -65,12 +63,12 @@ export function CreateCardDialog({ open, onClose }: CreateCardDialogProps) {
 
   return (
     <Modal
-      title="Create Credit Card"
+      title="Novo cartão de crédito"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -94,10 +92,10 @@ export function CreateCardDialog({ open, onClose }: CreateCardDialogProps) {
                   }}
                   aria-hidden="true"
                 />
-                Creating…
+                Criando…
               </>
             ) : (
-              'Create Card'
+              'Criar cartão'
             )}
           </Button>
         </>
@@ -114,12 +112,12 @@ export function CreateCardDialog({ open, onClose }: CreateCardDialogProps) {
             {form.formState.errors.root.message}
           </div>
         )}
-        <Field label="Name" error={form.formState.errors.name?.message}>
-          <Input placeholder="e.g. Nubank" {...form.register('name')} />
+        <Field label="Nome" error={form.formState.errors.name?.message}>
+          <Input placeholder="ex: Nubank" {...form.register('name')} />
         </Field>
 
-        <Field label="Brand" error={form.formState.errors.brand?.message}>
-          <Select aria-label="Brand" {...form.register('brand')}>
+        <Field label="Bandeira" error={form.formState.errors.brand?.message}>
+          <Select aria-label="Bandeira" {...form.register('brand')}>
             {CARD_BRANDS.map((brand) => (
               <option key={brand} value={brand}>
                 {BRAND_LABELS[brand]}
@@ -128,39 +126,31 @@ export function CreateCardDialog({ open, onClose }: CreateCardDialogProps) {
           </Select>
         </Field>
 
-        <Field label="Last Four Digits" error={form.formState.errors.lastFourDigits?.message}>
-          <Input placeholder="e.g. 1234" maxLength={4} {...form.register('lastFourDigits')} />
-        </Field>
-
-        <Field label="Credit Limit" error={form.formState.errors.creditLimit?.message}>
-          <Input placeholder="e.g. 5000.00" {...form.register('creditLimit')} />
+        <Field label="Limite de crédito" error={form.formState.errors.creditLimit?.message}>
+          <Input placeholder="ex: 5000.00" {...form.register('creditLimit')} />
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Closing Day" error={form.formState.errors.closingDay?.message}>
+          <Field label="Dia de fechamento" error={form.formState.errors.closingDay?.message}>
             <Input
               type="number"
               min={1}
               max={31}
-              placeholder="e.g. 1"
+              placeholder="ex: 1"
               {...form.register('closingDay', { valueAsNumber: true })}
             />
           </Field>
 
-          <Field label="Due Day" error={form.formState.errors.dueDay?.message}>
+          <Field label="Dia de vencimento" error={form.formState.errors.dueDay?.message}>
             <Input
               type="number"
               min={1}
               max={31}
-              placeholder="e.g. 10"
+              placeholder="ex: 10"
               {...form.register('dueDay', { valueAsNumber: true })}
             />
           </Field>
         </div>
-
-        <Field label="Color" error={form.formState.errors.color?.message}>
-          <Input type="color" className="h-10 w-full cursor-pointer" {...form.register('color')} />
-        </Field>
       </form>
     </Modal>
   )

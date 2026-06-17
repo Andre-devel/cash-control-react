@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
-import { Select } from '@/components/ui/select'
+import { ColorPicker } from '@/components/ui/color-picker'
+import { IconPicker } from '@/features/categories/components/icon-picker'
 import {
   createCategorySchema,
-  CATEGORY_TYPES,
   type CreateCategoryFormValues,
 } from '@/features/categories/schemas/create-category.schema'
 import { useCreateCategory } from '@/features/categories/hooks/use-create-category'
@@ -15,16 +15,10 @@ import { setFormErrors } from '@/lib/form-errors'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 
-const CATEGORY_TYPE_LABELS: Record<string, string> = {
-  INCOME: 'Income',
-  EXPENSE: 'Expense',
-}
-
 const DEFAULT_VALUES: CreateCategoryFormValues = {
   name: '',
   color: '#4CAF50',
   icon: 'tag',
-  type: 'EXPENSE',
   parentId: undefined,
 }
 
@@ -63,19 +57,19 @@ export function CreateCategoryDialog({ open, onClose }: CreateCategoryDialogProp
     onClose()
   }
 
-  const rootCategories = (categories ?? []).filter((c) => !c.archived && !c.isSystem)
+  const rootCategories = (categories ?? []).filter((c) => !c.isArchived && !c.isDefault)
   const allFlatCategories = flattenCategories(rootCategories)
 
   if (!open) return null
 
   return (
     <Modal
-      title="Create Category"
+      title="Nova categoria"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -99,10 +93,10 @@ export function CreateCategoryDialog({ open, onClose }: CreateCategoryDialogProp
                   }}
                   aria-hidden="true"
                 />
-                Creating…
+                Criando…
               </>
             ) : (
-              'Create Category'
+              'Criar categoria'
             )}
           </Button>
         </>
@@ -119,38 +113,35 @@ export function CreateCategoryDialog({ open, onClose }: CreateCategoryDialogProp
             {form.formState.errors.root.message}
           </div>
         )}
-        <Field label="Name" error={form.formState.errors.name?.message}>
-          <Input placeholder="e.g. Food" {...form.register('name')} />
+        <Field label="Nome" error={form.formState.errors.name?.message}>
+          <Input placeholder="ex: Alimentação" {...form.register('name')} />
         </Field>
 
-        <Field label="Type" error={form.formState.errors.type?.message}>
-          <Select aria-label="Type" {...form.register('type')}>
-            {CATEGORY_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {CATEGORY_TYPE_LABELS[type]}
-              </option>
-            ))}
-          </Select>
+        <Field label="Cor" error={form.formState.errors.color?.message}>
+          <ColorPicker
+            value={form.watch('color') ?? '#4CAF50'}
+            onChange={(v) => form.setValue('color', v, { shouldValidate: true })}
+          />
         </Field>
 
-        <Field label="Color" error={form.formState.errors.color?.message}>
-          <Input placeholder="#4CAF50" {...form.register('color')} />
-        </Field>
-
-        <Field label="Icon" error={form.formState.errors.icon?.message}>
-          <Input placeholder="e.g. tag" {...form.register('icon')} />
+        <Field label="Ícone" error={form.formState.errors.icon?.message}>
+          <IconPicker
+            value={form.watch('icon') ?? ''}
+            onChange={(v) => form.setValue('icon', v, { shouldValidate: true })}
+            color={form.watch('color') ?? '#4CAF50'}
+          />
         </Field>
 
         {allFlatCategories.length > 0 && (
-          <Field label="Parent Category (optional)" error={form.formState.errors.parentId?.message}>
-            <Select aria-label="Parent Category" {...form.register('parentId')}>
-              <option value="">None</option>
+          <Field label="Categoria pai (opcional)" error={form.formState.errors.parentId?.message}>
+            <select className="input" aria-label="Categoria pai" {...form.register('parentId')}>
+              <option value="">Nenhuma</option>
               {allFlatCategories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>
               ))}
-            </Select>
+            </select>
           </Field>
         )}
       </form>

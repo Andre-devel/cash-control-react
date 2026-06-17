@@ -16,12 +16,12 @@ import { useUpdateAccount } from '@/features/accounts/hooks/use-update-account'
 import type { Account } from '@/features/accounts/types'
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
-  CHECKING: 'Checking',
-  SAVINGS: 'Savings',
-  CASH: 'Cash',
-  INVESTMENT: 'Investment',
-  CREDIT: 'Credit',
-  OTHER: 'Other',
+  CHECKING: 'Conta corrente',
+  SAVINGS: 'Poupança',
+  CASH: 'Carteira',
+  INVESTMENT: 'Investimento',
+  CREDIT: 'Crédito',
+  OTHER: 'Outros',
 }
 
 interface EditAccountDialogProps {
@@ -38,9 +38,7 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
     defaultValues: {
       name: '',
       type: 'CHECKING',
-      currency: 'BRL',
-      color: '#4CAF50',
-      icon: 'wallet',
+      currencyCode: 'BRL',
       description: '',
     },
   })
@@ -50,9 +48,7 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
       form.reset({
         name: account.name,
         type: account.type,
-        currency: account.currency,
-        color: account.color,
-        icon: account.icon,
+        currencyCode: account.currencyCode,
         description: account.description ?? '',
       })
     }
@@ -78,12 +74,12 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
 
   return (
     <Modal
-      title="Edit Account"
+      title="Editar conta"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -107,10 +103,10 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
                   }}
                   aria-hidden="true"
                 />
-                Saving…
+                Salvando…
               </>
             ) : (
-              'Save Changes'
+              'Salvar alterações'
             )}
           </Button>
         </>
@@ -122,12 +118,12 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
         noValidate
         className="col gap-4"
       >
-        <Field label="Name" error={form.formState.errors.name?.message}>
-          <Input placeholder="e.g. Nubank" {...form.register('name')} />
+        <Field label="Nome" error={form.formState.errors.name?.message}>
+          <Input placeholder="ex: Nubank" {...form.register('name')} />
         </Field>
 
-        <Field label="Type" error={form.formState.errors.type?.message}>
-          <Select aria-label="Type" {...form.register('type')}>
+        <Field label="Tipo" error={form.formState.errors.type?.message}>
+          <Select aria-label="Tipo" {...form.register('type')}>
             {ACCOUNT_TYPES.map((type) => (
               <option key={type} value={type}>
                 {ACCOUNT_TYPE_LABELS[type]}
@@ -136,20 +132,12 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
           </Select>
         </Field>
 
-        <Field label="Currency" error={form.formState.errors.currency?.message}>
-          <Input placeholder="e.g. BRL" {...form.register('currency')} />
+        <Field label="Moeda" error={form.formState.errors.currencyCode?.message}>
+          <Input placeholder="ex: BRL" {...form.register('currencyCode')} />
         </Field>
 
-        <Field label="Color" error={form.formState.errors.color?.message}>
-          <Input placeholder="#4CAF50" {...form.register('color')} />
-        </Field>
-
-        <Field label="Icon" error={form.formState.errors.icon?.message}>
-          <Input placeholder="e.g. wallet" {...form.register('icon')} />
-        </Field>
-
-        <Field label="Description (optional)" error={form.formState.errors.description?.message}>
-          <Textarea placeholder="e.g. Main spending account" {...form.register('description')} />
+        <Field label="Descrição (opcional)" error={form.formState.errors.description?.message}>
+          <Textarea placeholder="ex: Conta principal de gastos" {...form.register('description')} />
         </Field>
       </form>
     </Modal>

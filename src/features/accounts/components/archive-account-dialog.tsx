@@ -25,12 +25,12 @@ export function ArchiveAccountDialog({ account, open, onClose }: ArchiveAccountD
 
   return (
     <Modal
-      title="Archive Account"
+      title="Arquivar conta"
       onClose={onClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -54,18 +54,18 @@ export function ArchiveAccountDialog({ account, open, onClose }: ArchiveAccountD
                   }}
                   aria-hidden="true"
                 />
-                Archiving…
+                Arquivando…
               </>
             ) : (
-              'Archive Account'
+              'Arquivar conta'
             )}
           </Button>
         </>
       }
     >
       <p>
-        Archive <strong>{account?.name}</strong>? The account will be hidden from the default view
-        but its history will be preserved.
+        Arquivar <strong>{account?.name}</strong>? A conta será ocultada da visualização padrão, mas
+        seu histórico será preservado.
       </p>
     </Modal>
   )

@@ -947,8 +947,21 @@
   }
   .modal-h { padding-top: 8px; }
 
-  /* Grid utilities — collapse to single column */
+  /* Grid utilities — collapse to single column (including inline styles) */
   .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: 1fr !important; }
+
+  /* Page header — stack vertically */
+  .page-h {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--s-3);
+  }
+  .page-h .spacer { display: none; }
+  .page-h .actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
 
   /* Table wrapper — horizontal scroll */
   .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }

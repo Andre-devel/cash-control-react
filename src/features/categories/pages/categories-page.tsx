@@ -51,7 +51,7 @@ export default function CategoriesPage() {
   const [editTarget, setEditTarget] = useState<Category | null>(null)
 
   const allCategories = useMemo(() => categories ?? [], [categories])
-  const activeAccounts = useMemo(() => (accounts ?? []).filter((a) => !a.archived), [accounts])
+  const activeAccounts = useMemo(() => (accounts ?? []).filter((a) => !a.archivedAt), [accounts])
 
   const handleEdit = useCallback((category: Category) => setEditTarget(category), [])
   const handleHide = useCallback((category: Category) => hideCategory(category.id), [hideCategory])

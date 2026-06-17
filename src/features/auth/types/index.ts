@@ -47,11 +47,12 @@ export interface MessageResponse {
 
 export interface UserProfileResponse {
   id: string
-  email: string
+  maskedEmail: string
   displayName: string
-  status: string
+  accountStatus: string
+  authOrigin: string
+  lastLoginAt: string | null
   roles: string[]
   permissions: string[]
-  linkedProviders: string[]
   createdAt: string
 }

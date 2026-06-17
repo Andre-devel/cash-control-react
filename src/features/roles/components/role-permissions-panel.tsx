@@ -57,7 +57,7 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
       <div
         className="h-20 rounded bg-surface-3 animate-pulse"
         aria-busy="true"
-        aria-label="Loading permissions"
+        aria-label="Carregando permissões"
       />
     )
   }
@@ -66,37 +66,37 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
     <>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">Permissions</h3>
+          <h3 className="text-sm font-semibold">Permissões</h3>
           {canGrantPermission && permissions.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
               className="min-h-[44px]"
               onClick={() => setIsAssignOpen(true)}
-              aria-label="Assign permission"
+              aria-label="Atribuir permissão"
             >
-              Assign Permission
+              Atribuir permissão
             </Button>
           )}
         </div>
 
         {permissions.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center">
-            <p className="mb-3 text-sm text-dim">No permissions assigned.</p>
+            <p className="mb-3 text-sm text-dim">Nenhuma permissão atribuída.</p>
             {canGrantPermission && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="min-h-[44px]"
                 onClick={() => setIsAssignOpen(true)}
-                aria-label="Assign permission"
+                aria-label="Atribuir permissão"
               >
-                Assign Permission
+                Atribuir permissão
               </Button>
             )}
           </div>
         ) : (
-          <ul className="space-y-2" aria-label="Assigned permissions">
+          <ul className="space-y-2" aria-label="Permissões atribuídas">
             {permissions.map((permission) => (
               <li
                 key={permission.id}
@@ -113,10 +113,10 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
                     variant="danger"
                     size="sm"
                     className="ml-2 shrink-0 min-h-[44px]"
-                    aria-label={`Remove permission ${permission.name}`}
+                    aria-label={`Remover permissão ${permission.name}`}
                     onClick={() => setPermissionToRevoke(permission)}
                   >
-                    Remove
+                    Remover
                   </Button>
                 )}
               </li>
@@ -127,8 +127,8 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
 
       {isAssignOpen && (
         <Modal
-          title="Assign Permission"
-          subtitle={`Select a permission to assign to ${role.name}.`}
+          title="Atribuir permissão"
+          subtitle={`Selecione uma permissão para atribuir a ${role.name}.`}
           onClose={handleAssignClose}
           footer={
             <>
@@ -139,7 +139,7 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
                 onClick={handleAssignClose}
                 disabled={assignPermission.isPending}
               >
-                Cancel
+                Cancelar
               </Button>
               <div className="spacer" />
               <Button
@@ -163,10 +163,10 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
                       }}
                       aria-hidden="true"
                     />
-                    Assigning…
+                    Atribuindo…
                   </>
                 ) : (
-                  'Assign'
+                  'Atribuir'
                 )}
               </Button>
             </>
@@ -174,14 +174,14 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
         >
           <div>
             {isLoadingPermissions ? (
-              <p className="text-sm text-dim">Loading permissions…</p>
+              <p className="text-sm text-dim">Carregando permissões…</p>
             ) : (
               <Select
                 value={selectedPermissionId}
                 onChange={(e) => setSelectedPermissionId(e.target.value)}
-                aria-label="Select permission"
+                aria-label="Selecionar permissão"
               >
-                <option value="">Select a permission…</option>
+                <option value="">Selecione uma permissão…</option>
                 {availablePermissions.map((permission) => (
                   <option key={permission.id} value={permission.id}>
                     {permission.name}
@@ -196,8 +196,8 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
       {permissionToRevoke !== null && (
         <Modal
           alert
-          title="Remove Permission"
-          subtitle={`Remove ${permissionToRevoke.name} from ${role.name}? This action cannot be undone.`}
+          title="Remover permissão"
+          subtitle={`Remover ${permissionToRevoke.name} de ${role.name}? Esta ação não pode ser desfeita.`}
           onClose={() => setPermissionToRevoke(null)}
           footer={
             <>
@@ -207,7 +207,7 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
                 onClick={() => setPermissionToRevoke(null)}
                 disabled={revokePermission.isPending}
               >
-                Cancel
+                Cancelar
               </Button>
               <div className="spacer" />
               <Button
@@ -231,10 +231,10 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
                       }}
                       aria-hidden="true"
                     />
-                    Removing…
+                    Removendo…
                   </>
                 ) : (
-                  'Remove'
+                  'Remover'
                 )}
               </Button>
             </>

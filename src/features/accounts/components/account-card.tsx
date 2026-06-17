@@ -1,18 +1,6 @@
 import { useState } from 'react'
 import type { ComponentType } from 'react'
-import {
-  Wallet,
-  PiggyBank,
-  Archive,
-  Building2,
-  CreditCard,
-  TrendingUp,
-  Banknote,
-  Landmark,
-  MoreHorizontal,
-  ArrowUp,
-  ArrowDown,
-} from 'lucide-react'
+import { Wallet, MoreHorizontal, ArrowUp, ArrowDown } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { IconBubble } from '@/components/ui/icon-bubble'
@@ -32,22 +20,6 @@ type BubbleIcon = ComponentType<{ size?: number; stroke?: number }>
 
 function asIcon(i: unknown): BubbleIcon {
   return i as BubbleIcon
-}
-
-const ICON_MAP: Record<string, BubbleIcon> = {
-  wallet: asIcon(Wallet),
-  'piggy-bank': asIcon(PiggyBank),
-  archive: asIcon(Archive),
-  building: asIcon(Building2),
-  building2: asIcon(Building2),
-  landmark: asIcon(Landmark),
-  'credit-card': asIcon(CreditCard),
-  'trending-up': asIcon(TrendingUp),
-  banknote: asIcon(Banknote),
-}
-
-function getIcon(iconName: string): BubbleIcon {
-  return ICON_MAP[iconName] ?? asIcon(Wallet)
 }
 
 function fmtCreatedAt(iso: string): string {
@@ -89,7 +61,6 @@ export function AccountCard({
   onTransfer,
 }: AccountCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const IconCmp = getIcon(account.icon)
   const balance = parseFloat(account.balance)
 
   // Deterministic visual-only monthly change indicator derived from account id
@@ -103,20 +74,11 @@ export function AccountCard({
   return (
     <div
       className="card"
-      style={{ position: 'relative', overflow: 'hidden', opacity: account.archived ? 0.6 : 1 }}
+      style={{ position: 'relative', overflow: 'hidden', opacity: account.archivedAt ? 0.6 : 1 }}
     >
-      {/* Color glow */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: `radial-gradient(120% 100% at 0% 0%, ${account.color}22, transparent 50%)`,
-          pointerEvents: 'none',
-        }}
-      />
       <div className="card-b" style={{ position: 'relative' }}>
         <div className="row between" style={{ marginBottom: 14 }}>
-          <IconBubble color={account.color} icon={IconCmp} size="lg" />
+          <IconBubble color="var(--accent)" icon={asIcon(Wallet)} size="lg" />
           <Button
             size="icon"
             variant="ghost"
@@ -135,15 +97,15 @@ export function AccountCard({
           <Badge kind="muted" square dot={false} style={{ fontSize: 10 }}>
             {ACCOUNT_TYPE_LABELS_PT[account.type] ?? account.type}
           </Badge>
-          <span className="text-xs text-faint">{account.currency}</span>
-          {account.archived && (
+          <span className="text-xs text-faint">{account.currencyCode}</span>
+          {account.archivedAt && (
             <Badge kind="muted" square dot={false} style={{ fontSize: 10 }}>
               Arquivada
             </Badge>
           )}
         </div>
         <div className="text-xl mono fw-500">
-          <Money value={balance} currency={account.currency as 'BRL' | 'USD'} />
+          <Money value={balance} currency={account.currencyCode as 'BRL' | 'USD'} />
         </div>
         <div className="row gap-2 mt-2 text-xs text-dim" style={{ alignItems: 'center' }}>
           <span
@@ -192,7 +154,7 @@ export function AccountCard({
             >
               Ajustar
             </Button>
-            {!account.archived && (
+            {!account.archivedAt && (
               <Button
                 size="sm"
                 variant="ghost"
@@ -204,7 +166,7 @@ export function AccountCard({
                 Transferir
               </Button>
             )}
-            {account.archived ? (
+            {account.archivedAt ? (
               <Button
                 size="sm"
                 variant="ghost"

@@ -4,6 +4,11 @@ import { toast } from '@/lib/toast'
 import { INSTALLMENTS_QUERY_KEY } from './use-installment-series'
 import { TRANSACTIONS_QUERY_KEY } from '@/features/transactions/hooks/use-transactions'
 import type { EditSeriesRequest, InstallmentSeries } from '@/features/installments/types'
+
+interface UpdateSeriesResponse {
+  series: InstallmentSeries
+  affectedInstallments: number
+}
 import type { NormalizedError } from '@/features/auth/types'
 
 interface UpdateSeriesVariables {
@@ -14,7 +19,7 @@ interface UpdateSeriesVariables {
 export function useUpdateSeries() {
   const queryClient = useQueryClient()
 
-  return useMutation<InstallmentSeries, NormalizedError, UpdateSeriesVariables>({
+  return useMutation<UpdateSeriesResponse, NormalizedError, UpdateSeriesVariables>({
     mutationFn: ({ seriesId, data }) => updateSeries(seriesId, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: INSTALLMENTS_QUERY_KEY })

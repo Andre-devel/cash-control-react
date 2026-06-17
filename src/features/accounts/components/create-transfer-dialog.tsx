@@ -31,13 +31,13 @@ export function CreateTransferDialog({
 }: CreateTransferDialogProps) {
   const { mutate: createTransfer, isPending } = useCreateTransfer()
 
-  const activeAccounts = accounts.filter((a) => !a.archived)
+  const activeAccounts = accounts.filter((a) => !a.archivedAt)
 
   const form = useForm<CreateTransferFormValues>({
     resolver: zodResolver(createTransferSchema),
     defaultValues: {
-      fromAccountId: defaultFromAccount?.id ?? '',
-      toAccountId: '',
+      sourceAccountId: defaultFromAccount?.id ?? '',
+      destinationAccountId: '',
       amount: '',
       date: todayIso(),
       description: '',
@@ -62,12 +62,12 @@ export function CreateTransferDialog({
 
   return (
     <Modal
-      title="Transfer Between Accounts"
+      title="Transferir entre contas"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -91,10 +91,10 @@ export function CreateTransferDialog({
                   }}
                   aria-hidden="true"
                 />
-                Transferring…
+                Transferindo…
               </>
             ) : (
-              'Transfer'
+              'Transferir'
             )}
           </Button>
         </>
@@ -106,38 +106,38 @@ export function CreateTransferDialog({
         noValidate
         className="col gap-4"
       >
-        <Field label="From Account" error={form.formState.errors.fromAccountId?.message}>
-          <Select aria-label="From Account" {...form.register('fromAccountId')}>
-            <option value="">Select source account</option>
+        <Field label="Conta de origem" error={form.formState.errors.sourceAccountId?.message}>
+          <Select aria-label="Conta de origem" {...form.register('sourceAccountId')}>
+            <option value="">Selecionar conta de origem</option>
             {activeAccounts.map((acc) => (
               <option key={acc.id} value={acc.id}>
-                {acc.name} ({acc.currency} {acc.balance})
+                {acc.name} ({acc.currencyCode} {acc.balance})
               </option>
             ))}
           </Select>
         </Field>
 
-        <Field label="To Account" error={form.formState.errors.toAccountId?.message}>
-          <Select aria-label="To Account" {...form.register('toAccountId')}>
-            <option value="">Select destination account</option>
+        <Field label="Conta de destino" error={form.formState.errors.destinationAccountId?.message}>
+          <Select aria-label="Conta de destino" {...form.register('destinationAccountId')}>
+            <option value="">Selecionar conta de destino</option>
             {activeAccounts.map((acc) => (
               <option key={acc.id} value={acc.id}>
-                {acc.name} ({acc.currency} {acc.balance})
+                {acc.name} ({acc.currencyCode} {acc.balance})
               </option>
             ))}
           </Select>
         </Field>
 
-        <Field label="Amount" error={form.formState.errors.amount?.message}>
-          <Input placeholder="e.g. 500.00" {...form.register('amount')} />
+        <Field label="Valor" error={form.formState.errors.amount?.message}>
+          <Input placeholder="ex: 500.00" {...form.register('amount')} />
         </Field>
 
-        <Field label="Date" error={form.formState.errors.date?.message}>
+        <Field label="Data" error={form.formState.errors.date?.message}>
           <Input type="date" {...form.register('date')} />
         </Field>
 
-        <Field label="Description (optional)" error={form.formState.errors.description?.message}>
-          <Input placeholder="e.g. Savings contribution" {...form.register('description')} />
+        <Field label="Descrição (opcional)" error={form.formState.errors.description?.message}>
+          <Input placeholder="ex: Aporte em poupança" {...form.register('description')} />
         </Field>
       </form>
     </Modal>

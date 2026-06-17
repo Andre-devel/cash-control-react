@@ -13,7 +13,11 @@ export function ConsentHistorySection() {
 
   if (isLoading) {
     return (
-      <div className="space-y-2" aria-busy="true" aria-label="Loading consent history">
+      <div
+        className="space-y-2"
+        aria-busy="true"
+        aria-label="Carregando histórico de consentimento"
+      >
         {[1, 2, 3].map((i) => (
           <div
             key={i}
@@ -28,24 +32,24 @@ export function ConsentHistorySection() {
   if (isError) {
     return (
       <div className="text-sm" role="alert" style={{ color: 'var(--expense)' }}>
-        Failed to load consent history.{' '}
+        Falha ao carregar histórico de consentimento.{' '}
         <button
           type="button"
           className="underline underline-offset-2"
           onClick={() => void refetch()}
         >
-          Retry
+          Tentar novamente
         </button>
       </div>
     )
   }
 
   if (!consents || consents.length === 0) {
-    return <p className="text-sm text-dim">No consent records found.</p>
+    return <p className="text-sm text-dim">Nenhum registro de consentimento encontrado.</p>
   }
 
   return (
-    <ul className="space-y-2" role="list" aria-label="Consent history">
+    <ul className="space-y-2" role="list" aria-label="Histórico de consentimento">
       {consents.map((record) => (
         <li
           key={record.id}

@@ -32,7 +32,7 @@ export default function RolesPage() {
     },
     onError: (error: NormalizedError) => {
       if (error.status === 409) {
-        setCreateNameError('A role with this name already exists.')
+        setCreateNameError('Já existe um papel com este nome.')
       } else {
         toast.error(error.message)
       }
@@ -52,17 +52,17 @@ export default function RolesPage() {
   if (isError) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight">Roles</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Papéis</h1>
         <div
           className="rounded-lg p-4"
           style={{ border: '1px solid var(--expense-soft)', background: 'var(--expense-soft)' }}
         >
           <p className="text-sm" style={{ color: 'var(--expense)' }}>
-            Failed to load roles.
+            Falha ao carregar papéis.
           </p>
         </div>
         <Button variant="ghost" className="min-h-[44px]" onClick={() => refetch()}>
-          Retry
+          Tentar novamente
         </Button>
       </div>
     )
@@ -71,20 +71,20 @@ export default function RolesPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Roles</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Papéis</h1>
         {canCreateRole && (
           <Button size="sm" className="min-h-[44px]" onClick={() => setIsCreateOpen(true)}>
-            New Role
+            Novo papel
           </Button>
         )}
       </div>
 
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="mb-4 text-dim">No roles found.</p>
+          <p className="mb-4 text-dim">Nenhum papel encontrado.</p>
           {canCreateRole && (
             <Button size="sm" className="min-h-[44px]" onClick={() => setIsCreateOpen(true)}>
-              New Role
+              Novo papel
             </Button>
           )}
         </div>
@@ -100,12 +100,12 @@ export default function RolesPage() {
             className="min-h-[44px]"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0 || isFetching}
-            aria-label="Previous page"
+            aria-label="Página anterior"
           >
-            Previous
+            Anterior
           </Button>
           <span className="text-sm text-dim" aria-live="polite">
-            Page {page + 1} of {totalPages}
+            Página {page + 1} de {totalPages}
           </span>
           <Button
             variant="ghost"
@@ -113,15 +113,15 @@ export default function RolesPage() {
             className="min-h-[44px]"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1 || isFetching}
-            aria-label="Next page"
+            aria-label="Próxima página"
           >
-            Next
+            Próxima
           </Button>
         </div>
       )}
 
       {isCreateOpen && (
-        <Modal title="Create Role" onClose={handleCreateClose}>
+        <Modal title="Criar papel" onClose={handleCreateClose}>
           <RoleForm
             mode="create"
             isPending={createRole.isPending}

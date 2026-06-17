@@ -24,7 +24,7 @@
 | Notifications & errors | `[x]` Sonner toast wrapper, Error Boundaries, structured logger |
 | Test infrastructure | `[x]` Vitest + MSW + React Testing Library — auth flows covered |
 | Financial features | `[ ]` Accounts, transactions, installments, recurrences, categories, cards, dashboard |
-| CI/CD pipeline | `[ ]` Not configured |
+| CI/CD pipeline | `[x]` `.github/workflows/ci.yml` — lint, typecheck, test/coverage, docker build |
 
 **Overall status:** Auth template foundation complete. Financial feature implementation starts Phase 1 of this roadmap.
 
@@ -599,7 +599,7 @@ Each feature phase follows the same internal structure: API service layer → Zo
 - [x] Auth integration tests from Phase 8 (auth template) remain green
 
 **Automated Tests:**
-- [ ] CI step runs `pnpm test --coverage` and fails on coverage regression below 80%
+- [x] CI step runs `pnpm test:coverage` and fails on coverage regression below 80%
 
 ---
 

@@ -4,10 +4,8 @@ import { createAccountSchema } from '../create-account.schema'
 const VALID_INPUT = {
   name: 'Nubank',
   type: 'CHECKING' as const,
-  currency: 'BRL',
+  currencyCode: 'BRL',
   initialBalance: '1500.00',
-  color: '#820AD1',
-  icon: 'wallet',
 }
 
 describe('createAccountSchema', () => {
@@ -74,18 +72,8 @@ describe('createAccountSchema', () => {
     )
   })
 
-  it('rejects empty color', () => {
-    const result = createAccountSchema.safeParse({ ...VALID_INPUT, color: '' })
-    expect(result.success).toBe(false)
-  })
-
-  it('rejects empty icon', () => {
-    const result = createAccountSchema.safeParse({ ...VALID_INPUT, icon: '' })
-    expect(result.success).toBe(false)
-  })
-
-  it('rejects empty currency', () => {
-    const result = createAccountSchema.safeParse({ ...VALID_INPUT, currency: '' })
+  it('rejects empty currencyCode', () => {
+    const result = createAccountSchema.safeParse({ ...VALID_INPUT, currencyCode: '' })
     expect(result.success).toBe(false)
   })
 

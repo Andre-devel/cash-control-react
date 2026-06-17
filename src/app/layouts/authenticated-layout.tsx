@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { LogOut } from 'lucide-react'
 import { Sidebar } from '@/components/layout/sidebar'
@@ -16,6 +17,7 @@ const ROUTE_LABELS: Array<{ path: string; label: string }> = [
   { path: ROUTES.RECURRENCES, label: 'Recorrências' },
   { path: ROUTES.PROFILE, label: 'Configurações' },
   { path: ROUTES.ROLES, label: 'Funções' },
+  { path: ROUTES.AUDIT, label: 'Auditoria' },
 ]
 
 function getBreadcrumb(pathname: string): string[] {
@@ -30,6 +32,7 @@ export function AuthenticatedLayout() {
   const logout = useLogout()
   const location = useLocation()
   const breadcrumb = getBreadcrumb(location.pathname)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="app">
@@ -39,9 +42,12 @@ export function AuthenticatedLayout() {
       >
         Ir para o conteúdo
       </a>
-      <Sidebar />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="shell">
-        <Topbar breadcrumb={breadcrumb.length > 0 ? breadcrumb : undefined}>
+        <Topbar
+          breadcrumb={breadcrumb.length > 0 ? breadcrumb : undefined}
+          onMenuClick={() => setSidebarOpen(true)}
+        >
           <Button variant="ghost" size="icon" onClick={logout} aria-label="Sair" title="Sair">
             <LogOut size={16} aria-hidden="true" />
           </Button>

@@ -1,7 +1,6 @@
 import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { IconBubble } from '@/components/ui/icon-bubble'
-import { TypeBadge } from '@/components/ui/type-badge'
 import { Badge } from '@/components/ui/badge'
 import type { Category } from '@/features/categories/types'
 
@@ -38,18 +37,17 @@ export const CategoryNode = memo(function CategoryNode({
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="fw-500 truncate">{node.name}</div>
         </div>
-        <TypeBadge type={node.type} />
-        {node.isSystem && (
+        {node.isDefault && (
           <Badge kind="muted" dot={false} square>
             Sistema
           </Badge>
         )}
-        {node.hidden && (
+        {node.isHidden && (
           <Badge kind="muted" dot={false} square>
             Oculto
           </Badge>
         )}
-        {node.archived && (
+        {node.isArchived && (
           <Badge kind="muted" dot={false} square>
             Arquivado
           </Badge>
@@ -60,18 +58,18 @@ export const CategoryNode = memo(function CategoryNode({
             size="sm"
             onClick={() => onEdit(node)}
             aria-label={`Edit ${node.name}`}
-            disabled={node.isSystem}
+            disabled={node.isDefault}
           >
             Editar
           </Button>
 
-          {node.hidden ? (
+          {node.isHidden ? (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onShow(node)}
               aria-label={`Show ${node.name}`}
-              disabled={node.isSystem}
+              disabled={node.isDefault}
             >
               Mostrar
             </Button>
@@ -81,19 +79,19 @@ export const CategoryNode = memo(function CategoryNode({
               size="sm"
               onClick={() => onHide(node)}
               aria-label={`Hide ${node.name}`}
-              disabled={node.isSystem}
+              disabled={node.isDefault}
             >
               Ocultar
             </Button>
           )}
 
-          {node.archived ? (
+          {node.isArchived ? (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onUnarchive(node)}
               aria-label={`Unarchive ${node.name}`}
-              disabled={node.isSystem}
+              disabled={node.isDefault}
             >
               Desarquivar
             </Button>
@@ -103,7 +101,7 @@ export const CategoryNode = memo(function CategoryNode({
               size="sm"
               onClick={() => onArchive(node)}
               aria-label={`Archive ${node.name}`}
-              disabled={node.isSystem}
+              disabled={node.isDefault}
             >
               Arquivar
             </Button>

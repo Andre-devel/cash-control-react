@@ -7,10 +7,9 @@ export const MOCK_ACCOUNT_1: Account = {
   name: 'Nubank',
   type: 'CHECKING',
   balance: '1500.00',
-  currency: 'BRL',
-  color: '#820AD1',
-  icon: 'wallet',
-  archived: false,
+  currencyCode: 'BRL',
+  sortOrder: 1,
+  archivedAt: null,
   createdAt: '2026-01-01T00:00:00Z',
 }
 
@@ -19,10 +18,9 @@ export const MOCK_ACCOUNT_2: Account = {
   name: 'Savings',
   type: 'SAVINGS',
   balance: '5000.00',
-  currency: 'BRL',
-  color: '#4CAF50',
-  icon: 'piggy-bank',
-  archived: false,
+  currencyCode: 'BRL',
+  sortOrder: 2,
+  archivedAt: null,
   createdAt: '2026-01-01T00:00:00Z',
 }
 
@@ -31,10 +29,9 @@ export const MOCK_ARCHIVED_ACCOUNT: Account = {
   name: 'Old Account',
   type: 'CHECKING',
   balance: '0.00',
-  currency: 'BRL',
-  color: '#9E9E9E',
-  icon: 'archive',
-  archived: true,
+  currencyCode: 'BRL',
+  sortOrder: 3,
+  archivedAt: '2025-01-01T00:00:00Z',
   createdAt: '2025-01-01T00:00:00Z',
 }
 
@@ -48,7 +45,7 @@ export const accountsHandlers = [
   http.get('*/accounts', ({ request }) => {
     const url = new URL(request.url)
     const includeArchived = url.searchParams.get('includeArchived') === 'true'
-    const result = includeArchived ? accountsStore : accountsStore.filter((a) => !a.archived)
+    const result = includeArchived ? accountsStore : accountsStore.filter((a) => !a.archivedAt)
     return HttpResponse.json(result)
   }),
 
@@ -72,8 +69,10 @@ export const accountsHandlers = [
     const { initialBalance, description, ...rest } = body
     const created: Account = {
       id: `account-${Date.now()}`,
-      balance: initialBalance,
-      archived: false,
+      balance: String(initialBalance ?? '0.00'),
+      currencyCode: 'BRL',
+      sortOrder: accountsStore.length + 1,
+      archivedAt: null,
       createdAt: new Date().toISOString(),
       description: description ?? undefined,
       ...rest,
@@ -105,13 +104,15 @@ export const accountsHandlers = [
   }),
 
   http.post('*/accounts/:id/archive', ({ params }) => {
-    accountsStore = accountsStore.map((a) => (a.id === params.id ? { ...a, archived: true } : a))
+    accountsStore = accountsStore.map((a) =>
+      a.id === params.id ? { ...a, archivedAt: new Date().toISOString() } : a,
+    )
     const updated = accountsStore.find((a) => a.id === params.id)
     return HttpResponse.json(updated)
   }),
 
   http.post('*/accounts/:id/unarchive', ({ params }) => {
-    accountsStore = accountsStore.map((a) => (a.id === params.id ? { ...a, archived: false } : a))
+    accountsStore = accountsStore.map((a) => (a.id === params.id ? { ...a, archivedAt: null } : a))
     const updated = accountsStore.find((a) => a.id === params.id)
     return HttpResponse.json(updated)
   }),

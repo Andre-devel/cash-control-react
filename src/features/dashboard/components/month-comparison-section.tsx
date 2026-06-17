@@ -36,7 +36,7 @@ function ChartSkeleton() {
       className="h-64 rounded animate-pulse"
       style={{ background: 'var(--surface-3)' }}
       aria-busy="true"
-      aria-label="Loading comparison chart"
+      aria-label="Carregando gráfico de comparação"
     />
   )
 }
@@ -50,19 +50,19 @@ export function MonthComparisonSection() {
   const chartData = data
     ? [
         {
-          label: 'Income',
+          label: 'Receita',
           [data.month1.month]: parseFloat(data.month1.income),
           [data.month2.month]: parseFloat(data.month2.income),
         },
         {
-          label: 'Expenses',
+          label: 'Despesas',
           [data.month1.month]: parseFloat(data.month1.expenses),
           [data.month2.month]: parseFloat(data.month2.expenses),
         },
         {
-          label: 'Balance',
-          [data.month1.month]: parseFloat(data.month1.balance),
-          [data.month2.month]: parseFloat(data.month2.balance),
+          label: 'Saldo',
+          [data.month1.month]: parseFloat(data.month1.balance ?? '0'),
+          [data.month2.month]: parseFloat(data.month2.balance ?? '0'),
         },
       ]
     : []
@@ -70,10 +70,10 @@ export function MonthComparisonSection() {
   return (
     <div className="card">
       <div className="card-h">
-        <h3>Month Comparison</h3>
+        <h3>Comparação mensal</h3>
         <div className="flex flex-wrap items-center gap-2">
           <label className="sr-only" htmlFor="cmp-month1">
-            Month 1
+            Mês 1
           </label>
           <input
             id="cmp-month1"
@@ -82,11 +82,11 @@ export function MonthComparisonSection() {
             onChange={(e) => setMonth1(e.target.value)}
             className="input"
             style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
-            aria-label="Month 1"
+            aria-label="Mês 1"
           />
           <span className="text-dim text-xs">vs</span>
           <label className="sr-only" htmlFor="cmp-month2">
-            Month 2
+            Mês 2
           </label>
           <input
             id="cmp-month2"
@@ -95,7 +95,7 @@ export function MonthComparisonSection() {
             onChange={(e) => setMonth2(e.target.value)}
             className="input"
             style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
-            aria-label="Month 2"
+            aria-label="Mês 2"
           />
         </div>
       </div>
@@ -105,15 +105,15 @@ export function MonthComparisonSection() {
         ) : isError ? (
           <div role="alert" className="space-y-2">
             <p className="text-sm" style={{ color: 'var(--expense)' }}>
-              Failed to load comparison chart.
+              Falha ao carregar gráfico de comparação.
             </p>
             <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              Retry
+              Tentar novamente
             </Button>
           </div>
         ) : !data ? (
           <p className="text-sm text-dim" style={{ padding: '32px 0', textAlign: 'center' }}>
-            No comparison data.
+            Nenhum dado de comparação.
           </p>
         ) : (
           <div className="space-y-4">
@@ -148,13 +148,13 @@ export function MonthComparisonSection() {
                 >
                   <p className="fw-500 text-xs text-dim">{m.month}</p>
                   <div className="flex justify-between">
-                    <span className="text-dim">Income</span>
+                    <span className="text-dim">Receita</span>
                     <span className="mono" style={{ color: 'var(--income)' }}>
                       {fmt(parseFloat(m.income))}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-dim">Expenses</span>
+                    <span className="text-dim">Despesas</span>
                     <span className="mono" style={{ color: 'var(--expense)' }}>
                       {fmt(parseFloat(m.expenses))}
                     </span>
@@ -163,8 +163,8 @@ export function MonthComparisonSection() {
                     className="flex justify-between"
                     style={{ borderTop: '1px solid var(--border)', paddingTop: 4 }}
                   >
-                    <span className="fw-500">Balance</span>
-                    <span className="mono fw-600">{fmt(parseFloat(m.balance))}</span>
+                    <span className="fw-500">Saldo</span>
+                    <span className="mono fw-600">{fmt(parseFloat(m.balance ?? '0'))}</span>
                   </div>
                 </div>
               ))}

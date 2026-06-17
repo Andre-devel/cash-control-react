@@ -113,7 +113,7 @@ export function OpenInvoicesCard() {
             const days = daysUntil(inv.dueDate)
             return (
               <div
-                key={`${inv.cardId}-${inv.referenceMonth}`}
+                key={inv.invoiceId ?? `${inv.cardName}-${inv.referenceMonth}`}
                 style={{
                   padding: 14,
                   borderRadius: 10,
@@ -129,7 +129,7 @@ export function OpenInvoicesCard() {
                     />
                     <div>
                       <Link
-                        to={ROUTES.CARD_DETAIL.replace(':id', inv.cardId)}
+                        to={ROUTES.CARDS}
                         style={{
                           fontWeight: 500,
                           fontSize: 13,

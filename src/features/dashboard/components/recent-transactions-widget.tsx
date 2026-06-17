@@ -15,7 +15,7 @@ function WidgetSkeleton() {
     <div
       className="space-y-2 animate-pulse"
       aria-busy="true"
-      aria-label="Loading recent transactions"
+      aria-label="Carregando transações recentes"
     >
       {[1, 2, 3, 4, 5].map((i) => (
         <div key={i} className="h-10 rounded" style={{ background: 'var(--surface-3)' }} />
@@ -30,7 +30,7 @@ export function RecentTransactionsWidget() {
   return (
     <div className="card">
       <div className="card-h">
-        <h3>Recent Transactions</h3>
+        <h3>Transações recentes</h3>
       </div>
       <div className="card-b">
         {isLoading ? (
@@ -38,15 +38,15 @@ export function RecentTransactionsWidget() {
         ) : isError ? (
           <div role="alert" className="space-y-2">
             <p className="text-sm" style={{ color: 'var(--expense)' }}>
-              Failed to load recent transactions.
+              Falha ao carregar transações recentes.
             </p>
             <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              Retry
+              Tentar novamente
             </Button>
           </div>
         ) : !data || data.length === 0 ? (
           <p className="text-sm text-dim" style={{ textAlign: 'center', padding: '16px 0' }}>
-            No recent transactions.
+            Nenhuma transação recente.
           </p>
         ) : (
           <ul className="divide-y" role="list">
@@ -76,7 +76,8 @@ export function RecentTransactionsWidget() {
                         {tx.description}
                       </p>
                       <p className="text-xs text-dim">
-                        {TYPE_LABELS[tx.type] ?? tx.type} · {new Date(tx.date).toLocaleDateString()}
+                        {TYPE_LABELS[tx.type] ?? tx.type} ·{' '}
+                        {new Date(tx.competenceDate).toLocaleDateString()}
                       </p>
                     </div>
                     <span className="mono fw-600 ml-4" style={{ color: amountColor }}>

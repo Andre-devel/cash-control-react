@@ -8,7 +8,7 @@ function WidgetSkeleton() {
     <div
       className="space-y-2 animate-pulse"
       aria-busy="true"
-      aria-label="Loading upcoming invoices"
+      aria-label="Carregando faturas próximas"
     >
       {[1, 2].map((i) => (
         <div key={i} className="h-10 rounded" style={{ background: 'var(--surface-3)' }} />
@@ -23,7 +23,7 @@ export function UpcomingInvoicesWidget() {
   return (
     <div className="card">
       <div className="card-h">
-        <h3>Upcoming Invoices</h3>
+        <h3>Faturas próximas</h3>
       </div>
       <div className="card-b">
         {isLoading ? (
@@ -31,29 +31,30 @@ export function UpcomingInvoicesWidget() {
         ) : isError ? (
           <div role="alert" className="space-y-2">
             <p className="text-sm" style={{ color: 'var(--expense)' }}>
-              Failed to load upcoming invoices.
+              Falha ao carregar faturas próximas.
             </p>
             <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              Retry
+              Tentar novamente
             </Button>
           </div>
         ) : !data || data.length === 0 ? (
           <p className="text-sm text-dim" style={{ textAlign: 'center', padding: '16px 0' }}>
-            No upcoming invoices.
+            Nenhuma fatura próxima.
           </p>
         ) : (
           <ul className="divide-y" role="list">
-            {data.map((inv) => (
-              <li key={`${inv.cardId}-${inv.referenceMonth}`} className="py-2 text-sm">
+            {data.map((inv, idx) => (
+              <li key={inv.invoiceId ?? `${inv.cardName}-${idx}`} className="py-2 text-sm">
                 <Link
-                  to={ROUTES.CARD_DETAIL.replace(':id', inv.cardId)}
+                  to={ROUTES.CARDS}
                   className="flex items-center justify-between hover:underline focus:outline-none focus:underline"
                   aria-label={`${inv.cardName} invoice for ${inv.referenceMonth}`}
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate fw-500">{inv.cardName}</p>
                     <p className="text-xs text-dim">
-                      {inv.referenceMonth} · Due: {new Date(inv.dueDate).toLocaleDateString()}
+                      {inv.referenceMonth} · Vencimento:{' '}
+                      {new Date(inv.dueDate).toLocaleDateString()}
                     </p>
                   </div>
                   <span className="mono fw-600 ml-4">{inv.totalAmount}</span>

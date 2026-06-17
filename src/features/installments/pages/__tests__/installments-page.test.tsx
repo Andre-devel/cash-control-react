@@ -56,12 +56,10 @@ describe('InstallmentsPage', () => {
     })
   })
 
-  it('shows paid/total progress for each series', async () => {
+  it('shows total installments count for each series', async () => {
     renderWithProviders(<InstallmentsPage />)
     await waitFor(() => {
-      expect(
-        screen.getByText(`${MOCK_SERIES_1.paidCount}/${MOCK_SERIES_1.installmentCount} paid`),
-      ).toBeTruthy()
+      expect(screen.getByText(`${MOCK_SERIES_1.totalInstallments}x`)).toBeTruthy()
     })
   })
 
@@ -235,8 +233,8 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /settle series early/i })).toBeTruthy()
-    expect(screen.getAllByText(/remaining installments/i).length).toBeGreaterThan(0)
-    expect(screen.getByText(MOCK_SERIES_1.remainingAmount)).toBeTruthy()
+    expect(screen.getAllByText(/total installments/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(MOCK_SERIES_1.totalAmount)).toBeTruthy()
   })
 
   it('settle → series status updates in the list', async () => {

@@ -5,7 +5,6 @@ const VALID_INPUT = {
   name: 'Food',
   color: '#4CAF50',
   icon: 'tag',
-  type: 'EXPENSE' as const,
 }
 
 describe('createCategorySchema', () => {
@@ -19,8 +18,22 @@ describe('createCategorySchema', () => {
     )
   })
 
-  it('accepts a valid INCOME category', () => {
-    expect(createCategorySchema.safeParse({ ...VALID_INPUT, type: 'INCOME' }).success).toBe(true)
+  it('accepts category without color', () => {
+    const { color: _, ...rest } = VALID_INPUT
+    expect(createCategorySchema.safeParse(rest).success).toBe(true)
+  })
+
+  it('accepts category without icon', () => {
+    const { icon: _, ...rest } = VALID_INPUT
+    expect(createCategorySchema.safeParse(rest).success).toBe(true)
+  })
+
+  it('accepts empty color string', () => {
+    expect(createCategorySchema.safeParse({ ...VALID_INPUT, color: '' }).success).toBe(true)
+  })
+
+  it('accepts empty icon string', () => {
+    expect(createCategorySchema.safeParse({ ...VALID_INPUT, icon: '' }).success).toBe(true)
   })
 
   it('rejects empty name', () => {
@@ -36,25 +49,8 @@ describe('createCategorySchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects invalid type enum', () => {
-    const result = createCategorySchema.safeParse({ ...VALID_INPUT, type: 'INVALID_TYPE' })
-    expect(result.success).toBe(false)
-    if (!result.success) {
-      expect(result.error.issues.some((i) => i.path[0] === 'type')).toBe(true)
-    }
-  })
-
-  it.each(['INCOME', 'EXPENSE'])('accepts type %s', (type) => {
-    expect(createCategorySchema.safeParse({ ...VALID_INPUT, type }).success).toBe(true)
-  })
-
-  it('rejects empty color', () => {
-    const result = createCategorySchema.safeParse({ ...VALID_INPUT, color: '' })
-    expect(result.success).toBe(false)
-  })
-
-  it('rejects empty icon', () => {
-    const result = createCategorySchema.safeParse({ ...VALID_INPUT, icon: '' })
+  it('rejects invalid hex color format', () => {
+    const result = createCategorySchema.safeParse({ ...VALID_INPUT, color: 'notacolor' })
     expect(result.success).toBe(false)
   })
 

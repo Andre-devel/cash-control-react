@@ -34,8 +34,8 @@ interface CardSidebarProps {
 
 export function CardSidebar({ card, limitUsage, spending }: CardSidebarProps) {
   const creditLimit = parseFloat(card.creditLimit)
-  const usedAmount = limitUsage ? parseFloat(limitUsage.usedAmount) : 0
-  const availableAmount = limitUsage ? parseFloat(limitUsage.availableAmount) : creditLimit
+  const usedAmount = limitUsage ? parseFloat(limitUsage.usedLimit) : 0
+  const availableAmount = limitUsage ? parseFloat(limitUsage.availableLimit) : creditLimit
   const usedPct = limitUsage?.usagePercentage
     ? parseFloat(limitUsage.usagePercentage)
     : creditLimit > 0
@@ -43,7 +43,7 @@ export function CardSidebar({ card, limitUsage, spending }: CardSidebarProps) {
       : 0
 
   const spendingItems = spending ?? []
-  const spendingTotal = spendingItems.reduce((sum, item) => sum + parseFloat(item.amount), 0)
+  const spendingTotal = spendingItems.reduce((sum, item) => sum + parseFloat(item.totalAmount), 0)
 
   return (
     <div className="col gap-4">
@@ -58,7 +58,7 @@ export function CardSidebar({ card, limitUsage, spending }: CardSidebarProps) {
             </div>
           </div>
           <div className="bar mt-3">
-            <i style={{ width: `${usedPct}%`, background: card.color }} />
+            <i style={{ width: `${usedPct}%`, background: 'var(--accent)' }} />
           </div>
           <div className="row between text-xs text-dim mt-2">
             <span>Disponível</span>
@@ -77,9 +77,9 @@ export function CardSidebar({ card, limitUsage, spending }: CardSidebarProps) {
           </div>
           <div className="card-b">
             {[...spendingItems]
-              .sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount))
+              .sort((a, b) => parseFloat(b.totalAmount) - parseFloat(a.totalAmount))
               .map((item, i) => {
-                const itemAmount = parseFloat(item.amount)
+                const itemAmount = parseFloat(item.totalAmount)
                 const pct = spendingTotal > 0 ? (itemAmount / spendingTotal) * 100 : 0
                 return (
                   <div key={item.categoryId ?? i} className="mb-4">
@@ -121,7 +121,6 @@ export function CardSidebar({ card, limitUsage, spending }: CardSidebarProps) {
         <div className="card-b col gap-3">
           <DetailRow label="Bandeira" value={BRAND_LABELS[card.brand] ?? card.brand} />
           {card.issuer && <DetailRow label="Emissor" value={card.issuer} />}
-          <DetailRow label="Final" value={`•••• ${card.lastFourDigits}`} mono />
           <DetailRow label="Fechamento" value={`Dia ${card.closingDay}`} />
           <DetailRow label="Vencimento" value={`Dia ${card.dueDay}`} />
           <DetailRow label="Limite total" value={<Money value={creditLimit} />} mono />

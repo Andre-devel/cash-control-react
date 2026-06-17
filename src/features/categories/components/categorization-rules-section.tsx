@@ -36,12 +36,12 @@ function DeleteRuleDialog({ rule, open, onClose }: DeleteRuleDialogProps) {
 
   return (
     <Modal
-      title="Delete Rule"
+      title="Excluir regra"
       onClose={onClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -65,18 +65,18 @@ function DeleteRuleDialog({ rule, open, onClose }: DeleteRuleDialogProps) {
                   }}
                   aria-hidden="true"
                 />
-                Deleting…
+                Excluindo…
               </>
             ) : (
-              'Delete Rule'
+              'Excluir regra'
             )}
           </Button>
         </>
       }
     >
       <p>
-        Delete the auto-categorization rule for pattern <strong>"{rule?.pattern}"</strong>? This
-        action cannot be undone.
+        Excluir a regra de categorização automática para o padrão <strong>"{rule?.pattern}"</strong>
+        ? Esta ação não pode ser desfeita.
       </p>
     </Modal>
   )
@@ -124,12 +124,12 @@ function CreateRuleDialog({ open, onClose, categories, accounts }: CreateRuleDia
 
   return (
     <Modal
-      title="Create Auto-Categorization Rule"
+      title="Nova regra de categorização automática"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -153,10 +153,10 @@ function CreateRuleDialog({ open, onClose, categories, accounts }: CreateRuleDia
                   }}
                   aria-hidden="true"
                 />
-                Creating…
+                Criando…
               </>
             ) : (
-              'Create Rule'
+              'Criar regra'
             )}
           </Button>
         </>
@@ -168,13 +168,13 @@ function CreateRuleDialog({ open, onClose, categories, accounts }: CreateRuleDia
         noValidate
         className="col gap-4"
       >
-        <Field label="Pattern" error={form.formState.errors.pattern?.message}>
-          <Input placeholder="e.g. Supermarket" {...form.register('pattern')} />
+        <Field label="Padrão" error={form.formState.errors.pattern?.message}>
+          <Input placeholder="ex: Supermercado" {...form.register('pattern')} />
         </Field>
 
-        <Field label="Category" error={form.formState.errors.categoryId?.message}>
-          <Select aria-label="Category" {...form.register('categoryId')}>
-            <option value="">Select a category</option>
+        <Field label="Categoria" error={form.formState.errors.categoryId?.message}>
+          <Select aria-label="Categoria" {...form.register('categoryId')}>
+            <option value="">Selecionar categoria</option>
             {flattenCategories(categories).map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}
@@ -185,11 +185,11 @@ function CreateRuleDialog({ open, onClose, categories, accounts }: CreateRuleDia
 
         {subcategories.length > 0 && (
           <Field
-            label="Subcategory (optional)"
+            label="Subcategoria (opcional)"
             error={form.formState.errors.subcategoryId?.message}
           >
-            <Select aria-label="Subcategory" {...form.register('subcategoryId')}>
-              <option value="">None</option>
+            <Select aria-label="Subcategoria" {...form.register('subcategoryId')}>
+              <option value="">Nenhuma</option>
               {subcategories.map((sub) => (
                 <option key={sub.id} value={sub.id}>
                   {sub.name}
@@ -201,11 +201,11 @@ function CreateRuleDialog({ open, onClose, categories, accounts }: CreateRuleDia
 
         {accounts.length > 0 && (
           <Field
-            label="Scope to Account (optional)"
+            label="Restringir à conta (opcional)"
             error={form.formState.errors.accountId?.message}
           >
-            <Select aria-label="Account" {...form.register('accountId')}>
-              <option value="">All accounts</option>
+            <Select aria-label="Conta" {...form.register('accountId')}>
+              <option value="">Todas as contas</option>
               {accounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
                   {acc.name}

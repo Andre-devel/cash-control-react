@@ -56,10 +56,10 @@ export default function RegisterPage() {
         if (error.errorCode === 'EMAIL_ALREADY_IN_USE') {
           form.setError('email', {
             type: 'manual',
-            message: 'This email address is already registered',
+            message: 'Este endereço de e-mail já está cadastrado',
           })
         } else {
-          toast.error('Registration failed. Please try again.')
+          toast.error('Falha no cadastro. Por favor, tente novamente.')
         }
       },
     })

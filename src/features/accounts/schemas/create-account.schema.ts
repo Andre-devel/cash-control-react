@@ -12,17 +12,15 @@ export const ACCOUNT_TYPES = [
 const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/
 
 export const createAccountSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be at most 100 characters'),
+  name: z.string().min(1, 'Nome é obrigatório').max(100, 'Nome deve ter no máximo 100 caracteres'),
   type: z.enum(ACCOUNT_TYPES),
-  currency: z
+  currencyCode: z
     .string()
-    .min(1, 'Currency is required')
-    .max(10, 'Currency must be at most 10 characters'),
+    .min(1, 'Moeda é obrigatória')
+    .max(10, 'Moeda deve ter no máximo 10 caracteres'),
   initialBalance: z
     .string()
-    .regex(DECIMAL_PATTERN, 'Initial balance must be a valid decimal amount (e.g. 1500.00)'),
-  color: z.string().min(1, 'Color is required'),
-  icon: z.string().min(1, 'Icon is required'),
+    .regex(DECIMAL_PATTERN, 'Saldo inicial deve ser um valor decimal válido (ex: 1500.00)'),
   description: z.string().optional(),
 })
 

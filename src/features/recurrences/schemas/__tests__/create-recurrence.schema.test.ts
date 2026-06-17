@@ -72,7 +72,7 @@ describe('createRecurrenceSchema', () => {
     }
   })
 
-  it.each(['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'])(
+  it.each(['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'YEARLY'])(
     'accepts frequency %s',
     (frequency) => {
       expect(createRecurrenceSchema.safeParse({ ...VALID_INPUT, frequency }).success).toBe(true)

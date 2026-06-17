@@ -14,9 +14,9 @@ function BackLink() {
     <Link
       to={ROUTES.ROLES}
       className="inline-flex items-center text-sm text-dim"
-      aria-label="Back to roles list"
+      aria-label="Voltar para lista de papéis"
     >
-      ← Back to Roles
+      ← Voltar para papéis
     </Link>
   )
 }
@@ -48,7 +48,7 @@ export default function RoleDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4" aria-busy="true" aria-label="Loading role details">
+      <div className="space-y-4" aria-busy="true" aria-label="Carregando detalhes do papel">
         <div
           className="h-8 w-64 rounded animate-pulse"
           style={{ background: 'var(--surface-3)' }}
@@ -65,10 +65,10 @@ export default function RoleDetailPage() {
         <div className="space-y-4">
           <BackLink />
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <h1 className="mb-2 text-2xl font-bold">Role Not Found</h1>
-            <p className="mb-4 text-dim">The role you are looking for does not exist.</p>
+            <h1 className="mb-2 text-2xl font-bold">Papel não encontrado</h1>
+            <p className="mb-4 text-dim">O papel que você está procurando não existe.</p>
             <Button asChild variant="ghost">
-              <Link to={ROUTES.ROLES}>Back to Roles</Link>
+              <Link to={ROUTES.ROLES}>Voltar para papéis</Link>
             </Button>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function RoleDetailPage() {
       <div className="space-y-4">
         <BackLink />
         <p className="text-sm" style={{ color: 'var(--expense)' }}>
-          Failed to load role.
+          Falha ao carregar papel.
         </p>
       </div>
     )
@@ -96,8 +96,8 @@ export default function RoleDetailPage() {
             <div className="flex items-center gap-2">
               <h3>{role.name}</h3>
               {role.systemRole && (
-                <span className="badge muted" aria-label="System role">
-                  System
+                <span className="badge muted" aria-label="Papel do sistema">
+                  Sistema
                 </span>
               )}
             </div>
@@ -111,13 +111,17 @@ export default function RoleDetailPage() {
                 className="min-h-[44px]"
                 onClick={() => setIsEditOpen(true)}
               >
-                Edit Role
+                Editar papel
               </Button>
             )}
 
             {canDeleteRole &&
               (role.systemRole ? (
-                <span tabIndex={0} className="inline-flex" title="System roles cannot be deleted">
+                <span
+                  tabIndex={0}
+                  className="inline-flex"
+                  title="Papéis do sistema não podem ser excluídos"
+                >
                   <Button
                     variant="destructive"
                     size="sm"
@@ -125,7 +129,7 @@ export default function RoleDetailPage() {
                     aria-disabled="true"
                     className="pointer-events-none min-h-[44px]"
                   >
-                    Delete Role
+                    Excluir papel
                   </Button>
                 </span>
               ) : (
@@ -135,7 +139,7 @@ export default function RoleDetailPage() {
                   className="min-h-[44px]"
                   onClick={() => setIsDeleteOpen(true)}
                 >
-                  Delete Role
+                  Excluir papel
                 </Button>
               ))}
           </div>
@@ -146,7 +150,7 @@ export default function RoleDetailPage() {
       </div>
 
       {isEditOpen && (
-        <Modal title="Edit Role" onClose={() => setIsEditOpen(false)}>
+        <Modal title="Editar papel" onClose={() => setIsEditOpen(false)}>
           <RoleForm
             mode="update"
             roleName={role.name}
@@ -161,11 +165,11 @@ export default function RoleDetailPage() {
       {isDeleteOpen && (
         <Modal
           alert
-          title="Delete Role"
+          title="Excluir papel"
           subtitle={
             <>
-              Are you sure you want to delete the role <strong>{role.name}</strong>? This action
-              cannot be undone.
+              Tem certeza que deseja excluir o papel <strong>{role.name}</strong>? Esta ação não
+              pode ser desfeita.
             </>
           }
           onClose={() => setIsDeleteOpen(false)}
@@ -178,7 +182,7 @@ export default function RoleDetailPage() {
                 onClick={() => setIsDeleteOpen(false)}
                 disabled={deleteRole.isPending}
               >
-                Cancel
+                Cancelar
               </Button>
               <div className="spacer" />
               <Button
@@ -202,10 +206,10 @@ export default function RoleDetailPage() {
                       }}
                       aria-hidden="true"
                     />
-                    Deleting…
+                    Excluindo…
                   </>
                 ) : (
-                  'Delete'
+                  'Excluir'
                 )}
               </Button>
             </>

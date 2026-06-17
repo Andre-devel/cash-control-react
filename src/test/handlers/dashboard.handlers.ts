@@ -15,19 +15,19 @@ export const MOCK_OVERVIEW: DashboardOverview = {
   totalBalance: '12500.00',
   monthlyIncome: '5000.00',
   monthlyExpenses: '3200.00',
-  activeAccountsCount: 3,
+  cashFlow: '1800.00',
 }
 
 export const MOCK_CATEGORIES_CHART: CategoriesChart = {
-  items: [
-    { categoryId: 'cat-1', categoryName: 'Food', amount: '800.00', percentage: '25.00' },
-    { categoryId: 'cat-2', categoryName: 'Transport', amount: '400.00', percentage: '12.50' },
-    { categoryId: null, categoryName: null, amount: '2000.00', percentage: '62.50' },
+  entries: [
+    { categoryId: 'cat-1', categoryName: 'Food', totalAmount: '800.00', percentage: '25.00' },
+    { categoryId: 'cat-2', categoryName: 'Transport', totalAmount: '400.00', percentage: '12.50' },
+    { categoryId: null, categoryName: null, totalAmount: '2000.00', percentage: '62.50' },
   ],
 }
 
 export const MOCK_MONTHLY_CHART: MonthlyChart = {
-  data: [
+  months: [
     { month: '2026-01', income: '4500.00', expenses: '3000.00' },
     { month: '2026-02', income: '4800.00', expenses: '3200.00' },
     { month: '2026-03', income: '5000.00', expenses: '2900.00' },
@@ -38,7 +38,7 @@ export const MOCK_MONTHLY_CHART: MonthlyChart = {
 }
 
 export const MOCK_NET_WORTH_CHART: NetWorthChart = {
-  data: [
+  snapshots: [
     { date: '2026-01-01', netWorth: '10000.00' },
     { date: '2026-02-01', netWorth: '11300.00' },
     { date: '2026-03-01', netWorth: '12400.00' },
@@ -67,8 +67,7 @@ export const MOCK_UPCOMING_BILLS: UpcomingBillItem[] = [
     id: 'bill-1',
     description: 'Electricity',
     amount: '150.00',
-    dueDate: '2026-06-01',
-    accountId: 'account-1',
+    paymentDate: '2026-06-01',
     accountName: 'Checking',
     status: 'PENDING',
   },
@@ -76,8 +75,7 @@ export const MOCK_UPCOMING_BILLS: UpcomingBillItem[] = [
     id: 'bill-2',
     description: 'Internet',
     amount: '80.00',
-    dueDate: '2026-05-25',
-    accountId: 'account-1',
+    paymentDate: '2026-05-25',
     accountName: 'Checking',
     status: 'PENDING',
   },
@@ -85,7 +83,7 @@ export const MOCK_UPCOMING_BILLS: UpcomingBillItem[] = [
 
 export const MOCK_UPCOMING_INVOICES: UpcomingInvoiceItem[] = [
   {
-    cardId: 'card-1',
+    invoiceId: 'invoice-1',
     cardName: 'Nubank',
     referenceMonth: '2026-05',
     totalAmount: '800.00',
@@ -97,18 +95,16 @@ export const MOCK_LARGEST_EXPENSES: LargestExpenseItem[] = [
   {
     id: 'tx-1',
     description: 'Laptop',
-    categoryId: 'cat-2',
     categoryName: 'Electronics',
     amount: '3500.00',
-    date: '2026-05-01',
+    paymentDate: '2026-05-01',
   },
   {
     id: 'tx-2',
     description: 'Rent',
-    categoryId: 'cat-3',
     categoryName: 'Housing',
     amount: '2000.00',
-    date: '2026-05-05',
+    paymentDate: '2026-05-05',
   },
 ]
 
@@ -118,9 +114,8 @@ export const MOCK_RECENT_TRANSACTIONS: RecentTransactionItem[] = [
     description: 'Supermarket',
     type: 'EXPENSE',
     amount: '150.75',
-    accountId: 'account-1',
     accountName: 'Checking',
-    date: '2026-05-26',
+    competenceDate: '2026-05-26',
     status: 'PAID',
   },
   {
@@ -128,9 +123,8 @@ export const MOCK_RECENT_TRANSACTIONS: RecentTransactionItem[] = [
     description: 'Salary',
     type: 'INCOME',
     amount: '5000.00',
-    accountId: 'account-1',
     accountName: 'Checking',
-    date: '2026-05-25',
+    competenceDate: '2026-05-25',
     status: 'PAID',
   },
 ]

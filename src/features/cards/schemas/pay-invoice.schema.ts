@@ -7,22 +7,22 @@ export function createPayInvoiceSchema(remainingAmount: string) {
   return z.object({
     amount: z
       .string()
-      .regex(DECIMAL_PATTERN, 'Amount must be a valid decimal amount (e.g. 100.00)')
+      .regex(DECIMAL_PATTERN, 'Valor deve ser um decimal válido (ex: 100.00)')
       .refine(
         (val) => {
           const num = parseFloat(val)
           return !isNaN(num) && num > 0
         },
-        { message: 'Amount must be greater than zero' },
+        { message: 'Valor deve ser maior que zero' },
       )
       .refine(
         (val) => {
           const num = parseFloat(val)
           return !isNaN(remaining) ? num <= remaining : true
         },
-        { message: 'Amount cannot exceed the remaining balance' },
+        { message: 'Valor não pode exceder o saldo restante' },
       ),
-    accountId: z.string().min(1, 'Account is required'),
+    accountId: z.string().min(1, 'Conta é obrigatória'),
   })
 }
 

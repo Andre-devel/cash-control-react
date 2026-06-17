@@ -24,12 +24,12 @@ export function AdvanceInstallmentsDialog({
   )
 
   const [selectedIds, setSelectedIds] = useState<string[]>([])
-  const [newDate, setNewDate] = useState('')
-  const [newAmount, setNewAmount] = useState('')
+  const [newPaymentDate, setNewPaymentDate] = useState('')
+  const [adjustedAmount, setAdjustedAmount] = useState('')
   const [dateError, setDateError] = useState('')
   const [selectionError, setSelectionError] = useState('')
 
-  const pendingTransactions = detail?.transactions.filter((t) => t.status === 'PENDING') ?? []
+  const pendingTransactions = detail?.installments.filter((t) => t.status === 'PENDING') ?? []
 
   function toggleId(id: string) {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -40,22 +40,22 @@ export function AdvanceInstallmentsDialog({
     e.preventDefault()
     let valid = true
     if (selectedIds.length === 0) {
-      setSelectionError('Select at least one installment to advance.')
+      setSelectionError('Selecione pelo menos uma parcela para antecipar.')
       valid = false
     }
-    if (!newDate) {
-      setDateError('New date is required.')
+    if (!newPaymentDate) {
+      setDateError('Nova data é obrigatória.')
       valid = false
     }
     if (!valid) return
 
     advanceInstallments(
-      { transactionIds: selectedIds, newDate, newAmount: newAmount || undefined },
+      { installmentIds: selectedIds, newPaymentDate, adjustedAmount: adjustedAmount || undefined },
       {
         onSuccess: () => {
           setSelectedIds([])
-          setNewDate('')
-          setNewAmount('')
+          setNewPaymentDate('')
+          setAdjustedAmount('')
           setDateError('')
           setSelectionError('')
           onClose()
@@ -66,8 +66,8 @@ export function AdvanceInstallmentsDialog({
 
   function handleClose() {
     setSelectedIds([])
-    setNewDate('')
-    setNewAmount('')
+    setNewPaymentDate('')
+    setAdjustedAmount('')
     setDateError('')
     setSelectionError('')
     onClose()
@@ -77,12 +77,12 @@ export function AdvanceInstallmentsDialog({
 
   return (
     <Modal
-      title="Advance Installments"
+      title="Antecipar parcelas"
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -106,17 +106,18 @@ export function AdvanceInstallmentsDialog({
                   }}
                   aria-hidden="true"
                 />
-                Advancing…
+                Antecipando…
               </>
             ) : (
-              'Advance Installments'
+              'Antecipar parcelas'
             )}
           </Button>
         </>
       }
     >
       <p>
-        Move selected installments of <strong>{series?.description}</strong> to a new due date.
+        Mover as parcelas selecionadas de <strong>{series?.description}</strong> para uma nova data
+        de vencimento.
       </p>
 
       <form
@@ -130,14 +131,14 @@ export function AdvanceInstallmentsDialog({
           <div
             className="animate-pulse"
             style={{ height: 80, background: 'var(--surface-3)', borderRadius: 4 }}
-            aria-label="Loading installments"
+            aria-label="Carregando parcelas"
           />
         ) : pendingTransactions.length === 0 ? (
-          <p className="text-sm text-dim">No pending installments to advance.</p>
+          <p className="text-sm text-dim">Nenhuma parcela pendente para antecipar.</p>
         ) : (
           <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
             <legend className="text-sm fw-500" style={{ marginBottom: 8 }}>
-              Select installments to advance
+              Selecionar parcelas para antecipar
             </legend>
             {selectionError && (
               <p className="text-xs" style={{ color: 'var(--expense)', marginBottom: 6 }}>
@@ -163,10 +164,10 @@ export function AdvanceInstallmentsDialog({
                     type="checkbox"
                     checked={selectedIds.includes(t.id)}
                     onChange={() => toggleId(t.id)}
-                    aria-label={`Installment ${t.installmentNumber}: ${t.dueDate}`}
+                    aria-label={`Installment ${t.installmentNumber}: ${t.competenceDate}`}
                   />
                   <span className="text-sm">
-                    #{t.installmentNumber} — {t.dueDate}
+                    #{t.installmentNumber} — {t.competenceDate}
                     <span className="text-dim" style={{ marginLeft: 8 }}>
                       {t.amount}
                     </span>
@@ -177,25 +178,25 @@ export function AdvanceInstallmentsDialog({
           </fieldset>
         )}
 
-        <Field label="New due date" error={dateError}>
+        <Field label="Nova data de vencimento" error={dateError}>
           <Input
             type="date"
-            value={newDate}
+            value={newPaymentDate}
             onChange={(e) => {
-              setNewDate(e.target.value)
+              setNewPaymentDate(e.target.value)
               setDateError('')
             }}
-            aria-label="New due date"
+            aria-label="Nova data de vencimento"
           />
         </Field>
 
-        <Field label="New amount per installment (optional)">
+        <Field label="Novo valor por parcela (opcional)">
           <Input
             type="text"
-            placeholder="e.g. 350.00"
-            value={newAmount}
-            onChange={(e) => setNewAmount(e.target.value)}
-            aria-label="New amount per installment"
+            placeholder="ex: 350.00"
+            value={adjustedAmount}
+            onChange={(e) => setAdjustedAmount(e.target.value)}
+            aria-label="Novo valor por parcela"
           />
         </Field>
       </form>

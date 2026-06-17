@@ -12,7 +12,7 @@ interface SettleSeriesDialogProps {
 export function SettleSeriesDialog({ series, open, onClose }: SettleSeriesDialogProps) {
   const { mutate: settleSeries, isPending } = useSettleSeries()
 
-  const remaining = series ? series.installmentCount - series.paidCount : 0
+  const remaining = series ? series.totalInstallments : 0
 
   function handleConfirm() {
     if (!series) return
@@ -23,12 +23,12 @@ export function SettleSeriesDialog({ series, open, onClose }: SettleSeriesDialog
 
   return (
     <Modal
-      title="Settle Series Early"
+      title="Liquidar série antecipadamente"
       onClose={onClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -52,17 +52,17 @@ export function SettleSeriesDialog({ series, open, onClose }: SettleSeriesDialog
                   }}
                   aria-hidden="true"
                 />
-                Settling…
+                Liquidando…
               </>
             ) : (
-              'Settle Early'
+              'Liquidar antecipadamente'
             )}
           </Button>
         </>
       }
     >
       <p>
-        You are about to settle <strong>{series?.description}</strong> early.
+        Você está prestes a liquidar <strong>{series?.description}</strong> antecipadamente.
       </p>
 
       {series && (
@@ -76,19 +76,19 @@ export function SettleSeriesDialog({ series, open, onClose }: SettleSeriesDialog
           }}
         >
           <div className="flex justify-between">
-            <span className="text-dim">Remaining installments</span>
+            <span className="text-dim">Total de parcelas</span>
             <span className="font-medium">{remaining}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-dim">Settlement amount</span>
-            <span className="font-semibold tabular-nums">{series.remainingAmount}</span>
+            <span className="text-dim">Valor total</span>
+            <span className="font-semibold tabular-nums">{series.totalAmount}</span>
           </div>
         </div>
       )}
 
       <p className="text-sm text-dim" style={{ marginTop: 12 }}>
-        All remaining installments will be cancelled and a single settlement transaction will be
-        recorded. This action cannot be undone.
+        Todas as parcelas restantes serão canceladas e uma única transação de liquidação será
+        registrada. Esta ação não pode ser desfeita.
       </p>
     </Modal>
   )

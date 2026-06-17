@@ -25,7 +25,7 @@ function ChartSkeleton() {
       className="h-64 rounded animate-pulse"
       style={{ background: 'var(--surface-3)' }}
       aria-busy="true"
-      aria-label="Loading net worth chart"
+      aria-label="Carregando gráfico de patrimônio"
     />
   )
 }
@@ -40,10 +40,10 @@ export function NetWorthChartSection() {
   return (
     <div className="card">
       <div className="card-h">
-        <h3>Net Worth Evolution</h3>
+        <h3>Evolução do patrimônio</h3>
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <label className="sr-only" htmlFor="nw-from">
-            From
+            De
           </label>
           <input
             id="nw-from"
@@ -52,11 +52,11 @@ export function NetWorthChartSection() {
             onChange={(e) => setFrom(e.target.value)}
             className="input"
             style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
-            aria-label="From date"
+            aria-label="Data de início"
           />
           <span className="text-dim">–</span>
           <label className="sr-only" htmlFor="nw-to">
-            To
+            Até
           </label>
           <input
             id="nw-to"
@@ -65,7 +65,7 @@ export function NetWorthChartSection() {
             onChange={(e) => setTo(e.target.value)}
             className="input"
             style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
-            aria-label="To date"
+            aria-label="Data de fim"
           />
         </div>
       </div>
@@ -75,22 +75,22 @@ export function NetWorthChartSection() {
         ) : isError ? (
           <div role="alert" className="space-y-2">
             <p className="text-sm" style={{ color: 'var(--expense)' }}>
-              Failed to load net worth chart.
+              Falha ao carregar gráfico de patrimônio.
             </p>
             <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              Retry
+              Tentar novamente
             </Button>
           </div>
-        ) : !data || data.data.length === 0 ? (
+        ) : !data || data.snapshots.length === 0 ? (
           <p className="text-sm text-dim" style={{ padding: '32px 0', textAlign: 'center' }}>
-            No net worth data for the selected period.
+            Nenhum dado de patrimônio para o período selecionado.
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <LineChart
-              data={data.data.map((p) => ({
+              data={data.snapshots.map((p) => ({
                 date: p.date,
-                'Net Worth': parseFloat(p.netWorth),
+                Patrimônio: parseFloat(p.netWorth),
               }))}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -114,7 +114,7 @@ export function NetWorthChartSection() {
               />
               <Line
                 type="monotone"
-                dataKey="Net Worth"
+                dataKey="Patrimônio"
                 stroke="var(--accent)"
                 strokeWidth={2}
                 dot={false}

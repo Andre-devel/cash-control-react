@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { updateRecurrence } from '@/features/recurrences/api/recurrences.api'
 import { toast } from '@/lib/toast'
 import { RECURRENCES_QUERY_KEY } from './use-recurrences'
-import type { UpdateRecurrenceRequest, Recurrence } from '@/features/recurrences/types'
+import type { UpdateRecurrenceRequest, EditRecurrenceResult } from '@/features/recurrences/types'
 import type { NormalizedError } from '@/features/auth/types'
 
 interface UpdateRecurrenceVariables {
@@ -13,7 +13,7 @@ interface UpdateRecurrenceVariables {
 export function useUpdateRecurrence() {
   const queryClient = useQueryClient()
 
-  return useMutation<Recurrence, NormalizedError, UpdateRecurrenceVariables>({
+  return useMutation<EditRecurrenceResult, NormalizedError, UpdateRecurrenceVariables>({
     mutationFn: ({ id, data }) => updateRecurrence(id, data),
     onSuccess: (_, { id }) => {
       void queryClient.invalidateQueries({ queryKey: RECURRENCES_QUERY_KEY })

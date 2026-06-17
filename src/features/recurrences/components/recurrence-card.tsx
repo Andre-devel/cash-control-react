@@ -9,7 +9,6 @@ const FREQUENCY_LABELS: Record<string, string> = {
   WEEKLY: 'Weekly',
   BIWEEKLY: 'Biweekly',
   MONTHLY: 'Monthly',
-  QUARTERLY: 'Quarterly',
   YEARLY: 'Yearly',
 }
 
@@ -67,13 +66,13 @@ export function RecurrenceCard({
         </div>
 
         <p className="text-xs text-dim">
-          Próxima execução: {formatDate(recurrence.nextExecutionDate)}
+          Próxima execução: {formatDate(recurrence.nextOccurrenceDate)}
         </p>
 
-        {isPaused && recurrence.pausedUntil && (
+        {isPaused && recurrence.resumeAt && (
           <p className="text-xs text-dim">
             Pausado até:{' '}
-            <span className="fw-500">{new Date(recurrence.pausedUntil).toLocaleDateString()}</span>
+            <span className="fw-500">{new Date(recurrence.resumeAt).toLocaleDateString()}</span>
           </p>
         )}
 

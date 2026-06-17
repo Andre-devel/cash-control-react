@@ -67,13 +67,14 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
 
   const totalAmount = parseFloat(invoice.totalAmount)
   const paidAmount = parseFloat(invoice.paidAmount)
-  const remainingAmount = parseFloat(invoice.remainingAmount)
+  const remainingAmount = totalAmount - paidAmount
+  const remainingAmountStr = remainingAmount.toFixed(2)
 
-  const schema = createPayInvoiceSchema(invoice.remainingAmount)
+  const schema = createPayInvoiceSchema(remainingAmountStr)
   const form = useForm<PayInvoiceFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      amount: invoice.remainingAmount,
+      amount: remainingAmountStr,
       accountId: '',
     },
   })
@@ -165,9 +166,7 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
           <Button
             size="sm"
             type="button"
-            onClick={() =>
-              form.setValue('amount', invoice.remainingAmount, { shouldValidate: true })
-            }
+            onClick={() => form.setValue('amount', remainingAmountStr, { shouldValidate: true })}
           >
             Pagar tudo
           </Button>

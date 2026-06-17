@@ -6,11 +6,11 @@ export const MOCK_CATEGORY_FOOD: Category = {
   name: 'Food',
   color: '#4CAF50',
   icon: 'utensils',
-  type: 'EXPENSE',
+  sortOrder: 1,
   parentId: null,
-  hidden: false,
-  archived: false,
-  isSystem: false,
+  isDefault: false,
+  isHidden: false,
+  isArchived: false,
 }
 
 export const MOCK_CATEGORY_SALARY: Category = {
@@ -18,11 +18,11 @@ export const MOCK_CATEGORY_SALARY: Category = {
   name: 'Salary',
   color: '#2196F3',
   icon: 'briefcase',
-  type: 'INCOME',
+  sortOrder: 2,
   parentId: null,
-  hidden: false,
-  archived: false,
-  isSystem: false,
+  isDefault: false,
+  isHidden: false,
+  isArchived: false,
 }
 
 export const MOCK_CATEGORY_RESTAURANT: Category = {
@@ -30,11 +30,11 @@ export const MOCK_CATEGORY_RESTAURANT: Category = {
   name: 'Restaurant',
   color: '#FF9800',
   icon: 'fork-knife',
-  type: 'EXPENSE',
+  sortOrder: 3,
   parentId: 'cat-1',
-  hidden: false,
-  archived: false,
-  isSystem: false,
+  isDefault: false,
+  isHidden: false,
+  isArchived: false,
 }
 
 export const MOCK_CATEGORY_HIDDEN: Category = {
@@ -42,11 +42,11 @@ export const MOCK_CATEGORY_HIDDEN: Category = {
   name: 'Hidden Category',
   color: '#9E9E9E',
   icon: 'eye-off',
-  type: 'EXPENSE',
+  sortOrder: 4,
   parentId: null,
-  hidden: true,
-  archived: false,
-  isSystem: false,
+  isDefault: false,
+  isHidden: true,
+  isArchived: false,
 }
 
 export const MOCK_CATEGORY_ARCHIVED: Category = {
@@ -54,11 +54,11 @@ export const MOCK_CATEGORY_ARCHIVED: Category = {
   name: 'Archived Category',
   color: '#795548',
   icon: 'archive',
-  type: 'EXPENSE',
+  sortOrder: 5,
   parentId: null,
-  hidden: false,
-  archived: true,
-  isSystem: false,
+  isDefault: false,
+  isHidden: false,
+  isArchived: true,
 }
 
 export const MOCK_CATEGORY_SYSTEM: Category = {
@@ -66,11 +66,11 @@ export const MOCK_CATEGORY_SYSTEM: Category = {
   name: 'System Category',
   color: '#607D8B',
   icon: 'lock',
-  type: 'EXPENSE',
+  sortOrder: 6,
   parentId: null,
-  hidden: false,
-  archived: false,
-  isSystem: true,
+  isDefault: true,
+  isHidden: false,
+  isArchived: false,
 }
 
 export const MOCK_RULE_1: CategorizationRule = {
@@ -110,8 +110,8 @@ function buildNestedResponse(
   options: { includeHidden: boolean; includeArchived: boolean },
 ): Category[] {
   let filtered = flat
-  if (!options.includeHidden) filtered = filtered.filter((c) => !c.hidden)
-  if (!options.includeArchived) filtered = filtered.filter((c) => !c.archived)
+  if (!options.includeHidden) filtered = filtered.filter((c) => !c.isHidden)
+  if (!options.includeArchived) filtered = filtered.filter((c) => !c.isArchived)
 
   const roots = filtered.filter((c) => c.parentId === null)
   return roots.map((root) => ({
@@ -125,7 +125,7 @@ export const categoriesHandlers = [
     const url = new URL(request.url)
     const description = url.searchParams.get('description') ?? ''
     const found = categoriesStore.find(
-      (c) => !c.archived && description.toLowerCase().includes(c.name.toLowerCase()),
+      (c) => !c.isArchived && description.toLowerCase().includes(c.name.toLowerCase()),
     )
     return HttpResponse.json(found ?? null)
   }),
@@ -172,14 +172,18 @@ export const categoriesHandlers = [
   }),
 
   http.post('*/categories', async ({ request }) => {
-    const body = (await request.json()) as Omit<Category, 'id' | 'hidden' | 'archived' | 'isSystem'>
+    const body = (await request.json()) as Omit<
+      Category,
+      'id' | 'isHidden' | 'isArchived' | 'isDefault'
+    >
     const created: Category = {
       ...body,
       id: `cat-${Date.now()}`,
-      hidden: false,
-      archived: false,
-      isSystem: false,
-      parentId: (body as Category).parentId ?? null,
+      isHidden: false,
+      isArchived: false,
+      isDefault: false,
+      sortOrder: body.sortOrder ?? categoriesStore.length + 1,
+      parentId: body.parentId ?? null,
     }
     categoriesStore = [...categoriesStore, created]
     return HttpResponse.json(created, { status: 201 })
@@ -193,25 +197,29 @@ export const categoriesHandlers = [
   }),
 
   http.post('*/categories/:id/hide', ({ params }) => {
-    categoriesStore = categoriesStore.map((c) => (c.id === params.id ? { ...c, hidden: true } : c))
+    categoriesStore = categoriesStore.map((c) =>
+      c.id === params.id ? { ...c, isHidden: true } : c,
+    )
     return new HttpResponse(null, { status: 204 })
   }),
 
   http.post('*/categories/:id/show', ({ params }) => {
-    categoriesStore = categoriesStore.map((c) => (c.id === params.id ? { ...c, hidden: false } : c))
+    categoriesStore = categoriesStore.map((c) =>
+      c.id === params.id ? { ...c, isHidden: false } : c,
+    )
     return new HttpResponse(null, { status: 204 })
   }),
 
   http.post('*/categories/:id/archive', ({ params }) => {
     categoriesStore = categoriesStore.map((c) =>
-      c.id === params.id ? { ...c, archived: true } : c,
+      c.id === params.id ? { ...c, isArchived: true } : c,
     )
     return new HttpResponse(null, { status: 204 })
   }),
 
   http.post('*/categories/:id/unarchive', ({ params }) => {
     categoriesStore = categoriesStore.map((c) =>
-      c.id === params.id ? { ...c, archived: false } : c,
+      c.id === params.id ? { ...c, isArchived: false } : c,
     )
     return new HttpResponse(null, { status: 204 })
   }),

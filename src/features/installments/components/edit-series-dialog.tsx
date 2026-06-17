@@ -64,13 +64,13 @@ export function EditSeriesDialog({ series, open, onClose }: EditSeriesDialogProp
 
   return (
     <Modal
-      title="Edit Series"
-      subtitle="Changes apply to all remaining installments in this series."
+      title="Editar série"
+      subtitle="As alterações se aplicam a todas as parcelas restantes desta série."
       onClose={handleClose}
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancel
+            Cancelar
           </Button>
           <div className="spacer" />
           <Button
@@ -94,10 +94,10 @@ export function EditSeriesDialog({ series, open, onClose }: EditSeriesDialogProp
                   }}
                   aria-hidden="true"
                 />
-                Saving…
+                Salvando…
               </>
             ) : (
-              'Save Changes'
+              'Salvar alterações'
             )}
           </Button>
         </>
@@ -109,13 +109,13 @@ export function EditSeriesDialog({ series, open, onClose }: EditSeriesDialogProp
         noValidate
         className="col gap-4"
       >
-        <Field label="Description" error={form.formState.errors.description?.message}>
-          <Input placeholder="e.g. New laptop" {...form.register('description')} />
+        <Field label="Descrição" error={form.formState.errors.description?.message}>
+          <Input placeholder="ex: Notebook novo" {...form.register('description')} />
         </Field>
 
-        <Field label="Account" error={form.formState.errors.accountId?.message}>
-          <Select aria-label="Account" {...form.register('accountId')}>
-            <option value="">Select an account</option>
+        <Field label="Conta" error={form.formState.errors.accountId?.message}>
+          <Select aria-label="Conta" {...form.register('accountId')}>
+            <option value="">Selecionar conta</option>
             {accounts.map((account) => (
               <option key={account.id} value={account.id}>
                 {account.name}
@@ -128,21 +128,21 @@ export function EditSeriesDialog({ series, open, onClose }: EditSeriesDialogProp
           control={form.control}
           name="categoryId"
           render={({ field, fieldState }) => (
-            <Field label="Category" error={fieldState.error?.message}>
+            <Field label="Categoria" error={fieldState.error?.message}>
               <CategoryPickerCombobox
                 value={field.value ?? ''}
                 onChange={field.onChange}
                 categories={categories}
                 description={description}
-                aria-label="Category"
+                aria-label="Categoria"
               />
             </Field>
           )}
         />
 
-        <Field label="Notes (optional)" error={form.formState.errors.notes?.message}>
+        <Field label="Observações (opcional)" error={form.formState.errors.notes?.message}>
           <Textarea
-            placeholder="Any notes about this series…"
+            placeholder="Alguma observação sobre esta série…"
             rows={3}
             {...form.register('notes')}
           />
