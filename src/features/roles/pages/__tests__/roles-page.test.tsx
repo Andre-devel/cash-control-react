@@ -85,14 +85,14 @@ describe('RolesPage', () => {
   it('renders loading skeleton before data arrives', () => {
     renderWithProviders(<RolesPage />)
 
-    expect(screen.getByLabelText('Loading roles')).toBeTruthy()
+    expect(screen.getByLabelText('Carregando papéis')).toBeTruthy()
   })
 
   it('renders page heading', async () => {
     renderWithProviders(<RolesPage />)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /roles/i })).toBeTruthy()
+      expect(screen.getByRole('heading', { name: /papéis/i })).toBeTruthy()
     })
   })
 
@@ -100,7 +100,7 @@ describe('RolesPage', () => {
     renderWithProviders(<RolesPage />)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /new role/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /novo papel/i })).toBeTruthy()
     })
   })
 
@@ -120,7 +120,7 @@ describe('RolesPage', () => {
     renderWithProviders(<RolesPage />)
 
     await waitFor(() => {
-      expect(screen.getByText(/no roles found/i)).toBeTruthy()
+      expect(screen.getByText(/nenhum papel encontrado/i)).toBeTruthy()
     })
   })
 
@@ -140,7 +140,7 @@ describe('RolesPage', () => {
     renderWithProviders(<RolesPage />)
 
     await waitFor(() => {
-      const newRoleButtons = screen.getAllByRole('button', { name: /new role/i })
+      const newRoleButtons = screen.getAllByRole('button', { name: /novo papel/i })
       expect(newRoleButtons.length).toBeGreaterThan(0)
     })
   })
@@ -153,7 +153,7 @@ describe('RolesPage', () => {
     renderWithProviders(<RolesPage />)
 
     await waitFor(() => {
-      expect(screen.getByText(/failed to load roles/i)).toBeTruthy()
+      expect(screen.getByText(/falha ao carregar papéis/i)).toBeTruthy()
     })
   })
 
@@ -165,7 +165,7 @@ describe('RolesPage', () => {
     renderWithProviders(<RolesPage />)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /tentar novamente/i })).toBeTruthy()
     })
   })
 
@@ -187,8 +187,8 @@ describe('RolesPage', () => {
     renderWithProviders(<RolesPage />)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /previous page/i })).toBeTruthy()
-      expect(screen.getByRole('button', { name: /next page/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /página anterior/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /próxima página/i })).toBeTruthy()
     })
   })
 
@@ -208,7 +208,7 @@ describe('RolesPage', () => {
     renderWithProviders(<RolesPage />)
 
     await waitFor(() => {
-      const prevButton = screen.getByRole('button', { name: /previous page/i })
+      const prevButton = screen.getByRole('button', { name: /página anterior/i })
       expect(prevButton).toBeDisabled()
     })
   })
@@ -233,9 +233,9 @@ describe('RolesPage', () => {
 
     renderWithProviders(<RolesPage />)
 
-    await waitFor(() => screen.getByRole('button', { name: /next page/i }))
+    await waitFor(() => screen.getByRole('button', { name: /próxima página/i }))
 
-    fireEvent.click(screen.getByRole('button', { name: /next page/i }))
+    fireEvent.click(screen.getByRole('button', { name: /próxima página/i }))
 
     await waitFor(() => expect(capturedPages).toContain(1))
   })
@@ -247,8 +247,8 @@ describe('RolesPage', () => {
       expect(screen.getByText(MOCK_ROLE.name)).toBeTruthy()
     })
 
-    expect(screen.queryByRole('button', { name: /previous page/i })).toBeNull()
-    expect(screen.queryByRole('button', { name: /next page/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /página anterior/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /próxima página/i })).toBeNull()
   })
 
   describe('create role', () => {
@@ -256,12 +256,12 @@ describe('RolesPage', () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
-      await user.click(screen.getAllByRole('button', { name: /new role/i })[0])
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
+      await user.click(screen.getAllByRole('button', { name: /novo papel/i })[0])
 
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeTruthy()
-        expect(screen.getByRole('heading', { name: /create role/i })).toBeTruthy()
+        expect(screen.getByRole('heading', { name: /criar papel/i })).toBeTruthy()
       })
     })
 
@@ -269,14 +269,14 @@ describe('RolesPage', () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
-      await user.click(screen.getAllByRole('button', { name: /new role/i })[0])
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
+      await user.click(screen.getAllByRole('button', { name: /novo papel/i })[0])
       await waitFor(() => screen.getByRole('dialog'))
 
-      await user.click(screen.getByRole('button', { name: /create role/i }))
+      await user.click(screen.getByRole('button', { name: /criar papel/i }))
 
       await waitFor(() => {
-        expect(screen.getByText(/at least 2 characters/i)).toBeTruthy()
+        expect(screen.getByText(/pelo menos 2 caracteres/i)).toBeTruthy()
       })
     })
 
@@ -284,12 +284,12 @@ describe('RolesPage', () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
-      await user.click(screen.getAllByRole('button', { name: /new role/i })[0])
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
+      await user.click(screen.getAllByRole('button', { name: /novo papel/i })[0])
       await waitFor(() => screen.getByRole('dialog'))
 
-      await user.type(screen.getByRole('textbox', { name: /name/i }), 'TESTER')
-      await user.click(screen.getByRole('button', { name: /create role/i }))
+      await user.type(screen.getByRole('textbox', { name: /nome/i }), 'TESTER')
+      await user.click(screen.getByRole('button', { name: /criar papel/i }))
 
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).toBeNull()
@@ -313,15 +313,15 @@ describe('RolesPage', () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
-      await user.click(screen.getAllByRole('button', { name: /new role/i })[0])
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
+      await user.click(screen.getAllByRole('button', { name: /novo papel/i })[0])
       await waitFor(() => screen.getByRole('dialog'))
 
-      await user.type(screen.getByRole('textbox', { name: /name/i }), 'DUPLICATE')
-      await user.click(screen.getByRole('button', { name: /create role/i }))
+      await user.type(screen.getByRole('textbox', { name: /nome/i }), 'DUPLICATE')
+      await user.click(screen.getByRole('button', { name: /criar papel/i }))
 
       await waitFor(() => {
-        expect(screen.getByText(/a role with this name already exists/i)).toBeTruthy()
+        expect(screen.getByText(/já existe um papel com este nome/i)).toBeTruthy()
         expect(screen.getByRole('dialog')).toBeTruthy()
       })
     })
@@ -330,11 +330,11 @@ describe('RolesPage', () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
-      await user.click(screen.getAllByRole('button', { name: /new role/i })[0])
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
+      await user.click(screen.getAllByRole('button', { name: /novo papel/i })[0])
       await waitFor(() => screen.getByRole('dialog'))
 
-      await user.click(screen.getByRole('button', { name: /cancel/i }))
+      await user.click(screen.getByRole('button', { name: /cancelar/i }))
 
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).toBeNull()
@@ -355,12 +355,12 @@ describe('RolesPage', () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
-      await user.click(screen.getAllByRole('button', { name: /new role/i })[0])
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
+      await user.click(screen.getAllByRole('button', { name: /novo papel/i })[0])
       await waitFor(() => screen.getByRole('dialog'))
 
-      await user.type(screen.getByRole('textbox', { name: /name/i }), 'NEWROLE')
-      await user.click(screen.getByRole('button', { name: /create role/i }))
+      await user.type(screen.getByRole('textbox', { name: /nome/i }), 'NEWROLE')
+      await user.click(screen.getByRole('button', { name: /criar papel/i }))
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith('Internal server error.')
@@ -378,14 +378,14 @@ describe('RolesPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_ROLE.name))
 
-      expect(screen.queryByRole('button', { name: /new role/i })).toBeNull()
+      expect(screen.queryByRole('button', { name: /novo papel/i })).toBeNull()
     })
 
     it('New Role button is visible when user has role:create', async () => {
       renderWithProviders(<RolesPage />)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /new role/i })).toBeTruthy()
+        expect(screen.getByRole('button', { name: /novo papel/i })).toBeTruthy()
       })
     })
 
@@ -407,9 +407,9 @@ describe('RolesPage', () => {
       })
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByText(/no roles found/i))
+      await waitFor(() => screen.getByText(/nenhum papel encontrado/i))
 
-      expect(screen.queryByRole('button', { name: /new role/i })).toBeNull()
+      expect(screen.queryByRole('button', { name: /novo papel/i })).toBeNull()
     })
   })
 
@@ -450,10 +450,10 @@ describe('RolesPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_ROLE.name))
 
-      fireEvent.click(screen.getByRole('button', { name: /next page/i }))
+      fireEvent.click(screen.getByRole('button', { name: /próxima página/i }))
 
       expect(screen.getByText(MOCK_ROLE.name)).toBeTruthy()
-      expect(screen.queryByLabelText('Loading roles')).toBeNull()
+      expect(screen.queryByLabelText('Carregando papéis')).toBeNull()
 
       resolveNextPage!()
     })
@@ -463,9 +463,9 @@ describe('RolesPage', () => {
     it('New Role button meets 44px touch target (min-h-[44px])', async () => {
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
 
-      const buttons = screen.getAllByRole('button', { name: /new role/i })
+      const buttons = screen.getAllByRole('button', { name: /novo papel/i })
       buttons.forEach((btn) => {
         expect(btn.className).toContain('min-h-[44px]')
       })
@@ -475,21 +475,23 @@ describe('RolesPage', () => {
       server.use(TWO_PAGE_HANDLER())
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /next page/i }))
+      await waitFor(() => screen.getByRole('button', { name: /próxima página/i }))
 
-      expect(screen.getByRole('button', { name: /previous page/i }).className).toContain(
+      expect(screen.getByRole('button', { name: /página anterior/i }).className).toContain(
         'min-h-[44px]',
       )
-      expect(screen.getByRole('button', { name: /next page/i }).className).toContain('min-h-[44px]')
+      expect(screen.getByRole('button', { name: /próxima página/i }).className).toContain(
+        'min-h-[44px]',
+      )
     })
 
     it('Tab moves focus to New Role button and Enter opens the modal', async () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
 
-      const newRoleBtn = screen.getAllByRole('button', { name: /new role/i })[0]
+      const newRoleBtn = screen.getAllByRole('button', { name: /novo papel/i })[0]
       newRoleBtn.focus()
       await user.keyboard('{Enter}')
 
@@ -502,8 +504,8 @@ describe('RolesPage', () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
-      await user.click(screen.getAllByRole('button', { name: /new role/i })[0])
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
+      await user.click(screen.getAllByRole('button', { name: /novo papel/i })[0])
       await waitFor(() => screen.getByRole('dialog'))
 
       await user.keyboard('{Escape}')
@@ -517,36 +519,36 @@ describe('RolesPage', () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
-      await user.click(screen.getAllByRole('button', { name: /new role/i })[0])
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
+      await user.click(screen.getAllByRole('button', { name: /novo papel/i })[0])
       await waitFor(() => screen.getByRole('dialog'))
 
-      expect(screen.getByRole('textbox', { name: /name/i })).toBeTruthy()
+      expect(screen.getByRole('textbox', { name: /nome/i })).toBeTruthy()
     })
 
     it('create form: Description field has accessible label', async () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
-      await user.click(screen.getAllByRole('button', { name: /new role/i })[0])
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
+      await user.click(screen.getAllByRole('button', { name: /novo papel/i })[0])
       await waitFor(() => screen.getByRole('dialog'))
 
-      expect(screen.getByRole('textbox', { name: /description/i })).toBeTruthy()
+      expect(screen.getByRole('textbox', { name: /descrição/i })).toBeTruthy()
     })
 
     it('create form validation: invalid name shows aria-invalid on input', async () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
-      await user.click(screen.getAllByRole('button', { name: /new role/i })[0])
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
+      await user.click(screen.getAllByRole('button', { name: /novo papel/i })[0])
       await waitFor(() => screen.getByRole('dialog'))
 
-      await user.click(screen.getByRole('button', { name: /create role/i }))
+      await user.click(screen.getByRole('button', { name: /criar papel/i }))
 
       await waitFor(() => {
-        const nameInput = screen.getByRole('textbox', { name: /name/i })
+        const nameInput = screen.getByRole('textbox', { name: /nome/i })
         expect(nameInput.getAttribute('aria-invalid')).toBe('true')
       })
     })
@@ -555,31 +557,31 @@ describe('RolesPage', () => {
       const user = userEvent.setup()
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /new role/i }))
-      await user.click(screen.getAllByRole('button', { name: /new role/i })[0])
+      await waitFor(() => screen.getByRole('button', { name: /novo papel/i }))
+      await user.click(screen.getAllByRole('button', { name: /novo papel/i })[0])
       await waitFor(() => screen.getByRole('dialog'))
 
-      const nameInput = screen.getByRole('textbox', { name: /name/i })
+      const nameInput = screen.getByRole('textbox', { name: /nome/i })
       nameInput.focus()
       expect(document.activeElement).toBe(nameInput)
 
       await user.tab()
-      expect(document.activeElement).toBe(screen.getByRole('textbox', { name: /description/i }))
+      expect(document.activeElement).toBe(screen.getByRole('textbox', { name: /descrição/i }))
 
       await user.tab()
-      expect(document.activeElement).toBe(screen.getByRole('button', { name: /cancel/i }))
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: /cancelar/i }))
 
       await user.tab()
-      expect(document.activeElement).toBe(screen.getByRole('button', { name: /create role/i }))
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: /criar papel/i }))
     })
 
     it('page counter is announced via aria-live', async () => {
       server.use(TWO_PAGE_HANDLER())
       renderWithProviders(<RolesPage />)
 
-      await waitFor(() => screen.getByRole('button', { name: /next page/i }))
+      await waitFor(() => screen.getByRole('button', { name: /próxima página/i }))
 
-      const liveRegion = screen.getByText(/page 1 of/i)
+      const liveRegion = screen.getByText(/página 1 de/i)
       expect(liveRegion.getAttribute('aria-live')).toBe('polite')
     })
   })

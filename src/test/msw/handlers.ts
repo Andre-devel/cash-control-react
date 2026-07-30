@@ -105,6 +105,9 @@ export const handlers = [
   http.get('*/auth/me', () => {
     return HttpResponse.json({
       id: 'user-123',
+      // The API returns maskedEmail (see UserProfileResponse in docs/swagger.json);
+      // AuthProvider reads that field, not email.
+      maskedEmail: 'user@example.com',
       email: 'user@example.com',
       displayName: 'Test User',
       status: 'ACTIVE',

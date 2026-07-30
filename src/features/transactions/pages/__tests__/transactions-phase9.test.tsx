@@ -68,9 +68,9 @@ describe('Attachment upload — Phase 9.2 integration regression guard', () => {
     renderWithProviders(<AttachmentSection transactionId="tx-1" />)
 
     // Wait for the initial GET /transactions/:id/attachments to resolve
-    await waitFor(() => expect(screen.queryByLabelText('Loading attachments')).toBeNull())
+    await waitFor(() => expect(screen.queryByLabelText('Carregando anexos')).toBeNull())
 
-    const fileInput = screen.getByLabelText('Upload attachment')
+    const fileInput = screen.getByLabelText('Enviar anexo')
     const file = new File(['receipt content'], 'invoice.pdf', { type: 'application/pdf' })
     await user.upload(fileInput, file)
 
@@ -109,7 +109,7 @@ describe('Attachment upload — Phase 9.2 integration regression guard', () => {
     // Initial load: MOCK_ATTACHMENT_1 (receipt.pdf) for tx-1 from the reset store
     await waitFor(() => expect(screen.getByText('receipt.pdf')).toBeTruthy())
 
-    const fileInput = screen.getByLabelText('Upload attachment')
+    const fileInput = screen.getByLabelText('Enviar anexo')
     const file = new File(['content'], 'test.pdf', { type: 'application/pdf' })
     await user.upload(fileInput, file)
 
@@ -140,9 +140,9 @@ describe('Attachment upload — Phase 9.2 integration regression guard', () => {
     const user = userEvent.setup()
 
     renderWithProviders(<AttachmentSection transactionId="tx-1" />)
-    await waitFor(() => expect(screen.queryByLabelText('Loading attachments')).toBeNull())
+    await waitFor(() => expect(screen.queryByLabelText('Carregando anexos')).toBeNull())
 
-    const fileInput = screen.getByLabelText('Upload attachment')
+    const fileInput = screen.getByLabelText('Enviar anexo')
     const file = new File(['content'], 'large.pdf', { type: 'application/pdf' })
     await user.upload(fileInput, file)
 

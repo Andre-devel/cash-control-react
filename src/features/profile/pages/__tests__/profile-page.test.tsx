@@ -28,12 +28,12 @@ beforeEach(() => {
 describe('ProfilePage', () => {
   it('renders the page heading', async () => {
     renderWithProviders(<ProfilePage />)
-    expect(screen.getByText('Profile')).toBeInTheDocument()
+    expect(screen.getByText('Perfil')).toBeInTheDocument()
   })
 
   it('shows a loading skeleton while fetching profile', () => {
     renderWithProviders(<ProfilePage />)
-    expect(screen.getByLabelText('Loading profile')).toBeInTheDocument()
+    expect(screen.getByLabelText('Carregando perfil')).toBeInTheDocument()
   })
 
   it('pre-populates the form with the current profile name after loading', async () => {
@@ -55,11 +55,11 @@ describe('ProfilePage', () => {
 
     await waitFor(() => expect(screen.getByDisplayValue(MOCK_PROFILE.name)).toBeInTheDocument())
 
-    const input = screen.getByRole('textbox', { name: /display name/i })
+    const input = screen.getByRole('textbox', { name: /nome de exibição/i })
     await user.clear(input)
     await user.type(input, 'New Name')
 
-    const submitButton = screen.getByRole('button', { name: /save changes/i })
+    const submitButton = screen.getByRole('button', { name: /salvar alterações/i })
     await user.click(submitButton)
 
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Profile updated successfully.'))
@@ -71,13 +71,13 @@ describe('ProfilePage', () => {
 
     await waitFor(() => expect(screen.getByDisplayValue(MOCK_PROFILE.name)).toBeInTheDocument())
 
-    const input = screen.getByRole('textbox', { name: /display name/i })
+    const input = screen.getByRole('textbox', { name: /nome de exibição/i })
     await user.clear(input)
 
-    const submitButton = screen.getByRole('button', { name: /save changes/i })
+    const submitButton = screen.getByRole('button', { name: /salvar alterações/i })
     await user.click(submitButton)
 
-    await waitFor(() => expect(screen.getByText('Name is required')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Nome é obrigatório')).toBeInTheDocument())
   })
 
   it('shows a retry button when the profile fails to load', async () => {
@@ -92,8 +92,8 @@ describe('ProfilePage', () => {
 
     renderWithProviders(<ProfilePage />)
 
-    await waitFor(() => expect(screen.getByText('Failed to load profile.')).toBeInTheDocument())
-    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('Falha ao carregar perfil.')).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: /tentar novamente/i })).toBeInTheDocument()
   })
 
   it('renders consent history after loading', async () => {
@@ -108,6 +108,8 @@ describe('ProfilePage', () => {
 
     renderWithProviders(<ProfilePage />)
 
-    await waitFor(() => expect(screen.getByText('No consent records found.')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('Nenhum registro de consentimento encontrado.')).toBeInTheDocument(),
+    )
   })
 })

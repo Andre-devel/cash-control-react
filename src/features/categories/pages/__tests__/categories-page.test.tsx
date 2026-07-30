@@ -168,7 +168,7 @@ describe('CategoriesPage', () => {
     await waitFor(() => screen.getByRole('button', { name: /nova categoria/i }))
     await user.click(screen.getByRole('button', { name: /nova categoria/i }))
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
-    expect(screen.getByRole('heading', { name: /create category/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /nova categoria/i })).toBeTruthy()
   })
 
   it('create category form → submit → category appears in list', async () => {
@@ -179,10 +179,10 @@ describe('CategoriesPage', () => {
     await user.click(screen.getByRole('button', { name: /nova categoria/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    await user.clear(screen.getByRole('textbox', { name: /name/i }))
-    await user.type(screen.getByRole('textbox', { name: /name/i }), 'Transport')
+    await user.clear(screen.getByRole('textbox', { name: /nome/i }))
+    await user.type(screen.getByRole('textbox', { name: /nome/i }), 'Transport')
 
-    await user.click(screen.getByRole('button', { name: /create category/i }))
+    await user.click(screen.getByRole('button', { name: /criar categoria/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     await waitFor(() => expect(screen.getByText('Transport')).toBeTruthy())
@@ -196,12 +196,12 @@ describe('CategoriesPage', () => {
     await user.click(screen.getByRole('button', { name: /nova categoria/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    const nameInput = screen.getByRole('textbox', { name: /name/i })
+    const nameInput = screen.getByRole('textbox', { name: /nome/i })
     await user.clear(nameInput)
 
-    await user.click(screen.getByRole('button', { name: /create category/i }))
+    await user.click(screen.getByRole('button', { name: /criar categoria/i }))
 
-    await waitFor(() => expect(screen.getByText(/name is required/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/nome é obrigatório/i)).toBeTruthy())
   })
 
   it('cancel button closes the create dialog', async () => {
@@ -212,7 +212,7 @@ describe('CategoriesPage', () => {
     await user.click(screen.getByRole('button', { name: /nova categoria/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    await user.click(screen.getByRole('button', { name: /cancel/i }))
+    await user.click(screen.getByRole('button', { name: /cancelar/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   })

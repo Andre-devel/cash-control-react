@@ -54,11 +54,11 @@ describe('Phase 8.1 — 409 conflict shows inline form error', () => {
     await user.click(screen.getByRole('button', { name: /nova conta/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    const nameInput = screen.getByRole('textbox', { name: /name/i })
+    const nameInput = screen.getByRole('textbox', { name: /nome/i })
     await user.clear(nameInput)
     await user.type(nameInput, 'Nubank')
 
-    await user.click(screen.getByRole('button', { name: /create account/i }))
+    await user.click(screen.getByRole('button', { name: /criar conta/i }))
 
     await waitFor(() =>
       expect(screen.getByText(/an account with this name already exists/i)).toBeTruthy(),
@@ -90,11 +90,11 @@ describe('Phase 8.1 — 409 conflict shows inline form error', () => {
     await user.click(screen.getByRole('button', { name: /nova conta/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    const nameInput = screen.getByRole('textbox', { name: /name/i })
+    const nameInput = screen.getByRole('textbox', { name: /nome/i })
     await user.clear(nameInput)
     await user.type(nameInput, 'Nubank')
 
-    await user.click(screen.getByRole('button', { name: /create account/i }))
+    await user.click(screen.getByRole('button', { name: /criar conta/i }))
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy())
 
@@ -128,11 +128,11 @@ describe('Phase 8.2 — 5xx shows correlationId in toast', () => {
     await user.click(screen.getByRole('button', { name: /nova conta/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    const nameInput = screen.getByRole('textbox', { name: /name/i })
+    const nameInput = screen.getByRole('textbox', { name: /nome/i })
     await user.clear(nameInput)
     await user.type(nameInput, 'My Account')
 
-    await user.click(screen.getByRole('button', { name: /create account/i }))
+    await user.click(screen.getByRole('button', { name: /criar conta/i }))
 
     await waitFor(() => expect(toast.error).toHaveBeenCalled())
     expect(toast.error).toHaveBeenCalledWith('Internal server error.', 'server-corr-abc')
@@ -160,11 +160,11 @@ describe('Phase 8.2 — 5xx shows correlationId in toast', () => {
     await user.click(screen.getByRole('button', { name: /nova conta/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    const nameInput = screen.getByRole('textbox', { name: /name/i })
+    const nameInput = screen.getByRole('textbox', { name: /nome/i })
     await user.clear(nameInput)
     await user.type(nameInput, 'My Account')
 
-    await user.click(screen.getByRole('button', { name: /create account/i }))
+    await user.click(screen.getByRole('button', { name: /criar conta/i }))
 
     await waitFor(() => expect(toast.error).toHaveBeenCalled())
     expect(toast.error).toHaveBeenCalledWith('Invalid request data.', undefined)

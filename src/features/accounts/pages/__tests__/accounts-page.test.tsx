@@ -90,7 +90,7 @@ describe('AccountsPage', () => {
     await waitFor(() => screen.getByRole('button', { name: /nova conta/i }))
     await user.click(screen.getByRole('button', { name: /nova conta/i }))
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
-    expect(screen.getByRole('heading', { name: /create account/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /nova conta/i })).toBeTruthy()
   })
 
   it('create account form → submit → account appears in list', async () => {
@@ -101,10 +101,10 @@ describe('AccountsPage', () => {
     await user.click(screen.getByRole('button', { name: /nova conta/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    await user.clear(screen.getByRole('textbox', { name: /name/i }))
-    await user.type(screen.getByRole('textbox', { name: /name/i }), 'My New Account')
+    await user.clear(screen.getByRole('textbox', { name: /nome/i }))
+    await user.type(screen.getByRole('textbox', { name: /nome/i }), 'My New Account')
 
-    await user.click(screen.getByRole('button', { name: /create account/i }))
+    await user.click(screen.getByRole('button', { name: /criar conta/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     await waitFor(() => expect(screen.getByText('My New Account')).toBeTruthy())
@@ -118,12 +118,12 @@ describe('AccountsPage', () => {
     await user.click(screen.getByRole('button', { name: /nova conta/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    const nameInput = screen.getByRole('textbox', { name: /name/i })
+    const nameInput = screen.getByRole('textbox', { name: /nome/i })
     await user.clear(nameInput)
 
-    await user.click(screen.getByRole('button', { name: /create account/i }))
+    await user.click(screen.getByRole('button', { name: /criar conta/i }))
 
-    await waitFor(() => expect(screen.getByText(/name is required/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/nome é obrigatório/i)).toBeTruthy())
   })
 
   it('cancel button closes the create dialog', async () => {
@@ -189,7 +189,7 @@ describe('AccountsPage', () => {
       await user.click(screen.getByRole('button', { name: /^arquivar$/i }))
 
       await waitFor(() => screen.getByRole('dialog'))
-      await user.click(screen.getByRole('button', { name: /archive account/i }))
+      await user.click(screen.getByRole('button', { name: /arquivar conta/i }))
 
       await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
       await waitFor(() => expect(screen.queryByText(MOCK_ACCOUNT_1.name)).toBeNull())
@@ -239,9 +239,11 @@ describe('AccountsPage', () => {
 
       await waitFor(() => screen.getByRole('dialog'))
 
-      await user.click(screen.getByRole('button', { name: /delete account/i }))
+      await user.click(screen.getByRole('button', { name: /excluir conta/i }))
 
-      await waitFor(() => expect(screen.getByText(/archive it instead/i)).toBeTruthy())
+      await waitFor(() =>
+        expect(screen.getByText(/arquive-a para preservar o histórico/i)).toBeTruthy(),
+      )
     })
   })
 

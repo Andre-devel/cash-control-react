@@ -29,7 +29,9 @@ vi.mock('@/features/auth/api/auth.api', async () => {
     ...(original as object),
     getMeApi: vi.fn().mockResolvedValue({
       id: 'user-123',
-      email: 'user@example.com',
+      // UserProfileResponse exposes maskedEmail, not email — AuthProvider maps
+      // that field into the store.
+      maskedEmail: 'user@example.com',
       displayName: 'Test User',
       status: 'ACTIVE',
       roles: ['USER'],

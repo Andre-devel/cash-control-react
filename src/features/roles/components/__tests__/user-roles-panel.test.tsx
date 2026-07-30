@@ -56,7 +56,7 @@ function renderPanel(roles: Role[], userId = TEST_USER_ID, userName = TEST_USER_
 
 async function openAssignModalAndWaitForOptions() {
   const user = userEvent.setup()
-  await user.click(screen.getByRole('button', { name: /assign role/i }))
+  await user.click(screen.getByRole('button', { name: /atribuir papel/i }))
   await waitFor(() => screen.getByRole('dialog'))
   await waitFor(() => screen.getByRole('option', { name: MOCK_ROLE.name }))
   return user
@@ -73,20 +73,20 @@ describe('UserRolesPanel — rendering', () => {
   it('renders Assign Role button when roles are present', () => {
     renderPanel([MOCK_ROLE])
 
-    expect(screen.getByRole('button', { name: /assign role/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /atribuir papel/i })).toBeTruthy()
   })
 
   it('renders empty state with Assign Role button when no roles', () => {
     renderPanel([])
 
-    expect(screen.getByText(/no roles assigned/i)).toBeTruthy()
-    expect(screen.getByRole('button', { name: /assign role/i })).toBeTruthy()
+    expect(screen.getByText(/nenhum papel atribuído/i)).toBeTruthy()
+    expect(screen.getByRole('button', { name: /atribuir papel/i })).toBeTruthy()
   })
 
   it('renders Remove button per assigned role', () => {
     renderPanel([MOCK_ROLE])
 
-    expect(screen.getByRole('button', { name: `Remove role ${MOCK_ROLE.name}` })).toBeTruthy()
+    expect(screen.getByRole('button', { name: `Remover papel ${MOCK_ROLE.name}` })).toBeTruthy()
   })
 })
 
@@ -95,11 +95,11 @@ describe('UserRolesPanel — assign role', () => {
     const user = userEvent.setup()
     renderPanel([MOCK_ROLE])
 
-    await user.click(screen.getByRole('button', { name: /assign role/i }))
+    await user.click(screen.getByRole('button', { name: /atribuir papel/i }))
 
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeTruthy()
-      expect(screen.getByRole('heading', { name: /assign role/i })).toBeTruthy()
+      expect(screen.getByRole('heading', { name: /atribuir papel/i })).toBeTruthy()
     })
   })
 
@@ -125,9 +125,9 @@ describe('UserRolesPanel — assign role', () => {
 
     const user = await openAssignModalAndWaitForOptions()
 
-    await user.selectOptions(screen.getByLabelText('Select role'), MOCK_SYSTEM_ROLE.id)
+    await user.selectOptions(screen.getByLabelText('Selecionar papel'), MOCK_SYSTEM_ROLE.id)
 
-    await user.click(screen.getByRole('button', { name: /^assign$/i }))
+    await user.click(screen.getByRole('button', { name: /^atribuir$/i }))
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBeNull()
@@ -140,9 +140,9 @@ describe('UserRolesPanel — assign role', () => {
 
     const user = await openAssignModalAndWaitForOptions()
 
-    await user.selectOptions(screen.getByLabelText('Select role'), MOCK_SYSTEM_ROLE.id)
+    await user.selectOptions(screen.getByLabelText('Selecionar papel'), MOCK_SYSTEM_ROLE.id)
 
-    await user.click(screen.getByRole('button', { name: /^assign$/i }))
+    await user.click(screen.getByRole('button', { name: /^atribuir$/i }))
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Role assigned to user.')
@@ -169,9 +169,9 @@ describe('UserRolesPanel — assign role', () => {
 
     const user = await openAssignModalAndWaitForOptions()
 
-    await user.selectOptions(screen.getByLabelText('Select role'), MOCK_SYSTEM_ROLE.id)
+    await user.selectOptions(screen.getByLabelText('Selecionar papel'), MOCK_SYSTEM_ROLE.id)
 
-    await user.click(screen.getByRole('button', { name: /^assign$/i }))
+    await user.click(screen.getByRole('button', { name: /^atribuir$/i }))
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Role already assigned to this user.')
@@ -192,10 +192,10 @@ describe('UserRolesPanel — assign role', () => {
     const user = userEvent.setup()
     renderPanel([MOCK_ROLE])
 
-    await user.click(screen.getByRole('button', { name: /assign role/i }))
+    await user.click(screen.getByRole('button', { name: /atribuir papel/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    await user.click(screen.getByRole('button', { name: /cancel/i }))
+    await user.click(screen.getByRole('button', { name: /cancelar/i }))
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBeNull()
@@ -209,7 +209,7 @@ describe('UserRolesPanel — revoke role', () => {
     const user = userEvent.setup()
     renderPanel([MOCK_ROLE])
 
-    await user.click(screen.getByRole('button', { name: `Remove role ${MOCK_ROLE.name}` }))
+    await user.click(screen.getByRole('button', { name: `Remover papel ${MOCK_ROLE.name}` }))
 
     await waitFor(() => {
       expect(screen.getByRole('alertdialog')).toBeTruthy()
@@ -220,7 +220,7 @@ describe('UserRolesPanel — revoke role', () => {
     const user = userEvent.setup()
     renderPanel([MOCK_ROLE])
 
-    await user.click(screen.getByRole('button', { name: `Remove role ${MOCK_ROLE.name}` }))
+    await user.click(screen.getByRole('button', { name: `Remover papel ${MOCK_ROLE.name}` }))
 
     await waitFor(() => {
       screen.getByRole('alertdialog')
@@ -235,11 +235,11 @@ describe('UserRolesPanel — revoke role', () => {
     const user = userEvent.setup()
     renderPanel([MOCK_ROLE])
 
-    await user.click(screen.getByRole('button', { name: `Remove role ${MOCK_ROLE.name}` }))
+    await user.click(screen.getByRole('button', { name: `Remover papel ${MOCK_ROLE.name}` }))
 
     await waitFor(() => screen.getByRole('alertdialog'))
 
-    await user.click(screen.getByRole('button', { name: /^remove$/i }))
+    await user.click(screen.getByRole('button', { name: /^remover$/i }))
 
     await waitFor(() => {
       expect(screen.queryByRole('alertdialog')).toBeNull()
@@ -251,11 +251,11 @@ describe('UserRolesPanel — revoke role', () => {
     const user = userEvent.setup()
     renderPanel([MOCK_ROLE])
 
-    await user.click(screen.getByRole('button', { name: `Remove role ${MOCK_ROLE.name}` }))
+    await user.click(screen.getByRole('button', { name: `Remover papel ${MOCK_ROLE.name}` }))
 
     await waitFor(() => screen.getByRole('alertdialog'))
 
-    await user.click(screen.getByRole('button', { name: /^remove$/i }))
+    await user.click(screen.getByRole('button', { name: /^remover$/i }))
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Role removed from user.')
@@ -274,11 +274,11 @@ describe('UserRolesPanel — revoke role', () => {
     const user = userEvent.setup()
     renderPanel([MOCK_ROLE])
 
-    await user.click(screen.getByRole('button', { name: `Remove role ${MOCK_ROLE.name}` }))
+    await user.click(screen.getByRole('button', { name: `Remover papel ${MOCK_ROLE.name}` }))
 
     await waitFor(() => screen.getByRole('alertdialog'))
 
-    await user.click(screen.getByRole('button', { name: /cancel/i }))
+    await user.click(screen.getByRole('button', { name: /cancelar/i }))
 
     await waitFor(() => {
       expect(screen.queryByRole('alertdialog')).toBeNull()
@@ -295,7 +295,7 @@ describe('UserRolesPanel — permission-aware rendering', () => {
     })
     renderPanel([MOCK_ROLE])
 
-    expect(screen.queryByRole('button', { name: /assign role/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /atribuir papel/i })).toBeNull()
   })
 
   it('Assign Role button in empty state is hidden when user lacks role:update', () => {
@@ -305,7 +305,7 @@ describe('UserRolesPanel — permission-aware rendering', () => {
     })
     renderPanel([])
 
-    expect(screen.queryByRole('button', { name: /assign role/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /atribuir papel/i })).toBeNull()
   })
 
   it('Remove button per role item is hidden when user lacks role:update', () => {
@@ -315,17 +315,17 @@ describe('UserRolesPanel — permission-aware rendering', () => {
     })
     renderPanel([MOCK_ROLE])
 
-    expect(screen.queryByRole('button', { name: `Remove role ${MOCK_ROLE.name}` })).toBeNull()
+    expect(screen.queryByRole('button', { name: `Remover papel ${MOCK_ROLE.name}` })).toBeNull()
   })
 
   it('Assign Role button is visible when user has role:update', () => {
     renderPanel([MOCK_ROLE])
-    expect(screen.getByRole('button', { name: /assign role/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /atribuir papel/i })).toBeTruthy()
   })
 
   it('Remove button is visible when user has role:update', () => {
     renderPanel([MOCK_ROLE])
-    expect(screen.getByRole('button', { name: `Remove role ${MOCK_ROLE.name}` })).toBeTruthy()
+    expect(screen.getByRole('button', { name: `Remover papel ${MOCK_ROLE.name}` })).toBeTruthy()
   })
 })
 
@@ -333,14 +333,16 @@ describe('UserRolesPanel — Phase 9 accessibility', () => {
   it('Assign Role button meets 44px touch target (min-h-[44px])', () => {
     renderPanel([MOCK_ROLE])
 
-    expect(screen.getByRole('button', { name: /assign role/i }).className).toContain('min-h-[44px]')
+    expect(screen.getByRole('button', { name: /atribuir papel/i }).className).toContain(
+      'min-h-[44px]',
+    )
   })
 
-  it('Remove role button meets 44px touch target (min-h-[44px])', () => {
+  it('Remover papel button meets 44px touch target (min-h-[44px])', () => {
     renderPanel([MOCK_ROLE])
 
     expect(
-      screen.getByRole('button', { name: `Remove role ${MOCK_ROLE.name}` }).className,
+      screen.getByRole('button', { name: `Remover papel ${MOCK_ROLE.name}` }).className,
     ).toContain('min-h-[44px]')
   })
 
@@ -348,7 +350,7 @@ describe('UserRolesPanel — Phase 9 accessibility', () => {
     const user = userEvent.setup()
     renderPanel([MOCK_ROLE])
 
-    await user.click(screen.getByRole('button', { name: /assign role/i }))
+    await user.click(screen.getByRole('button', { name: /atribuir papel/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     await user.keyboard('{Escape}')
@@ -362,7 +364,7 @@ describe('UserRolesPanel — Phase 9 accessibility', () => {
     const user = userEvent.setup()
     renderPanel([MOCK_ROLE])
 
-    await user.click(screen.getByRole('button', { name: `Remove role ${MOCK_ROLE.name}` }))
+    await user.click(screen.getByRole('button', { name: `Remover papel ${MOCK_ROLE.name}` }))
     await waitFor(() => screen.getByRole('alertdialog'))
 
     await user.keyboard('{Escape}')
@@ -375,6 +377,6 @@ describe('UserRolesPanel — Phase 9 accessibility', () => {
   it('assigned roles list has accessible aria-label', () => {
     renderPanel([MOCK_ROLE])
 
-    expect(screen.getByRole('list', { name: /assigned roles/i })).toBeTruthy()
+    expect(screen.getByRole('list', { name: /papéis atribuídos/i })).toBeTruthy()
   })
 })

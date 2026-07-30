@@ -12,7 +12,7 @@ describe('updateProfileSchema', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       const nameIssue = result.error.issues.find((i) => i.path[0] === 'name')
-      expect(nameIssue?.message).toBe('Name is required')
+      expect(nameIssue?.message).toBe('Nome é obrigatório')
     }
   })
 
@@ -21,7 +21,7 @@ describe('updateProfileSchema', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       const nameIssue = result.error.issues.find((i) => i.path[0] === 'name')
-      expect(nameIssue?.message).toBe('Name must be at most 100 characters')
+      expect(nameIssue?.message).toBe('Nome deve ter no máximo 100 caracteres')
     }
   })
 

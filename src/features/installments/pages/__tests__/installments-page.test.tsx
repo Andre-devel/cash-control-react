@@ -113,7 +113,7 @@ describe('InstallmentsPage', () => {
     await waitFor(() => screen.getByRole('button', { name: /nova série/i }))
     await user.click(screen.getByRole('button', { name: /nova série/i }))
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
-    expect(screen.getByRole('heading', { name: /create installment series/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /nova série de parcelamentos/i })).toBeTruthy()
   })
 
   it('create series form → submit → series appears in list', async () => {
@@ -124,24 +124,24 @@ describe('InstallmentsPage', () => {
     await user.click(screen.getByRole('button', { name: /nova série/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    await user.clear(screen.getByRole('textbox', { name: /description/i }))
-    await user.type(screen.getByRole('textbox', { name: /description/i }), 'New TV')
+    await user.clear(screen.getByRole('textbox', { name: /descrição/i }))
+    await user.type(screen.getByRole('textbox', { name: /descrição/i }), 'New TV')
 
-    await user.clear(screen.getByRole('textbox', { name: /total amount/i }))
-    await user.type(screen.getByRole('textbox', { name: /total amount/i }), '2400.00')
+    await user.clear(screen.getByRole('textbox', { name: /valor total/i }))
+    await user.type(screen.getByRole('textbox', { name: /valor total/i }), '2400.00')
 
-    const countInput = screen.getByRole('spinbutton', { name: /number of installments/i })
+    const countInput = screen.getByRole('spinbutton', { name: /número de parcelas/i })
     await user.clear(countInput)
     await user.type(countInput, '6')
 
     await waitFor(() => {
-      const select = screen.getByRole('combobox', { name: /^account$/i })
+      const select = screen.getByRole('combobox', { name: /^conta$/i })
       expect(select.querySelectorAll('option').length).toBeGreaterThan(1)
     })
-    const accountSelect = screen.getByRole('combobox', { name: /^account$/i })
+    const accountSelect = screen.getByRole('combobox', { name: /^conta$/i })
     await user.selectOptions(accountSelect, 'account-1')
 
-    await user.click(screen.getByRole('button', { name: /create series/i }))
+    await user.click(screen.getByRole('button', { name: /criar série/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     await waitFor(() => expect(screen.getByText('New TV')).toBeTruthy())
@@ -155,12 +155,12 @@ describe('InstallmentsPage', () => {
     await user.click(screen.getByRole('button', { name: /nova série/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    const descInput = screen.getByRole('textbox', { name: /description/i })
+    const descInput = screen.getByRole('textbox', { name: /descrição/i })
     await user.clear(descInput)
 
-    await user.click(screen.getByRole('button', { name: /create series/i }))
+    await user.click(screen.getByRole('button', { name: /criar série/i }))
 
-    await waitFor(() => expect(screen.getByText(/description is required/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/descrição é obrigatória/i)).toBeTruthy())
   })
 
   it('create series form shows validation error for installment count < 2', async () => {
@@ -171,16 +171,16 @@ describe('InstallmentsPage', () => {
     await user.click(screen.getByRole('button', { name: /nova série/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    await user.clear(screen.getByRole('textbox', { name: /description/i }))
-    await user.type(screen.getByRole('textbox', { name: /description/i }), 'Test')
+    await user.clear(screen.getByRole('textbox', { name: /descrição/i }))
+    await user.type(screen.getByRole('textbox', { name: /descrição/i }), 'Test')
 
-    const countInput = screen.getByRole('spinbutton', { name: /number of installments/i })
+    const countInput = screen.getByRole('spinbutton', { name: /número de parcelas/i })
     await user.clear(countInput)
     await user.type(countInput, '1')
 
-    await user.click(screen.getByRole('button', { name: /create series/i }))
+    await user.click(screen.getByRole('button', { name: /criar série/i }))
 
-    await waitFor(() => expect(screen.getByText(/at least 2/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/pelo menos 2/i)).toBeTruthy())
   })
 
   it('Edit Series button opens edit dialog', async () => {
@@ -193,7 +193,7 @@ describe('InstallmentsPage', () => {
     await user.click(editButtons[0])
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
-    expect(screen.getByRole('heading', { name: /edit series/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /editar série/i })).toBeTruthy()
   })
 
   it('Edit Installment button opens edit installment dialog', async () => {
@@ -206,7 +206,7 @@ describe('InstallmentsPage', () => {
     await user.click(editInstButtons[0])
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
-    expect(screen.getByRole('heading', { name: /edit individual installment/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /editar parcela individual/i })).toBeTruthy()
   })
 
   it('edit installment dialog shows individual override badge', async () => {
@@ -219,7 +219,7 @@ describe('InstallmentsPage', () => {
     await user.click(editInstButtons[0])
 
     await waitFor(() => screen.getByRole('dialog'))
-    expect(screen.getByText(/individual override/i)).toBeTruthy()
+    expect(screen.getByText(/substituição individual/i)).toBeTruthy()
   })
 
   it('Settle Early button opens settle dialog with remaining info', async () => {
@@ -232,8 +232,8 @@ describe('InstallmentsPage', () => {
     await user.click(settleButtons[0])
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
-    expect(screen.getByRole('heading', { name: /settle series early/i })).toBeTruthy()
-    expect(screen.getAllByText(/total installments/i).length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { name: /liquidar série antecipadamente/i })).toBeTruthy()
+    expect(screen.getAllByText(/total de parcelas/i).length).toBeGreaterThan(0)
     expect(screen.getByText(MOCK_SERIES_1.totalAmount)).toBeTruthy()
   })
 
@@ -247,7 +247,7 @@ describe('InstallmentsPage', () => {
     await user.click(settleButtons[0])
     await waitFor(() => screen.getByRole('dialog'))
 
-    await user.click(screen.getByRole('button', { name: /settle early/i }))
+    await user.click(screen.getByRole('button', { name: /liquidar antecipadamente/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     await waitFor(() => expect(screen.getAllByText('Settled').length).toBeGreaterThan(0))
@@ -263,7 +263,7 @@ describe('InstallmentsPage', () => {
     await user.click(advanceButtons[0])
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
-    expect(screen.getByRole('heading', { name: /advance installments/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /antecipar parcelas/i })).toBeTruthy()
   })
 
   it('advance dialog loads pending installments as checkboxes', async () => {
@@ -295,7 +295,7 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByRole('dialog'))
 
-    await waitFor(() => expect(screen.getByLabelText(/new due date/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByLabelText(/nova data de vencimento/i)).toBeTruthy())
   })
 
   it('advance dialog submits with selected transactionIds and newDate', async () => {
@@ -317,10 +317,10 @@ describe('InstallmentsPage', () => {
     const checkboxes = screen.getAllByRole('checkbox')
     await user.click(checkboxes[0])
 
-    const dateInput = screen.getByLabelText(/new due date/i)
+    const dateInput = screen.getByLabelText(/nova data de vencimento/i)
     await user.type(dateInput, '2026-07-01')
 
-    await user.click(screen.getByRole('button', { name: /advance installments/i }))
+    await user.click(screen.getByRole('button', { name: /antecipar parcelas/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   })
@@ -339,9 +339,9 @@ describe('InstallmentsPage', () => {
       expect(screen.getAllByRole('checkbox').length).toBeGreaterThan(0)
     })
 
-    await user.click(screen.getByRole('button', { name: /advance installments/i }))
+    await user.click(screen.getByRole('button', { name: /antecipar parcelas/i }))
 
-    await waitFor(() => expect(screen.getByText(/select at least one installment/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/selecione pelo menos uma parcela/i)).toBeTruthy())
   })
 
   it('Nova série button uses primary design system style', async () => {

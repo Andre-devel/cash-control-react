@@ -69,7 +69,7 @@ describe('RegisterPage', () => {
     await fillForm(user, { confirmPassword: 'different' })
     await user.click(screen.getByRole('button', { name: 'Criar conta' }))
 
-    expect(await screen.findByText('Passwords do not match')).toBeTruthy()
+    expect(await screen.findByText('As senhas não coincidem')).toBeTruthy()
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
   })
 
@@ -80,7 +80,7 @@ describe('RegisterPage', () => {
     await fillForm(user, { email: 'existing@example.com' })
     await user.click(screen.getByRole('button', { name: 'Criar conta' }))
 
-    expect(await screen.findByText('This email address is already registered')).toBeTruthy()
+    expect(await screen.findByText('Este endereço de e-mail já está cadastrado')).toBeTruthy()
   })
 
   it('shows success toast and navigates to verify-email on successful registration', async () => {
@@ -162,7 +162,7 @@ describe('RegisterPage', () => {
     await user.click(screen.getByRole('button', { name: 'Criar conta' }))
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Registration failed. Please try again.')
+      expect(toast.error).toHaveBeenCalledWith('Falha no cadastro. Por favor, tente novamente.')
     })
   })
 })

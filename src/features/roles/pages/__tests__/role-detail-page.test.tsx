@@ -68,7 +68,7 @@ function renderDetailPage(roleId: string) {
 describe('RoleDetailPage', () => {
   it('renders loading skeleton before data arrives', () => {
     renderDetailPage(MOCK_ROLE.id)
-    expect(screen.getByLabelText('Loading role details')).toBeTruthy()
+    expect(screen.getByLabelText('Carregando detalhes do papel')).toBeTruthy()
   })
 
   it('renders role name from MSW data', async () => {
@@ -91,7 +91,7 @@ describe('RoleDetailPage', () => {
     renderDetailPage(MOCK_ROLE.id)
 
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: /back to roles/i })).toBeTruthy()
+      expect(screen.getByRole('link', { name: /voltar para lista de papéis/i })).toBeTruthy()
     })
   })
 
@@ -99,7 +99,7 @@ describe('RoleDetailPage', () => {
     renderDetailPage(MOCK_ROLE.id)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /edit role/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /editar papel/i })).toBeTruthy()
     })
   })
 
@@ -107,7 +107,7 @@ describe('RoleDetailPage', () => {
     renderDetailPage(MOCK_ROLE.id)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /delete role/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /excluir papel/i })).toBeTruthy()
     })
   })
 
@@ -116,7 +116,7 @@ describe('RoleDetailPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText(MOCK_SYSTEM_ROLE.name)).toBeTruthy()
-      expect(screen.getByLabelText('System role')).toBeTruthy()
+      expect(screen.getByLabelText('Papel do sistema')).toBeTruthy()
     })
   })
 
@@ -124,7 +124,7 @@ describe('RoleDetailPage', () => {
     renderDetailPage(MOCK_SYSTEM_ROLE.id)
 
     await waitFor(() => {
-      const deleteButton = screen.getByRole('button', { name: /delete role/i })
+      const deleteButton = screen.getByRole('button', { name: /excluir papel/i })
       expect(deleteButton).toBeDisabled()
     })
   })
@@ -133,7 +133,7 @@ describe('RoleDetailPage', () => {
     renderDetailPage(MOCK_ROLE.id)
 
     await waitFor(() => {
-      const deleteButton = screen.getByRole('button', { name: /delete role/i })
+      const deleteButton = screen.getByRole('button', { name: /excluir papel/i })
       expect(deleteButton).not.toBeDisabled()
     })
   })
@@ -151,7 +151,7 @@ describe('RoleDetailPage', () => {
     renderDetailPage(MOCK_ROLE.id)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /remove permission/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /remover permissão/i })).toBeTruthy()
     })
   })
 
@@ -159,7 +159,7 @@ describe('RoleDetailPage', () => {
     renderDetailPage(MOCK_SYSTEM_ROLE.id)
 
     await waitFor(() => {
-      expect(screen.getByText(/no permissions assigned/i)).toBeTruthy()
+      expect(screen.getByText(/nenhuma permissão atribuída/i)).toBeTruthy()
     })
   })
 
@@ -167,7 +167,7 @@ describe('RoleDetailPage', () => {
     renderDetailPage('not-found')
 
     await waitFor(() => {
-      expect(screen.getByText(/role not found/i)).toBeTruthy()
+      expect(screen.getByText(/papel não encontrado/i)).toBeTruthy()
     })
   })
 
@@ -175,7 +175,7 @@ describe('RoleDetailPage', () => {
     renderDetailPage('not-found')
 
     await waitFor(() => {
-      const links = screen.getAllByRole('link', { name: /back to roles/i })
+      const links = screen.getAllByRole('link', { name: /voltar para lista de papéis/i })
       expect(links.length).toBeGreaterThan(0)
     })
   })
@@ -190,7 +190,7 @@ describe('RoleDetailPage', () => {
     renderDetailPage('any-role')
 
     await waitFor(() => {
-      expect(screen.getByText(/failed to load role/i)).toBeTruthy()
+      expect(screen.getByText(/falha ao carregar papel/i)).toBeTruthy()
     })
   })
 
@@ -199,12 +199,12 @@ describe('RoleDetailPage', () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /edit role/i }))
-      await user.click(screen.getByRole('button', { name: /edit role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /editar papel/i }))
+      await user.click(screen.getByRole('button', { name: /editar papel/i }))
 
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeTruthy()
-        expect(screen.getByRole('heading', { name: /edit role/i })).toBeTruthy()
+        expect(screen.getByRole('heading', { name: /editar papel/i })).toBeTruthy()
       })
     })
 
@@ -212,8 +212,8 @@ describe('RoleDetailPage', () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /edit role/i }))
-      await user.click(screen.getByRole('button', { name: /edit role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /editar papel/i }))
+      await user.click(screen.getByRole('button', { name: /editar papel/i }))
 
       await waitFor(() => screen.getByRole('dialog'))
 
@@ -225,11 +225,11 @@ describe('RoleDetailPage', () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /edit role/i }))
-      await user.click(screen.getByRole('button', { name: /edit role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /editar papel/i }))
+      await user.click(screen.getByRole('button', { name: /editar papel/i }))
       await waitFor(() => screen.getByRole('dialog'))
 
-      await user.click(screen.getByRole('button', { name: /save changes/i }))
+      await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
 
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).toBeNull()
@@ -240,8 +240,8 @@ describe('RoleDetailPage', () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /edit role/i }))
-      await user.click(screen.getByRole('button', { name: /edit role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /editar papel/i }))
+      await user.click(screen.getByRole('button', { name: /editar papel/i }))
 
       await waitFor(() => {
         expect(screen.getByDisplayValue(MOCK_ROLE.description)).toBeTruthy()
@@ -254,8 +254,8 @@ describe('RoleDetailPage', () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /delete role/i }))
-      await user.click(screen.getByRole('button', { name: /delete role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /excluir papel/i }))
+      await user.click(screen.getByRole('button', { name: /excluir papel/i }))
 
       await waitFor(() => {
         expect(screen.getByRole('alertdialog')).toBeTruthy()
@@ -266,8 +266,8 @@ describe('RoleDetailPage', () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /delete role/i }))
-      await user.click(screen.getByRole('button', { name: /delete role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /excluir papel/i }))
+      await user.click(screen.getByRole('button', { name: /excluir papel/i }))
 
       await waitFor(() => {
         const dialog = screen.getByRole('alertdialog')
@@ -287,10 +287,10 @@ describe('RoleDetailPage', () => {
 
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /delete role/i }))
-      await user.click(screen.getByRole('button', { name: /delete role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /excluir papel/i }))
+      await user.click(screen.getByRole('button', { name: /excluir papel/i }))
       await waitFor(() => screen.getByRole('alertdialog'))
-      await user.click(screen.getByRole('button', { name: /cancel/i }))
+      await user.click(screen.getByRole('button', { name: /cancelar/i }))
 
       await waitFor(() => {
         expect(screen.queryByRole('alertdialog')).toBeNull()
@@ -302,10 +302,10 @@ describe('RoleDetailPage', () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /delete role/i }))
-      await user.click(screen.getByRole('button', { name: /delete role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /excluir papel/i }))
+      await user.click(screen.getByRole('button', { name: /excluir papel/i }))
       await waitFor(() => screen.getByRole('alertdialog'))
-      await user.click(screen.getByRole('button', { name: /^delete$/i }))
+      await user.click(screen.getByRole('button', { name: /^excluir$/i }))
 
       await waitFor(() => {
         expect(screen.getByText(/^Roles$/i)).toBeTruthy()
@@ -326,10 +326,10 @@ describe('RoleDetailPage', () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /delete role/i }))
-      await user.click(screen.getByRole('button', { name: /delete role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /excluir papel/i }))
+      await user.click(screen.getByRole('button', { name: /excluir papel/i }))
       await waitFor(() => screen.getByRole('alertdialog'))
-      await user.click(screen.getByRole('button', { name: /^delete$/i }))
+      await user.click(screen.getByRole('button', { name: /^excluir$/i }))
 
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalled()
@@ -341,7 +341,7 @@ describe('RoleDetailPage', () => {
       renderDetailPage(MOCK_SYSTEM_ROLE.id)
 
       await waitFor(() => {
-        const deleteBtn = screen.getByRole('button', { name: /delete role/i })
+        const deleteBtn = screen.getByRole('button', { name: /excluir papel/i })
         expect(deleteBtn).toBeDisabled()
         expect(deleteBtn).toHaveAttribute('aria-disabled', 'true')
       })
@@ -358,14 +358,14 @@ describe('RoleDetailPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_ROLE.name))
 
-      expect(screen.queryByRole('button', { name: /edit role/i })).toBeNull()
+      expect(screen.queryByRole('button', { name: /editar papel/i })).toBeNull()
     })
 
     it('Edit Role button is visible when user has role:update', async () => {
       renderDetailPage(MOCK_ROLE.id)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /edit role/i })).toBeTruthy()
+        expect(screen.getByRole('button', { name: /editar papel/i })).toBeTruthy()
       })
     })
 
@@ -378,14 +378,14 @@ describe('RoleDetailPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_ROLE.name))
 
-      expect(screen.queryByRole('button', { name: /delete role/i })).toBeNull()
+      expect(screen.queryByRole('button', { name: /excluir papel/i })).toBeNull()
     })
 
     it('Delete Role button is visible when user has role:delete', async () => {
       renderDetailPage(MOCK_ROLE.id)
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /delete role/i })).toBeTruthy()
+        expect(screen.getByRole('button', { name: /excluir papel/i })).toBeTruthy()
       })
     })
 
@@ -393,7 +393,7 @@ describe('RoleDetailPage', () => {
       renderDetailPage(MOCK_SYSTEM_ROLE.id)
 
       await waitFor(() => {
-        const deleteBtn = screen.getByRole('button', { name: /delete role/i })
+        const deleteBtn = screen.getByRole('button', { name: /excluir papel/i })
         expect(deleteBtn).toBeDisabled()
         expect(deleteBtn).toHaveAttribute('aria-disabled', 'true')
       })
@@ -404,17 +404,19 @@ describe('RoleDetailPage', () => {
     it('Edit Role button meets 44px touch target (min-h-[44px])', async () => {
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /edit role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /editar papel/i }))
 
-      expect(screen.getByRole('button', { name: /edit role/i }).className).toContain('min-h-[44px]')
+      expect(screen.getByRole('button', { name: /editar papel/i }).className).toContain(
+        'min-h-[44px]',
+      )
     })
 
     it('Delete Role button meets 44px touch target (min-h-[44px])', async () => {
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /delete role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /excluir papel/i }))
 
-      expect(screen.getByRole('button', { name: /delete role/i }).className).toContain(
+      expect(screen.getByRole('button', { name: /excluir papel/i }).className).toContain(
         'min-h-[44px]',
       )
     })
@@ -422,9 +424,9 @@ describe('RoleDetailPage', () => {
     it('system role Delete button meets 44px touch target (min-h-[44px])', async () => {
       renderDetailPage(MOCK_SYSTEM_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /delete role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /excluir papel/i }))
 
-      expect(screen.getByRole('button', { name: /delete role/i }).className).toContain(
+      expect(screen.getByRole('button', { name: /excluir papel/i }).className).toContain(
         'min-h-[44px]',
       )
     })
@@ -433,8 +435,8 @@ describe('RoleDetailPage', () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /edit role/i }))
-      await user.click(screen.getByRole('button', { name: /edit role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /editar papel/i }))
+      await user.click(screen.getByRole('button', { name: /editar papel/i }))
       await waitFor(() => screen.getByRole('dialog'))
 
       await user.keyboard('{Escape}')
@@ -448,8 +450,8 @@ describe('RoleDetailPage', () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /delete role/i }))
-      await user.click(screen.getByRole('button', { name: /delete role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /excluir papel/i }))
+      await user.click(screen.getByRole('button', { name: /excluir papel/i }))
       await waitFor(() => screen.getByRole('alertdialog'))
 
       await user.keyboard('{Escape}')
@@ -462,9 +464,9 @@ describe('RoleDetailPage', () => {
     it('system role delete button tooltip trigger is keyboard focusable', async () => {
       renderDetailPage(MOCK_SYSTEM_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /delete role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /excluir papel/i }))
 
-      const deleteBtn = screen.getByRole('button', { name: /delete role/i })
+      const deleteBtn = screen.getByRole('button', { name: /excluir papel/i })
       // The TooltipTrigger wraps the disabled button in a focusable span so
       // keyboard users can still reach it and receive the tooltip content
       const triggerSpan = deleteBtn.parentElement as HTMLElement
@@ -475,41 +477,41 @@ describe('RoleDetailPage', () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /edit role/i }))
-      await user.click(screen.getByRole('button', { name: /edit role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /editar papel/i }))
+      await user.click(screen.getByRole('button', { name: /editar papel/i }))
       await waitFor(() => screen.getByRole('dialog'))
 
-      expect(screen.getByRole('textbox', { name: /description/i })).toBeTruthy()
+      expect(screen.getByRole('textbox', { name: /descrição/i })).toBeTruthy()
     })
 
     it('edit modal Cancel button meets 44px touch target (min-h-[44px])', async () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /edit role/i }))
-      await user.click(screen.getByRole('button', { name: /edit role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /editar papel/i }))
+      await user.click(screen.getByRole('button', { name: /editar papel/i }))
       await waitFor(() => screen.getByRole('dialog'))
 
-      expect(screen.getByRole('button', { name: /cancel/i }).className).toContain('min-h-[44px]')
+      expect(screen.getByRole('button', { name: /cancelar/i }).className).toContain('min-h-[44px]')
     })
 
     it('delete dialog Cancel button meets 44px touch target (min-h-[44px])', async () => {
       const user = userEvent.setup()
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('button', { name: /delete role/i }))
-      await user.click(screen.getByRole('button', { name: /delete role/i }))
+      await waitFor(() => screen.getByRole('button', { name: /excluir papel/i }))
+      await user.click(screen.getByRole('button', { name: /excluir papel/i }))
       await waitFor(() => screen.getByRole('alertdialog'))
 
-      expect(screen.getByRole('button', { name: /cancel/i }).className).toContain('min-h-[44px]')
+      expect(screen.getByRole('button', { name: /cancelar/i }).className).toContain('min-h-[44px]')
     })
 
     it('back navigation link is keyboard focusable', async () => {
       renderDetailPage(MOCK_ROLE.id)
 
-      await waitFor(() => screen.getByRole('link', { name: /back to roles/i }))
+      await waitFor(() => screen.getByRole('link', { name: /voltar para lista de papéis/i }))
 
-      const backLink = screen.getByRole('link', { name: /back to roles/i })
+      const backLink = screen.getByRole('link', { name: /voltar para lista de papéis/i })
       backLink.focus()
       expect(document.activeElement).toBe(backLink)
     })

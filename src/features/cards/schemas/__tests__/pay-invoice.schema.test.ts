@@ -16,7 +16,7 @@ describe('createPayInvoiceSchema', () => {
     const result = schema.safeParse({ amount: '600.00', accountId: 'account-1' })
     expect(result.success).toBe(false)
     if (!result.success) {
-      expect(result.error.issues.some((i) => i.message.includes('cannot exceed'))).toBe(true)
+      expect(result.error.issues.some((i) => i.message.includes('não pode exceder'))).toBe(true)
     }
   })
 

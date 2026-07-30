@@ -12,7 +12,7 @@ describe('loginSchema', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       const emailIssue = result.error.issues.find((i) => i.path[0] === 'email')
-      expect(emailIssue?.message).toBe('Email is required')
+      expect(emailIssue?.message).toBe('E-mail é obrigatório')
     }
   })
 
@@ -30,7 +30,7 @@ describe('loginSchema', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       const passwordIssue = result.error.issues.find((i) => i.path[0] === 'password')
-      expect(passwordIssue?.message).toBe('Password is required')
+      expect(passwordIssue?.message).toBe('Senha é obrigatória')
     }
   })
 

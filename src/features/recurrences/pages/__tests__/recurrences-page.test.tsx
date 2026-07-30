@@ -95,7 +95,7 @@ describe('RecurrencesPage', () => {
     await waitFor(() => screen.getByRole('button', { name: /nova regra/i }))
     await user.click(screen.getByRole('button', { name: /nova regra/i }))
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
-    expect(screen.getByRole('heading', { name: /create recurrence rule/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /nova regra de recorrência/i })).toBeTruthy()
   })
 
   it('create recurrence form → submit → rule appears in list', async () => {
@@ -106,21 +106,21 @@ describe('RecurrencesPage', () => {
     await user.click(screen.getByRole('button', { name: /nova regra/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    await user.clear(screen.getByRole('textbox', { name: /description/i }))
-    await user.type(screen.getByRole('textbox', { name: /description/i }), 'Gym membership')
+    await user.clear(screen.getByRole('textbox', { name: /descrição/i }))
+    await user.type(screen.getByRole('textbox', { name: /descrição/i }), 'Gym membership')
 
-    await user.clear(screen.getByRole('textbox', { name: /amount/i }))
-    await user.type(screen.getByRole('textbox', { name: /amount/i }), '99.90')
+    await user.clear(screen.getByRole('textbox', { name: /valor/i }))
+    await user.type(screen.getByRole('textbox', { name: /valor/i }), '99.90')
 
-    const accountIdInput = screen.getByRole('textbox', { name: /account id/i })
+    const accountIdInput = screen.getByRole('textbox', { name: /id da conta/i })
     await user.clear(accountIdInput)
     await user.type(accountIdInput, 'account-1')
 
-    const startDateInput = screen.getByLabelText(/start date/i)
+    const startDateInput = screen.getByLabelText(/data de início/i)
     await user.clear(startDateInput)
     await user.type(startDateInput, '2026-01-01')
 
-    await user.click(screen.getByRole('button', { name: /create rule/i }))
+    await user.click(screen.getByRole('button', { name: /criar regra/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     await waitFor(() => expect(screen.getByText('Gym membership')).toBeTruthy())
@@ -134,12 +134,12 @@ describe('RecurrencesPage', () => {
     await user.click(screen.getByRole('button', { name: /nova regra/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    const descInput = screen.getByRole('textbox', { name: /description/i })
+    const descInput = screen.getByRole('textbox', { name: /descrição/i })
     await user.clear(descInput)
 
-    await user.click(screen.getByRole('button', { name: /create rule/i }))
+    await user.click(screen.getByRole('button', { name: /criar regra/i }))
 
-    await waitFor(() => expect(screen.getByText(/description is required/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/descrição é obrigatória/i)).toBeTruthy())
   })
 
   it('cancel button closes the create dialog', async () => {
@@ -213,7 +213,7 @@ describe('RecurrencesPage', () => {
       await user.click(deleteButtons[0])
 
       await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
-      expect(screen.getByRole('heading', { name: /delete recurrence rule/i })).toBeTruthy()
+      expect(screen.getByRole('heading', { name: /excluir regra de recorrência/i })).toBeTruthy()
     })
 
     it('delete dialog shows strategy selector with FUTURE_ONLY and ALL options', async () => {
@@ -227,8 +227,8 @@ describe('RecurrencesPage', () => {
 
       await waitFor(() => screen.getByRole('dialog'))
 
-      expect(screen.getAllByText(/future only/i).length).toBeGreaterThan(0)
-      expect(screen.getAllByText(/all — delete all/i).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(/somente futuras/i).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(/todas — excluir todas/i).length).toBeGreaterThan(0)
     })
 
     it('delete dialog explains the difference between strategies', async () => {
@@ -242,8 +242,8 @@ describe('RecurrencesPage', () => {
 
       await waitFor(() => screen.getByRole('dialog'))
 
-      expect(screen.getByText(/transactions already recorded are kept/i)).toBeTruthy()
-      expect(screen.getByText(/past and future/i)).toBeTruthy()
+      expect(screen.getByText(/as transações já registradas são mantidas/i)).toBeTruthy()
+      expect(screen.getByText(/passadas e futuras/i)).toBeTruthy()
     })
 
     it('confirming delete removes the rule from the list', async () => {
@@ -256,7 +256,7 @@ describe('RecurrencesPage', () => {
       await user.click(deleteButtons[0])
 
       await waitFor(() => screen.getByRole('dialog'))
-      await user.click(screen.getByRole('button', { name: /delete rule/i }))
+      await user.click(screen.getByRole('button', { name: /excluir regra/i }))
 
       await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
       await waitFor(() => expect(screen.queryByText(MOCK_RECURRENCE_1.description)).toBeNull())

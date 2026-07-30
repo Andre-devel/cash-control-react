@@ -15,6 +15,7 @@ const VALID_INPUT = {
   competenceDate: '2026-05-01',
   status: 'PAID' as const,
   paymentMethod: 'OTHER' as const,
+  installments: 1,
 }
 
 describe('createTransactionSchema', () => {

@@ -58,8 +58,8 @@ function renderPanel(role: Role) {
 
 async function openAssignModalAndWaitForOptions() {
   const user = userEvent.setup()
-  await waitFor(() => screen.getByRole('button', { name: /assign permission/i }))
-  await user.click(screen.getByRole('button', { name: /assign permission/i }))
+  await waitFor(() => screen.getByRole('button', { name: /atribuir permissão/i }))
+  await user.click(screen.getByRole('button', { name: /atribuir permissão/i }))
   await waitFor(() => screen.getByRole('dialog'))
   // Wait for the permissions list to load in the select
   await waitFor(() => screen.getByRole('option', { name: MOCK_PERMISSION_2.name }))
@@ -80,7 +80,7 @@ describe('RolePermissionsPanel — rendering', () => {
     renderPanel(MOCK_ROLE)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /assign permission/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /atribuir permissão/i })).toBeTruthy()
     })
   })
 
@@ -88,8 +88,8 @@ describe('RolePermissionsPanel — rendering', () => {
     renderPanel(MOCK_SYSTEM_ROLE)
 
     await waitFor(() => {
-      expect(screen.getByText(/no permissions assigned/i)).toBeTruthy()
-      expect(screen.getByRole('button', { name: /assign permission/i })).toBeTruthy()
+      expect(screen.getByText(/nenhuma permissão atribuída/i)).toBeTruthy()
+      expect(screen.getByRole('button', { name: /atribuir permissão/i })).toBeTruthy()
     })
   })
 
@@ -98,7 +98,7 @@ describe('RolePermissionsPanel — rendering', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+        screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
       ).toBeTruthy()
     })
   })
@@ -109,12 +109,12 @@ describe('RolePermissionsPanel — assign permission', () => {
     const user = userEvent.setup()
     renderPanel(MOCK_ROLE)
 
-    await waitFor(() => screen.getByRole('button', { name: /assign permission/i }))
-    await user.click(screen.getByRole('button', { name: /assign permission/i }))
+    await waitFor(() => screen.getByRole('button', { name: /atribuir permissão/i }))
+    await user.click(screen.getByRole('button', { name: /atribuir permissão/i }))
 
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeTruthy()
-      expect(screen.getByRole('heading', { name: /assign permission/i })).toBeTruthy()
+      expect(screen.getByRole('heading', { name: /atribuir permissão/i })).toBeTruthy()
     })
   })
 
@@ -132,9 +132,9 @@ describe('RolePermissionsPanel — assign permission', () => {
 
     const user = await openAssignModalAndWaitForOptions()
 
-    await user.selectOptions(screen.getByLabelText('Select permission'), MOCK_PERMISSION_2.id)
+    await user.selectOptions(screen.getByLabelText('Selecionar permissão'), MOCK_PERMISSION_2.id)
 
-    await user.click(screen.getByRole('button', { name: /^assign$/i }))
+    await user.click(screen.getByRole('button', { name: /^atribuir$/i }))
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBeNull()
@@ -147,9 +147,9 @@ describe('RolePermissionsPanel — assign permission', () => {
 
     const user = await openAssignModalAndWaitForOptions()
 
-    await user.selectOptions(screen.getByLabelText('Select permission'), MOCK_PERMISSION_2.id)
+    await user.selectOptions(screen.getByLabelText('Selecionar permissão'), MOCK_PERMISSION_2.id)
 
-    await user.click(screen.getByRole('button', { name: /^assign$/i }))
+    await user.click(screen.getByRole('button', { name: /^atribuir$/i }))
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Permission assigned to role.')
@@ -176,9 +176,9 @@ describe('RolePermissionsPanel — assign permission', () => {
 
     const user = await openAssignModalAndWaitForOptions()
 
-    await user.selectOptions(screen.getByLabelText('Select permission'), MOCK_PERMISSION_2.id)
+    await user.selectOptions(screen.getByLabelText('Selecionar permissão'), MOCK_PERMISSION_2.id)
 
-    await user.click(screen.getByRole('button', { name: /^assign$/i }))
+    await user.click(screen.getByRole('button', { name: /^atribuir$/i }))
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Permission already assigned to this role.')
@@ -199,11 +199,11 @@ describe('RolePermissionsPanel — assign permission', () => {
     const user = userEvent.setup()
     renderPanel(MOCK_ROLE)
 
-    await waitFor(() => screen.getByRole('button', { name: /assign permission/i }))
-    await user.click(screen.getByRole('button', { name: /assign permission/i }))
+    await waitFor(() => screen.getByRole('button', { name: /atribuir permissão/i }))
+    await user.click(screen.getByRole('button', { name: /atribuir permissão/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    await user.click(screen.getByRole('button', { name: /cancel/i }))
+    await user.click(screen.getByRole('button', { name: /cancelar/i }))
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBeNull()
@@ -218,10 +218,10 @@ describe('RolePermissionsPanel — revoke permission', () => {
     renderPanel(MOCK_ROLE)
 
     await waitFor(() =>
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
     await user.click(
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
 
     await waitFor(() => {
@@ -234,10 +234,10 @@ describe('RolePermissionsPanel — revoke permission', () => {
     renderPanel(MOCK_ROLE)
 
     await waitFor(() =>
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
     await user.click(
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
 
     await waitFor(() => {
@@ -254,15 +254,15 @@ describe('RolePermissionsPanel — revoke permission', () => {
     renderPanel(MOCK_ROLE)
 
     await waitFor(() =>
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
     await user.click(
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
 
     await waitFor(() => screen.getByRole('alertdialog'))
 
-    await user.click(screen.getByRole('button', { name: /^remove$/i }))
+    await user.click(screen.getByRole('button', { name: /^remover$/i }))
 
     await waitFor(() => {
       expect(screen.queryByRole('alertdialog')).toBeNull()
@@ -275,15 +275,15 @@ describe('RolePermissionsPanel — revoke permission', () => {
     renderPanel(MOCK_ROLE)
 
     await waitFor(() =>
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
     await user.click(
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
 
     await waitFor(() => screen.getByRole('alertdialog'))
 
-    await user.click(screen.getByRole('button', { name: /^remove$/i }))
+    await user.click(screen.getByRole('button', { name: /^remover$/i }))
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Permission removed from role.')
@@ -303,15 +303,15 @@ describe('RolePermissionsPanel — revoke permission', () => {
     renderPanel(MOCK_ROLE)
 
     await waitFor(() =>
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
     await user.click(
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
 
     await waitFor(() => screen.getByRole('alertdialog'))
 
-    await user.click(screen.getByRole('button', { name: /cancel/i }))
+    await user.click(screen.getByRole('button', { name: /cancelar/i }))
 
     await waitFor(() => {
       expect(screen.queryByRole('alertdialog')).toBeNull()
@@ -328,7 +328,7 @@ describe('RolePermissionsPanel — permission-aware rendering', () => {
     })
     renderPanel(MOCK_ROLE)
 
-    expect(screen.queryByRole('button', { name: /assign permission/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /atribuir permissão/i })).toBeNull()
   })
 
   it('Assign Permission button in empty state is hidden when user lacks permission:grant', () => {
@@ -338,7 +338,7 @@ describe('RolePermissionsPanel — permission-aware rendering', () => {
     })
     renderPanel(MOCK_SYSTEM_ROLE)
 
-    expect(screen.queryByRole('button', { name: /assign permission/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /atribuir permissão/i })).toBeNull()
   })
 
   it('Remove button per permission is hidden when user lacks permission:revoke', () => {
@@ -349,14 +349,14 @@ describe('RolePermissionsPanel — permission-aware rendering', () => {
     renderPanel(MOCK_ROLE)
 
     expect(
-      screen.queryByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.queryByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     ).toBeNull()
   })
 
   it('Assign Permission button is visible when user has permission:grant', async () => {
     renderPanel(MOCK_ROLE)
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /assign permission/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /atribuir permissão/i })).toBeTruthy()
     })
   })
 
@@ -364,7 +364,7 @@ describe('RolePermissionsPanel — permission-aware rendering', () => {
     renderPanel(MOCK_ROLE)
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+        screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
       ).toBeTruthy()
     })
   })
@@ -375,7 +375,7 @@ describe('RolePermissionsPanel — Phase 9 accessibility', () => {
     renderPanel(MOCK_ROLE)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /assign permission/i }).className).toContain(
+      expect(screen.getByRole('button', { name: /atribuir permissão/i }).className).toContain(
         'min-h-[44px]',
       )
     })
@@ -386,7 +386,7 @@ describe('RolePermissionsPanel — Phase 9 accessibility', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }).className,
+        screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }).className,
       ).toContain('min-h-[44px]')
     })
   })
@@ -395,8 +395,8 @@ describe('RolePermissionsPanel — Phase 9 accessibility', () => {
     const user = userEvent.setup()
     renderPanel(MOCK_ROLE)
 
-    await waitFor(() => screen.getByRole('button', { name: /assign permission/i }))
-    await user.click(screen.getByRole('button', { name: /assign permission/i }))
+    await waitFor(() => screen.getByRole('button', { name: /atribuir permissão/i }))
+    await user.click(screen.getByRole('button', { name: /atribuir permissão/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
     await user.keyboard('{Escape}')
@@ -411,10 +411,10 @@ describe('RolePermissionsPanel — Phase 9 accessibility', () => {
     renderPanel(MOCK_ROLE)
 
     await waitFor(() =>
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
     await user.click(
-      screen.getByRole('button', { name: `Remove permission ${MOCK_PERMISSION.name}` }),
+      screen.getByRole('button', { name: `Remover permissão ${MOCK_PERMISSION.name}` }),
     )
     await waitFor(() => screen.getByRole('alertdialog'))
 
@@ -429,7 +429,7 @@ describe('RolePermissionsPanel — Phase 9 accessibility', () => {
     renderPanel(MOCK_ROLE)
 
     await waitFor(() => {
-      expect(screen.getByRole('list', { name: /assigned permissions/i })).toBeTruthy()
+      expect(screen.getByRole('list', { name: /permissões atribuídas/i })).toBeTruthy()
     })
   })
 })

@@ -51,8 +51,8 @@ describe('LoginPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Entrar' }))
 
-    expect(await screen.findByText('Email is required')).toBeTruthy()
-    expect(await screen.findByText('Password is required')).toBeTruthy()
+    expect(await screen.findByText('E-mail é obrigatório')).toBeTruthy()
+    expect(await screen.findByText('Senha é obrigatória')).toBeTruthy()
   })
 
   it('shows validation error for invalid email format', async () => {
@@ -63,7 +63,7 @@ describe('LoginPage', () => {
     await user.type(screen.getByLabelText(/^senha/i), 'password123')
     await user.click(screen.getByRole('button', { name: 'Entrar' }))
 
-    expect(await screen.findByText(/valid email/i)).toBeTruthy()
+    expect(await screen.findByText(/informe um e-mail válido/i)).toBeTruthy()
   })
 
   it('stores token and redirects on successful login', async () => {

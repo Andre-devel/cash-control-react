@@ -153,9 +153,27 @@ describe('CardsPage — error state', () => {
 
 describe('CardsPage — invoice section', () => {
   it('shows invoice loading state for selected card', async () => {
+    // Hold the invoice response open: without it the default handler resolves
+    // before the card renders, so the skeleton is already gone by the time we
+    // can assert on it.
+    let releaseInvoice: () => void = () => {}
+    const invoicePending = new Promise<void>((resolve) => {
+      releaseInvoice = resolve
+    })
+    server.use(
+      http.get('*/cards/:id/invoices/:referenceMonth', async () => {
+        await invoicePending
+        return HttpResponse.json(MOCK_INVOICE)
+      }),
+    )
+
     renderWithProviders(<CardsPage />)
     await waitFor(() => screen.getByLabelText(`${MOCK_CARD_1.name} — cartão de crédito`))
-    expect(screen.getByLabelText('Carregando fatura')).toBeTruthy()
+    // The invoice query stays disabled until referenceMonth is set, so the
+    // skeleton appears a tick after the card does.
+    expect(await screen.findByLabelText('Carregando fatura')).toBeTruthy()
+
+    releaseInvoice()
   })
 
   it('shows invoice total amount after loading', async () => {
@@ -182,7 +200,7 @@ describe('CardsPage — invoice section', () => {
       const tablist = screen.getByRole('tablist', { name: /mês da fatura/i })
       expect(tablist).toBeTruthy()
       const tabs = screen.getAllByRole('tab')
-      expect(tabs.length).toBe(3)
+      expect(tabs.length).toBe(4)
     })
   })
 
@@ -294,7 +312,7 @@ describe('CardsPage — create card dialog', () => {
     await user.click(screen.getByRole('button', { name: /novo cartão/i }))
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeTruthy()
-      expect(screen.getByRole('heading', { name: /create credit card/i })).toBeTruthy()
+      expect(screen.getByRole('heading', { name: /novo cartão de crédito/i })).toBeTruthy()
     })
   })
 
@@ -305,9 +323,9 @@ describe('CardsPage — create card dialog', () => {
     await user.click(screen.getByRole('button', { name: /novo cartão/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    await user.clear(screen.getByRole('textbox', { name: /^name$/i }))
-    await user.type(screen.getByRole('textbox', { name: /^name$/i }), 'My Test Card')
-    await user.click(screen.getByRole('button', { name: /create card/i }))
+    await user.clear(screen.getByRole('textbox', { name: /^nome$/i }))
+    await user.type(screen.getByRole('textbox', { name: /^nome$/i }), 'My Test Card')
+    await user.click(screen.getByRole('button', { name: /criar cartão/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     await waitFor(() =>
@@ -322,10 +340,10 @@ describe('CardsPage — create card dialog', () => {
     await user.click(screen.getByRole('button', { name: /novo cartão/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    await user.clear(screen.getByRole('textbox', { name: /^name$/i }))
-    await user.click(screen.getByRole('button', { name: /create card/i }))
+    await user.clear(screen.getByRole('textbox', { name: /^nome$/i }))
+    await user.click(screen.getByRole('button', { name: /criar cartão/i }))
 
-    await waitFor(() => expect(screen.getByText(/name is required/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/nome é obrigatório/i)).toBeTruthy())
   })
 
   it('Cancel button closes the create dialog', async () => {
@@ -347,7 +365,7 @@ describe('CardsPage — record charge dialog', () => {
     await user.click(screen.getByRole('button', { name: /novo lançamento/i }))
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeTruthy()
-      expect(screen.getByRole('heading', { name: /record charge/i })).toBeTruthy()
+      expect(screen.getByRole('heading', { name: /registrar cobrança/i })).toBeTruthy()
     })
   })
 })

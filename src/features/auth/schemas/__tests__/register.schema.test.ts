@@ -19,7 +19,7 @@ describe('registerSchema', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       const mismatchIssue = result.error.issues.find((i) => i.path[0] === 'confirmPassword')
-      expect(mismatchIssue?.message).toBe('Passwords do not match')
+      expect(mismatchIssue?.message).toBe('As senhas não coincidem')
     }
   })
 
