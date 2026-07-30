@@ -2,3 +2,7 @@ dist
 node_modules
 coverage
 pnpm-lock.yaml
+
+# Design tokens are aligned into columns by hand; Prettier collapses that
+# alignment and makes the file considerably harder to read.
+src/styles/globals.css

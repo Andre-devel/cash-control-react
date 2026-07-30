@@ -18,14 +18,11 @@ export const useAuthStore = create<AuthStore>()(
     (set) => ({
       ...initialState,
 
-      setToken: (token: string) =>
-        set({ token, isAuthenticated: true }),
+      setToken: (token: string) => set({ token, isAuthenticated: true }),
 
-      setUser: (user: AuthUser) =>
-        set({ user }),
+      setUser: (user: AuthUser) => set({ user }),
 
-      clearSession: () =>
-        set({ ...initialState }),
+      clearSession: () => set({ ...initialState }),
 
       setTheme: (theme: Theme) => {
         applyTheme(resolveTheme(theme))
