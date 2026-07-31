@@ -152,7 +152,7 @@ describe('RolePermissionsPanel — assign permission', () => {
     await user.click(screen.getByRole('button', { name: /^atribuir$/i }))
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Permission assigned to role.')
+      expect(toast.success).toHaveBeenCalledWith('Permissão atribuída ao papel.')
     })
   })
 
@@ -181,7 +181,7 @@ describe('RolePermissionsPanel — assign permission', () => {
     await user.click(screen.getByRole('button', { name: /^atribuir$/i }))
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Permission already assigned to this role.')
+      expect(toast.error).toHaveBeenCalledWith('Permissão já atribuída a este papel.')
     })
 
     expect(screen.getByRole('dialog')).toBeTruthy()
@@ -286,7 +286,7 @@ describe('RolePermissionsPanel — revoke permission', () => {
     await user.click(screen.getByRole('button', { name: /^remover$/i }))
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Permission removed from role.')
+      expect(toast.success).toHaveBeenCalledWith('Permissão removida do papel.')
     })
   })
 

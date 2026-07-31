@@ -42,7 +42,7 @@ export function useLogin() {
         errorCode: error.errorCode,
         status: error.status,
       })
-      toast.error('Invalid credentials. Please try again.')
+      toast.error('Credenciais inválidas. Tente novamente.')
     },
   })
 }

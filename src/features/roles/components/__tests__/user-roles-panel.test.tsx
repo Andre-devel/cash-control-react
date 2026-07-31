@@ -145,7 +145,7 @@ describe('UserRolesPanel — assign role', () => {
     await user.click(screen.getByRole('button', { name: /^atribuir$/i }))
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Role assigned to user.')
+      expect(toast.success).toHaveBeenCalledWith('Papel atribuído ao usuário.')
     })
   })
 
@@ -174,7 +174,7 @@ describe('UserRolesPanel — assign role', () => {
     await user.click(screen.getByRole('button', { name: /^atribuir$/i }))
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Role already assigned to this user.')
+      expect(toast.error).toHaveBeenCalledWith('Papel já atribuído a este usuário.')
     })
 
     expect(screen.getByRole('dialog')).toBeTruthy()
@@ -258,7 +258,7 @@ describe('UserRolesPanel — revoke role', () => {
     await user.click(screen.getByRole('button', { name: /^remover$/i }))
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Role removed from user.')
+      expect(toast.success).toHaveBeenCalledWith('Papel removido do usuário.')
     })
   })
 

@@ -31,7 +31,7 @@ describe('useAssignRoleToUser', () => {
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(toast.success).toHaveBeenCalledWith('Role assigned to user.')
+    expect(toast.success).toHaveBeenCalledWith('Papel atribuído ao usuário.')
   })
 
   it('invalidates user query keys on success', async () => {
@@ -73,7 +73,7 @@ describe('useAssignRoleToUser', () => {
     })
 
     await waitFor(() => expect(result.current.isError).toBe(true))
-    expect(toast.error).toHaveBeenCalledWith('Role already assigned to this user.')
+    expect(toast.error).toHaveBeenCalledWith('Papel já atribuído a este usuário.')
   })
 
   it('shows error toast with message for non-409 errors', async () => {

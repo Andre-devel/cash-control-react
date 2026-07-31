@@ -19,12 +19,12 @@ export function useAssignRoleToUser(options?: UseAssignRoleToUserOptions) {
     mutationFn: ({ userId, roleId }) => assignRoleToUser(userId, roleId),
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ['users', 'detail', userId] })
-      toast.success('Role assigned to user.')
+      toast.success('Papel atribuído ao usuário.')
       options?.onSuccess?.()
     },
     onError: (error) => {
       if (error.status === 409) {
-        toast.error('Role already assigned to this user.')
+        toast.error('Papel já atribuído a este usuário.')
         return
       }
       toast.error(error.message)

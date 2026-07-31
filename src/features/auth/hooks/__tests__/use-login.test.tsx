@@ -81,7 +81,7 @@ describe('use-login', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true))
 
-    expect(toast.error).toHaveBeenCalledWith('Invalid credentials. Please try again.')
+    expect(toast.error).toHaveBeenCalledWith('Credenciais inválidas. Tente novamente.')
   })
 
   it('does not set token on failed login', async () => {
@@ -120,7 +120,7 @@ describe('use-login', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true))
 
-    expect(toast.error).toHaveBeenCalledWith('Invalid credentials. Please try again.')
+    expect(toast.error).toHaveBeenCalledWith('Credenciais inválidas. Tente novamente.')
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
   })
 
@@ -136,7 +136,7 @@ describe('use-login', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true))
 
-    expect(toast.error).toHaveBeenCalledWith('Invalid credentials. Please try again.')
+    expect(toast.error).toHaveBeenCalledWith('Credenciais inválidas. Tente novamente.')
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
   })
 

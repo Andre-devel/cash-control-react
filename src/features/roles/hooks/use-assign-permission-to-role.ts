@@ -20,12 +20,12 @@ export function useAssignPermissionToRole(options?: UseAssignPermissionToRoleOpt
     mutationFn: ({ roleId, permissionId }) => assignPermissionToRole(roleId, permissionId),
     onSuccess: (_, { roleId }) => {
       queryClient.invalidateQueries({ queryKey: roleKeys.detail(roleId) })
-      toast.success('Permission assigned to role.')
+      toast.success('Permissão atribuída ao papel.')
       options?.onSuccess?.()
     },
     onError: (error) => {
       if (error.status === 409) {
-        toast.error('Permission already assigned to this role.')
+        toast.error('Permissão já atribuída a este papel.')
         return
       }
       toast.error(error.message)

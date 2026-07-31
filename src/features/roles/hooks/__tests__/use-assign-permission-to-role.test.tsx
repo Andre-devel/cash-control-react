@@ -33,7 +33,7 @@ describe('useAssignPermissionToRole', () => {
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(toast.success).toHaveBeenCalledWith('Permission assigned to role.')
+    expect(toast.success).toHaveBeenCalledWith('Permissão atribuída ao papel.')
   })
 
   it('invalidates roleKeys.detail(roleId) on success', async () => {
@@ -59,7 +59,7 @@ describe('useAssignPermissionToRole', () => {
     })
 
     await waitFor(() => expect(result.current.isError).toBe(true))
-    expect(toast.error).toHaveBeenCalledWith('Permission already assigned to this role.')
+    expect(toast.error).toHaveBeenCalledWith('Permissão já atribuída a este papel.')
   })
 
   it('shows error toast with message for non-409 errors', async () => {

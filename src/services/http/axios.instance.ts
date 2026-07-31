@@ -67,7 +67,7 @@ async function handle401(correlationId: string): Promise<void> {
   router.navigate('/login', { replace: true })
 
   const { toast } = await import('@/lib/toast')
-  toast.warn('Your session has expired. Please sign in again.', correlationId)
+  toast.warn('Sua sessão expirou. Faça login novamente.', correlationId)
 }
 
 export function normalizeError(error: AxiosError): NormalizedError {
@@ -84,7 +84,7 @@ export function normalizeError(error: AxiosError): NormalizedError {
   return {
     status,
     errorCode: typeof data?.errorCode === 'string' ? data.errorCode : 'UNKNOWN_ERROR',
-    message: typeof data?.message === 'string' ? data.message : 'An unexpected error occurred.',
+    message: typeof data?.message === 'string' ? data.message : 'Ocorreu um erro inesperado.',
     correlationId:
       typeof data?.correlationId === 'string' ? data.correlationId : crypto.randomUUID(),
     fieldErrors,

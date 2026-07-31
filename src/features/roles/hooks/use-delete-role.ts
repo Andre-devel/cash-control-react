@@ -16,12 +16,12 @@ export function useDeleteRole(options?: UseDeleteRoleOptions) {
     retry: false,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: roleKeys.lists() })
-      toast.success('Role deleted successfully.')
+      toast.success('Papel excluído com sucesso.')
       options?.onSuccess?.()
     },
     onError: (error) => {
       if (error.status === 409) {
-        toast.error('Role is still assigned to users — remove all assignments first.')
+        toast.error('O papel ainda está atribuído a usuários — remova todas as atribuições antes.')
         return
       }
       toast.error(error.message)

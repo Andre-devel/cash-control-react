@@ -33,7 +33,7 @@ describe('useDeleteRole', () => {
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(toast.success).toHaveBeenCalledWith('Role deleted successfully.')
+    expect(toast.success).toHaveBeenCalledWith('Papel excluído com sucesso.')
   })
 
   it('invalidates roleKeys.lists() on success', async () => {
@@ -60,7 +60,7 @@ describe('useDeleteRole', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true))
     expect(toast.error).toHaveBeenCalledWith(
-      'Role is still assigned to users — remove all assignments first.',
+      'O papel ainda está atribuído a usuários — remova todas as atribuições antes.',
     )
   })
 
