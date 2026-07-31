@@ -12,7 +12,7 @@ export function useUpdateProfile() {
     mutationFn: updateProfile,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
-      toast.success('Profile updated successfully.')
+      toast.success('Perfil atualizado com sucesso.')
     },
     onError: (error) => {
       toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)

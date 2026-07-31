@@ -1,10 +1,13 @@
-import type { ComponentType } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
 import { IconBubble } from '@/components/ui/icon-bubble'
 import { StatusBadge } from '@/components/ui/status-badge'
+import {
+  TRANSACTION_TYPE_DISPLAY,
+  isPositiveTransaction,
+  transactionTypeColor,
+} from '@/features/transactions/utils/transaction-type'
 import { useRecentTransactions } from '@/features/dashboard/hooks/use-recent-transactions'
 import { ROUTES } from '@/app/router/routes'
 
@@ -28,25 +31,6 @@ function fmtDateShort(iso: string): string {
   const month = parseInt(parts[1] ?? '1', 10) - 1
   const day = parseInt(parts[2] ?? '1', 10)
   return `${String(day).padStart(2, '0')} ${MONTH_ABBR_PT[month] ?? ''}`
-}
-
-type BubbleIcon = ComponentType<{ size?: number; stroke?: number }>
-
-interface TxTypeConfig {
-  icon: BubbleIcon
-  color: string
-  label: string
-}
-
-function asIcon(i: unknown): BubbleIcon {
-  return i as BubbleIcon
-}
-
-const TX_TYPE_CONFIG: Record<string, TxTypeConfig> = {
-  INCOME: { icon: asIcon(ArrowDownLeft), color: 'var(--income)', label: 'Receita' },
-  EXPENSE: { icon: asIcon(ArrowUpRight), color: 'var(--expense)', label: 'Despesa' },
-  TRANSFER: { icon: asIcon(ArrowLeftRight), color: 'var(--info)', label: 'Transferência' },
-  REFUND: { icon: asIcon(RotateCcw), color: 'var(--income)', label: 'Reembolso' },
 }
 
 function TableSkeleton() {
@@ -145,16 +129,20 @@ export function RecentTransactionsCard() {
           <table className="tbl">
             <tbody>
               {transactions.map((tx) => {
-                const cfg = TX_TYPE_CONFIG[tx.type] ?? (TX_TYPE_CONFIG.EXPENSE as TxTypeConfig)
                 const amountValue = parseFloat(tx.amount)
-                const amountColor =
-                  tx.type === 'INCOME' || tx.type === 'REFUND' ? 'var(--income)' : 'var(--text)'
+                const { icon, label } = TRANSACTION_TYPE_DISPLAY[tx.type]
+                const isPositive = isPositiveTransaction(tx.type, amountValue)
+                const amountColor = isPositive ? 'var(--income)' : 'var(--text)'
                 const status = tx.status as 'PAID' | 'PENDING' | 'CANCELLED'
 
                 return (
                   <tr key={tx.id}>
                     <td style={{ paddingLeft: 16, width: 44 }}>
-                      <IconBubble color={cfg.color} icon={cfg.icon} size="sm" />
+                      <IconBubble
+                        color={transactionTypeColor(tx.type, amountValue)}
+                        icon={icon}
+                        size="sm"
+                      />
                     </td>
                     <td style={{ whiteSpace: 'normal' }}>
                       <Link
@@ -164,7 +152,7 @@ export function RecentTransactionsCard() {
                       >
                         <div style={{ fontWeight: 500 }}>{tx.description}</div>
                         <div className="row-meta">
-                          {cfg.label} · {tx.accountName ?? '—'}
+                          {label} · {tx.accountName ?? '—'}
                         </div>
                       </Link>
                     </td>
@@ -178,10 +166,7 @@ export function RecentTransactionsCard() {
                       className="num"
                       style={{ paddingRight: 16, color: amountColor, fontWeight: 500 }}
                     >
-                      <Money
-                        value={amountValue}
-                        signed={tx.type === 'INCOME' || tx.type === 'REFUND'}
-                      />
+                      <Money value={amountValue} signed={isPositive} />
                     </td>
                   </tr>
                 )

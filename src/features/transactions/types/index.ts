@@ -1,4 +1,5 @@
-export type TransactionType = 'INCOME' | 'EXPENSE' | 'REFUND' | 'TRANSFER'
+/** Espelha `domain/entity/TransactionType.java` — os 5 valores que o backend devolve. */
+export type TransactionType = 'INCOME' | 'EXPENSE' | 'REFUND' | 'TRANSFER' | 'MANUAL_ADJUSTMENT'
 export type TransactionStatus = 'PENDING' | 'PAID' | 'CANCELLED'
 
 export const PAYMENT_METHOD_SLUGS = [

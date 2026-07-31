@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { updateCategory } from '@/features/categories/api/categories.api'
 import { toast } from '@/lib/toast'
+import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { CATEGORIES_QUERY_KEY } from './use-categories'
 import type { UpdateCategoryRequest, Category } from '@/features/categories/types'
 import type { NormalizedError } from '@/features/auth/types'
@@ -16,8 +17,8 @@ export function useUpdateCategory() {
   return useMutation<Category, NormalizedError, UpdateCategoryVariables>({
     mutationFn: ({ id, data }) => updateCategory(id, data),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: CATEGORIES_QUERY_KEY })
-      toast.success('Category updated successfully.')
+      invalidateFinancialQueries(queryClient, [CATEGORIES_QUERY_KEY])
+      toast.success('Categoria atualizada com sucesso.')
     },
     onError: (error) => {
       toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)

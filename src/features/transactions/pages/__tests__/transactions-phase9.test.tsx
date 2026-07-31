@@ -89,7 +89,7 @@ describe('Attachment upload — Phase 9.2 integration regression guard', () => {
 
     // Success toast confirms mutation onSuccess ran
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Attachment uploaded.')
+      expect(toast.success).toHaveBeenCalledWith('Anexo enviado.')
     })
     expect(toast.error).not.toHaveBeenCalled()
 
@@ -114,7 +114,7 @@ describe('Attachment upload — Phase 9.2 integration regression guard', () => {
     await user.upload(fileInput, file)
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Attachment uploaded.')
+      expect(toast.success).toHaveBeenCalledWith('Anexo enviado.')
     })
 
     // After invalidation the list refetches; default handler returns store contents

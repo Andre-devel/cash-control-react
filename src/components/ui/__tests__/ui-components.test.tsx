@@ -520,6 +520,29 @@ describe('TypeBadge', () => {
     const { container } = render(<TypeBadge type="EXPENSE" />)
     expect(container.querySelector('.expense')).toBeTruthy()
   })
+
+  it('renders MANUAL_ADJUSTMENT label instead of falling back to Despesa', () => {
+    render(<TypeBadge type="MANUAL_ADJUSTMENT" amount={12800.5} />)
+    expect(screen.getByText('Ajuste')).toBeTruthy()
+    expect(screen.queryByText('Despesa')).toBeNull()
+  })
+
+  it('positive MANUAL_ADJUSTMENT badge has income kind class', () => {
+    const { container } = render(<TypeBadge type="MANUAL_ADJUSTMENT" amount={12800.5} />)
+    expect(container.querySelector('.income')).toBeTruthy()
+    expect(container.querySelector('.expense')).toBeNull()
+  })
+
+  it('negative MANUAL_ADJUSTMENT badge has expense kind class', () => {
+    const { container } = render(<TypeBadge type="MANUAL_ADJUSTMENT" amount={-500} />)
+    expect(container.querySelector('.expense')).toBeTruthy()
+  })
+
+  it('MANUAL_ADJUSTMENT without amount stays neutral rather than expense', () => {
+    const { container } = render(<TypeBadge type="MANUAL_ADJUSTMENT" />)
+    expect(container.querySelector('.expense')).toBeNull()
+    expect(container.querySelector('.info')).toBeTruthy()
+  })
 })
 
 // ---------------------------------------------------------------------------

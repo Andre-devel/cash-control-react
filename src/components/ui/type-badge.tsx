@@ -1,21 +1,24 @@
 import { Badge } from './badge'
-
-const TYPE_MAP = {
-  INCOME: { kind: 'income' as const, label: 'Receita' },
-  EXPENSE: { kind: 'expense' as const, label: 'Despesa' },
-  TRANSFER: { kind: 'info' as const, label: 'Transferência' },
-  REFUND: { kind: 'info' as const, label: 'Reembolso' },
-}
+import type { TransactionType } from '@/features/transactions/types'
+import {
+  TRANSACTION_TYPE_DISPLAY,
+  transactionTypeBadgeKind,
+} from '@/features/transactions/utils/transaction-type'
 
 interface TypeBadgeProps {
-  type: 'INCOME' | 'EXPENSE' | 'TRANSFER' | 'REFUND'
+  type: TransactionType
+  /**
+   * Necessário para tipos cuja cor depende do sinal (MANUAL_ADJUSTMENT).
+   * Sem ele o badge fica neutro em vez de assumir "Despesa".
+   */
+  amount?: number
 }
 
-export function TypeBadge({ type }: TypeBadgeProps) {
-  const t = TYPE_MAP[type] ?? TYPE_MAP.EXPENSE
+export function TypeBadge({ type, amount }: TypeBadgeProps) {
+  const { label } = TRANSACTION_TYPE_DISPLAY[type]
   return (
-    <Badge kind={t.kind} square dot={false}>
-      {t.label}
+    <Badge kind={transactionTypeBadgeKind(type, amount)} square dot={false}>
+      {label}
     </Badge>
   )
 }

@@ -1,14 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useRecentTransactions } from '@/features/dashboard/hooks/use-recent-transactions'
+import { TRANSACTION_TYPE_DISPLAY } from '@/features/transactions/utils/transaction-type'
 import { ROUTES } from '@/app/router/routes'
-
-const TYPE_LABELS: Record<string, string> = {
-  INCOME: 'Receita',
-  EXPENSE: 'Despesa',
-  REFUND: 'Reembolso',
-  TRANSFER: 'Transferência',
-}
 
 function WidgetSkeleton() {
   return (
@@ -76,7 +70,7 @@ export function RecentTransactionsWidget() {
                         {tx.description}
                       </p>
                       <p className="text-xs text-dim">
-                        {TYPE_LABELS[tx.type] ?? tx.type} ·{' '}
+                        {TRANSACTION_TYPE_DISPLAY[tx.type].label} ·{' '}
                         {new Date(tx.competenceDate).toLocaleDateString()}
                       </p>
                     </div>

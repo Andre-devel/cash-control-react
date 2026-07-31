@@ -1,4 +1,5 @@
 import { IconBubble } from '@/components/ui/icon-bubble'
+import { resolveCategoryIcon } from '@/features/categories/utils/category-icon'
 
 const ICONS = [
   '🍕',
@@ -79,7 +80,7 @@ export function IconPicker({ value, onChange, color }: IconPickerProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <IconBubble color={color} glyph={preview} />
+        <IconBubble color={color} {...resolveCategoryIcon(preview)} />
         <span style={{ fontSize: 12, color: 'var(--text-dim)' }}>Pré-visualização</span>
       </div>
       <div

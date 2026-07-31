@@ -49,7 +49,7 @@ describe('useUpdateProfile', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(toast.success).toHaveBeenCalledWith('Profile updated successfully.')
+    expect(toast.success).toHaveBeenCalledWith('Perfil atualizado com sucesso.')
   })
 
   it('invalidates the profile query cache on success', async () => {

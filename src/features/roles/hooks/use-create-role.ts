@@ -17,7 +17,7 @@ export function useCreateRole(options?: UseCreateRoleOptions) {
     mutationFn: createRole,
     onSuccess: (role) => {
       queryClient.invalidateQueries({ queryKey: roleKeys.lists() })
-      toast.success('Role created successfully.')
+      toast.success('Papel criado com sucesso.')
       options?.onSuccess?.(role)
     },
     onError: (error) => {

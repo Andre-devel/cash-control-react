@@ -15,6 +15,7 @@ import { Money } from '@/components/ui/money'
 import { useTransactions } from '@/features/transactions/hooks/use-transactions'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { useCategories } from '@/features/categories/hooks/use-categories'
+import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 import { TransactionRow } from '@/features/transactions/components/transaction-row'
 import { TransactionFilterPanel } from '@/features/transactions/components/transaction-filter-panel'
 import { CreateTransactionDialog } from '@/features/transactions/components/create-transaction-dialog'
@@ -235,6 +236,9 @@ export default function TransactionsPage() {
   const { data: pageData, isLoading, isError, refetch } = useTransactions(filters)
   const { data: accounts = [] } = useAccounts()
   const { data: categories = [] } = useCategories()
+  // useCategories devolve uma árvore; quem faz lookup por id precisa da lista
+  // achatada, senão nenhuma subcategoria é encontrada.
+  const flatCategories = useMemo(() => flattenCategories(categories), [categories])
   const { mutate: payTransaction } = usePayTransaction()
 
   const [createOpen, setCreateOpen] = useState(false)
@@ -354,7 +358,7 @@ export default function TransactionsPage() {
       <TransactionFilterPanel
         filters={filters}
         accounts={accounts}
-        categories={categories}
+        categories={flatCategories}
         includeCancelled={filters.includeCancelled ?? false}
         onFiltersChange={handleFiltersChange}
         onReset={handleReset}
@@ -424,7 +428,7 @@ export default function TransactionsPage() {
                           key={tx.id}
                           transaction={tx}
                           accounts={accounts}
-                          categories={categories}
+                          categories={flatCategories}
                           onEdit={setEditTarget}
                           onDelete={setDeleteTarget}
                           onPay={handlePay}

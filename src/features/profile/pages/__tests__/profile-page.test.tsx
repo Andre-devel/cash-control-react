@@ -62,7 +62,9 @@ describe('ProfilePage', () => {
     const submitButton = screen.getByRole('button', { name: /salvar alterações/i })
     await user.click(submitButton)
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Profile updated successfully.'))
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith('Perfil atualizado com sucesso.'),
+    )
   })
 
   it('shows inline validation error when name is cleared and form is submitted', async () => {

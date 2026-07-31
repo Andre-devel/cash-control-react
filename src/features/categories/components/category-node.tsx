@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { IconBubble } from '@/components/ui/icon-bubble'
 import { Badge } from '@/components/ui/badge'
+import { resolveCategoryIcon } from '@/features/categories/utils/category-icon'
 import type { Category } from '@/features/categories/types'
 
 export interface CategoryTreeNode extends Category {
@@ -33,7 +34,7 @@ export const CategoryNode = memo(function CategoryNode({
         {depth > 0 && (
           <span style={{ width: depth * 20, flexShrink: 0, display: 'inline-block' }} />
         )}
-        <IconBubble color={node.color} glyph={node.icon} size="sm" />
+        <IconBubble color={node.color} size="sm" {...resolveCategoryIcon(node.icon)} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="fw-500 truncate">{node.name}</div>
         </div>

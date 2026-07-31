@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createCard } from '@/features/cards/api/cards.api'
 import { toast } from '@/lib/toast'
+import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { CARDS_QUERY_KEY } from './use-cards'
 import type { CreateCardRequest, Card } from '@/features/cards/types'
 import type { NormalizedError } from '@/features/auth/types'
@@ -15,8 +16,8 @@ export function useCreateCard(options?: UseCreateCardOptions) {
   return useMutation<Card, NormalizedError, CreateCardRequest>({
     mutationFn: createCard,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: CARDS_QUERY_KEY })
-      toast.success('Card created successfully.')
+      invalidateFinancialQueries(queryClient, [CARDS_QUERY_KEY])
+      toast.success('Cartão criado com sucesso.')
     },
     onError: (error) => {
       if ((error.status === 409 || error.status === 422) && options?.onFieldError) {

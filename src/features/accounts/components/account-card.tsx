@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ComponentType } from 'react'
-import { Wallet, MoreHorizontal, ArrowUp, ArrowDown } from 'lucide-react'
+import { Wallet, MoreHorizontal } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { IconBubble } from '@/components/ui/icon-bubble'
@@ -63,10 +63,6 @@ export function AccountCard({
   const [menuOpen, setMenuOpen] = useState(false)
   const balance = parseFloat(account.balance)
 
-  // Deterministic visual-only monthly change indicator derived from account id
-  const charCode = account.id.charCodeAt(account.id.length - 1) || 0
-  const monthlyChange = ((charCode % 5) - 2) * 0.018
-
   function closeMenu() {
     setMenuOpen(false)
   }
@@ -108,18 +104,6 @@ export function AccountCard({
           <Money value={balance} currency={account.currencyCode as 'BRL' | 'USD'} />
         </div>
         <div className="row gap-2 mt-2 text-xs text-dim" style={{ alignItems: 'center' }}>
-          <span
-            className="row gap-1"
-            style={{ color: monthlyChange >= 0 ? 'var(--income)' : 'var(--expense)' }}
-          >
-            {monthlyChange >= 0 ? (
-              <ArrowUp size={10} strokeWidth={2.4} />
-            ) : (
-              <ArrowDown size={10} strokeWidth={2.4} />
-            )}
-            {(Math.abs(monthlyChange) * 100).toFixed(1).replace('.', ',')}%
-          </span>
-          <span style={{ color: 'var(--text-faint)' }}>·</span>
           <span>Criado {fmtCreatedAt(account.createdAt)}</span>
         </div>
 

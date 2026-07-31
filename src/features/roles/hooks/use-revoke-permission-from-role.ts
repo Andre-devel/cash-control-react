@@ -21,7 +21,7 @@ export function useRevokePermissionFromRole(options?: UseRevokePermissionFromRol
     retry: false,
     onSuccess: (_, { roleId }) => {
       queryClient.invalidateQueries({ queryKey: roleKeys.detail(roleId) })
-      toast.success('Permission removed from role.')
+      toast.success('Permissão removida do papel.')
       options?.onSuccess?.()
     },
     onError: (error) => {

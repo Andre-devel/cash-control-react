@@ -61,7 +61,7 @@ export function CategoryPickerCombobox({
         aria-invalid={ariaInvalid}
         className={`select${className ? ` ${className}` : ''}`}
       >
-        <option value="">Select a category</option>
+        <option value="">Selecione uma categoria</option>
         {flatCategories.map(({ cat, depth }) => (
           <option key={cat.id} value={cat.id}>
             {' '.repeat(depth * 3)}
@@ -73,7 +73,7 @@ export function CategoryPickerCombobox({
 
       {isSuggested && (
         <p className="text-xs text-dim" aria-live="polite">
-          Auto-suggested based on description
+          Sugerida automaticamente pela descrição
         </p>
       )}
     </div>

@@ -15,7 +15,7 @@ export function useCreateCategorizationRule() {
     mutationFn: createCategorizationRule,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: CATEGORIZATION_RULES_QUERY_KEY })
-      toast.success('Rule created successfully.')
+      toast.success('Regra criada com sucesso.')
     },
     onError: (error) => {
       toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)

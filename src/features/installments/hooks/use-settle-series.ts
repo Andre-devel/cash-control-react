@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { settleSeries } from '@/features/installments/api/installments.api'
 import { toast } from '@/lib/toast'
+import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { INSTALLMENTS_QUERY_KEY } from './use-installment-series'
 import { TRANSACTIONS_QUERY_KEY } from '@/features/transactions/hooks/use-transactions'
 import { ACCOUNTS_QUERY_KEY } from '@/features/accounts/hooks/use-accounts'
@@ -12,10 +13,12 @@ export function useSettleSeries() {
   return useMutation<void, NormalizedError, string>({
     mutationFn: settleSeries,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: INSTALLMENTS_QUERY_KEY })
-      void queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
-      void queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY })
-      toast.success('Series settled successfully.')
+      invalidateFinancialQueries(queryClient, [
+        INSTALLMENTS_QUERY_KEY,
+        TRANSACTIONS_QUERY_KEY,
+        ACCOUNTS_QUERY_KEY,
+      ])
+      toast.success('Parcelamento quitado com sucesso.')
     },
     onError: (error) => {
       toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)

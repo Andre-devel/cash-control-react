@@ -21,7 +21,7 @@ export function useUpdateRole(options?: UseUpdateRoleOptions) {
     mutationFn: ({ roleId, payload }) => updateRole(roleId, payload),
     onSuccess: (_, { roleId }) => {
       queryClient.invalidateQueries({ queryKey: roleKeys.detail(roleId) })
-      toast.success('Role updated successfully.')
+      toast.success('Papel atualizado com sucesso.')
       options?.onSuccess?.()
     },
     onError: (error) => {

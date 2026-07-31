@@ -35,7 +35,7 @@ describe('useUpdateRole', () => {
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(toast.success).toHaveBeenCalledWith('Role updated successfully.')
+    expect(toast.success).toHaveBeenCalledWith('Papel atualizado com sucesso.')
   })
 
   it('invalidates roleKeys.detail(roleId) on success', async () => {

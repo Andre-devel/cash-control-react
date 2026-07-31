@@ -11,7 +11,7 @@ export function useDeleteAttachment(transactionId: string) {
     mutationFn: (attachmentId) => deleteAttachment(transactionId, attachmentId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: attachmentsQueryKey(transactionId) })
-      toast.success('Attachment deleted.')
+      toast.success('Anexo excluído.')
     },
     onError: (error) => {
       toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)

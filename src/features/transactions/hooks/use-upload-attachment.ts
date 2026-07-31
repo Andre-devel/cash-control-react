@@ -15,7 +15,7 @@ export function useUploadAttachment(transactionId: string) {
     onSuccess: () => {
       setProgress(0)
       void queryClient.invalidateQueries({ queryKey: attachmentsQueryKey(transactionId) })
-      toast.success('Attachment uploaded.')
+      toast.success('Anexo enviado.')
     },
     onError: (error) => {
       setProgress(0)

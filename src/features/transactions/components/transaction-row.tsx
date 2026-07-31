@@ -1,11 +1,14 @@
-import type { ComponentType } from 'react'
 import { memo } from 'react'
-import { ArrowDownLeft, ArrowUpRight, RotateCcw, ArrowLeftRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
 import { IconBubble } from '@/components/ui/icon-bubble'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { TypeBadge } from '@/components/ui/type-badge'
+import {
+  TRANSACTION_TYPE_DISPLAY,
+  isPositiveTransaction,
+  transactionTypeColor,
+} from '@/features/transactions/utils/transaction-type'
 import type { Transaction } from '@/features/transactions/types'
 import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
@@ -32,22 +35,10 @@ function fmtDateShort(iso: string): string {
   return `${String(day).padStart(2, '0')} ${MONTH_ABBR_PT[month] ?? ''}`
 }
 
-type BubbleIcon = ComponentType<{ size?: number; stroke?: number }>
-
-function asIcon(i: unknown): BubbleIcon {
-  return i as BubbleIcon
-}
-
-const TX_TYPE_CONFIG: Record<string, { icon: BubbleIcon; color: string }> = {
-  INCOME: { icon: asIcon(ArrowDownLeft), color: 'var(--income)' },
-  EXPENSE: { icon: asIcon(ArrowUpRight), color: 'var(--expense)' },
-  REFUND: { icon: asIcon(RotateCcw), color: 'var(--income)' },
-  TRANSFER: { icon: asIcon(ArrowLeftRight), color: 'var(--info)' },
-}
-
 interface TransactionRowProps {
   transaction: Transaction
   accounts: Account[]
+  /** Lista achatada (raízes + subcategorias) — ver `flattenCategories`. */
   categories: Category[]
   onEdit: (t: Transaction) => void
   onDelete: (t: Transaction) => void
@@ -70,13 +61,11 @@ export const TransactionRow = memo(function TransactionRow({
     ? categories.find((c) => c.id === transaction.categoryId)
     : null
   const account = accounts.find((a) => a.id === transaction.accountId)
-  const cfg =
-    TX_TYPE_CONFIG[transaction.type] ??
-    (TX_TYPE_CONFIG.EXPENSE as { icon: BubbleIcon; color: string })
-  const bubbleColor = category?.color ?? cfg.color
   const amountValue = parseFloat(transaction.amount)
+  const { icon } = TRANSACTION_TYPE_DISPLAY[transaction.type]
+  const bubbleColor = category?.color ?? transactionTypeColor(transaction.type, amountValue)
   const isCancelled = transaction.status === 'CANCELLED'
-  const isIncome = transaction.type === 'INCOME' || transaction.type === 'REFUND'
+  const isIncome = isPositiveTransaction(transaction.type, amountValue)
   const amountColor = isIncome ? 'var(--income)' : 'var(--text)'
 
   return (
@@ -86,7 +75,7 @@ export const TransactionRow = memo(function TransactionRow({
       </td>
       <td style={{ whiteSpace: 'normal', minWidth: 200 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <IconBubble color={bubbleColor} icon={cfg.icon} size="sm" />
+          <IconBubble color={bubbleColor} icon={icon} size="sm" />
           <button
             type="button"
             style={{
@@ -153,7 +142,7 @@ export const TransactionRow = memo(function TransactionRow({
         <span style={{ fontSize: 12.5 }}>{transaction.paymentMethod.name}</span>
       </td>
       <td>
-        <TypeBadge type={transaction.type} />
+        <TypeBadge type={transaction.type} amount={amountValue} />
       </td>
       <td>
         <StatusBadge status={transaction.status} />

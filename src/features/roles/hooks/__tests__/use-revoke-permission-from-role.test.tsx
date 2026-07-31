@@ -35,7 +35,7 @@ describe('useRevokePermissionFromRole', () => {
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(toast.success).toHaveBeenCalledWith('Permission removed from role.')
+    expect(toast.success).toHaveBeenCalledWith('Permissão removida do papel.')
   })
 
   it('invalidates roleKeys.detail(roleId) on success', async () => {

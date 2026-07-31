@@ -1,9 +1,11 @@
+import { useMemo } from 'react'
 import { Check } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { IconBubble } from '@/components/ui/icon-bubble'
 import { Money } from '@/components/ui/money'
 import { useCategories } from '@/features/categories/hooks/use-categories'
+import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 import type { Card, Invoice } from '@/features/cards/types'
 
 const MONTH_LABELS = [
@@ -71,6 +73,9 @@ export function InvoiceCard({
   onPay,
 }: InvoiceCardProps) {
   const { data: categories } = useCategories()
+  // A árvore de categorias precisa ser achatada, senão o lookup por id
+  // nunca encontra subcategorias.
+  const flatCategories = useMemo(() => flattenCategories(categories ?? []), [categories])
 
   const billingMonth = getBillingCycleMonth(card.closingDay)
   const tabs = [
@@ -198,7 +203,7 @@ export function InvoiceCard({
                 </p>
               ) : (
                 invoice.items.map((item) => {
-                  const cat = categories?.find((c) => c.id === item.categoryId)
+                  const cat = flatCategories.find((c) => c.id === item.categoryId)
                   return (
                     <div
                       key={item.id}

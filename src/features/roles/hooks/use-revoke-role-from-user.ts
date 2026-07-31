@@ -20,7 +20,7 @@ export function useRevokeRoleFromUser(options?: UseRevokeRoleFromUserOptions) {
     retry: false,
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ['users', 'detail', userId] })
-      toast.success('Role removed from user.')
+      toast.success('Papel removido do usuário.')
       options?.onSuccess?.()
     },
     onError: (error) => {

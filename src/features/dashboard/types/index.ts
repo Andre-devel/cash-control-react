@@ -1,3 +1,5 @@
+import type { TransactionStatus, TransactionType } from '@/features/transactions/types'
+
 export interface DashboardOverview {
   totalBalance: string
   monthlyIncome: string
@@ -84,12 +86,12 @@ export interface LargestExpenseItem {
 export interface RecentTransactionItem {
   id: string
   description: string
-  type: string
+  type: TransactionType
   amount: string
   accountName: string | null
   categoryName?: string | null
   competenceDate: string
-  status: string
+  status: TransactionStatus
 }
 
 export interface CategoriesChartParams {

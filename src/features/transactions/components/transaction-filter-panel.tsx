@@ -27,6 +27,7 @@ const TRANSACTION_STATUS_LABELS: Record<string, string> = {
 interface TransactionFilterPanelProps {
   filters: ListTransactionsParams
   accounts: Account[]
+  /** Lista achatada (raízes + subcategorias) — ver `flattenCategories`. */
   categories: Category[]
   includeCancelled: boolean
   onFiltersChange: (filters: ListTransactionsParams) => void
@@ -109,6 +110,7 @@ export function TransactionFilterPanel({
         <option value="">Categoria</option>
         {categories.map((c) => (
           <option key={c.id} value={c.id}>
+            {c.parentId ? '↳ ' : ''}
             {c.name}
           </option>
         ))}

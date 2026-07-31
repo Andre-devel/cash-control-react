@@ -46,7 +46,7 @@ describe('useCreateRole', () => {
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(toast.success).toHaveBeenCalledWith('Role created successfully.')
+    expect(toast.success).toHaveBeenCalledWith('Papel criado com sucesso.')
   })
 
   it('invalidates roleKeys.lists() on success', async () => {

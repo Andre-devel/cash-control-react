@@ -31,7 +31,7 @@ describe('useRevokeRoleFromUser', () => {
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(toast.success).toHaveBeenCalledWith('Role removed from user.')
+    expect(toast.success).toHaveBeenCalledWith('Papel removido do usuário.')
   })
 
   it('invalidates user query keys on success', async () => {

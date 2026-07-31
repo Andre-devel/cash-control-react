@@ -7,14 +7,8 @@ import { EditTransactionDialog } from '@/features/transactions/components/edit-t
 import { DeleteTransactionDialog } from '@/features/transactions/components/delete-transaction-dialog'
 import { CancelTransactionDialog } from '@/features/transactions/components/cancel-transaction-dialog'
 import { PayTransactionButton } from '@/features/transactions/components/pay-transaction-button'
+import { TRANSACTION_TYPE_DISPLAY } from '@/features/transactions/utils/transaction-type'
 import { ROUTES } from '@/app/router/routes'
-
-const TYPE_LABELS: Record<string, string> = {
-  INCOME: 'Receita',
-  EXPENSE: 'Despesa',
-  REFUND: 'Reembolso',
-  TRANSFER: 'Transferência',
-}
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: 'Pendente',
@@ -120,7 +114,7 @@ export default function TransactionDetailPage() {
             </div>
             <div>
               <p className="text-xs text-dim">Tipo</p>
-              <p className="text-sm">{TYPE_LABELS[transaction.type]}</p>
+              <p className="text-sm">{TRANSACTION_TYPE_DISPLAY[transaction.type].label}</p>
             </div>
             <div>
               <p className="text-xs text-dim">Situação</p>

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createInstallmentSeries } from '@/features/installments/api/installments.api'
 import { toast } from '@/lib/toast'
+import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { INSTALLMENTS_QUERY_KEY } from './use-installment-series'
 import { TRANSACTIONS_QUERY_KEY } from '@/features/transactions/hooks/use-transactions'
 import { ACCOUNTS_QUERY_KEY } from '@/features/accounts/hooks/use-accounts'
@@ -21,13 +22,13 @@ export function useCreateInstallment(options?: UseCreateInstallmentOptions) {
   return useMutation<InstallmentSeriesDetail, NormalizedError, CreateInstallmentSeriesRequest>({
     mutationFn: createInstallmentSeries,
     onSuccess: (data) => {
-      void queryClient.invalidateQueries({ queryKey: INSTALLMENTS_QUERY_KEY })
-      void queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY })
-      void queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY })
-      void queryClient.invalidateQueries({ queryKey: CARDS_QUERY_KEY })
-      toast.success(
-        `Installment series created with ${data.series.totalInstallments} installments.`,
-      )
+      invalidateFinancialQueries(queryClient, [
+        INSTALLMENTS_QUERY_KEY,
+        TRANSACTIONS_QUERY_KEY,
+        ACCOUNTS_QUERY_KEY,
+        CARDS_QUERY_KEY,
+      ])
+      toast.success(`Parcelamento criado com ${data.series.totalInstallments} parcelas.`)
     },
     onError: (error) => {
       if ((error.status === 409 || error.status === 422) && options?.onFieldError) {

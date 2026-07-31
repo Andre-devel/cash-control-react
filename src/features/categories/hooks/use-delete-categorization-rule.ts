@@ -11,7 +11,7 @@ export function useDeleteCategorizationRule() {
     mutationFn: deleteCategorizationRule,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: CATEGORIZATION_RULES_QUERY_KEY })
-      toast.success('Rule deleted.')
+      toast.success('Regra excluída.')
     },
     onError: (error) => {
       toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
