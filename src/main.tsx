@@ -4,10 +4,11 @@ import { RouterProvider } from 'react-router-dom'
 import { QueryProvider } from '@/app/providers/query-provider'
 import { Toaster } from '@/components/ui/toaster'
 import { router } from '@/app/router/router'
-import { initializeTheme } from '@/styles/theme/dark-mode'
 import './styles/globals.css'
 
-initializeTheme()
+// O tema já foi aplicado antes da primeira pintura pelo script inline do index.html,
+// e o auth store o reaplica ao reidratar. Chamar initializeTheme() aqui rodaria DEPOIS
+// da reidratação e sobrescreveria a escolha do usuário.
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

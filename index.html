@@ -14,7 +14,7 @@
           var stored = localStorage.getItem(key)
           if (stored === 'dark') {
             theme = 'dark'
-          } else if (!stored) {
+          } else if (stored !== 'light') {
             theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
           }
         } catch (_e) {}

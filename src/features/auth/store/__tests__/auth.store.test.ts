@@ -4,6 +4,7 @@ import { useAuthStore } from '../auth.store'
 vi.mock('@/styles/theme/dark-mode', () => ({
   applyTheme: vi.fn(),
   resolveTheme: vi.fn((t: string) => (t === 'dark' ? 'dark' : 'light')),
+  storeTheme: vi.fn(),
 }))
 
 const AUTH_STORAGE_KEY = 'cash-control-react:auth'
@@ -18,6 +19,8 @@ const testUser = {
 beforeEach(() => {
   localStorage.clear()
   useAuthStore.getState().clearSession()
+  // clearSession preserva o tema de propósito; os testes partem do padrão.
+  useAuthStore.setState({ theme: 'system' })
 })
 
 describe('auth store — setToken', () => {
@@ -62,6 +65,13 @@ describe('auth store — clearSession', () => {
     useAuthStore.getState().clearSession()
     expect(useAuthStore.getState().token).toBeNull()
   })
+
+  it('keeps the chosen theme after logout', () => {
+    useAuthStore.getState().setTheme('dark')
+    useAuthStore.getState().setToken('jwt-token-123')
+    useAuthStore.getState().clearSession()
+    expect(useAuthStore.getState().theme).toBe('dark')
+  })
 })
 
 describe('auth store — persist middleware', () => {
@@ -96,5 +106,17 @@ describe('auth store — setTheme', () => {
 
   it('defaults theme to system in initial state', () => {
     expect(useAuthStore.getState().theme).toBe('system')
+  })
+
+  it('persists the theme in the standalone key read before first paint', async () => {
+    const { storeTheme } = await import('@/styles/theme/dark-mode')
+    useAuthStore.getState().setTheme('dark')
+    expect(storeTheme).toHaveBeenCalledWith('dark')
+  })
+
+  it('persists the theme in the auth store payload', () => {
+    useAuthStore.getState().setTheme('dark')
+    const parsed = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)!)
+    expect(parsed.state.theme).toBe('dark')
   })
 })
