@@ -62,12 +62,16 @@ export async function uploadAttachment(
 ): Promise<Attachment[]> {
   const formData = new FormData()
   formData.append('files', file)
-  // Do NOT set Content-Type manually — Axios removes it for FormData so the browser/
-  // XHR can auto-set multipart/form-data with the correct boundary.
+  // Zerar o Content-Type aqui é obrigatório, não estilo. A instância do axios define
+  // `application/json` por padrão, e o `transformRequest` do axios 1.x serializa FormData
+  // para JSON quando o Content-Type já é JSON: o anexo virava `{"files":{}}` e o backend
+  // respondia 500. O adapter do browser até limpa o header para FormData, mas só depois
+  // do transformRequest — tarde demais. Sem `undefined`, o arquivo não sai daqui.
   const response = await axiosInstance.post<Attachment[]>(
     `/transactions/${id}/attachments`,
     formData,
     {
+      headers: { 'Content-Type': undefined },
       onUploadProgress: (event) => {
         if (onProgress && event.total) {
           onProgress(Math.round((event.loaded * 100) / event.total))

@@ -23,6 +23,7 @@ import { CreateTransactionDialog } from '@/features/transactions/components/crea
 import { EditTransactionDialog } from '@/features/transactions/components/edit-transaction-dialog'
 import { DeleteTransactionDialog } from '@/features/transactions/components/delete-transaction-dialog'
 import { CancelTransactionDialog } from '@/features/transactions/components/cancel-transaction-dialog'
+import { ImportStatementDialog } from '@/features/transactions/components/import-statement-dialog'
 import { usePayTransaction } from '@/features/transactions/hooks/use-pay-transaction'
 import { ROUTES } from '@/app/router/routes'
 import type { Transaction, ListTransactionsParams } from '@/features/transactions/types'
@@ -236,6 +237,7 @@ export default function TransactionsPage() {
   const { mutate: payTransaction } = usePayTransaction()
 
   const [createOpen, setCreateOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Transaction | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null)
   const [cancelTarget, setCancelTarget] = useState<Transaction | null>(null)
@@ -316,7 +318,9 @@ export default function TransactionsPage() {
         <div className="spacer" />
         <div className="actions">
           <Button leading={<Download size={14} />}>Exportar</Button>
-          <Button leading={<Upload size={14} />}>Importar</Button>
+          <Button leading={<Upload size={14} />} onClick={() => setImportOpen(true)}>
+            Importar
+          </Button>
           <Button
             variant="primary"
             leading={<Plus size={14} />}
@@ -470,6 +474,7 @@ export default function TransactionsPage() {
       )}
 
       <CreateTransactionDialog open={createOpen} onClose={() => setCreateOpen(false)} />
+      <ImportStatementDialog open={importOpen} onClose={() => setImportOpen(false)} />
 
       <EditTransactionDialog
         transaction={editTarget}

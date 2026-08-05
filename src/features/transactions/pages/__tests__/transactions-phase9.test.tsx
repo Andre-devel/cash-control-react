@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen, waitFor, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/utils'
-import { resetTransactionsStore } from '@/test/handlers/transactions.handlers'
+import { addMockAttachment, resetTransactionsStore } from '@/test/handlers/transactions.handlers'
 import { AttachmentSection } from '@/features/transactions/components/attachment-section'
 import { axiosInstance } from '@/services/http'
 import type { NormalizedError } from '@/features/auth/types'
@@ -40,10 +40,15 @@ afterEach(() => {
 //      full component → useUploadAttachment → uploadAttachment → HTTP pipeline,
 //      verifying success path, the "files" field name, and the error path.
 //
-// Note: request.formData() cannot be used in MSW handlers here because Axios omits
-// the multipart boundary when Content-Type is explicitly set in JSDOM. Therefore the
-// POST/error tests use axiosInstance.post spies (which are module-isolated per test
-// file in Vitest's thread pool) instead of server.use() overrides.
+// Note: nenhum teste aqui faz o POST de verdade — o XHR do jsdom não completa um
+// request multipart com arquivo, então a chamada nunca resolve. Os testes espiam
+// `axiosInstance.post` (isolado por arquivo no pool de threads do Vitest) e, quando
+// precisam do efeito colateral no store, chamam `addMockAttachment`.
+//
+// Cuidado: espiar `axiosInstance.post` observa o ARGUMENTO, não o request que sai —
+// e foi por isso que passou despercebido, por meses, que o `transformRequest` do axios
+// serializava o FormData em `{"files":{}}` e o upload nunca funcionou. O guard sobre o
+// request já transformado está em transactions-phase4.test.tsx.
 // ---------------------------------------------------------------------------
 
 describe('Attachment upload — Phase 9.2 integration regression guard', () => {
@@ -96,11 +101,15 @@ describe('Attachment upload — Phase 9.2 integration regression guard', () => {
     spy.mockRestore()
   })
 
-  it('attachment list shows default handler file name after upload without server.use()', async () => {
-    // Uses the default MSW handler (no server.use() to avoid shared-interceptor
-    // flakiness with other test files). After upload, invalidateQueries refetches
-    // GET /transactions/tx-1/attachments which returns the updated attachmentsStore.
-    // The default POST handler adds a new Attachment with fileName: 'uploaded-file.pdf'.
+  it('attachment list refetches and shows the new file after a successful upload', async () => {
+    // O que este teste guarda é a invalidação: depois do upload, useUploadAttachment
+    // invalida a query e o GET /transactions/tx-1/attachments é refeito, trazendo o
+    // anexo novo. O POST é simulado no nível do axios (jsdom não fecha um multipart
+    // real) e o efeito no store vem de addMockAttachment, como o handler faria.
+    const spy = vi.spyOn(axiosInstance, 'post').mockImplementationOnce(async () => ({
+      data: [addMockAttachment('tx-1')],
+    }))
+
     const { toast } = await import('@/lib/toast')
     const user = userEvent.setup()
 
@@ -117,11 +126,12 @@ describe('Attachment upload — Phase 9.2 integration regression guard', () => {
       expect(toast.success).toHaveBeenCalledWith('Anexo enviado.')
     })
 
-    // After invalidation the list refetches; default handler returns store contents
-    // which now include the newly created entry (fileName: 'uploaded-file.pdf')
+    // Após a invalidação a lista recarrega e o GET devolve o store já com o novo anexo.
     await waitFor(() => {
       expect(screen.getByText('uploaded-file.pdf')).toBeTruthy()
     })
+
+    spy.mockRestore()
   })
 
   it('upload error shows error toast (no success toast) when API rejects', async () => {

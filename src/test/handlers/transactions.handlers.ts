@@ -1,5 +1,11 @@
 import { http, HttpResponse } from 'msw'
-import type { Transaction, Attachment, PaginatedResponse } from '@/features/transactions/types'
+import type {
+  Transaction,
+  Attachment,
+  PaginatedResponse,
+  ImportCommitRequest,
+  ImportPreviewResponse,
+} from '@/features/transactions/types'
 import {
   MOCK_PAYMENT_METHOD_OTHER,
   MOCK_PAYMENT_METHODS,
@@ -150,6 +156,30 @@ export function resetTransactionsStore() {
   attachmentsStore = [MOCK_ATTACHMENT_1]
 }
 
+/**
+ * Acrescenta um anexo ao store, como faria um upload bem-sucedido.
+ *
+ * Exposto porque o upload real não pode ser exercido em jsdom (o XHR trava num POST
+ * multipart com arquivo): os testes que verificam "depois de enviar, a lista recarrega
+ * e mostra o anexo novo" mockam o transporte e chamam isto para produzir o efeito.
+ */
+export function addMockAttachment(
+  transactionId: string,
+  fileName = 'uploaded-file.pdf',
+): Attachment {
+  const created: Attachment = {
+    id: `att-${Date.now()}`,
+    transactionId,
+    fileName,
+    contentType: 'application/pdf',
+    size: 1024,
+    url: `https://example.com/uploads/${fileName}`,
+    createdAt: new Date().toISOString(),
+  }
+  attachmentsStore = [...attachmentsStore, created]
+  return created
+}
+
 function makePaginatedResponse<T>(items: T[], page: number, size: number): PaginatedResponse<T> {
   const totalElements = items.length
   const totalPages = Math.max(1, Math.ceil(totalElements / size))
@@ -158,7 +188,91 @@ function makePaginatedResponse<T>(items: T[], page: number, size: number): Pagin
   return { content, totalElements, totalPages, number: page, size }
 }
 
+export const MOCK_IMPORT_PREVIEW: ImportPreviewResponse = {
+  fileName: 'extrato-inter.csv',
+  format: 'INTER_CSV',
+  sourceAccountLabel: '323236715',
+  periodStart: '2026-05-01',
+  periodEnd: '2026-08-04',
+  totalRows: 3,
+  importableCount: 2,
+  duplicateCount: 1,
+  warningCount: 1,
+  rows: [
+    {
+      lineNumber: 7,
+      externalRef: 'ref-nova',
+      date: '2026-08-04',
+      description: 'Pix Marketplace',
+      rawHistory: 'Pix enviado',
+      amount: '144.06',
+      type: 'EXPENSE',
+      paymentMethod: 'PIX',
+      // Igual ao que categories.handlers devolve para 'cat-1': a célula de categoria
+      // resolve o nome pela lista de categorias e cai no nome da prévia só enquanto ela
+      // carrega. Nomes diferentes deixariam o teste dependente dessa corrida.
+      suggestedCategoryId: 'cat-1',
+      suggestedCategoryName: 'Food',
+      duplicate: false,
+      unknownHistory: false,
+    },
+    {
+      lineNumber: 8,
+      externalRef: 'ref-ja-importada',
+      date: '2026-08-02',
+      description: 'Dias E Damasceno Ltda',
+      rawHistory: 'Compra no débito',
+      amount: '70.00',
+      type: 'EXPENSE',
+      paymentMethod: 'DEBIT_CARD',
+      suggestedCategoryId: null,
+      suggestedCategoryName: null,
+      duplicate: true,
+      unknownHistory: false,
+    },
+    {
+      lineNumber: 9,
+      externalRef: 'ref-revisar',
+      date: '2026-05-14',
+      description: 'Tarifa Cesta B',
+      rawHistory: 'Estorno de tarifa avulsa',
+      amount: '12.34',
+      type: 'INCOME',
+      paymentMethod: 'OTHER',
+      suggestedCategoryId: null,
+      suggestedCategoryName: null,
+      duplicate: false,
+      unknownHistory: true,
+    },
+  ],
+  errors: [{ lineNumber: 24, message: "Data inválida: '32/13/2026'. Esperado dd/mm/aaaa." }],
+}
+
+/** Última chamada de confirmação recebida, para os testes inspecionarem o payload. */
+let lastImportCommit: ImportCommitRequest | null = null
+
+export function getLastImportCommit(): ImportCommitRequest | null {
+  return lastImportCommit
+}
+
+export function resetImportStore() {
+  lastImportCommit = null
+}
+
 export const transactionsHandlers = [
+  // A prévia não tem handler: o XHR do jsdom trava num POST multipart com arquivo, então
+  // os testes de tela mockam `previewStatementImport` diretamente e usam MOCK_IMPORT_PREVIEW.
+  // A confirmação é JSON e passa por aqui normalmente.
+  // Precisa vir antes de `*/transactions/:id`, senão "import" seria capturado como um id.
+  http.post('*/transactions/import', async ({ request }) => {
+    const body = (await request.json()) as ImportCommitRequest
+    lastImportCommit = body
+    return HttpResponse.json(
+      { imported: body.rows.length, skippedDuplicates: 0, failed: 0, errors: [] },
+      { status: 201 },
+    )
+  }),
+
   http.get('*/transactions', ({ request }) => {
     const url = new URL(request.url)
     const includeCancelled = url.searchParams.get('includeCancelled') === 'true'
@@ -255,23 +369,13 @@ export const transactionsHandlers = [
     return HttpResponse.json(txAttachments)
   }),
 
-  http.post('*/transactions/:id/attachments', async ({ params }) => {
-    // Note: request.formData() hangs in the JSDOM+Axios multipart environment because
-    // Axios sets Content-Type: multipart/form-data without a boundary parameter. The
-    // "files" field-name regression guard is enforced at the unit-test level in
-    // transactions-phase4.test.tsx (spy on axiosInstance.post + formData.get assertion).
-    const created: Attachment = {
-      id: `att-${Date.now()}`,
-      transactionId: params.id as string,
-      fileName: 'uploaded-file.pdf',
-      contentType: 'application/pdf',
-      size: 1024,
-      url: 'https://example.com/uploads/uploaded-file.pdf',
-      createdAt: new Date().toISOString(),
-    }
-    attachmentsStore = [...attachmentsStore, created]
-    return HttpResponse.json([created], { status: 201 })
-  }),
+  // O XHR do jsdom não completa um POST multipart com arquivo, então nenhum teste
+  // chega neste handler pelo caminho real — os que precisam do efeito no store chamam
+  // `addMockAttachment` direto. O handler fica porque é a rota de fallback caso algum
+  // teste futuro poste aqui, e não lê o corpo justamente por isso.
+  http.post('*/transactions/:id/attachments', ({ params }) =>
+    HttpResponse.json([addMockAttachment(params.id as string)], { status: 201 }),
+  ),
 
   http.delete('*/transactions/:id/attachments/:attachmentId', ({ params }) => {
     attachmentsStore = attachmentsStore.filter((a) => a.id !== params.attachmentId)

@@ -11,6 +11,7 @@ import { transactionFiltersSchema } from '@/features/transactions/schemas/transa
 import { createRecurrenceSchema } from '@/features/recurrences/schemas/create-recurrence.schema'
 import { uploadAttachment, payTransaction } from '@/features/transactions/api/transactions.api'
 import { axiosInstance } from '@/services/http'
+import type { AxiosAdapter, AxiosDefaults, InternalAxiosRequestConfig } from 'axios'
 
 vi.mock('@/lib/toast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn() },
@@ -146,6 +147,36 @@ describe('Attachment upload field name — Phase 4.2', () => {
     expect(result[0].fileName).toBe('test.pdf')
 
     spy.mockRestore()
+  })
+
+  /**
+   * O teste acima espia `axiosInstance.post`, então enxerga só o argumento — e passava
+   * enquanto o upload estava quebrado. A conversão acontece depois, no `transformRequest`
+   * do axios 1.x: com o `Content-Type: application/json` que a instância define por padrão,
+   * o FormData virava `{"files":{}}` e o backend respondia 500. Este guard captura o
+   * request já transformado, que é onde o defeito aparece.
+   */
+  it('uploadAttachment keeps the body as FormData after axios transforms the request', async () => {
+    const captured: InternalAxiosRequestConfig[] = []
+    const originalAdapter: AxiosDefaults['adapter'] = axiosInstance.defaults.adapter
+    axiosInstance.defaults.adapter = (async (config: InternalAxiosRequestConfig) => {
+      captured.push(config)
+      return { data: [], status: 201, statusText: 'Created', headers: {}, config }
+    }) as AxiosAdapter
+
+    const file = new File(['content'], 'test.pdf', { type: 'application/pdf' })
+    try {
+      await uploadAttachment('tx-1', file)
+    } finally {
+      axiosInstance.defaults.adapter = originalAdapter
+    }
+
+    const request = captured[0]
+    expect(request.data).toBeInstanceOf(FormData)
+    expect((request.data as FormData).get('files')).toBe(file)
+    // `application/json` é o gatilho da conversão. O adapter do browser zera o header
+    // para FormData e preenche o `multipart/form-data` com o boundary.
+    expect(request.headers.getContentType() ?? '').not.toContain('application/json')
   })
 
   it('uploadAttachment returns an array of Attachment (not a single object)', async () => {

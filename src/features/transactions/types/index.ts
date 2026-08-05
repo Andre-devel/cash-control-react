@@ -129,3 +129,75 @@ export interface UpdateTransactionRequest {
 export interface MarkAsPaidRequest {
   paymentDate?: string
 }
+
+// ── Importação de extrato ───────────────────────────────────────────────────
+
+/** Espelha `domain/entity/StatementFormat.java`. */
+export const STATEMENT_FORMATS = ['INTER_CSV'] as const
+export type StatementFormat = (typeof STATEMENT_FORMATS)[number]
+
+export const STATEMENT_FORMAT_LABELS: Record<StatementFormat, string> = {
+  INTER_CSV: 'Banco Inter (CSV)',
+}
+
+export interface ImportRowError {
+  lineNumber: number
+  message: string
+}
+
+export interface ImportPreviewRow {
+  lineNumber: number
+  /** Hash da linha de origem. Devolvido inalterado na confirmação — é a chave de deduplicação. */
+  externalRef: string
+  date: string
+  description: string
+  /** Coluna "Histórico" do extrato, para o usuário conferir como a linha foi classificada. */
+  rawHistory: string
+  amount: string
+  type: TransactionType
+  paymentMethod: PaymentMethodSlug
+  suggestedCategoryId: string | null
+  suggestedCategoryName: string | null
+  /** Já existe nesta conta: veio de uma importação anterior. */
+  duplicate: boolean
+  /** Histórico desconhecido: o tipo foi deduzido do sinal do valor e merece revisão. */
+  unknownHistory: boolean
+}
+
+export interface ImportPreviewResponse {
+  fileName: string
+  format: StatementFormat
+  sourceAccountLabel: string | null
+  periodStart: string | null
+  periodEnd: string | null
+  totalRows: number
+  importableCount: number
+  duplicateCount: number
+  warningCount: number
+  rows: ImportPreviewRow[]
+  errors: ImportRowError[]
+}
+
+export interface ImportCommitRow {
+  lineNumber: number
+  externalRef: string
+  date: string
+  description: string
+  amount: string
+  type: TransactionType
+  paymentMethod: PaymentMethodSlug
+  categoryId?: string | null
+}
+
+export interface ImportCommitRequest {
+  accountId: string
+  format: StatementFormat
+  rows: ImportCommitRow[]
+}
+
+export interface ImportResultResponse {
+  imported: number
+  skippedDuplicates: number
+  failed: number
+  errors: ImportRowError[]
+}
