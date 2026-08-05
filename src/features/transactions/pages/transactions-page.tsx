@@ -16,6 +16,7 @@ import { useTransactions } from '@/features/transactions/hooks/use-transactions'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { flattenCategories } from '@/features/categories/utils/flatten-categories'
+import { effectiveAmount } from '@/features/transactions/utils/installment'
 import { TransactionRow } from '@/features/transactions/components/transaction-row'
 import { TransactionFilterPanel } from '@/features/transactions/components/transaction-filter-panel'
 import { CreateTransactionDialog } from '@/features/transactions/components/create-transaction-dialog'
@@ -83,6 +84,9 @@ function buildParams(searchParams: URLSearchParams): ListTransactionsParams {
     amountMax: get('amountMax'),
     searchText: get('searchText'),
     includeCancelled: searchParams.get('includeCancelled') === 'true',
+    // Um parcelamento é uma compra só: entra na grid por uma linha, com o valor cheio
+    // e o número de parcelas, em vez de N linhas repetindo a mesma compra.
+    groupInstallments: true,
     page: searchParams.get('page') ? Number(searchParams.get('page')) : 0,
     size: DEFAULT_PAGE_SIZE,
     sort: DEFAULT_SORT,
@@ -114,15 +118,15 @@ interface GroupDateRowProps {
 function GroupDateRow({ date, rows }: GroupDateRowProps) {
   const incomeSum = rows
     .filter((t) => (t.type === 'INCOME' || t.type === 'REFUND') && t.status !== 'CANCELLED')
-    .reduce((s, t) => s + parseFloat(t.amount), 0)
+    .reduce((s, t) => s + effectiveAmount(t), 0)
   const expenseSum = rows
     .filter((t) => t.type === 'EXPENSE' && t.status !== 'CANCELLED')
-    .reduce((s, t) => s + parseFloat(t.amount), 0)
+    .reduce((s, t) => s + effectiveAmount(t), 0)
 
   return (
     <tr style={{ background: 'var(--surface-2)' }}>
       <td
-        colSpan={11}
+        colSpan={10}
         style={{
           padding: '8px 16px',
           color: 'var(--text-dim)',
@@ -185,17 +189,7 @@ function TableSkeleton() {
           <tbody>
             {[1, 2, 3, 4, 5].map((i) => (
               <tr key={i}>
-                <td style={{ paddingLeft: 16, width: 32 }}>
-                  <div
-                    style={{
-                      width: 14,
-                      height: 14,
-                      background: 'var(--surface-3)',
-                      borderRadius: 3,
-                    }}
-                  />
-                </td>
-                <td style={{ minWidth: 200 }}>
+                <td style={{ paddingLeft: 16, minWidth: 200 }}>
                   <div
                     style={{
                       height: 12,
@@ -273,6 +267,7 @@ export default function TransactionsPage() {
     (t: Transaction) => void navigate(ROUTES.TRANSACTION_DETAIL.replace(':id', t.id)),
     [navigate],
   )
+  const handleViewSeries = useCallback(() => void navigate(ROUTES.INSTALLMENTS), [navigate])
 
   const transactions = useMemo(() => pageData?.content ?? [], [pageData])
   const totalElements = pageData?.totalElements ?? 0
@@ -292,10 +287,10 @@ export default function TransactionsPage() {
   const summary = useMemo(() => {
     const income = transactions
       .filter((t) => (t.type === 'INCOME' || t.type === 'REFUND') && t.status === 'PAID')
-      .reduce((s, t) => s + parseFloat(t.amount), 0)
+      .reduce((s, t) => s + effectiveAmount(t), 0)
     const expense = transactions
       .filter((t) => t.type === 'EXPENSE' && t.status === 'PAID')
-      .reduce((s, t) => s + parseFloat(t.amount), 0)
+      .reduce((s, t) => s + effectiveAmount(t), 0)
     const incomeCount = transactions.filter(
       (t) => (t.type === 'INCOME' || t.type === 'REFUND') && t.status === 'PAID',
     ).length
@@ -404,10 +399,7 @@ export default function TransactionsPage() {
               <table className="tbl">
                 <thead>
                   <tr>
-                    <th style={{ paddingLeft: 16, width: 32 }}>
-                      <input type="checkbox" className="checkbox" />
-                    </th>
-                    <th>Descrição</th>
+                    <th style={{ paddingLeft: 16 }}>Descrição</th>
                     <th>Categoria</th>
                     <th>Conta</th>
                     <th>Forma de pagamento</th>
@@ -434,6 +426,7 @@ export default function TransactionsPage() {
                           onPay={handlePay}
                           onCancel={setCancelTarget}
                           onView={handleView}
+                          onViewSeries={handleViewSeries}
                         />
                       ))}
                     </Fragment>

@@ -146,11 +146,11 @@ export default function TransactionDetailPage() {
                 <p className="text-sm">{transaction.categoryName}</p>
               </div>
             )}
-            {transaction.isInstallment && (
+            {transaction.installmentSeriesId && transaction.installmentNumber != null && (
               <div>
                 <p className="text-xs text-dim">Parcela</p>
                 <p className="text-sm">
-                  {transaction.installmentNumber ?? '?'}/{transaction.installmentCount ?? '?'}
+                  {transaction.installmentNumber}/{transaction.totalInstallments ?? '?'}
                 </p>
               </div>
             )}

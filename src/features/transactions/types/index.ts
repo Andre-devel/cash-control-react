@@ -35,10 +35,17 @@ export interface Transaction {
   notes?: string
   accountName?: string
   categoryName?: string
-  isInstallment?: boolean
-  installmentNumber?: number
-  installmentCount?: number
-  installmentGroupId?: string
+  /** Série de parcelamento à qual a transação pertence. Null fora de parcelamentos. */
+  installmentSeriesId?: string | null
+  installmentNumber?: number | null
+  totalInstallments?: number | null
+  /**
+   * Preenchidos apenas nas linhas colapsadas (`groupInstallments=true`): a linha representa
+   * a compra inteira, não uma parcela.
+   */
+  installmentTotalAmount?: string | null
+  paidInstallments?: number | null
+  installmentGroup?: boolean
   recurrenceId?: string
   updatedAt?: string
 }
@@ -91,6 +98,8 @@ export interface ListTransactionsParams {
   amountMax?: string
   searchText?: string
   includeCancelled?: boolean
+  /** Colapsa cada parcelamento em uma linha só, representando a compra inteira. */
+  groupInstallments?: boolean
   page?: number
   size?: number
   sort?: string

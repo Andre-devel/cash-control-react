@@ -9,6 +9,11 @@ import {
   isPositiveTransaction,
   transactionTypeColor,
 } from '@/features/transactions/utils/transaction-type'
+import {
+  effectiveAmount,
+  installmentLabel,
+  isInstallmentGroup,
+} from '@/features/transactions/utils/installment'
 import type { Transaction } from '@/features/transactions/types'
 import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
@@ -45,6 +50,8 @@ interface TransactionRowProps {
   onPay: (t: Transaction) => void
   onCancel: (t: Transaction) => void
   onView: (t: Transaction) => void
+  /** Abre a série de parcelamento — usado no lugar das ações por parcela. */
+  onViewSeries?: (t: Transaction) => void
 }
 
 export const TransactionRow = memo(function TransactionRow({
@@ -56,12 +63,15 @@ export const TransactionRow = memo(function TransactionRow({
   onPay,
   onCancel,
   onView,
+  onViewSeries,
 }: TransactionRowProps) {
   const category = transaction.categoryId
     ? categories.find((c) => c.id === transaction.categoryId)
     : null
   const account = accounts.find((a) => a.id === transaction.accountId)
-  const amountValue = parseFloat(transaction.amount)
+  const isSeries = isInstallmentGroup(transaction)
+  const amountValue = effectiveAmount(transaction)
+  const installments = installmentLabel(transaction)
   const { icon } = TRANSACTION_TYPE_DISPLAY[transaction.type]
   const bubbleColor = category?.color ?? transactionTypeColor(transaction.type, amountValue)
   const isCancelled = transaction.status === 'CANCELLED'
@@ -70,10 +80,7 @@ export const TransactionRow = memo(function TransactionRow({
 
   return (
     <tr style={{ opacity: isCancelled ? 0.6 : 1 }}>
-      <td style={{ paddingLeft: 16, width: 32 }}>
-        <input type="checkbox" className="checkbox" />
-      </td>
-      <td style={{ whiteSpace: 'normal', minWidth: 200 }}>
+      <td style={{ paddingLeft: 16, whiteSpace: 'normal', minWidth: 200 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <IconBubble color={bubbleColor} icon={icon} size="sm" />
           <button
@@ -87,10 +94,36 @@ export const TransactionRow = memo(function TransactionRow({
               textAlign: 'left',
               padding: 0,
             }}
-            onClick={() => onView(transaction)}
+            onClick={() =>
+              isSeries && onViewSeries ? onViewSeries(transaction) : onView(transaction)
+            }
           >
             {transaction.description}
           </button>
+          {installments && (
+            <span
+              className="mono"
+              title={
+                isSeries
+                  ? `Compra parcelada em ${transaction.totalInstallments}x` +
+                    (transaction.paidInstallments != null
+                      ? ` · ${transaction.paidInstallments} de ${transaction.totalInstallments} pagas`
+                      : '')
+                  : `Parcela ${transaction.installmentNumber} de ${transaction.totalInstallments}`
+              }
+              style={{
+                flexShrink: 0,
+                fontSize: 11,
+                fontWeight: 500,
+                padding: '1px 6px',
+                borderRadius: 4,
+                color: 'var(--text-dim)',
+                background: 'var(--surface-3)',
+              }}
+            >
+              {installments}
+            </span>
+          )}
         </div>
       </td>
       <td>
@@ -156,30 +189,44 @@ export const TransactionRow = memo(function TransactionRow({
       </td>
       <td style={{ paddingRight: 8 }}>
         <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
-          {transaction.status === 'PENDING' && (
+          {/* Numa linha de série, pagar/editar/excluir valem para a série inteira e vivem
+              na tela de Parcelamentos — a API recusa essas operações parcela a parcela. */}
+          {isSeries && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => (onViewSeries ? onViewSeries(transaction) : onView(transaction))}
+            >
+              Ver parcelas
+            </Button>
+          )}
+          {!isSeries && transaction.status === 'PENDING' && (
             <Button type="button" size="sm" variant="ghost" onClick={() => onPay(transaction)}>
               Pagar
             </Button>
           )}
-          {!isCancelled && (
+          {!isSeries && !isCancelled && (
             <Button type="button" size="sm" variant="ghost" onClick={() => onEdit(transaction)}>
               Editar
             </Button>
           )}
-          {!isCancelled && (
+          {!isSeries && !isCancelled && (
             <Button type="button" size="sm" variant="ghost" onClick={() => onCancel(transaction)}>
               Cancelar
             </Button>
           )}
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            style={{ color: 'var(--expense)' }}
-            onClick={() => onDelete(transaction)}
-          >
-            Excluir
-          </Button>
+          {!isSeries && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              style={{ color: 'var(--expense)' }}
+              onClick={() => onDelete(transaction)}
+            >
+              Excluir
+            </Button>
+          )}
         </div>
       </td>
     </tr>
