@@ -88,7 +88,6 @@
     --sidebar-w-collapsed: 60px;
     --topbar-h: 56px;
     --mobile-topbar-h: 52px;
-    --bottom-nav-h:    56px;
   }
 
   [data-theme="light"] {
@@ -190,6 +189,8 @@
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+/* Só existe no drawer mobile — no desktop a sidebar é fixa */
+.sidebar-close { display: none; margin-left: auto; flex-shrink: 0; }
 .sidebar-brand .logo {
   width: 28px; height: 28px;
   border-radius: 8px;
@@ -487,6 +488,9 @@
 .card-h h3 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: -0.005em; }
 .card-h .sub { font-size: 12px; color: var(--text-dim); }
 .card-h .right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+/* Filtros no cabeçalho do card (intervalos de data, "dias à frente") */
+.card-h-controls { margin-left: auto; }
+.input-compact { font-size: 12px; padding: 2px 8px; height: auto; width: auto; }
 .card-b { padding: 16px; }
 .card-b.flush { padding: 0; }
 
@@ -609,6 +613,16 @@
 }
 .modal-h .x:hover { background: var(--surface-2); color: var(--text); }
 .modal-b { padding: 18px; overflow-y: auto; flex: 1; }
+/* Sombras de rolagem: aparecem só quando há conteúdo fora da área visível.
+   Sem elas, um sheet que rola por poucos pixels parece não ter mais nada abaixo.
+   As camadas `local` mascaram a sombra quando já se está no topo/fim. */
+.modal-b {
+  background:
+    linear-gradient(var(--surface-1) 30%, transparent) top / 100% 20px no-repeat local,
+    linear-gradient(transparent, var(--surface-1) 70%) bottom / 100% 20px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, rgba(0,0,0,0.28), transparent) top / 100% 8px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,0.28), transparent) bottom / 100% 8px no-repeat scroll;
+}
 .modal-f {
   display: flex; align-items: center; gap: 8px;
   padding: 12px 18px;
@@ -768,15 +782,20 @@
   margin-bottom: 24px;
   font-size: 12px;
 }
-.auth-tabs button {
+/* O markup usa <Link>, que renderiza <a> — sem o seletor de `a` o pill perdia
+   padding, estado ativo e área de toque, e as abas saíam coladas ("EntrarCriar conta"). */
+.auth-tabs button, .auth-tabs a {
+  display: inline-flex; align-items: center; justify-content: center;
   padding: 5px 12px;
   border-radius: 4px;
   border: 0; background: transparent;
   color: var(--text-dim);
   cursor: pointer;
   font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
 }
-.auth-tabs button.on { background: var(--surface-1); color: var(--text); box-shadow: var(--shadow-1); }
+.auth-tabs button.on, .auth-tabs a.on { background: var(--surface-1); color: var(--text); box-shadow: var(--shadow-1); }
 .auth-divider { display: flex; align-items: center; gap: 10px; margin: 18px 0; color: var(--text-faint); font-size: 11px; }
 .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .auth-foot { font-size: 12px; color: var(--text-dim); text-align: center; margin-top: 16px; }
@@ -786,6 +805,7 @@
 /* ============================================================
    Charts (SVG)
    ============================================================ */
+.chart-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .bar-chart .gridline { stroke: var(--border); stroke-dasharray: 2 2; }
 .bar-chart .axis { fill: var(--text-faint); font-size: 10px; font-family: var(--font-mono); }
 .bar-chart .bar-income { fill: var(--income); }
@@ -847,6 +867,12 @@
 .list-row .right { margin-left: auto; text-align: right; }
 .list-row .amount { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 500; }
 
+/* Linha da árvore de categorias: as ações descem para a linha de baixo antes de
+   espremer o nome da categoria (que, sem o piso, encolhia até 0 px no celular). */
+.category-row { flex-wrap: wrap; }
+.category-row-name { flex: 1 1 auto; min-width: 120px; }
+.category-row-actions { display: flex; gap: 4px; flex-shrink: 0; margin-left: auto; }
+
 /* ============================================================
    Empty state
    ============================================================ */
@@ -859,6 +885,143 @@
 .empty .icon { width: 48px; height: 48px; border-radius: var(--r-4); background: var(--surface-2); display: grid; place-items: center; margin-bottom: 12px; color: var(--text-muted); }
 .empty h4 { margin: 0 0 4px; color: var(--text); font-size: 14px; font-weight: 500; }
 .empty p { margin: 0 0 16px; font-size: 12.5px; max-width: 320px; }
+
+/* ============================================================
+   Utilitários de viewport — o par é alternado no bloco mobile
+   ============================================================ */
+.only-mobile { display: none; }
+
+/* ============================================================
+   Mini stats (resumo compacto dentro de modais)
+   ============================================================ */
+.mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); }
+.mini-stat {
+  padding: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-3);
+  min-width: 0;
+}
+.mini-stat-label { font-size: 12px; color: var(--text-dim); }
+.mini-stat-value {
+  margin-top: 8px;
+  font-size: 18px; font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Upload de arquivo — o input nativo tinha ~120 × 27 px de área clicável
+   ============================================================ */
+.file-picker {
+  position: relative;
+  display: flex; align-items: center; gap: var(--s-2);
+  min-height: 56px;
+  padding: 0 var(--s-3);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface-1);
+  color: var(--text-muted);
+  font-size: 13px;
+  transition: border-color 80ms, background 80ms;
+}
+.file-picker:hover, .file-picker.dragging { border-color: var(--accent); background: var(--accent-soft); }
+.file-picker.disabled { opacity: 0.5; }
+/* O input cobre o card inteiro: qualquer toque na área abre o seletor */
+.file-picker-input {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0; cursor: pointer;
+}
+.file-picker.disabled .file-picker-input { cursor: not-allowed; }
+.file-picker-ico { color: var(--text-dim); flex-shrink: 0; }
+.file-picker-name { flex: 1; min-width: 0; color: var(--text); }
+.file-picker-size { flex-shrink: 0; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+/* Acima do input para continuar clicável */
+.file-picker-clear {
+  position: relative; z-index: 1;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  width: 32px; height: 32px;
+  border: 0; border-radius: var(--r-2);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.file-picker-clear:hover { background: var(--surface-2); color: var(--text); }
+
+/* ============================================================
+   Seletor de ícone da categoria
+   ============================================================ */
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+  gap: 4px;
+  max-height: 164px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-3);
+  padding: 8px;
+  background: var(--surface-2);
+}
+.icon-picker-btn {
+  width: 32px; height: 32px;
+  border-radius: var(--r-2);
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 17px;
+  display: grid; place-items: center;
+  padding: 0;
+  transition: background 80ms, border-color 80ms;
+}
+.icon-picker-btn.on { border-color: var(--accent); background: var(--accent-soft); }
+
+/* ============================================================
+   Transações em card (mobile) — substitui a grid abaixo de 768 px
+   ============================================================ */
+.tx-card-list { display: none; flex-direction: column; gap: var(--s-2); }
+.tx-card-group {
+  padding: var(--s-2) var(--s-1);
+  color: var(--text-dim);
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.tx-card {
+  display: flex; flex-direction: column; gap: var(--s-2);
+  padding: var(--s-3);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-4);
+}
+.tx-card-top { display: flex; align-items: center; gap: var(--s-2); }
+.tx-card-desc {
+  flex: 1; min-width: 0;
+  background: none; border: 0; padding: 0;
+  color: inherit; font-weight: 500; font-size: 14px;
+  text-align: left; cursor: pointer;
+}
+.tx-card-amount {
+  flex-shrink: 0;
+  font-weight: 600; font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tx-card-meta { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-2); }
+.tx-card-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 8px;
+  background: var(--surface-2);
+  border-radius: var(--r-1);
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.tx-card-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.tx-card-badges { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.tx-card-actions {
+  display: flex; flex-wrap: wrap; gap: var(--s-1);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--border);
+}
 
 /* ============================================================
    Desktop-only: hide hamburger button
@@ -874,12 +1037,17 @@
   /* Global overflow guard */
   body { overflow-x: hidden; }
 
+  /* Utilitários de viewport */
+  .only-mobile { display: block; }
+  .only-desktop { display: none; }
+  .tx-card-list { display: flex; }
+
   /* App shell — single column */
   .app {
     grid-template-columns: 1fr;
   }
   .content {
-    padding: var(--s-4) var(--s-4) calc(var(--s-12) + var(--bottom-nav-h));
+    padding: var(--s-4) var(--s-4) var(--s-8);
     overscroll-behavior-y: contain;
   }
 
@@ -905,6 +1073,7 @@
     animation: fadeIn 160ms ease;
   }
   .sidebar-nav { overscroll-behavior: contain; }
+  .sidebar-close { display: inline-flex; }
 
   /* Topbar — mobile height */
   .topbar {
@@ -972,4 +1141,71 @@
 
   /* Prevent iOS input zoom (font-size < 16 px triggers zoom) */
   .input, .select, .textarea { font-size: 16px; }
+
+  /* ----------------------------------------------------------
+     Densidade de toque — mínimo de 44 px (Apple) / 48 px (Material).
+     Sem estas regras o mobile herdava os alvos de 28–32 px do desktop.
+     ---------------------------------------------------------- */
+  .btn { height: 44px; padding: 0 16px; font-size: 14px; }
+  .btn-sm { height: 40px; padding: 0 12px; font-size: 13px; }
+  .btn-lg { height: 48px; }
+  .btn-icon { width: 44px; }
+  .topbar-menu-btn { width: 44px; height: 44px; }
+
+  /* Fechar do modal */
+  .modal-h .x { width: 44px; height: 44px; }
+
+  /* Campos maiores e sem zoom automático no iOS */
+  .input, .select, .textarea { height: 44px; }
+  .field label, .lbl { font-size: 13px; }
+
+  /* O olho de mostrar senha tinha 15 × 15: vira alvo de ~40 px via padding */
+  .input-group .trailing.btn-eye { right: 0; padding: 12px; }
+  .input-group .input.with-trailing { padding-right: 44px; }
+
+  /* Filtros: chips, selects e a busca (que não é .input e ficava em 12,5 px) */
+  .filterbar .chip { height: 40px; padding: 0 12px; font-size: 13px; }
+  .filterbar .search { height: 44px; }
+  .filterbar .search input { font-size: 16px; }
+
+  /* Abas em pill (mês da fatura, login/cadastro) */
+  .tabs button, .auth-tabs button, .auth-tabs a {
+    min-height: 40px; padding: 8px 14px; font-size: 13px;
+  }
+
+  /* Seletor de ícone: 64 alvos de 32 px com 5 px de folga geravam toque errado */
+  .icon-picker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    gap: 8px;
+    max-height: 240px;
+  }
+  .icon-picker-btn { width: 44px; height: 44px; font-size: 22px; }
+
+  /* Upload */
+  .file-picker { min-height: 64px; font-size: 14px; }
+  .file-picker-clear { width: 44px; height: 44px; }
+
+  /* ----------------------------------------------------------
+     Cabeçalhos de card: o título deixa de disputar a linha com os
+     filtros, que passam a ocupar uma linha inteira abaixo dele.
+     ---------------------------------------------------------- */
+  .card-h { flex-wrap: wrap; align-items: flex-start; }
+  .card-h .right, .card-h-controls { margin-left: 0; flex-basis: 100%; }
+  .input-compact { font-size: 16px; padding: 0 10px; height: 44px; flex: 1 1 0; min-width: 0; }
+
+  /* Gráfico SVG de proporção fixa: rola em vez de encolher até ficar ilegível */
+  .chart-scroll .bar-chart { min-width: 520px; }
+  .bar-chart .axis { font-size: 13px; }
+
+  /* Resumo da fatura: ao quebrar, o bloco de vencimento alinhado à direita e o
+     botão com largura de conteúdo ficavam desencontrados. */
+  .invoice-summary { gap: var(--s-3); align-items: stretch; }
+  .invoice-due { text-align: left; }
+  .invoice-summary .btn { width: 100%; justify-content: center; }
+
+  /* Mini stats continuam em 3 colunas, só mais compactos */
+  .mini-stats { gap: var(--s-2); }
+  .mini-stat { padding: 8px; }
+  .mini-stat-label { font-size: 11px; }
+  .mini-stat-value { margin-top: 4px; font-size: 14px; }
 }

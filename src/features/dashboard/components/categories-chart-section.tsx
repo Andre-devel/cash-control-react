@@ -45,7 +45,7 @@ export function CategoriesChartSection() {
     <div className="card">
       <div className="card-h">
         <h3>Gastos por categoria</h3>
-        <div className="flex flex-wrap items-center gap-2 text-sm">
+        <div className="card-h-controls flex flex-wrap items-center gap-2 text-sm">
           <label className="sr-only" htmlFor="cat-from">
             De
           </label>
@@ -54,8 +54,7 @@ export function CategoriesChartSection() {
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="input"
-            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
+            className="input input-compact"
             aria-label="Data de início"
           />
           <span className="text-dim">–</span>
@@ -67,8 +66,7 @@ export function CategoriesChartSection() {
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="input"
-            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
+            className="input input-compact"
             aria-label="Data de fim"
           />
         </div>
@@ -101,9 +99,12 @@ export function CategoriesChartSection() {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={100}
-                label={({ name, percent }: { name?: string; percent?: number }) =>
-                  `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`
+                // Raio relativo e rótulo só com o percentual: com raio fixo de 100 px e
+                // o nome no rótulo, o texto saía pela borda do card no celular. Os nomes
+                // ficam na legenda abaixo.
+                outerRadius="60%"
+                label={({ percent }: { percent?: number }) =>
+                  `${((percent ?? 0) * 100).toFixed(0)}%`
                 }
               >
                 {data.entries.map((_, index) => (

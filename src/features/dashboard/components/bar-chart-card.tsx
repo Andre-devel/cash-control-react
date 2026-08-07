@@ -95,99 +95,104 @@ export function BarChartCard({ months = 6 }: BarChartCardProps) {
             Sem dados disponíveis.
           </div>
         ) : (
-          <svg
-            className="bar-chart"
-            viewBox={`0 0 ${W} ${H}`}
-            width="100%"
-            preserveAspectRatio="xMidYMid meet"
-            aria-label="Gráfico de receitas vs despesas"
-          >
-            {gridYs.map((v, i) => {
-              const y = PAD_T + chartH - (v / max) * chartH
-              return (
-                <g key={i}>
-                  <line className="gridline" x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} />
-                  <text className="axis" x={PAD_L - 8} y={y + 3} textAnchor="end">
-                    {Math.round(v / 1000)}k
-                  </text>
-                </g>
-              )
-            })}
-            {parsed.map((d, i) => {
-              const x0 = PAD_L + i * groupW + groupW / 2
-              const incH = (d.income / max) * chartH
-              const expH = (d.expense / max) * chartH
-              const ix = x0 - barW - gap / 2
-              const ex = x0 + gap / 2
-              const iy = PAD_T + chartH - incH
-              const ey = PAD_T + chartH - expH
-              const isCurrent = i === parsed.length - 1
-              const diff = d.income - d.expense
-              const diffLabel =
-                diff >= 0
-                  ? `+R$ ${(diff / 1000).toFixed(1)}k`
-                  : `-R$ ${(Math.abs(diff) / 1000).toFixed(1)}k`
+          /* O SVG tem proporção fixa (620 × 280): sem o wrapper rolável ele encolhia
+             junto com a largura no celular, chegando a ~120 px de altura e rótulos de
+             eixo ilegíveis. Ver `.chart-scroll` em globals.css. */
+          <div className="chart-scroll">
+            <svg
+              className="bar-chart"
+              viewBox={`0 0 ${W} ${H}`}
+              width="100%"
+              preserveAspectRatio="xMidYMid meet"
+              aria-label="Gráfico de receitas vs despesas"
+            >
+              {gridYs.map((v, i) => {
+                const y = PAD_T + chartH - (v / max) * chartH
+                return (
+                  <g key={i}>
+                    <line className="gridline" x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} />
+                    <text className="axis" x={PAD_L - 8} y={y + 3} textAnchor="end">
+                      {Math.round(v / 1000)}k
+                    </text>
+                  </g>
+                )
+              })}
+              {parsed.map((d, i) => {
+                const x0 = PAD_L + i * groupW + groupW / 2
+                const incH = (d.income / max) * chartH
+                const expH = (d.expense / max) * chartH
+                const ix = x0 - barW - gap / 2
+                const ex = x0 + gap / 2
+                const iy = PAD_T + chartH - incH
+                const ey = PAD_T + chartH - expH
+                const isCurrent = i === parsed.length - 1
+                const diff = d.income - d.expense
+                const diffLabel =
+                  diff >= 0
+                    ? `+R$ ${(diff / 1000).toFixed(1)}k`
+                    : `-R$ ${(Math.abs(diff) / 1000).toFixed(1)}k`
 
-              return (
-                <g key={i}>
-                  <rect
-                    className="bar-income"
-                    x={ix}
-                    y={iy}
-                    width={barW}
-                    height={incH}
-                    rx="3"
-                    opacity={isCurrent ? 1 : 0.85}
-                  />
-                  <rect
-                    className="bar-expense"
-                    x={ex}
-                    y={ey}
-                    width={barW}
-                    height={expH}
-                    rx="3"
-                    opacity={isCurrent ? 1 : 0.85}
-                  />
-                  <text
-                    className="axis"
-                    x={x0}
-                    y={H - 10}
-                    textAnchor="middle"
-                    style={{
-                      fontWeight: isCurrent ? 600 : 400,
-                      fill: isCurrent ? 'var(--text)' : 'var(--text-faint)',
-                    }}
-                  >
-                    {d.m}
-                  </text>
-                  {isCurrent && incH > 4 && (
-                    <g>
-                      <rect
-                        x={x0 - 46}
-                        y={iy - 34}
-                        width="92"
-                        height="26"
-                        rx="6"
-                        fill="var(--surface-3)"
-                        stroke="var(--border-strong)"
-                      />
-                      <text
-                        x={x0}
-                        y={iy - 16}
-                        textAnchor="middle"
-                        fontSize="11"
-                        fill="var(--text)"
-                        fontFamily="var(--font-mono)"
-                        style={{ fontVariantNumeric: 'tabular-nums' }}
-                      >
-                        {diffLabel}
-                      </text>
-                    </g>
-                  )}
-                </g>
-              )
-            })}
-          </svg>
+                return (
+                  <g key={i}>
+                    <rect
+                      className="bar-income"
+                      x={ix}
+                      y={iy}
+                      width={barW}
+                      height={incH}
+                      rx="3"
+                      opacity={isCurrent ? 1 : 0.85}
+                    />
+                    <rect
+                      className="bar-expense"
+                      x={ex}
+                      y={ey}
+                      width={barW}
+                      height={expH}
+                      rx="3"
+                      opacity={isCurrent ? 1 : 0.85}
+                    />
+                    <text
+                      className="axis"
+                      x={x0}
+                      y={H - 10}
+                      textAnchor="middle"
+                      style={{
+                        fontWeight: isCurrent ? 600 : 400,
+                        fill: isCurrent ? 'var(--text)' : 'var(--text-faint)',
+                      }}
+                    >
+                      {d.m}
+                    </text>
+                    {isCurrent && incH > 4 && (
+                      <g>
+                        <rect
+                          x={x0 - 46}
+                          y={iy - 34}
+                          width="92"
+                          height="26"
+                          rx="6"
+                          fill="var(--surface-3)"
+                          stroke="var(--border-strong)"
+                        />
+                        <text
+                          x={x0}
+                          y={iy - 16}
+                          textAnchor="middle"
+                          fontSize="11"
+                          fill="var(--text)"
+                          fontFamily="var(--font-mono)"
+                          style={{ fontVariantNumeric: 'tabular-nums' }}
+                        >
+                          {diffLabel}
+                        </text>
+                      </g>
+                    )}
+                  </g>
+                )
+              })}
+            </svg>
+          </div>
         )}
       </div>
     </div>

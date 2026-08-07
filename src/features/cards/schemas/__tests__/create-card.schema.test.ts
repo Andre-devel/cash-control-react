@@ -90,4 +90,27 @@ describe('createCardSchema', () => {
   it('rejects missing required fields', () => {
     expect(createCardSchema.safeParse({}).success).toBe(false)
   })
+
+  describe('last4Digits', () => {
+    it('accepts exactly four digits', () => {
+      expect(createCardSchema.safeParse({ ...VALID_INPUT, last4Digits: '7866' }).success).toBe(true)
+    })
+
+    it('accepts the field being absent', () => {
+      expect(createCardSchema.safeParse(VALID_INPUT).success).toBe(true)
+    })
+
+    /** Vazio é o que o campo devolve quando o usuário não preenche; `cards.api` o omite. */
+    it('accepts an empty string', () => {
+      expect(createCardSchema.safeParse({ ...VALID_INPUT, last4Digits: '' }).success).toBe(true)
+    })
+
+    it.each(['786', '78666', '78a6', ' 7866'])('rejects %s', (last4Digits) => {
+      const result = createCardSchema.safeParse({ ...VALID_INPUT, last4Digits })
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error.issues.some((issue) => issue.path[0] === 'last4Digits')).toBe(true)
+      }
+    })
+  })
 })

@@ -5,18 +5,20 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
+import { Select } from '@/components/ui/select'
+import { MoneyInput } from '@/components/ui/money-input'
 import { useUpdateInstallment } from '@/features/installments/hooks/use-update-installment'
+import { useInstallmentSeriesDetail } from '@/features/installments/hooks/use-installment-series-detail'
+import { moneyField } from '@/lib/money'
 import type { InstallmentSeries } from '@/features/installments/types'
 
-const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/
-
 const editInstallmentSchema = z.object({
-  transactionId: z.string().min(1, 'ID da transação é obrigatório'),
+  transactionId: z.string().min(1, 'Selecione a parcela'),
   description: z
     .string()
     .min(1, 'Descrição é obrigatória')
     .max(255, 'Descrição deve ter no máximo 255 caracteres'),
-  amount: z.string().regex(DECIMAL_PATTERN, 'Valor deve ser um decimal válido (ex: 300.00)'),
+  amount: moneyField('Valor deve ser um decimal válido (ex: 300,00)'),
   competenceDate: z.string().min(1, 'Data de vencimento é obrigatória'),
 })
 
@@ -37,11 +39,26 @@ interface EditInstallmentDialogProps {
 
 export function EditInstallmentDialog({ series, open, onClose }: EditInstallmentDialogProps) {
   const { mutate: updateInstallment, isPending } = useUpdateInstallment()
+  const { data: detail, isLoading: loadingDetail } = useInstallmentSeriesDetail(
+    open ? series?.id : null,
+  )
 
   const form = useForm<EditInstallmentFormValues>({
     resolver: zodResolver(editInstallmentSchema),
     defaultValues: DEFAULT_VALUES,
   })
+
+  const installments = detail?.installments ?? []
+
+  /** Ao escolher a parcela, traz os valores atuais dela para o formulário. */
+  function handleSelectInstallment(transactionId: string) {
+    form.setValue('transactionId', transactionId)
+    const selected = installments.find((i) => i.id === transactionId)
+    if (!selected) return
+    form.setValue('description', selected.description)
+    form.setValue('amount', selected.amount)
+    form.setValue('competenceDate', selected.competenceDate)
+  }
 
   function onSubmit(data: EditInstallmentFormValues) {
     const { transactionId, ...rest } = data
@@ -110,11 +127,24 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
         noValidate
         className="col gap-4"
       >
-        <Field label="ID da transação" error={form.formState.errors.transactionId?.message}>
-          <Input
-            placeholder="Cole o ID da transação da lista de transações"
-            {...form.register('transactionId')}
-          />
+        <Field label="Parcela" required error={form.formState.errors.transactionId?.message}>
+          <Select
+            aria-label="Parcela"
+            disabled={loadingDetail}
+            value={form.watch('transactionId')}
+            onChange={(e) => handleSelectInstallment(e.target.value)}
+          >
+            <option value="">{loadingDetail ? 'Carregando…' : 'Selecionar parcela'}</option>
+            {installments.map((installment) => (
+              <option key={installment.id} value={installment.id}>
+                {installment.installmentNumber
+                  ? `Parcela ${installment.installmentNumber}`
+                  : installment.description}
+                {' — '}
+                {new Date(installment.competenceDate).toLocaleDateString()}
+              </option>
+            ))}
+          </Select>
         </Field>
 
         <Field label="Descrição" error={form.formState.errors.description?.message}>
@@ -122,7 +152,7 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
         </Field>
 
         <Field label="Valor" error={form.formState.errors.amount?.message}>
-          <Input placeholder="ex: 300.00" {...form.register('amount')} />
+          <MoneyInput placeholder="ex: 300,00" {...form.register('amount')} />
         </Field>
 
         <Field label="Data de vencimento" error={form.formState.errors.competenceDate?.message}>

@@ -1,7 +1,8 @@
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
@@ -12,6 +13,9 @@ import {
   type CreateRecurrenceFormValues,
 } from '@/features/recurrences/schemas/create-recurrence.schema'
 import { useCreateRecurrence } from '@/features/recurrences/hooks/use-create-recurrence'
+import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
+import { useCategories } from '@/features/categories/hooks/use-categories'
+import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 
 const FREQUENCY_LABELS: Record<string, string> = {
   DAILY: 'Diário',
@@ -44,6 +48,8 @@ interface CreateRecurrenceDialogProps {
 
 export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialogProps) {
   const { mutate: createRecurrence, isPending } = useCreateRecurrence()
+  const { data: accounts = [] } = useAccounts()
+  const { data: categories = [] } = useCategories()
 
   const form = useForm<CreateRecurrenceFormValues>({
     resolver: zodResolver(createRecurrenceSchema),
@@ -121,7 +127,7 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
         </Field>
 
         <Field label="Valor" error={form.formState.errors.amount?.message}>
-          <Input placeholder="ex: 1500.00" {...form.register('amount')} />
+          <MoneyInput placeholder="ex: 1500,00" {...form.register('amount')} />
         </Field>
 
         <Field label="Tipo" error={form.formState.errors.type?.message}>
@@ -144,13 +150,31 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
           </Select>
         </Field>
 
-        <Field label="ID da conta" error={form.formState.errors.accountId?.message}>
-          <Input placeholder="UUID da conta" {...form.register('accountId')} />
+        <Field label="Conta" required error={form.formState.errors.accountId?.message}>
+          <Select aria-label="Conta" {...form.register('accountId')}>
+            <option value="">Selecionar conta</option>
+            {accounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name}
+              </option>
+            ))}
+          </Select>
         </Field>
 
-        <Field label="ID da categoria (opcional)" error={form.formState.errors.categoryId?.message}>
-          <Input placeholder="UUID da categoria" {...form.register('categoryId')} />
-        </Field>
+        <Controller
+          control={form.control}
+          name="categoryId"
+          render={({ field, fieldState }) => (
+            <Field label="Categoria (opcional)" error={fieldState.error?.message}>
+              <CategoryPickerCombobox
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                categories={categories}
+                aria-label="Categoria"
+              />
+            </Field>
+          )}
+        />
 
         <Field label="Data de início" error={form.formState.errors.startDate?.message}>
           <Input type="date" {...form.register('startDate')} />

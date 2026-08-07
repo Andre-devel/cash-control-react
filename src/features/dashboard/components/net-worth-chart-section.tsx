@@ -41,7 +41,7 @@ export function NetWorthChartSection() {
     <div className="card">
       <div className="card-h">
         <h3>Evolução do patrimônio</h3>
-        <div className="flex flex-wrap items-center gap-2 text-sm">
+        <div className="card-h-controls flex flex-wrap items-center gap-2 text-sm">
           <label className="sr-only" htmlFor="nw-from">
             De
           </label>
@@ -50,8 +50,7 @@ export function NetWorthChartSection() {
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="input"
-            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
+            className="input input-compact"
             aria-label="Data de início"
           />
           <span className="text-dim">–</span>
@@ -63,8 +62,7 @@ export function NetWorthChartSection() {
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="input"
-            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
+            className="input input-compact"
             aria-label="Data de fim"
           />
         </div>

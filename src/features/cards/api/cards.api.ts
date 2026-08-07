@@ -21,13 +21,22 @@ export async function getCard(id: string): Promise<Card> {
   return response.data
 }
 
+/**
+ * O backend valida `last4Digits` com `@Pattern("\\d{4}")`, que rejeita string vazia —
+ * e vazio é o que o formulário devolve quando o campo não foi preenchido. Omitir o
+ * campo é o que significa "não informado".
+ */
+function withoutBlankLast4<T extends CreateCardRequest>(data: T): T {
+  return data.last4Digits ? data : { ...data, last4Digits: undefined }
+}
+
 export async function createCard(data: CreateCardRequest): Promise<Card> {
-  const response = await axiosInstance.post<Card>('/cards', data)
+  const response = await axiosInstance.post<Card>('/cards', withoutBlankLast4(data))
   return response.data
 }
 
 export async function updateCard(id: string, data: UpdateCardRequest): Promise<Card> {
-  const response = await axiosInstance.put<Card>(`/cards/${id}`, data)
+  const response = await axiosInstance.put<Card>(`/cards/${id}`, withoutBlankLast4(data))
   return response.data
 }
 

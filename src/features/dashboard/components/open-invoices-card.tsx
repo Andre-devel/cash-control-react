@@ -64,7 +64,7 @@ export function OpenInvoicesCard() {
         <div>
           <h3>Faturas em aberto</h3>
           <div className="sub">
-            {invoices.length} cartão{invoices.length !== 1 ? 'ões' : ''} com fatura aberta
+            {invoices.length} {invoices.length === 1 ? 'cartão' : 'cartões'} com fatura aberta
           </div>
         </div>
         <div className="right">

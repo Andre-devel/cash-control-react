@@ -146,7 +146,7 @@ export function InvoiceCard({
           <>
             {/* Summary row */}
             <div
-              className="row gap-6"
+              className="row gap-6 invoice-summary"
               style={{ alignItems: 'flex-end', marginBottom: 16, flexWrap: 'wrap' }}
             >
               <div>
@@ -179,7 +179,7 @@ export function InvoiceCard({
                   <i style={{ width: `${paidPct}%`, background: 'var(--paid)' }} />
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
+              <div className="invoice-due" style={{ textAlign: 'right' }}>
                 <Badge kind={daysUntilDue <= 3 ? 'pending' : 'info'} dot={false}>
                   Vence em {daysUntilDue} {daysUntilDue === 1 ? 'dia' : 'dias'}
                 </Badge>

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
@@ -37,6 +38,7 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
     defaultValues: {
       name: '',
       brand: 'VISA',
+      last4Digits: '',
       creditLimit: '0.00',
       closingDay: 1,
       dueDay: 10,
@@ -48,6 +50,7 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
       form.reset({
         name: card.name,
         brand: card.brand,
+        last4Digits: card.last4Digits ?? '',
         creditLimit: card.creditLimit,
         closingDay: card.closingDay,
         dueDay: card.dueDay,
@@ -133,8 +136,21 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
           </Select>
         </Field>
 
+        <Field
+          label="Últimos 4 dígitos"
+          error={form.formState.errors.last4Digits?.message}
+          hint="Opcional. Permite que a importação da fatura em PDF reconheça este cartão."
+        >
+          <Input
+            placeholder="ex: 7866"
+            maxLength={4}
+            inputMode="numeric"
+            {...form.register('last4Digits')}
+          />
+        </Field>
+
         <Field label="Limite de crédito" error={form.formState.errors.creditLimit?.message}>
-          <Input placeholder="ex: 5000.00" {...form.register('creditLimit')} />
+          <MoneyInput placeholder="ex: 5000,00" {...form.register('creditLimit')} />
         </Field>
 
         <div className="grid grid-cols-2 gap-4">

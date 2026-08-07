@@ -60,11 +60,19 @@ export function CreditCardVisual({ card, selected, onSelect }: CreditCardVisualP
         />
       </div>
 
+      {/* 18 px com 0.08em estouravam os 244 px úteis do cartão e o último grupo
+          era cortado — em qualquer viewport, não só no celular. */}
       <div
         className="mono"
-        style={{ marginTop: 24, fontSize: 18, letterSpacing: '0.08em', color: 'var(--text)' }}
+        style={{
+          marginTop: 24,
+          fontSize: 16,
+          letterSpacing: '0.05em',
+          whiteSpace: 'nowrap',
+          color: 'var(--text)',
+        }}
       >
-        ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••
+        ••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••&nbsp;&nbsp;{card.last4Digits ?? '••••'}
       </div>
 
       <div className="row between" style={{ marginTop: 16 }}>

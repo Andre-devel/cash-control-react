@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { Money } from '@/components/ui/money'
 import { useLargestExpenses } from '@/features/dashboard/hooks/use-largest-expenses'
 import { ROUTES } from '@/app/router/routes'
 
@@ -58,7 +59,7 @@ export function LargestExpensesWidget() {
                     </p>
                   </div>
                   <span className="mono fw-600 ml-4" style={{ color: 'var(--expense)' }}>
-                    {expense.amount}
+                    <Money value={parseFloat(expense.amount)} />
                   </span>
                 </Link>
               </li>

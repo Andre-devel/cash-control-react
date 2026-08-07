@@ -1,11 +1,8 @@
 import { z } from 'zod'
-
-const SIGNED_DECIMAL_PATTERN = /^-?\d+(\.\d{1,2})?$/
+import { moneyField } from '@/lib/money'
 
 export const adjustBalanceSchema = z.object({
-  amount: z
-    .string()
-    .regex(SIGNED_DECIMAL_PATTERN, 'Valor deve ser um decimal válido (ex: 100.00 ou -50.00)'),
+  amount: moneyField('Valor deve ser um decimal válido (ex: 100,00 ou -50,00)', { signed: true }),
   note: z.string().optional(),
 })
 

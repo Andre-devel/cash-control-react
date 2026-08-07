@@ -3,6 +3,7 @@ import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
+import { FilePicker } from '@/components/ui/file-picker'
 import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Money } from '@/components/ui/money'
@@ -402,12 +403,13 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
             required
             hint="Exporte o extrato da conta corrente em CSV pelo app do banco."
           >
-            <input
+            <FilePicker
               ref={fileInputRef}
-              type="file"
               accept=".csv,text/csv"
               aria-label="Arquivo"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              file={file}
+              onFileChange={setFile}
+              placeholder="Selecionar CSV do extrato"
             />
           </Field>
 

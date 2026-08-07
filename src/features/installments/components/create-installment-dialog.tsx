@@ -2,6 +2,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
@@ -129,7 +130,7 @@ export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDial
         </Field>
 
         <Field label="Valor total" error={form.formState.errors.totalAmount?.message}>
-          <Input placeholder="ex: 3600.00" {...form.register('totalAmount')} />
+          <MoneyInput placeholder="ex: 3600,00" {...form.register('totalAmount')} />
         </Field>
 
         <Field label="Número de parcelas" error={form.formState.errors.totalInstallments?.message}>

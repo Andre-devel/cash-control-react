@@ -30,12 +30,12 @@ export const CategoryNode = memo(function CategoryNode({
 }: CategoryNodeProps) {
   return (
     <div>
-      <div className="list-row">
+      <div className="list-row category-row">
         {depth > 0 && (
           <span style={{ width: depth * 20, flexShrink: 0, display: 'inline-block' }} />
         )}
         <IconBubble color={node.color} size="sm" {...resolveCategoryIcon(node.icon)} />
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="category-row-name">
           <div className="fw-500 truncate">{node.name}</div>
         </div>
         {node.isDefault && (
@@ -53,7 +53,7 @@ export const CategoryNode = memo(function CategoryNode({
             Arquivado
           </Badge>
         )}
-        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+        <div className="category-row-actions">
           <Button
             variant="ghost"
             size="sm"

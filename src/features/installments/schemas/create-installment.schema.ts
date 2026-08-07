@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { PAYMENT_METHOD_SLUGS } from '@/features/transactions/types'
-
-const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/
+import { moneyField } from '@/lib/money'
 
 export const createInstallmentSchema = z
   .object({
@@ -9,9 +8,7 @@ export const createInstallmentSchema = z
       .string()
       .min(1, 'Descrição é obrigatória')
       .max(255, 'Descrição deve ter no máximo 255 caracteres'),
-    totalAmount: z
-      .string()
-      .regex(DECIMAL_PATTERN, 'Valor total deve ser um decimal válido (ex: 3600.00)'),
+    totalAmount: moneyField('Valor total deve ser um decimal válido (ex: 3600,00)'),
     totalInstallments: z
       .number()
       .int('Número de parcelas deve ser um número inteiro')

@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Textarea } from '@/components/ui/textarea'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
@@ -96,7 +96,7 @@ export function AdjustBalanceDialog({ account, open, onClose }: AdjustBalanceDia
         className="col gap-4"
       >
         <Field label="Valor do ajuste" error={form.formState.errors.amount?.message}>
-          <Input placeholder="ex: 100.00 ou -50.00" {...form.register('amount')} />
+          <MoneyInput placeholder="ex: 100,00 ou -50,00" {...form.register('amount')} />
         </Field>
 
         <Field label="Observação (opcional)" error={form.formState.errors.note?.message}>

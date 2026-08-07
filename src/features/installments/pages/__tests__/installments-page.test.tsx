@@ -189,7 +189,7 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const editButtons = screen.getAllByRole('button', { name: /edit series/i })
+    const editButtons = screen.getAllByRole('button', { name: /editar série/i })
     await user.click(editButtons[0])
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
@@ -202,7 +202,7 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const editInstButtons = screen.getAllByRole('button', { name: /edit installment/i })
+    const editInstButtons = screen.getAllByRole('button', { name: /editar parcela/i })
     await user.click(editInstButtons[0])
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
@@ -215,7 +215,7 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const editInstButtons = screen.getAllByRole('button', { name: /edit installment/i })
+    const editInstButtons = screen.getAllByRole('button', { name: /editar parcela/i })
     await user.click(editInstButtons[0])
 
     await waitFor(() => screen.getByRole('dialog'))
@@ -228,7 +228,7 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const settleButtons = screen.getAllByRole('button', { name: /settle early/i })
+    const settleButtons = screen.getAllByRole('button', { name: /liquidar antecipadamente/i })
     await user.click(settleButtons[0])
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
@@ -243,14 +243,14 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const settleButtons = screen.getAllByRole('button', { name: /settle early/i })
+    const settleButtons = screen.getAllByRole('button', { name: /liquidar antecipadamente/i })
     await user.click(settleButtons[0])
     await waitFor(() => screen.getByRole('dialog'))
 
     await user.click(screen.getByRole('button', { name: /liquidar antecipadamente/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    await waitFor(() => expect(screen.getAllByText('Settled').length).toBeGreaterThan(0))
+    await waitFor(() => expect(screen.getAllByText('Liquidada').length).toBeGreaterThan(0))
   })
 
   it('Advance button opens advance dialog', async () => {
@@ -259,7 +259,7 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const advanceButtons = screen.getAllByRole('button', { name: /^advance/i })
+    const advanceButtons = screen.getAllByRole('button', { name: /^antecipar parcelas/i })
     await user.click(advanceButtons[0])
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
@@ -272,7 +272,7 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const advanceButtons = screen.getAllByRole('button', { name: /^advance/i })
+    const advanceButtons = screen.getAllByRole('button', { name: /^antecipar parcelas/i })
     await user.click(advanceButtons[0])
 
     await waitFor(() => screen.getByRole('dialog'))
@@ -290,7 +290,7 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const advanceButtons = screen.getAllByRole('button', { name: /^advance/i })
+    const advanceButtons = screen.getAllByRole('button', { name: /^antecipar parcelas/i })
     await user.click(advanceButtons[0])
 
     await waitFor(() => screen.getByRole('dialog'))
@@ -304,7 +304,7 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const advanceButtons = screen.getAllByRole('button', { name: /^advance/i })
+    const advanceButtons = screen.getAllByRole('button', { name: /^antecipar parcelas/i })
     await user.click(advanceButtons[0])
 
     await waitFor(() => screen.getByRole('dialog'))
@@ -331,7 +331,7 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const advanceButtons = screen.getAllByRole('button', { name: /^advance/i })
+    const advanceButtons = screen.getAllByRole('button', { name: /^antecipar parcelas/i })
     await user.click(advanceButtons[0])
 
     await waitFor(() => screen.getByRole('dialog'))
@@ -354,6 +354,6 @@ describe('InstallmentsPage', () => {
   it('series with ACTIVE status shows action buttons', async () => {
     renderWithProviders(<InstallmentsPage />)
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
-    expect(screen.getAllByRole('button', { name: /edit series/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: /editar série/i }).length).toBeGreaterThan(0)
   })
 })

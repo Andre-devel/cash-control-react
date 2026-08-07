@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
+import { normalizeMoneyInput } from '@/lib/money'
 import { useAdvanceInstallments } from '@/features/installments/hooks/use-advance-installments'
 import { useInstallmentSeriesDetail } from '@/features/installments/hooks/use-installment-series-detail'
 import type { InstallmentSeries } from '@/features/installments/types'
@@ -50,7 +52,11 @@ export function AdvanceInstallmentsDialog({
     if (!valid) return
 
     advanceInstallments(
-      { installmentIds: selectedIds, newPaymentDate, adjustedAmount: adjustedAmount || undefined },
+      {
+        installmentIds: selectedIds,
+        newPaymentDate,
+        adjustedAmount: adjustedAmount ? normalizeMoneyInput(adjustedAmount) : undefined,
+      },
       {
         onSuccess: () => {
           setSelectedIds([])
@@ -191,9 +197,9 @@ export function AdvanceInstallmentsDialog({
         </Field>
 
         <Field label="Novo valor por parcela (opcional)">
-          <Input
+          <MoneyInput
             type="text"
-            placeholder="ex: 350.00"
+            placeholder="ex: 350,00"
             value={adjustedAmount}
             onChange={(e) => setAdjustedAmount(e.target.value)}
             aria-label="Novo valor por parcela"

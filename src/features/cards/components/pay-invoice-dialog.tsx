@@ -38,16 +38,9 @@ function MiniStat({ label, value, tone }: MiniStatProps) {
   const color =
     tone === 'pending' ? 'var(--pending)' : tone === 'paid' ? 'var(--paid)' : 'var(--text)'
   return (
-    <div
-      style={{
-        padding: 12,
-        background: 'var(--surface-2)',
-        borderRadius: 8,
-        border: '1px solid var(--border)',
-      }}
-    >
-      <div className="text-xs text-dim">{label}</div>
-      <div className="text-lg mono fw-500 mt-2" style={{ color }}>
+    <div className="mini-stat">
+      <div className="mini-stat-label">{label}</div>
+      <div className="mini-stat-value mono" style={{ color }}>
         <Money value={value} />
       </div>
     </div>
@@ -145,8 +138,9 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
         noValidate
         className="col gap-4"
       >
-        {/* Mini stats */}
-        <div className="grid grid-3" style={{ marginBottom: 8 }}>
+        {/* Mini stats — fora de `.grid grid-3` de propósito: no mobile aquela regra
+            empilha em 1 coluna e três cards full-width consumiam metade do sheet. */}
+        <div className="mini-stats" style={{ marginBottom: 8 }}>
           <MiniStat label="Total da fatura" value={totalAmount} tone="" />
           <MiniStat label="Já pago" value={paidAmount} tone="paid" />
           <MiniStat label="Restante" value={remainingAmount} tone="pending" />

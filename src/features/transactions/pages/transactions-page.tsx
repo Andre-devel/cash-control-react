@@ -18,6 +18,7 @@ import { useCategories } from '@/features/categories/hooks/use-categories'
 import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 import { effectiveAmount } from '@/features/transactions/utils/installment'
 import { TransactionRow } from '@/features/transactions/components/transaction-row'
+import { TransactionCard } from '@/features/transactions/components/transaction-card'
 import { TransactionFilterPanel } from '@/features/transactions/components/transaction-filter-panel'
 import { CreateTransactionDialog } from '@/features/transactions/components/create-transaction-dialog'
 import { EditTransactionDialog } from '@/features/transactions/components/edit-transaction-dialog'
@@ -26,6 +27,7 @@ import { CancelTransactionDialog } from '@/features/transactions/components/canc
 import { ImportStatementDialog } from '@/features/transactions/components/import-statement-dialog'
 import { usePayTransaction } from '@/features/transactions/hooks/use-pay-transaction'
 import { ROUTES } from '@/app/router/routes'
+import { useMediaQuery, MOBILE_QUERY } from '@/hooks/use-media-query'
 import type { Transaction, ListTransactionsParams } from '@/features/transactions/types'
 
 const DEFAULT_PAGE_SIZE = 20
@@ -116,14 +118,40 @@ interface GroupDateRowProps {
   rows: Transaction[]
 }
 
-function GroupDateRow({ date, rows }: GroupDateRowProps) {
+function groupSums(rows: Transaction[]) {
   const incomeSum = rows
     .filter((t) => (t.type === 'INCOME' || t.type === 'REFUND') && t.status !== 'CANCELLED')
     .reduce((s, t) => s + effectiveAmount(t), 0)
   const expenseSum = rows
     .filter((t) => t.type === 'EXPENSE' && t.status !== 'CANCELLED')
     .reduce((s, t) => s + effectiveAmount(t), 0)
+  return { incomeSum, expenseSum }
+}
 
+function GroupDateSummary({ date, rows }: GroupDateRowProps) {
+  const { incomeSum, expenseSum } = groupSums(rows)
+
+  return (
+    <>
+      <span style={{ marginRight: 12 }}>{fmtDateFull(date)}</span>
+      {incomeSum > 0 && (
+        <span className="mono" style={{ color: 'var(--income)' }}>
+          <Money value={incomeSum} signed />
+        </span>
+      )}
+      {incomeSum > 0 && expenseSum > 0 && (
+        <span style={{ margin: '0 8px', color: 'var(--text-faint)' }}>·</span>
+      )}
+      {expenseSum > 0 && (
+        <span className="mono" style={{ color: 'var(--expense)' }}>
+          <Money value={-expenseSum} signed />
+        </span>
+      )}
+    </>
+  )
+}
+
+function GroupDateRow({ date, rows }: GroupDateRowProps) {
   return (
     <tr style={{ background: 'var(--surface-2)' }}>
       <td
@@ -138,20 +166,7 @@ function GroupDateRow({ date, rows }: GroupDateRowProps) {
           borderBottom: '1px solid var(--border)',
         }}
       >
-        <span style={{ marginRight: 12 }}>{fmtDateFull(date)}</span>
-        {incomeSum > 0 && (
-          <span className="mono" style={{ color: 'var(--income)' }}>
-            <Money value={incomeSum} signed />
-          </span>
-        )}
-        {incomeSum > 0 && expenseSum > 0 && (
-          <span style={{ margin: '0 8px', color: 'var(--text-faint)' }}>·</span>
-        )}
-        {expenseSum > 0 && (
-          <span className="mono" style={{ color: 'var(--expense)' }}>
-            <Money value={-expenseSum} signed />
-          </span>
-        )}
+        <GroupDateSummary date={date} rows={rows} />
       </td>
     </tr>
   )
@@ -270,6 +285,8 @@ export default function TransactionsPage() {
     [navigate],
   )
   const handleViewSeries = useCallback(() => void navigate(ROUTES.INSTALLMENTS), [navigate])
+
+  const isMobile = useMediaQuery(MOBILE_QUERY)
 
   const transactions = useMemo(() => pageData?.content ?? [], [pageData])
   const totalElements = pageData?.totalElements ?? 0
@@ -398,47 +415,77 @@ export default function TransactionsPage() {
         </div>
       ) : (
         <>
-          <div className="card flush">
-            <div className="tbl-wrap">
-              <table className="tbl">
-                <thead>
-                  <tr>
-                    <th style={{ paddingLeft: 16 }}>Descrição</th>
-                    <th>Categoria</th>
-                    <th>Conta</th>
-                    <th>Forma de pagamento</th>
-                    <th>Tipo</th>
-                    <th>Status</th>
-                    <th>Competência</th>
-                    <th>Pagamento</th>
-                    <th className="num">Valor</th>
-                    <th style={{ width: 32 }} />
-                  </tr>
-                </thead>
-                <tbody>
-                  {grouped.map(([date, rows]) => (
-                    <Fragment key={date}>
-                      <GroupDateRow date={date} rows={rows} />
-                      {rows.map((tx) => (
-                        <TransactionRow
-                          key={tx.id}
-                          transaction={tx}
-                          accounts={accounts}
-                          categories={flatCategories}
-                          onEdit={setEditTarget}
-                          onDelete={setDeleteTarget}
-                          onPay={handlePay}
-                          onCancel={setCancelTarget}
-                          onView={handleView}
-                          onViewSeries={handleViewSeries}
-                        />
-                      ))}
-                    </Fragment>
+          {/* Abaixo de 768 px a tabela vira lista de cards — ver C6 do relatório de
+              responsividade: com 1300 px de largura só a descrição ficava visível.
+              A troca é em JS, e não escondendo uma das versões por CSS, para não
+              deixar a mesma lista duas vezes no DOM (leitor de tela leria dobrado). */}
+          {isMobile ? (
+            <div className="tx-card-list">
+              {grouped.map(([date, rows]) => (
+                <Fragment key={date}>
+                  <div className="tx-card-group">
+                    <GroupDateSummary date={date} rows={rows} />
+                  </div>
+                  {rows.map((tx) => (
+                    <TransactionCard
+                      key={tx.id}
+                      transaction={tx}
+                      accounts={accounts}
+                      categories={flatCategories}
+                      onEdit={setEditTarget}
+                      onDelete={setDeleteTarget}
+                      onPay={handlePay}
+                      onCancel={setCancelTarget}
+                      onView={handleView}
+                      onViewSeries={handleViewSeries}
+                    />
                   ))}
-                </tbody>
-              </table>
+                </Fragment>
+              ))}
             </div>
-          </div>
+          ) : (
+            <div className="card flush">
+              <div className="tbl-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th style={{ paddingLeft: 16 }}>Descrição</th>
+                      <th>Categoria</th>
+                      <th>Conta</th>
+                      <th>Forma de pagamento</th>
+                      <th>Tipo</th>
+                      <th>Status</th>
+                      <th>Competência</th>
+                      <th>Pagamento</th>
+                      <th className="num">Valor</th>
+                      <th style={{ width: 32 }} />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {grouped.map(([date, rows]) => (
+                      <Fragment key={date}>
+                        <GroupDateRow date={date} rows={rows} />
+                        {rows.map((tx) => (
+                          <TransactionRow
+                            key={tx.id}
+                            transaction={tx}
+                            accounts={accounts}
+                            categories={flatCategories}
+                            onEdit={setEditTarget}
+                            onDelete={setDeleteTarget}
+                            onPay={handlePay}
+                            onCancel={setCancelTarget}
+                            onView={handleView}
+                            onViewSeries={handleViewSeries}
+                          />
+                        ))}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {totalPages > 1 && (
             <div className="row between mt-4">

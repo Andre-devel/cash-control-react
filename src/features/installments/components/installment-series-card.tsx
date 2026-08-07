@@ -37,7 +37,7 @@ export function InstallmentSeriesCard({
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               <Badge kind={isSettled ? 'muted' : 'paid'} dot={false} square>
-                {isSettled ? 'Settled' : 'Active'}
+                {isSettled ? 'Liquidada' : 'Ativa'}
               </Badge>
             </div>
           </div>
@@ -55,7 +55,7 @@ export function InstallmentSeriesCard({
           aria-valuenow={isSettled ? 100 : 0}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`${series.description} — ${isSettled ? 'settled' : 'active'}`}
+          aria-label={`${series.description} — ${isSettled ? 'liquidada' : 'ativa'}`}
         >
           <i style={{ width: isSettled ? '100%' : '0%', background: 'var(--accent)' }} />
         </div>
@@ -73,36 +73,36 @@ export function InstallmentSeriesCard({
               variant="ghost"
               size="sm"
               onClick={() => onEditSeries(series)}
-              aria-label={`Edit series: ${series.description}`}
+              aria-label={`Editar série: ${series.description}`}
             >
-              Edit Series
+              Editar série
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={() => onEditInstallment(series)}
-              aria-label={`Edit Installment: ${series.description}`}
+              aria-label={`Editar parcela: ${series.description}`}
             >
-              Edit Installment
+              Editar parcela
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={() => onAdvance(series)}
-              aria-label={`Advance installment: ${series.description}`}
+              aria-label={`Antecipar parcelas: ${series.description}`}
             >
-              Advance
+              Antecipar
             </Button>
             <Button
               type="button"
               variant="danger"
               size="sm"
               onClick={() => onSettle(series)}
-              aria-label={`Settle early: ${series.description}`}
+              aria-label={`Liquidar antecipadamente: ${series.description}`}
             >
-              Settle Early
+              Liquidar
             </Button>
           </div>
         )}

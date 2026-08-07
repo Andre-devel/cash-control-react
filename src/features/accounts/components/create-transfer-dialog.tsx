@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
@@ -129,7 +130,7 @@ export function CreateTransferDialog({
         </Field>
 
         <Field label="Valor" error={form.formState.errors.amount?.message}>
-          <Input placeholder="ex: 500.00" {...form.register('amount')} />
+          <MoneyInput placeholder="ex: 500,00" {...form.register('amount')} />
         </Field>
 
         <Field label="Data" error={form.formState.errors.date?.message}>

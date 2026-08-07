@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Textarea } from '@/components/ui/textarea'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
@@ -135,7 +136,7 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
         </Field>
 
         <Field label="Saldo inicial" error={form.formState.errors.initialBalance?.message}>
-          <Input placeholder="ex: 1500.00" {...form.register('initialBalance')} />
+          <MoneyInput placeholder="ex: 1500,00" {...form.register('initialBalance')} />
         </Field>
 
         <Field label="Descrição (opcional)" error={form.formState.errors.description?.message}>

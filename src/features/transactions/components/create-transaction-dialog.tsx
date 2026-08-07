@@ -2,6 +2,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
@@ -173,7 +174,7 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
         </Field>
 
         <Field label="Valor" required error={form.formState.errors.amount?.message}>
-          <Input placeholder="Ex: 150.75" {...form.register('amount')} />
+          <MoneyInput placeholder="Ex: 150,75" {...form.register('amount')} />
         </Field>
 
         <Field label="Tipo" error={form.formState.errors.type?.message}>

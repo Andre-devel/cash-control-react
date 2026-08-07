@@ -24,7 +24,7 @@ export function UpcomingBillsWidget() {
     <div className="card">
       <div className="card-h">
         <h3>Contas a pagar</h3>
-        <div className="flex items-center gap-2 text-sm">
+        <div className="card-h-controls flex items-center gap-2 text-sm">
           <label htmlFor="days-ahead" className="text-xs text-dim">
             Dias à frente:
           </label>
@@ -32,8 +32,7 @@ export function UpcomingBillsWidget() {
             id="days-ahead"
             value={daysAhead}
             onChange={(e) => setDaysAhead(Number(e.target.value))}
-            className="select"
-            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
+            className="select input-compact"
             aria-label="Dias à frente"
           >
             {[7, 14, 30].map((d) => (

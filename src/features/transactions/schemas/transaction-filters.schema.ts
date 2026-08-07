@@ -1,8 +1,7 @@
 import { z } from 'zod'
 import { TRANSACTION_TYPES, TRANSACTION_STATUSES } from './create-transaction.schema'
 import { PAYMENT_METHOD_SLUGS } from '@/features/transactions/types'
-
-const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/
+import { moneyField } from '@/lib/money'
 
 export const TRANSACTION_FILTER_TYPES = [...TRANSACTION_TYPES, 'TRANSFER'] as const
 
@@ -16,16 +15,8 @@ export const transactionFiltersSchema = z.object({
   competenceDateTo: z.string().optional(),
   paymentDateFrom: z.string().optional(),
   paymentDateTo: z.string().optional(),
-  amountMin: z
-    .string()
-    .regex(DECIMAL_PATTERN, 'Valor mínimo deve ser um decimal válido')
-    .optional()
-    .or(z.literal('')),
-  amountMax: z
-    .string()
-    .regex(DECIMAL_PATTERN, 'Valor máximo deve ser um decimal válido')
-    .optional()
-    .or(z.literal('')),
+  amountMin: moneyField('Valor mínimo deve ser um decimal válido').optional().or(z.literal('')),
+  amountMax: moneyField('Valor máximo deve ser um decimal válido').optional().or(z.literal('')),
   searchText: z.string().optional(),
   includeCancelled: z.boolean().optional(),
   page: z.number().int().min(0).optional(),

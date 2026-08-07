@@ -55,9 +55,20 @@ export function DistributionCard({ accounts, totalBalance }: DistributionCardPro
           <div className="sub">Como seu patrimônio está alocado</div>
         </div>
       </div>
-      <div className="card-b" style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+      <div
+        className="card-b"
+        style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'center' }}
+      >
         <DonutChart segments={segments} total={totalBalance} />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div
+          style={{
+            flex: '1 1 220px',
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+          }}
+        >
           {Object.entries(totalByType).map(([type, d]) => {
             const pct = totalBalance > 0 ? (d.value / totalBalance) * 100 : 0
             return (
@@ -72,11 +83,19 @@ export function DistributionCard({ accounts, totalBalance }: DistributionCardPro
                     flexShrink: 0,
                   }}
                 />
-                <span style={{ fontSize: 13, fontWeight: 500, flex: 1 }}>
+                <span
+                  className="truncate"
+                  style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0 }}
+                >
                   {ACCOUNT_TYPE_LABELS_PT[type] ?? type}
                 </span>
-                <span className="mono text-sm text-dim">{pct.toFixed(1)}%</span>
-                <span className="mono text-sm fw-500" style={{ minWidth: 110, textAlign: 'right' }}>
+                <span className="mono text-sm text-dim" style={{ flexShrink: 0 }}>
+                  {pct.toFixed(1)}%
+                </span>
+                <span
+                  className="mono text-sm fw-500"
+                  style={{ flexShrink: 0, textAlign: 'right', whiteSpace: 'nowrap' }}
+                >
                   <Money value={d.value} />
                 </span>
               </div>

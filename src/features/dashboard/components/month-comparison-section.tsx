@@ -71,7 +71,7 @@ export function MonthComparisonSection() {
     <div className="card">
       <div className="card-h">
         <h3>Comparação mensal</h3>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="card-h-controls flex flex-wrap items-center gap-2">
           <label className="sr-only" htmlFor="cmp-month1">
             Mês 1
           </label>
@@ -80,8 +80,7 @@ export function MonthComparisonSection() {
             type="month"
             value={month1}
             onChange={(e) => setMonth1(e.target.value)}
-            className="input"
-            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
+            className="input input-compact"
             aria-label="Mês 1"
           />
           <span className="text-dim text-xs">vs</span>
@@ -93,8 +92,7 @@ export function MonthComparisonSection() {
             type="month"
             value={month2}
             onChange={(e) => setMonth2(e.target.value)}
-            className="input"
-            style={{ fontSize: 12, padding: '2px 8px', height: 'auto' }}
+            className="input input-compact"
             aria-label="Mês 2"
           />
         </div>

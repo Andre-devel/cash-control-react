@@ -56,7 +56,7 @@ export function RecurrenceCard({
                 {FREQUENCY_LABELS[recurrence.frequency] ?? recurrence.frequency}
               </span>
               <Badge kind={isPaused ? 'pending' : 'paid'} dot={false} square>
-                {isPaused ? 'Paused' : 'Active'}
+                {isPaused ? 'Pausada' : 'Ativa'}
               </Badge>
             </div>
           </div>

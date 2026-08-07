@@ -126,53 +126,55 @@ export function RecentTransactionsCard() {
             Nenhuma transação recente.
           </p>
         ) : (
-          <table className="tbl">
-            <tbody>
-              {transactions.map((tx) => {
-                const amountValue = parseFloat(tx.amount)
-                const { icon, label } = TRANSACTION_TYPE_DISPLAY[tx.type]
-                const isPositive = isPositiveTransaction(tx.type, amountValue)
-                const amountColor = isPositive ? 'var(--income)' : 'var(--text)'
-                const status = tx.status as 'PAID' | 'PENDING' | 'CANCELLED'
+          <div className="tbl-wrap">
+            <table className="tbl">
+              <tbody>
+                {transactions.map((tx) => {
+                  const amountValue = parseFloat(tx.amount)
+                  const { icon, label } = TRANSACTION_TYPE_DISPLAY[tx.type]
+                  const isPositive = isPositiveTransaction(tx.type, amountValue)
+                  const amountColor = isPositive ? 'var(--income)' : 'var(--text)'
+                  const status = tx.status as 'PAID' | 'PENDING' | 'CANCELLED'
 
-                return (
-                  <tr key={tx.id}>
-                    <td style={{ paddingLeft: 16, width: 44 }}>
-                      <IconBubble
-                        color={transactionTypeColor(tx.type, amountValue)}
-                        icon={icon}
-                        size="sm"
-                      />
-                    </td>
-                    <td style={{ whiteSpace: 'normal' }}>
-                      <Link
-                        to={ROUTES.TRANSACTION_DETAIL.replace(':id', tx.id)}
-                        style={{ color: 'inherit', textDecoration: 'none' }}
-                        aria-label={tx.description}
+                  return (
+                    <tr key={tx.id}>
+                      <td style={{ paddingLeft: 16, width: 44 }}>
+                        <IconBubble
+                          color={transactionTypeColor(tx.type, amountValue)}
+                          icon={icon}
+                          size="sm"
+                        />
+                      </td>
+                      <td style={{ whiteSpace: 'normal' }}>
+                        <Link
+                          to={ROUTES.TRANSACTION_DETAIL.replace(':id', tx.id)}
+                          style={{ color: 'inherit', textDecoration: 'none' }}
+                          aria-label={tx.description}
+                        >
+                          <div style={{ fontWeight: 500 }}>{tx.description}</div>
+                          <div className="row-meta">
+                            {label} · {tx.accountName ?? '—'}
+                          </div>
+                        </Link>
+                      </td>
+                      <td>
+                        <StatusBadge status={status} />
+                      </td>
+                      <td className="text-xs text-dim" style={{ width: 90 }}>
+                        {fmtDateShort(tx.competenceDate)}
+                      </td>
+                      <td
+                        className="num"
+                        style={{ paddingRight: 16, color: amountColor, fontWeight: 500 }}
                       >
-                        <div style={{ fontWeight: 500 }}>{tx.description}</div>
-                        <div className="row-meta">
-                          {label} · {tx.accountName ?? '—'}
-                        </div>
-                      </Link>
-                    </td>
-                    <td>
-                      <StatusBadge status={status} />
-                    </td>
-                    <td className="text-xs text-dim" style={{ width: 90 }}>
-                      {fmtDateShort(tx.competenceDate)}
-                    </td>
-                    <td
-                      className="num"
-                      style={{ paddingRight: 16, color: amountColor, fontWeight: 500 }}
-                    >
-                      <Money value={amountValue} signed={isPositive} />
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                        <Money value={amountValue} signed={isPositive} />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

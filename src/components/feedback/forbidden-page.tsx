@@ -11,13 +11,13 @@ export default function ForbiddenPage() {
         <h1 className="fw-700" style={{ fontSize: 64 }}>
           403
         </h1>
-        <p className="mt-2 text-dim">You don&apos;t have permission to access this page.</p>
+        <p className="mt-2 text-dim">Você não tem permissão para acessar esta página.</p>
         <Link
           to={ROUTES.DASHBOARD}
           className="mt-4 inline-block hover:underline"
           style={{ color: 'var(--accent)' }}
         >
-          Go to dashboard
+          Ir para o dashboard
         </Link>
       </div>
     </div>

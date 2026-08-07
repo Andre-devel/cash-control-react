@@ -1,11 +1,19 @@
 import { http, HttpResponse } from 'msw'
-import type { Card, Invoice, LimitUsage, SpendingItem } from '@/features/cards/types'
+import type {
+  Card,
+  FaturaImportCommitRequest,
+  FaturaImportPreviewResponse,
+  Invoice,
+  LimitUsage,
+  SpendingItem,
+} from '@/features/cards/types'
 
 export const MOCK_CARD_1: Card = {
   id: 'card-1',
   name: 'Nubank',
   brand: 'VISA',
   issuer: 'Nu Pagamentos S.A.',
+  last4Digits: '7866',
   creditLimit: '5000.00',
   currentInvoiceTotal: '800.00',
   closingDay: 1,
@@ -18,6 +26,7 @@ export const MOCK_CARD_2: Card = {
   id: 'card-2',
   name: 'Itaú',
   brand: 'MASTERCARD',
+  last4Digits: '4776',
   creditLimit: '10000.00',
   closingDay: 15,
   dueDay: 25,
@@ -74,6 +83,86 @@ export const MOCK_SPENDING: SpendingItem[] = [
   },
 ]
 
+/**
+ * Prévia com duas seções de cartão, como um PDF do Inter que cobre titular e
+ * adicional: a primeira já casou por `last4Digits`, a segunda não casou com nada e
+ * obriga a escolha manual.
+ */
+export const MOCK_FATURA_PREVIEW: FaturaImportPreviewResponse = {
+  fileName: 'fatura-inter-2026-07.pdf',
+  format: 'INTER_FATURA_PDF',
+  dueDate: '2026-08-07',
+  referenceMonth: '2026-07',
+  totalAmount: '1617.29',
+  totalRows: 3,
+  duplicateCount: 1,
+  excludedPaymentsCount: 1,
+  errors: [{ lineNumber: 61, message: "Valor inválido: 'R$ --'" }],
+  groups: [
+    {
+      cardLast4: '7866',
+      suggestedCreditCardId: 'card-1',
+      suggestedCreditCardName: 'Nubank',
+      rows: [
+        {
+          lineNumber: 59,
+          externalRef: 'ref-nova',
+          date: '2026-04-04',
+          description: 'SHOPEE *LarkSpComercio (Parcela 04 de 05)',
+          amount: '55.19',
+          installmentNumber: 4,
+          totalInstallments: 5,
+          // Igual ao que categories.handlers devolve para 'cat-1'.
+          suggestedCategoryId: 'cat-1',
+          suggestedCategoryName: 'Food',
+          duplicate: false,
+        },
+        {
+          lineNumber: 60,
+          externalRef: 'ref-ja-importada',
+          date: '2026-07-15',
+          description: 'ANTHROPIC* CLAUDE SUB',
+          amount: '110.00',
+          installmentNumber: null,
+          totalInstallments: null,
+          suggestedCategoryId: null,
+          suggestedCategoryName: null,
+          duplicate: true,
+        },
+      ],
+    },
+    {
+      cardLast4: '9999',
+      suggestedCreditCardId: null,
+      suggestedCreditCardName: null,
+      rows: [
+        {
+          lineNumber: 70,
+          externalRef: 'ref-sem-cartao',
+          date: '2026-07-24',
+          description: 'CP PARC SHOPPING INTER (Parcela 01 de 10)',
+          amount: '336.81',
+          installmentNumber: 1,
+          totalInstallments: 10,
+          suggestedCategoryId: null,
+          suggestedCategoryName: null,
+          duplicate: false,
+        },
+      ],
+    },
+  ],
+}
+
+let lastFaturaCommit: FaturaImportCommitRequest | null = null
+
+export function getLastFaturaCommit() {
+  return lastFaturaCommit
+}
+
+export function resetFaturaImportStore() {
+  lastFaturaCommit = null
+}
+
 let cardsStore: Card[] = [MOCK_CARD_1, MOCK_CARD_2]
 
 export function resetCardsStore() {
@@ -81,6 +170,25 @@ export function resetCardsStore() {
 }
 
 export const cardsHandlers = [
+  // A prévia não tem handler: o XHR do jsdom trava num POST multipart com arquivo, então
+  // os testes de tela mockam `previewFaturaImport` e usam MOCK_FATURA_PREVIEW. A
+  // confirmação é JSON e passa por aqui normalmente. Precisa vir antes de
+  // `*/cards/:id`, senão "invoices" seria capturado como um id.
+  http.post('*/cards/invoices/import', async ({ request }) => {
+    const body = (await request.json()) as FaturaImportCommitRequest
+    lastFaturaCommit = body
+    return HttpResponse.json(
+      {
+        imported: body.rows.length,
+        futureInstallments: 0,
+        skippedDuplicates: 0,
+        failed: 0,
+        errors: [],
+      },
+      { status: 201 },
+    )
+  }),
+
   http.get('*/cards', () => {
     return HttpResponse.json(cardsStore)
   }),

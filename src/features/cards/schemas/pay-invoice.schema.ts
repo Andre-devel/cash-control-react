@@ -1,13 +1,10 @@
 import { z } from 'zod'
-
-const DECIMAL_PATTERN = /^\d+(\.\d{1,2})?$/
+import { moneyField } from '@/lib/money'
 
 export function createPayInvoiceSchema(remainingAmount: string) {
   const remaining = parseFloat(remainingAmount)
   return z.object({
-    amount: z
-      .string()
-      .regex(DECIMAL_PATTERN, 'Valor deve ser um decimal válido (ex: 100.00)')
+    amount: moneyField('Valor deve ser um decimal válido (ex: 100,00)')
       .refine(
         (val) => {
           const num = parseFloat(val)

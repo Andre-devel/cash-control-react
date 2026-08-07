@@ -6,6 +6,8 @@ export interface Card {
   name: string
   brand: CardBrand
   issuer?: string
+  /** Últimos 4 dígitos do cartão. É o que casa cada seção do PDF da fatura com o cartão. */
+  last4Digits?: string | null
   creditLimit: string
   currentInvoiceTotal?: string
   closingDay: number
@@ -63,6 +65,7 @@ export interface CreateCardRequest {
   name: string
   brand: CardBrand
   issuer?: string
+  last4Digits?: string
   creditLimit: string
   closingDay: number
   dueDay: number
@@ -85,4 +88,95 @@ export interface PayInvoiceRequest {
 export interface SpendingBreakdownParams {
   from: string
   to: string
+}
+
+// ── Importação de fatura em PDF ──────────────────────────────────────────────
+
+export const INVOICE_IMPORT_FORMATS = ['INTER_FATURA_PDF'] as const
+export type InvoiceImportFormat = (typeof INVOICE_IMPORT_FORMATS)[number]
+
+export const INVOICE_IMPORT_FORMAT_LABELS: Record<InvoiceImportFormat, string> = {
+  INTER_FATURA_PDF: 'Banco Inter (PDF da fatura)',
+}
+
+export interface FaturaImportRowError {
+  lineNumber: number
+  message: string
+}
+
+export interface FaturaImportPreviewRow {
+  lineNumber: number
+  /** Hash da linha de origem. Devolvido inalterado na confirmação — é a chave de deduplicação. */
+  externalRef: string
+  date: string
+  description: string
+  amount: string
+  installmentNumber: number | null
+  totalInstallments: number | null
+  suggestedCategoryId: string | null
+  suggestedCategoryName: string | null
+  /** Já existe na fatura deste mês: veio de uma importação anterior. */
+  duplicate: boolean
+}
+
+/**
+ * Uma seção "CARTÃO ****XXXX" do PDF. Um PDF do Inter cobre o titular e os
+ * adicionais, então o cartão é escolhido por grupo, e não uma vez para o arquivo todo.
+ */
+export interface FaturaImportGroupPreview {
+  cardLast4: string
+  /** Cartão com os mesmos `last4Digits`. Null quando nenhum casou e o usuário precisa escolher. */
+  suggestedCreditCardId: string | null
+  suggestedCreditCardName: string | null
+  rows: FaturaImportPreviewRow[]
+}
+
+export interface FaturaImportPreviewResponse {
+  fileName: string
+  format: InvoiceImportFormat
+  dueDate: string
+  referenceMonth: string
+  totalAmount: string | null
+  groups: FaturaImportGroupPreview[]
+  totalRows: number
+  duplicateCount: number
+  /** Créditos (pagamento da fatura, estorno) descartados na leitura. */
+  excludedPaymentsCount: number
+  errors: FaturaImportRowError[]
+}
+
+export interface FaturaImportCommitRow {
+  lineNumber: number
+  creditCardId: string
+  /** Seção do PDF de onde a linha saiu. Compõe a identidade usada na deduplicação. */
+  cardLast4: string
+  externalRef: string
+  date: string
+  description: string
+  /**
+   * A descrição como o PDF a trouxe. Não vai para o lançamento — o servidor deriva dela
+   * a chave das parcelas seguintes, que precisa bater com o PDF do mês que vem.
+   */
+  originalDescription: string
+  amount: string
+  installmentNumber?: number | null
+  totalInstallments?: number | null
+  categoryId?: string | null
+}
+
+export interface FaturaImportCommitRequest {
+  format: InvoiceImportFormat
+  referenceMonth: string
+  /** Conta que recebe as transações de cartão — uma só para o arquivo inteiro. */
+  accountId: string
+  rows: FaturaImportCommitRow[]
+}
+
+export interface FaturaImportResultResponse {
+  imported: number
+  /** Parcelas seguintes geradas junto, nas faturas dos próximos meses. */
+  futureInstallments: number
+  skippedDuplicates: number
+  failed: number
+  errors: FaturaImportRowError[]
 }

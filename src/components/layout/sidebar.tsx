@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   Home,
@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Sun,
   Moon,
+  X,
 } from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
@@ -91,6 +92,22 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
   }
 
+  // Com o drawer aberto o conteúdo de trás continuava rolando; travamos o body
+  // e fechamos no Esc enquanto ele estiver visível.
+  useEffect(() => {
+    if (!open) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose?.()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open, onClose])
+
   return (
     <>
       {open && <div className="sidebar-overlay" aria-hidden="true" onClick={onClose} />}
@@ -101,6 +118,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             Cash Control
             <small>cashcontrol.app</small>
           </div>
+          <button
+            type="button"
+            className="sidebar-close btn btn-ghost btn-icon"
+            onClick={onClose}
+            aria-label="Fechar menu"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
         </div>
 
         <nav className="sidebar-nav" aria-label="Navegação principal">

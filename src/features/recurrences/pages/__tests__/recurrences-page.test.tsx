@@ -112,9 +112,9 @@ describe('RecurrencesPage', () => {
     await user.clear(screen.getByRole('textbox', { name: /valor/i }))
     await user.type(screen.getByRole('textbox', { name: /valor/i }), '99.90')
 
-    const accountIdInput = screen.getByRole('textbox', { name: /id da conta/i })
-    await user.clear(accountIdInput)
-    await user.type(accountIdInput, 'account-1')
+    const accountSelect = await screen.findByRole('combobox', { name: /conta/i })
+    await waitFor(() => expect(accountSelect.querySelectorAll('option').length).toBeGreaterThan(1))
+    await user.selectOptions(accountSelect, 'account-1')
 
     const startDateInput = screen.getByLabelText(/data de início/i)
     await user.clear(startDateInput)
@@ -159,13 +159,13 @@ describe('RecurrencesPage', () => {
     it('renders active status badge for active rules', async () => {
       renderWithProviders(<RecurrencesPage />)
       await waitFor(() => screen.getByText(MOCK_RECURRENCE_1.description))
-      expect(screen.getAllByText('Active').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Ativa').length).toBeGreaterThan(0)
     })
 
     it('renders paused status badge for paused rules', async () => {
       renderWithProviders(<RecurrencesPage />)
       await waitFor(() => screen.getByText(MOCK_RECURRENCE_2.description))
-      expect(screen.getByText('Paused')).toBeTruthy()
+      expect(screen.getByText('Pausada')).toBeTruthy()
     })
   })
 
@@ -180,8 +180,8 @@ describe('RecurrencesPage', () => {
       await user.click(pauseButtons[0])
 
       await waitFor(() => {
-        const activeBadges = screen.queryAllByText('Active')
-        const pausedBadges = screen.queryAllByText('Paused')
+        const activeBadges = screen.queryAllByText('Ativa')
+        const pausedBadges = screen.queryAllByText('Pausada')
         expect(pausedBadges.length).toBeGreaterThan(activeBadges.length)
       })
     })
@@ -196,7 +196,7 @@ describe('RecurrencesPage', () => {
       await user.click(resumeButton)
 
       await waitFor(() => {
-        const activeBadges = screen.queryAllByText('Active')
+        const activeBadges = screen.queryAllByText('Ativa')
         expect(activeBadges.length).toBeGreaterThanOrEqual(2)
       })
     })

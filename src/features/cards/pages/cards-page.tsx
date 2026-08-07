@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Receipt } from 'lucide-react'
+import { Plus, Receipt, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCards } from '@/features/cards/hooks/use-cards'
 import { useInvoice } from '@/features/cards/hooks/use-invoice'
@@ -12,6 +12,7 @@ import { CardSidebar } from '@/features/cards/components/card-sidebar'
 import { CreateCardDialog } from '@/features/cards/components/create-card-dialog'
 import { RecordChargeDialog } from '@/features/cards/components/record-charge-dialog'
 import { PayInvoiceDialog } from '@/features/cards/components/pay-invoice-dialog'
+import { ImportFaturaDialog } from '@/features/cards/components/import-fatura-dialog'
 
 function getBillingCycleMonth(closingDay: number): string {
   const today = new Date()
@@ -65,6 +66,7 @@ export default function CardsPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [chargeOpen, setChargeOpen] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
 
   const activeCards = cards?.filter((c) => !c.archivedAt) ?? []
   const selectedCard = activeCards.find((c) => c.id === selectedCardId) ?? activeCards[0] ?? null
@@ -100,6 +102,11 @@ export default function CardsPage() {
         </div>
         <div className="spacer" />
         <div className="actions">
+          {/* Não depende de selectedCard: um PDF de fatura pode cobrir vários cartões,
+              e é a própria leitura que diz quais. */}
+          <Button leading={<Upload size={14} />} onClick={() => setImportOpen(true)}>
+            Importar fatura
+          </Button>
           <Button
             leading={<Receipt size={14} />}
             onClick={() => setChargeOpen(true)}
@@ -187,6 +194,8 @@ export default function CardsPage() {
       )}
 
       <CreateCardDialog open={createOpen} onClose={() => setCreateOpen(false)} />
+
+      <ImportFaturaDialog open={importOpen} onClose={() => setImportOpen(false)} />
 
       <RecordChargeDialog
         cardId={selectedCard?.id ?? ''}

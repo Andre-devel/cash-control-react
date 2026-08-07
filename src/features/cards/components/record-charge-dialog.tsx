@@ -1,7 +1,8 @@
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import {
@@ -9,6 +10,8 @@ import {
   type RecordChargeFormValues,
 } from '@/features/cards/schemas/record-charge.schema'
 import { useRecordCharge } from '@/features/cards/hooks/use-record-charge'
+import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
+import { useCategories } from '@/features/categories/hooks/use-categories'
 
 const DEFAULT_VALUES: RecordChargeFormValues = {
   description: '',
@@ -25,11 +28,14 @@ interface RecordChargeDialogProps {
 
 export function RecordChargeDialog({ cardId, open, onClose }: RecordChargeDialogProps) {
   const { mutate: recordCharge, isPending } = useRecordCharge(cardId)
+  const { data: categories = [] } = useCategories()
 
   const form = useForm<RecordChargeFormValues>({
     resolver: zodResolver(recordChargeSchema),
     defaultValues: DEFAULT_VALUES,
   })
+
+  const description = form.watch('description')
 
   function onSubmit(data: RecordChargeFormValues) {
     const payload = {
@@ -102,16 +108,28 @@ export function RecordChargeDialog({ cardId, open, onClose }: RecordChargeDialog
         </Field>
 
         <Field label="Valor" error={form.formState.errors.amount?.message}>
-          <Input placeholder="ex: 150.00" {...form.register('amount')} />
+          <MoneyInput placeholder="ex: 150,00" {...form.register('amount')} />
         </Field>
 
         <Field label="Data" error={form.formState.errors.date?.message}>
           <Input type="date" {...form.register('date')} />
         </Field>
 
-        <Field label="Categoria (opcional)" error={form.formState.errors.categoryId?.message}>
-          <Input placeholder="UUID da categoria" {...form.register('categoryId')} />
-        </Field>
+        <Controller
+          control={form.control}
+          name="categoryId"
+          render={({ field, fieldState }) => (
+            <Field label="Categoria (opcional)" error={fieldState.error?.message}>
+              <CategoryPickerCombobox
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                categories={categories}
+                description={description}
+                aria-label="Categoria"
+              />
+            </Field>
+          )}
+        />
       </form>
     </Modal>
   )
