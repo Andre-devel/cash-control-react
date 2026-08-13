@@ -5,7 +5,7 @@ import { resolve } from 'path'
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
+    environment: './src/test/environments/jsdom-node-fetch.ts',
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
     coverage: {
