@@ -42,7 +42,7 @@ export function useLogin() {
         errorCode: error.errorCode,
         status: error.status,
       })
-      toast.error('Credenciais inválidas. Tente novamente.')
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },
   })
 }
