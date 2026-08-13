@@ -81,7 +81,7 @@ describe('use-login', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true))
 
-    expect(toast.error).toHaveBeenCalledWith('Credenciais inválidas. Tente novamente.')
+    expect(toast.error).toHaveBeenCalledWith('Credenciais inválidas.', undefined)
   })
 
   it('does not set token on failed login', async () => {
@@ -120,7 +120,7 @@ describe('use-login', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true))
 
-    expect(toast.error).toHaveBeenCalledWith('Credenciais inválidas. Tente novamente.')
+    expect(toast.error).toHaveBeenCalledWith('Too many requests.', undefined)
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
   })
 
@@ -136,7 +136,7 @@ describe('use-login', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true))
 
-    expect(toast.error).toHaveBeenCalledWith('Credenciais inválidas. Tente novamente.')
+    expect(toast.error).toHaveBeenCalledWith('Ocorreu um erro inesperado.', undefined)
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
   })
 

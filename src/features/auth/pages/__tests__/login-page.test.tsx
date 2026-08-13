@@ -93,7 +93,7 @@ describe('LoginPage', () => {
 
     await waitFor(
       () => {
-        expect(toast.error).toHaveBeenCalledWith('Credenciais inválidas. Tente novamente.')
+        expect(toast.error).toHaveBeenCalledWith('Credenciais inválidas.', undefined)
       },
       { timeout: 5000 },
     )

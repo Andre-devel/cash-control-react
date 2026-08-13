@@ -90,8 +90,8 @@ export const handlers = [
 
     return HttpResponse.json(
       {
-        errorCode: 'INVALID_CREDENTIALS',
-        message: 'An unexpected error occurred.',
+        errorCode: 'UNAUTHORIZED',
+        message: 'Credenciais inválidas.',
         correlationId: 'test-correlation-id',
       },
       { status: 401 },
