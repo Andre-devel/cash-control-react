@@ -2,13 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { AxiosError } from 'axios'
 import { normalizeError } from '../axios.instance'
 
+const clearSession = vi.fn()
+
 // Mock the dynamic imports used inside handle401 so the interceptor tests
 // stay synchronous and isolated.
 vi.mock('@/features/auth/store/auth.store', () => ({
   useAuthStore: {
     getState: vi.fn(() => ({
       token: null,
-      clearSession: vi.fn(),
+      clearSession,
     })),
   },
 }))
@@ -51,6 +53,53 @@ function makeAxiosError(overrides: Partial<AxiosError> = {}): AxiosError {
 
 beforeEach(() => {
   vi.clearAllMocks()
+})
+
+describe('response interceptor 401 handling', () => {
+  async function fireRequest(url: string) {
+    const { axiosInstance } = await import('../axios.instance')
+    try {
+      await axiosInstance.get(url, {
+        adapter: (config) =>
+          Promise.reject({
+            isAxiosError: true,
+            name: 'AxiosError',
+            message: 'Request failed with status code 401',
+            config,
+            response: {
+              status: 401,
+              data: { errorCode: 'UNAUTHORIZED', message: 'Credenciais inválidas' },
+            },
+          } as unknown as AxiosError),
+      })
+    } catch {
+      // expected — the interceptor always rejects
+    }
+    // let the fire-and-forget handle401() promise chain settle
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  }
+
+  it('treats a 401 from /auth/login as invalid credentials, not session expiry', async () => {
+    const { toast } = await import('@/lib/toast')
+    const { router } = await import('@/app/router/router')
+
+    await fireRequest('/auth/login')
+
+    expect(clearSession).not.toHaveBeenCalled()
+    expect(router.navigate).not.toHaveBeenCalled()
+    expect(toast.warn).not.toHaveBeenCalled()
+  })
+
+  it('still treats a 401 from other endpoints as session expiry', async () => {
+    const { toast } = await import('@/lib/toast')
+    const { router } = await import('@/app/router/router')
+
+    await fireRequest('/accounts')
+
+    expect(clearSession).toHaveBeenCalled()
+    expect(router.navigate).toHaveBeenCalledWith('/login', { replace: true })
+    expect(toast.warn).toHaveBeenCalled()
+  })
 })
 
 describe('normalizeError', () => {

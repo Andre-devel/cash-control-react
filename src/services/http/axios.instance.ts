@@ -22,6 +22,9 @@ function getAuthStore() {
 // De-duplication flag for concurrent 401 responses
 let isHandling401 = false
 
+// A 401 here means "wrong credentials", not "session expired" — there's no session yet
+const AUTH_ENDPOINTS_EXEMPT_FROM_401_HANDLING = ['/auth/login']
+
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     const store = await getAuthStore()
@@ -38,8 +41,11 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const normalized = normalizeError(error)
+    const isExemptEndpoint = AUTH_ENDPOINTS_EXEMPT_FROM_401_HANDLING.some((path) =>
+      normalized.path?.includes(path),
+    )
 
-    if (normalized.status === 401 && !isHandling401) {
+    if (normalized.status === 401 && !isExemptEndpoint && !isHandling401) {
       isHandling401 = true
       handle401(normalized.correlationId).finally(() => {
         setTimeout(() => {
