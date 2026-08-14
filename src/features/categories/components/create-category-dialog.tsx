@@ -13,7 +13,6 @@ import {
 import { useCreateCategory } from '@/features/categories/hooks/use-create-category'
 import { setFormErrors } from '@/lib/form-errors'
 import { useCategories } from '@/features/categories/hooks/use-categories'
-import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 
 const DEFAULT_VALUES: CreateCategoryFormValues = {
   name: '',
@@ -57,8 +56,7 @@ export function CreateCategoryDialog({ open, onClose }: CreateCategoryDialogProp
     onClose()
   }
 
-  const rootCategories = (categories ?? []).filter((c) => !c.isArchived && !c.isDefault)
-  const allFlatCategories = flattenCategories(rootCategories)
+  const parentOptions = (categories ?? []).filter((c) => !c.isArchived && c.parentId == null)
 
   if (!open) return null
 
@@ -132,11 +130,11 @@ export function CreateCategoryDialog({ open, onClose }: CreateCategoryDialogProp
           />
         </Field>
 
-        {allFlatCategories.length > 0 && (
+        {parentOptions.length > 0 && (
           <Field label="Categoria pai (opcional)" error={form.formState.errors.parentId?.message}>
             <select className="input" aria-label="Categoria pai" {...form.register('parentId')}>
               <option value="">Nenhuma</option>
-              {allFlatCategories.map((cat) => (
+              {parentOptions.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>

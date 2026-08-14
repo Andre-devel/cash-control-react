@@ -13,7 +13,6 @@ import {
 } from '@/features/categories/schemas/create-category.schema'
 import { useUpdateCategory } from '@/features/categories/hooks/use-update-category'
 import { useCategories } from '@/features/categories/hooks/use-categories'
-import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 import type { Category } from '@/features/categories/types'
 
 interface EditCategoryDialogProps {
@@ -67,10 +66,9 @@ export function EditCategoryDialog({ category, open, onClose }: EditCategoryDial
     onClose()
   }
 
-  const rootCategories = (categories ?? []).filter(
-    (c) => !c.isArchived && !c.isDefault && c.id !== category?.id,
+  const parentOptions = (categories ?? []).filter(
+    (c) => !c.isArchived && c.parentId == null && c.id !== category?.id,
   )
-  const allFlatCategories = flattenCategories(rootCategories).filter((c) => c.id !== category?.id)
 
   if (!open) return null
 
@@ -142,7 +140,7 @@ export function EditCategoryDialog({ category, open, onClose }: EditCategoryDial
         <Field label="Categoria pai (opcional)" error={form.formState.errors.parentId?.message}>
           <select className="input" aria-label="Categoria pai" {...form.register('parentId')}>
             <option value="">Nenhuma</option>
-            {allFlatCategories.map((cat) => (
+            {parentOptions.map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}
               </option>
