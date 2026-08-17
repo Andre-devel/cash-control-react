@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
+import { CreateCategoryDialog } from '@/features/categories/components/create-category-dialog'
+import type { Category } from '@/features/categories/types'
+
+/** Sentinela do `<option>` que abre o cadastro rápido — nunca colide com um id real. */
+const CREATE_CATEGORY_OPTION = '__create-category__'
 
 /**
  * Célula que só vira campo quando clicada.
@@ -115,6 +120,7 @@ export function EditableCategoryCell({
   onChange,
 }: EditableCategoryCellProps) {
   const [editing, setEditing] = useState(false)
+  const [creating, setCreating] = useState(false)
   const selectRef = useRef<HTMLSelectElement>(null)
 
   useEffect(() => {
@@ -124,50 +130,80 @@ export function EditableCategoryCell({
   const current = categories.find((category) => category.id === value)
   const displayName = current?.name ?? (value !== null ? fallbackName : null)
 
+  function handleSelectChange(newValue: string) {
+    if (newValue === CREATE_CATEGORY_OPTION) {
+      setCreating(true)
+      return
+    }
+    onChange(newValue || null)
+  }
+
+  function handleCategoryCreated(category: Category) {
+    onChange(category.id)
+    setEditing(false)
+  }
+
+  // O diálogo de criação fica montado independente de `editing`: fechar a célula ao
+  // perder o foco (por causa do modal por cima) não pode cancelar a criação em curso.
+  const createDialog = creating && (
+    <CreateCategoryDialog
+      open={creating}
+      onClose={() => setCreating(false)}
+      onCreated={handleCategoryCreated}
+    />
+  )
+
   if (!editing) {
     return (
-      <button
-        type="button"
-        aria-label={label}
-        onClick={() => setEditing(true)}
-        style={{
-          background: 'none',
-          border: 0,
-          padding: 0,
-          font: 'inherit',
-          color: displayName ? 'inherit' : 'var(--text-faint)',
-          textAlign: 'left',
-          cursor: 'pointer',
-          borderBottom: '1px dashed var(--border)',
-        }}
-      >
-        {displayName ?? 'sem categoria'}
-      </button>
+      <>
+        <button
+          type="button"
+          aria-label={label}
+          onClick={() => setEditing(true)}
+          style={{
+            background: 'none',
+            border: 0,
+            padding: 0,
+            font: 'inherit',
+            color: displayName ? 'inherit' : 'var(--text-faint)',
+            textAlign: 'left',
+            cursor: 'pointer',
+            borderBottom: '1px dashed var(--border)',
+          }}
+        >
+          {displayName ?? 'sem categoria'}
+        </button>
+        {createDialog}
+      </>
     )
   }
 
   return (
-    <Select
-      ref={selectRef}
-      aria-label={label}
-      value={value ?? ''}
-      onChange={(e) => onChange(e.target.value || null)}
-      onBlur={() => setEditing(false)}
-      onKeyDown={(e) => {
-        // Mesma armadilha do campo de texto: o Escape fecharia o Modal inteiro.
-        if (e.key === 'Escape') {
-          e.stopPropagation()
-          setEditing(false)
-        }
-      }}
-      style={{ minWidth: 160 }}
-    >
-      <option value="">sem categoria</option>
-      {categories.map((category) => (
-        <option key={category.id} value={category.id}>
-          {category.name}
-        </option>
-      ))}
-    </Select>
+    <>
+      <Select
+        ref={selectRef}
+        aria-label={label}
+        value={value ?? ''}
+        onChange={(e) => handleSelectChange(e.target.value)}
+        onBlur={() => setEditing(false)}
+        onKeyDown={(e) => {
+          // Mesma armadilha do campo de texto: o Escape fecharia o Modal inteiro.
+          if (e.key === 'Escape') {
+            e.stopPropagation()
+            setEditing(false)
+          }
+        }}
+        style={{ minWidth: 160 }}
+      >
+        <option value="">sem categoria</option>
+        {categories.map((category) => (
+          <option key={category.id} value={category.id}>
+            {category.name}
+          </option>
+        ))}
+        <option value={CREATE_CATEGORY_OPTION}>+ Nova categoria…</option>
+      </Select>
+      {createDialog}
+    </>
   )
 }

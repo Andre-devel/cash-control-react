@@ -1,6 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
+/**
+ * Pilha dos modais montados no momento, do mais antigo ao mais recente. Existe porque
+ * um modal pode abrir outro por cima dele (ex.: cadastro rápido de categoria dentro da
+ * importação) — sem isso, Esc fecharia os dois de uma vez, já que cada instância escuta
+ * `keydown` no `document`.
+ */
+const modalStack: string[] = []
+
 interface ModalProps {
   title: string
   subtitle?: ReactNode
@@ -47,8 +55,18 @@ export function Modal({
   }, [])
 
   useEffect(() => {
+    const id = idRef.current
+    modalStack.push(id)
+    return () => {
+      const index = modalStack.indexOf(id)
+      if (index !== -1) modalStack.splice(index, 1)
+    }
+  }, [])
+
+  useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      // Só o modal do topo da pilha reage: com dois abertos, Esc deve fechar o de cima.
+      if (e.key === 'Escape' && modalStack[modalStack.length - 1] === idRef.current) onClose()
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)

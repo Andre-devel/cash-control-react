@@ -13,6 +13,7 @@ import {
 import { useCreateCategory } from '@/features/categories/hooks/use-create-category'
 import { setFormErrors } from '@/lib/form-errors'
 import { useCategories } from '@/features/categories/hooks/use-categories'
+import type { Category } from '@/features/categories/types'
 
 const DEFAULT_VALUES: CreateCategoryFormValues = {
   name: '',
@@ -24,9 +25,12 @@ const DEFAULT_VALUES: CreateCategoryFormValues = {
 interface CreateCategoryDialogProps {
   open: boolean
   onClose: () => void
+  /** Chamado com a categoria recém-criada, antes de `onClose` — usado por quem abre
+   *  este diálogo por cima de outro fluxo (ex.: importação) e precisa selecioná-la. */
+  onCreated?: (category: Category) => void
 }
 
-export function CreateCategoryDialog({ open, onClose }: CreateCategoryDialogProps) {
+export function CreateCategoryDialog({ open, onClose, onCreated }: CreateCategoryDialogProps) {
   const { data: categories } = useCategories()
 
   const form = useForm<CreateCategoryFormValues>({
@@ -44,8 +48,9 @@ export function CreateCategoryDialog({ open, onClose }: CreateCategoryDialogProp
       parentId: data.parentId === '' ? undefined : data.parentId,
     }
     createCategory(payload, {
-      onSuccess: () => {
+      onSuccess: (category) => {
         form.reset(DEFAULT_VALUES)
+        onCreated?.(category)
         onClose()
       },
     })
