@@ -1,4 +1,5 @@
-import { useEffect, useRef, type ChangeEvent } from 'react'
+import { useEffect, useRef } from 'react'
+import { CategoryCombobox } from '@/features/categories/components/category-combobox'
 import { useSuggestCategory } from '@/features/categories/hooks/use-suggest-category'
 import type { Category } from '@/features/categories/types'
 
@@ -13,17 +14,10 @@ interface CategoryPickerComboboxProps {
   disabled?: boolean
 }
 
-function flatWithDepth(categories: Category[], depth = 0): Array<{ cat: Category; depth: number }> {
-  const result: Array<{ cat: Category; depth: number }> = []
-  for (const cat of categories) {
-    result.push({ cat, depth })
-    if (cat.subcategories && cat.subcategories.length > 0) {
-      result.push(...flatWithDepth(cat.subcategories, depth + 1))
-    }
-  }
-  return result
-}
-
+/**
+ * Seletor de categoria dos formulários: o mesmo popover agrupado de [[CategoryCombobox]],
+ * mais a sugestão automática a partir da descrição digitada.
+ */
 export function CategoryPickerCombobox({
   value,
   onChange,
@@ -43,39 +37,29 @@ export function CategoryPickerCombobox({
     }
   }, [suggested, value, onChange])
 
-  function handleChange(e: ChangeEvent<HTMLSelectElement>) {
+  function handleChange(categoryId: string | null) {
     userOverrodeRef.current = true
-    onChange(e.target.value)
+    onChange(categoryId ?? '')
   }
 
-  const isSuggested = suggested && suggested.id === value
-  const flatCategories = flatWithDepth(categories)
+  const isSuggested = Boolean(suggested && suggested.id === value)
 
   return (
-    <div className="space-y-1">
-      <select
-        value={value}
-        onChange={handleChange}
-        disabled={disabled}
-        aria-label={ariaLabel ?? 'Category'}
-        aria-invalid={ariaInvalid}
-        className={`select${className ? ` ${className}` : ''}`}
-      >
-        <option value="">Selecione uma categoria</option>
-        {flatCategories.map(({ cat, depth }) => (
-          <option key={cat.id} value={cat.id}>
-            {' '.repeat(depth * 3)}
-            {depth > 0 ? '↳ ' : ''}
-            {cat.name}
-          </option>
-        ))}
-      </select>
-
-      {isSuggested && (
-        <p className="text-xs text-dim" aria-live="polite">
-          Sugerida automaticamente pela descrição
-        </p>
-      )}
-    </div>
+    <CategoryCombobox
+      value={value || null}
+      onChange={handleChange}
+      categories={categories}
+      className={className}
+      disabled={disabled}
+      aria-label={ariaLabel ?? 'Categoria'}
+      aria-invalid={ariaInvalid}
+      emptyLabel="Sem categoria"
+      placeholder="Selecione uma categoria"
+      hint={
+        isSuggested ? (
+          <span aria-live="polite">Sugerida automaticamente pela descrição</span>
+        ) : undefined
+      }
+    />
   )
 }

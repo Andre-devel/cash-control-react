@@ -138,7 +138,9 @@ describe('ImportStatementDialog', () => {
     expect(screen.getByText('Pix Marketplace')).toBeInTheDocument()
     expect(screen.getByText('Dias E Damasceno Ltda')).toBeInTheDocument()
     expect(screen.getByText('Tarifa Cesta B')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /categoria da linha 7/i })).toHaveTextContent('Food')
+    expect(screen.getByRole('combobox', { name: /categoria da linha 7/i })).toHaveTextContent(
+      'Food',
+    )
     expect(screen.getByText(/323236715/)).toBeInTheDocument()
   })
 
@@ -249,14 +251,15 @@ describe('ImportStatementDialog — edição na prévia', () => {
     await user.type(input, `${value}{Enter}`)
   }
 
+  /** O seletor é um popover: abre no gatilho da linha e escolhe a opção pelo nome. */
   async function pickCategory(
     user: ReturnType<typeof userEvent.setup>,
     lineNumber: number,
-    categoryId: string,
+    categoryName: string,
   ) {
     const label = new RegExp(`categoria da linha ${lineNumber}`, 'i')
-    await user.click(screen.getByRole('button', { name: label }))
-    await user.selectOptions(screen.getByRole('combobox', { name: label }), categoryId)
+    await user.click(screen.getByRole('combobox', { name: label }))
+    await user.click(await screen.findByRole('option', { name: categoryName }))
   }
 
   it('sends the edited description instead of the one read from the file', async () => {
@@ -327,7 +330,7 @@ describe('ImportStatementDialog — edição na prévia', () => {
     renderDialog()
     await reachPreview(user)
 
-    await pickCategory(user, 9, 'cat-3')
+    await pickCategory(user, 9, 'Restaurant')
     await user.click(within(screen.getByTestId('import-row-7')).getByRole('checkbox'))
     await user.click(screen.getByRole('button', { name: /importar 1 transações/i }))
 
@@ -343,7 +346,7 @@ describe('ImportStatementDialog — edição na prévia', () => {
     renderDialog()
     await reachPreview(user)
 
-    await pickCategory(user, 7, '')
+    await pickCategory(user, 7, 'sem categoria')
     await user.click(within(screen.getByTestId('import-row-9')).getByRole('checkbox'))
     await user.click(screen.getByRole('button', { name: /importar 1 transações/i }))
 
@@ -366,7 +369,7 @@ describe('ImportStatementDialog — edição na prévia', () => {
     await user.click(screen.getByRole('button', { name: /analisar arquivo/i }))
     await waitFor(() => expect(screen.getAllByText('Sorveteka Penapolis Bra')).toHaveLength(2))
 
-    await pickCategory(user, 10, 'cat-1')
+    await pickCategory(user, 10, 'Food')
     await user.click(screen.getByRole('button', { name: /aplicar a \+1 iguais/i }))
 
     await user.click(screen.getByRole('button', { name: /importar 3 transações/i }))
@@ -384,7 +387,7 @@ describe('ImportStatementDialog — edição na prévia', () => {
     renderDialog()
     await reachPreview(user)
 
-    await pickCategory(user, 9, 'cat-3')
+    await pickCategory(user, 9, 'Restaurant')
 
     expect(screen.queryByRole('button', { name: /aplicar a \+/i })).toBeNull()
   })

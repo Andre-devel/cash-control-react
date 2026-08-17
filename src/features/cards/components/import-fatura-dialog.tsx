@@ -10,7 +10,6 @@ import { Money } from '@/components/ui/money'
 import { useCards } from '@/features/cards/hooks/use-cards'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { useCategories } from '@/features/categories/hooks/use-categories'
-import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 import {
   EditableCategoryCell,
   EditableTextCell,
@@ -51,7 +50,6 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   const { data: allAccounts = [] } = useAccounts()
   const accounts = useMemo(() => allAccounts.filter((a) => !a.archivedAt), [allAccounts])
   const { data: categories = [] } = useCategories()
-  const flatCategories = useMemo(() => flattenCategories(categories), [categories])
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [format, setFormat] = useState<InvoiceImportFormat>('INTER_FATURA_PDF')
@@ -358,7 +356,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                           <EditableCategoryCell
                             value={categoryIdOf(row)}
                             label={`Categoria da linha ${row.lineNumber}`}
-                            categories={flatCategories}
+                            categories={categories}
                             fallbackName={
                               categoryIdOf(row) === row.suggestedCategoryId
                                 ? row.suggestedCategoryName

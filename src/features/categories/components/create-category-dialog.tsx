@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -28,15 +29,39 @@ interface CreateCategoryDialogProps {
   /** Chamado com a categoria recém-criada, antes de `onClose` — usado por quem abre
    *  este diálogo por cima de outro fluxo (ex.: importação) e precisa selecioná-la. */
   onCreated?: (category: Category) => void
+  /** Nome já digitado no seletor que abriu este diálogo. */
+  defaultName?: string
+  /** Pai pré-escolhido — quem cria a partir de um grupo do seletor já sabe onde quer. */
+  defaultParentId?: string
 }
 
-export function CreateCategoryDialog({ open, onClose, onCreated }: CreateCategoryDialogProps) {
+export function CreateCategoryDialog({
+  open,
+  onClose,
+  onCreated,
+  defaultName,
+  defaultParentId,
+}: CreateCategoryDialogProps) {
   const { data: categories } = useCategories()
+
+  const initialValues: CreateCategoryFormValues = {
+    ...DEFAULT_VALUES,
+    name: defaultName ?? '',
+    parentId: defaultParentId,
+  }
 
   const form = useForm<CreateCategoryFormValues>({
     resolver: zodResolver(createCategorySchema),
-    defaultValues: DEFAULT_VALUES,
+    defaultValues: initialValues,
   })
+
+  // A tela de categorias mantém este diálogo montado e só alterna `open`; sem isto, um
+  // nome ou pai vindo por prop só valeria na primeira abertura.
+  useEffect(() => {
+    if (open) {
+      form.reset({ ...DEFAULT_VALUES, name: defaultName ?? '', parentId: defaultParentId })
+    }
+  }, [open, defaultName, defaultParentId, form])
 
   const { mutate: createCategory, isPending } = useCreateCategory({
     onFieldError: (error) => setFormErrors(error, form.setError),

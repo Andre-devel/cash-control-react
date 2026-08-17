@@ -10,7 +10,6 @@ import { Money } from '@/components/ui/money'
 import { TypeBadge } from '@/components/ui/type-badge'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { useCategories } from '@/features/categories/hooks/use-categories'
-import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 import {
   EditableCategoryCell,
   EditableTextCell,
@@ -59,7 +58,6 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
   const { data: allAccounts = [] } = useAccounts()
   const accounts = useMemo(() => allAccounts.filter((a) => !a.archivedAt), [allAccounts])
   const { data: categories = [] } = useCategories()
-  const flatCategories = useMemo(() => flattenCategories(categories), [categories])
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [accountId, setAccountId] = useState('')
@@ -329,7 +327,7 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                         <EditableCategoryCell
                           value={categoryIdOf(row)}
                           label={`Categoria da linha ${row.lineNumber}`}
-                          categories={flatCategories}
+                          categories={categories}
                           fallbackName={
                             categoryIdOf(row) === row.suggestedCategoryId
                               ? row.suggestedCategoryName

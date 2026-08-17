@@ -1,19 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
-import { CreateCategoryDialog } from '@/features/categories/components/create-category-dialog'
+import { CategoryCombobox } from '@/features/categories/components/category-combobox'
 import type { Category } from '@/features/categories/types'
-
-/** Sentinela do `<option>` que abre o cadastro rápido — nunca colide com um id real. */
-const CREATE_CATEGORY_OPTION = '__create-category__'
 
 /**
  * Célula que só vira campo quando clicada.
  *
- * Um extrato de dois anos tem ~700 linhas; renderizar um input e um select em cada
- * uma significaria mais de mil controles de formulário no DOM — e, no caso do select
- * de categorias, dezenas de milhares de `<option>`. Editar sob demanda mantém a
- * tabela leve e não muda nada para quem só quer conferir e confirmar.
+ * Um extrato de dois anos tem ~700 linhas; renderizar um input em cada uma significaria
+ * centenas de controles de formulário no DOM. Editar sob demanda mantém a tabela leve e
+ * não muda nada para quem só quer conferir e confirmar.
  */
 interface EditableTextCellProps {
   value: string
@@ -94,15 +89,11 @@ export function EditableTextCell({ value, label, onChange, edited }: EditableTex
   )
 }
 
-interface CategoryOption {
-  id: string
-  name: string
-}
-
 interface EditableCategoryCellProps {
   value: string | null
   label: string
-  categories: CategoryOption[]
+  /** Árvore de categorias — o seletor mostra raízes e subcategorias separadas. */
+  categories: Category[]
   /**
    * Nome que a prévia já trouxe para a categoria sugerida. Serve enquanto a lista de
    * categorias não terminou de carregar: sem ele, a linha mostraria "sem categoria"
@@ -119,91 +110,17 @@ export function EditableCategoryCell({
   fallbackName,
   onChange,
 }: EditableCategoryCellProps) {
-  const [editing, setEditing] = useState(false)
-  const [creating, setCreating] = useState(false)
-  const selectRef = useRef<HTMLSelectElement>(null)
-
-  useEffect(() => {
-    if (editing) selectRef.current?.focus()
-  }, [editing])
-
-  const current = categories.find((category) => category.id === value)
-  const displayName = current?.name ?? (value !== null ? fallbackName : null)
-
-  function handleSelectChange(newValue: string) {
-    if (newValue === CREATE_CATEGORY_OPTION) {
-      setCreating(true)
-      return
-    }
-    onChange(newValue || null)
-  }
-
-  function handleCategoryCreated(category: Category) {
-    onChange(category.id)
-    setEditing(false)
-  }
-
-  // O diálogo de criação fica montado independente de `editing`: fechar a célula ao
-  // perder o foco (por causa do modal por cima) não pode cancelar a criação em curso.
-  const createDialog = creating && (
-    <CreateCategoryDialog
-      open={creating}
-      onClose={() => setCreating(false)}
-      onCreated={handleCategoryCreated}
-    />
-  )
-
-  if (!editing) {
-    return (
-      <>
-        <button
-          type="button"
-          aria-label={label}
-          onClick={() => setEditing(true)}
-          style={{
-            background: 'none',
-            border: 0,
-            padding: 0,
-            font: 'inherit',
-            color: displayName ? 'inherit' : 'var(--text-faint)',
-            textAlign: 'left',
-            cursor: 'pointer',
-            borderBottom: '1px dashed var(--border)',
-          }}
-        >
-          {displayName ?? 'sem categoria'}
-        </button>
-        {createDialog}
-      </>
-    )
-  }
-
+  // Ao contrário das outras células, esta não precisa do clique-para-editar: o gatilho é
+  // só um botão, e a lista (com busca e cadastro rápido) só monta quando é aberta.
   return (
-    <>
-      <Select
-        ref={selectRef}
-        aria-label={label}
-        value={value ?? ''}
-        onChange={(e) => handleSelectChange(e.target.value)}
-        onBlur={() => setEditing(false)}
-        onKeyDown={(e) => {
-          // Mesma armadilha do campo de texto: o Escape fecharia o Modal inteiro.
-          if (e.key === 'Escape') {
-            e.stopPropagation()
-            setEditing(false)
-          }
-        }}
-        style={{ minWidth: 160 }}
-      >
-        <option value="">sem categoria</option>
-        {categories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
-          </option>
-        ))}
-        <option value={CREATE_CATEGORY_OPTION}>+ Nova categoria…</option>
-      </Select>
-      {createDialog}
-    </>
+    <CategoryCombobox
+      variant="inline"
+      aria-label={label}
+      value={value}
+      categories={categories}
+      fallbackName={fallbackName}
+      emptyLabel="sem categoria"
+      onChange={onChange}
+    />
   )
 }

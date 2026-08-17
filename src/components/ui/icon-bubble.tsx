@@ -7,12 +7,22 @@ interface IconBubbleProps {
   icon?: ComponentType<{ size?: number; stroke?: number }>
   size?: IconBubbleSize
   glyph?: ReactNode
+  /** Um ícone-emoji vira texto no nome acessível de quem o envolve; some com ele
+   *  quando o rótulo ao lado já diz a mesma coisa. */
+  'aria-hidden'?: boolean
 }
 
-export function IconBubble({ color = '#7c5cff', icon: Icon, size = 'md', glyph }: IconBubbleProps) {
+export function IconBubble({
+  color = '#7c5cff',
+  icon: Icon,
+  size = 'md',
+  glyph,
+  'aria-hidden': ariaHidden,
+}: IconBubbleProps) {
   const sizeClass = size !== 'md' ? ` ${size}` : ''
   return (
     <span
+      aria-hidden={ariaHidden}
       className={`icon-bubble${sizeClass}`}
       style={
         {

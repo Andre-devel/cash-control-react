@@ -277,9 +277,9 @@ describe('ImportFaturaDialog', () => {
     renderDialog()
     await reachPreview(user)
 
-    const label = /categoria da linha 70/i
-    await user.click(screen.getByRole('button', { name: label }))
-    await user.selectOptions(screen.getByRole('combobox', { name: label }), 'cat-3')
+    // O seletor de categoria é um popover: abre no gatilho da linha e escolhe pelo nome.
+    await user.click(screen.getByRole('combobox', { name: /categoria da linha 70/i }))
+    await user.click(await screen.findByRole('option', { name: 'Restaurant' }))
 
     await user.selectOptions(
       screen.getByRole('combobox', { name: /cartão da seção 9999/i }),
@@ -340,9 +340,8 @@ describe('ImportFaturaDialog', () => {
     renderDialog()
     await reachPreview(user)
 
-    const label = /categoria da linha 59/i
-    await user.click(screen.getByRole('button', { name: label }))
-    await user.selectOptions(screen.getByRole('combobox', { name: label }), '')
+    await user.click(screen.getByRole('combobox', { name: /categoria da linha 59/i }))
+    await user.click(await screen.findByRole('option', { name: 'sem categoria' }))
 
     await user.click(within(screen.getByTestId('fatura-row-70')).getByRole('checkbox'))
     await user.click(screen.getByRole('button', { name: /importar 1 lançamentos/i }))
