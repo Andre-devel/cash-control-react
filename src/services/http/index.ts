@@ -1,1 +1,1 @@
-export { axiosInstance, normalizeError } from './axios.instance'
+export { axiosInstance, normalizeError, refreshAccessToken } from './axios.instance'

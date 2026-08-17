@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import { logger, LOG_EVENTS } from '@/lib/logger'
+import { requestTokenRefresh } from './refresh-client'
 import type { NormalizedError } from '@/features/auth/types'
 
 const REQUEST_TIMEOUT_MS = 15_000
@@ -8,6 +9,9 @@ const REQUEST_TIMEOUT_MS = 15_000
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
   timeout: REQUEST_TIMEOUT_MS,
+  // Carries the httpOnly refresh cookie, which the browser withholds by default
+  // when the API sits on a different port than the dev server.
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,8 +26,31 @@ function getAuthStore() {
 // De-duplication flag for concurrent 401 responses
 let isHandling401 = false
 
+// A single refresh serves every request that raced into a 401 together
+let refreshPromise: Promise<string> | null = null
+
+interface RetryableConfig extends InternalAxiosRequestConfig {
+  retriedAfterRefresh?: boolean
+}
+
 // A 401 here means "wrong credentials", not "session expired" — there's no session yet
 const AUTH_ENDPOINTS_EXEMPT_FROM_401_HANDLING = ['/auth/login']
+
+/** Renews the access token, collapsing concurrent callers onto one request. */
+export function refreshAccessToken(): Promise<string> {
+  refreshPromise ??= requestTokenRefresh()
+    .then(async (accessToken) => {
+      const { setToken } = await getAuthStore()
+      setToken(accessToken)
+      logger.log({ event: LOG_EVENTS.SESSION_REFRESHED })
+      return accessToken
+    })
+    .finally(() => {
+      refreshPromise = null
+    })
+
+  return refreshPromise
+}
 
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
@@ -41,13 +68,33 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const normalized = normalizeError(error)
+    const config = error.config as RetryableConfig | undefined
     const isExemptEndpoint = AUTH_ENDPOINTS_EXEMPT_FROM_401_HANDLING.some((path) =>
       normalized.path?.includes(path),
     )
 
-    if (normalized.status === 401 && !isExemptEndpoint && !isHandling401) {
+    if (normalized.status !== 401 || isExemptEndpoint) {
+      return Promise.reject(normalized)
+    }
+
+    const { token } = await getAuthStore()
+    const canRetry = Boolean(config) && !config?.retriedAfterRefresh && Boolean(token)
+
+    if (canRetry) {
+      const retryConfig = config as RetryableConfig
+      retryConfig.retriedAfterRefresh = true
+      try {
+        await refreshAccessToken()
+        // The request interceptor picks up the token that refresh just stored
+        return await axiosInstance.request(retryConfig)
+      } catch {
+        // Fall through to the session-expired path below
+      }
+    }
+
+    if (!isHandling401) {
       isHandling401 = true
-      handle401(normalized.correlationId).finally(() => {
+      endSession(normalized.correlationId).finally(() => {
         setTimeout(() => {
           isHandling401 = false
         }, 0)
@@ -58,7 +105,7 @@ axiosInstance.interceptors.response.use(
   },
 )
 
-async function handle401(correlationId: string): Promise<void> {
+async function endSession(correlationId: string): Promise<void> {
   logger.log({ event: LOG_EVENTS.SESSION_EXPIRED })
 
   const { clearSession } = await getAuthStore()

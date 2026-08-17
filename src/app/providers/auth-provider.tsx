@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/store/auth.store'
 import { getMeApi } from '@/features/auth/api/auth.api'
+import {
+  startTokenRefreshScheduler,
+  stopTokenRefreshScheduler,
+} from '@/features/auth/utils/refresh-scheduler'
+import { refreshAccessToken } from '@/services/http'
 import { isJwtExpired } from '@/lib/jwt'
 import { logger, LOG_EVENTS } from '@/lib/logger'
 import { ROUTES } from '@/app/router/routes'
@@ -16,7 +21,19 @@ export function AuthProvider() {
   useEffect(() => {
     async function init() {
       if (token) {
-        if (isJwtExpired(token)) {
+        // An expired access token is recoverable while the refresh cookie lives,
+        // so try renewing before treating the session as over.
+        let usable = !isJwtExpired(token)
+        if (!usable) {
+          try {
+            await refreshAccessToken()
+            usable = true
+          } catch {
+            usable = false
+          }
+        }
+
+        if (!usable) {
           logger.log({ event: LOG_EVENTS.SESSION_EXPIRED })
           clearSession()
           navigate(ROUTES.LOGIN, { replace: true })
@@ -40,6 +57,8 @@ export function AuthProvider() {
     }
 
     void init()
+    startTokenRefreshScheduler()
+    return stopTokenRefreshScheduler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
