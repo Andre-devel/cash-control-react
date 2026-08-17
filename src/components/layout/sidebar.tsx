@@ -17,6 +17,7 @@ import {
 import type { LucideProps } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { useAuthStore } from '@/features/auth/store/auth.store'
+import { VersionInfo } from '@/features/version'
 import { ROUTES } from '@/app/router/routes'
 import { resolveTheme } from '@/styles/theme/dark-mode'
 
@@ -161,6 +162,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <div className="who">
             <div className="n">{user?.name ?? 'Usuário'}</div>
             <div className="e">{user?.email ?? ''}</div>
+            <VersionInfo />
           </div>
           <button
             className="btn btn-ghost btn-icon btn-sm"

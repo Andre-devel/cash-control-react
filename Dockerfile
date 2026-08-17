@@ -6,6 +6,10 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
 ARG VITE_API_BASE_URL
+# Embedded into import.meta.env at build time (Vite auto-exposes any VITE_-prefixed
+# var) so the UI can show which build is actually deployed.
+ARG VITE_GIT_COMMIT=unknown
+ARG VITE_BUILD_TIME=unknown
 RUN pnpm build
 
 # Stage 2: Runtime (Nginx)
