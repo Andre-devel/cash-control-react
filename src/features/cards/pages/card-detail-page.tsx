@@ -7,8 +7,12 @@ import { useInvoice } from '@/features/cards/hooks/use-invoice'
 import { useLimitUsage } from '@/features/cards/hooks/use-limit-usage'
 import { useSpendingBreakdown } from '@/features/cards/hooks/use-spending-breakdown'
 import { EditCardDialog } from '@/features/cards/components/edit-card-dialog'
-import { RecordChargeDialog } from '@/features/cards/components/record-charge-dialog'
 import { PayInvoiceDialog } from '@/features/cards/components/pay-invoice-dialog'
+import {
+  dueMonthLabelWithYear,
+  getCurrentInvoiceMonth,
+  shiftMonth,
+} from '@/features/cards/utils/invoice-month'
 import { ROUTES } from '@/app/router/routes'
 
 const INVOICE_STATUS_LABELS: Record<string, string> = {
@@ -16,29 +20,6 @@ const INVOICE_STATUS_LABELS: Record<string, string> = {
   CLOSED: 'Fechada',
   PAID: 'Paga',
   PARTIALLY_PAID: 'Parcialmente paga',
-}
-
-function getBillingCycleMonth(closingDay: number): string {
-  const today = new Date()
-  const day = today.getDate()
-  if (day <= closingDay) {
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
-  } else {
-    const next = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-    return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`
-  }
-}
-
-function getPreviousMonth(yyyyMm: string): string {
-  const [year, month] = yyyyMm.split('-').map(Number)
-  const date = new Date(year, month - 2, 1)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-}
-
-function getNextMonth(yyyyMm: string): string {
-  const [year, month] = yyyyMm.split('-').map(Number)
-  const date = new Date(year, month, 1)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
 
 function CardDetailSkeleton() {
@@ -54,7 +35,6 @@ export default function CardDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [referenceMonth, setReferenceMonth] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
-  const [chargeOpen, setChargeOpen] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
 
   const spendingFrom = referenceMonth ? `${referenceMonth}-01` : ''
@@ -75,7 +55,7 @@ export default function CardDetailPage() {
 
   useEffect(() => {
     if (card && referenceMonth === null) {
-      setReferenceMonth(getBillingCycleMonth(card.closingDay))
+      setReferenceMonth(getCurrentInvoiceMonth(card.dueDay))
     }
   }, [card, referenceMonth])
 
@@ -130,14 +110,6 @@ export default function CardDetailPage() {
                 variant="ghost"
                 size="sm"
                 className="min-h-[44px]"
-                onClick={() => setChargeOpen(true)}
-              >
-                Registrar cobrança
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="min-h-[44px]"
                 onClick={() => setEditOpen(true)}
               >
                 Editar
@@ -182,19 +154,19 @@ export default function CardDetailPage() {
                   size="sm"
                   aria-label="Mês anterior"
                   onClick={() =>
-                    referenceMonth && setReferenceMonth(getPreviousMonth(referenceMonth))
+                    referenceMonth && setReferenceMonth(shiftMonth(referenceMonth, -1))
                   }
                 >
                   ‹
                 </Button>
                 <span className="text-sm fw-500" style={{ width: 80, textAlign: 'center' }}>
-                  {referenceMonth ?? '—'}
+                  {referenceMonth ? dueMonthLabelWithYear(referenceMonth) : '—'}
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
                   aria-label="Próximo mês"
-                  onClick={() => referenceMonth && setReferenceMonth(getNextMonth(referenceMonth))}
+                  onClick={() => referenceMonth && setReferenceMonth(shiftMonth(referenceMonth, 1))}
                 >
                   ›
                 </Button>
@@ -316,11 +288,6 @@ export default function CardDetailPage() {
           )}
 
           <EditCardDialog card={card} open={editOpen} onClose={() => setEditOpen(false)} />
-          <RecordChargeDialog
-            cardId={card.id}
-            open={chargeOpen}
-            onClose={() => setChargeOpen(false)}
-          />
           {invoice && (
             <PayInvoiceDialog
               invoice={invoice}

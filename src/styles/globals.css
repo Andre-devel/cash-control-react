@@ -602,6 +602,9 @@
   animation: popIn 160ms cubic-bezier(.2, .9, .3, 1.2);
 }
 .modal.wide { max-width: 680px; }
+/* Para diálogos com tabela (importação de fatura/extrato): 680px espremia as colunas
+   editáveis. No mobile o `.modal { max-width: 100% }` abaixo continua mandando. */
+.modal.xwide { max-width: 960px; }
 .modal-h {
   display: flex; align-items: center; gap: 8px;
   padding: 16px 18px;
@@ -1299,6 +1302,56 @@
 
   /* Table wrapper — horizontal scroll */
   .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ----------------------------------------------------------
+     Tabela de importação de fatura → cards empilhados no mobile.
+     Seis colunas (seleção, data, descrição editável, parcela, categoria editável e valor)
+     nunca cabem num celular: viravam scroll lateral. Aqui cada linha vira um card e as
+     colunas se reorganizam numa grade, sem rolagem horizontal. O `.tbl-wrap` que a
+     envolve deixa de precisar rolar, então tiramos a borda de scroll dele.
+     ---------------------------------------------------------- */
+  .fatura-tbl-wrap { overflow-x: visible; max-height: none !important; }
+  .fatura-tbl thead { display: none; }
+  .fatura-tbl,
+  .fatura-tbl tbody { display: block; }
+  .fatura-tbl tbody { display: flex; flex-direction: column; gap: 8px; }
+  .fatura-tbl tr {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'check date   amount'
+      'check desc   desc'
+      'check meta   meta'
+      'check cat    cat';
+    column-gap: 10px;
+    row-gap: 6px;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: var(--r-4);
+    padding: 12px;
+    background: var(--surface-1);
+  }
+  .fatura-tbl tbody tr:hover { background: var(--surface-1); }
+  .fatura-tbl td {
+    display: block;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+  .fatura-tbl td.cell-check { grid-area: check; align-self: start; }
+  .fatura-tbl td.cell-date { grid-area: date; font-size: 12px; color: var(--text-dim); }
+  .fatura-tbl td.cell-amount { grid-area: amount; text-align: right; }
+  .fatura-tbl td.cell-desc { grid-area: desc; }
+  .fatura-tbl td.cell-meta { grid-area: meta; font-size: 12px; color: var(--text-dim); }
+  .fatura-tbl td.cell-cat { grid-area: cat; }
+  /* Rótulos que o cabeçalho dava e some no empilhamento. */
+  .fatura-tbl td.cell-meta::before { content: 'Parcela: '; }
+  .fatura-tbl td.cell-cat::before {
+    content: 'Categoria';
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+  }
 
   /* Filterbar — pill row wraps cleanly */
   .filterbar { gap: 6px; }

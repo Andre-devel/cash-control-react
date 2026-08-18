@@ -350,6 +350,41 @@ describe('ImportFaturaDialog', () => {
     expect(getLastFaturaCommit()!.rows[0].categoryId).toBeUndefined()
   })
 
+  it('does not mark the invoice as paid unless the user asks', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /cartão da seção 9999/i }),
+      'card-2',
+    )
+    await user.click(screen.getByRole('button', { name: /importar 2 lançamentos/i }))
+
+    await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
+    expect(getLastFaturaCommit()!.alreadyPaid).toBe(false)
+  })
+
+  /**
+   * Importar histórico já quitado: o checkbox só aparece depois da prévia (quando já se
+   * sabe qual é a fatura) e vai no commit como `alreadyPaid`.
+   */
+  it('sends alreadyPaid when the "invoice already paid" option is checked', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    await user.click(screen.getByRole('checkbox', { name: /esta fatura já está paga/i }))
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /cartão da seção 9999/i }),
+      'card-2',
+    )
+    await user.click(screen.getByRole('button', { name: /importar 2 lançamentos/i }))
+
+    await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
+    expect(getLastFaturaCommit()!.alreadyPaid).toBe(true)
+  })
+
   it('summarises the reading, including the discarded payments', async () => {
     const user = userEvent.setup()
     renderDialog()

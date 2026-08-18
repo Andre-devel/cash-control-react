@@ -73,13 +73,6 @@ export interface CreateCardRequest {
 
 export type UpdateCardRequest = CreateCardRequest
 
-export interface RecordChargeRequest {
-  description: string
-  amount: string
-  categoryId?: string
-  date: string
-}
-
 export interface PayInvoiceRequest {
   amount: string
   accountId: string
@@ -108,6 +101,12 @@ export interface FaturaImportPreviewRow {
   lineNumber: number
   /** Hash da linha de origem. Devolvido inalterado na confirmação — é a chave de deduplicação. */
   externalRef: string
+  /**
+   * Posição da linha dentro do grupo de linhas idênticas do arquivo (0 para a primeira).
+   * Devolvido inalterado na confirmação: compõe a identidade da linha quando duas compras
+   * do mesmo dia são indistinguíveis, e é dela que sai a chave das parcelas futuras.
+   */
+  ordinal: number
   date: string
   description: string
   amount: string
@@ -151,6 +150,8 @@ export interface FaturaImportCommitRow {
   /** Seção do PDF de onde a linha saiu. Compõe a identidade usada na deduplicação. */
   cardLast4: string
   externalRef: string
+  /** O `ordinal` da prévia, devolvido sem alteração. */
+  ordinal: number
   date: string
   description: string
   /**
@@ -170,6 +171,12 @@ export interface FaturaImportCommitRequest {
   /** Conta que recebe as transações de cartão — uma só para o arquivo inteiro. */
   accountId: string
   rows: FaturaImportCommitRow[]
+  /**
+   * A fatura deste mês já foi paga na vida real. Quando `true`, o servidor marca a fatura
+   * do mês de referência como paga (pago = total) ao fim da importação. As compras seguem
+   * pendentes e o saldo da conta não se move — só a fatura registra o pagamento.
+   */
+  alreadyPaid: boolean
 }
 
 export interface FaturaImportResultResponse {
@@ -178,5 +185,7 @@ export interface FaturaImportResultResponse {
   futureInstallments: number
   skippedDuplicates: number
   failed: number
+  /** Faturas marcadas como pagas — uma por cartão do PDF, só quando `alreadyPaid`. */
+  markedPaidInvoices: number
   errors: FaturaImportRowError[]
 }

@@ -66,12 +66,14 @@ describe('fatura-import.api', () => {
       format: 'INTER_FATURA_PDF' as const,
       referenceMonth: '2026-07',
       accountId: 'account-1',
+      alreadyPaid: false,
       rows: [
         {
           lineNumber: 59,
           creditCardId: 'card-1',
           cardLast4: '7866',
           externalRef: 'ref-1',
+          ordinal: 0,
           date: '2026-04-04',
           description: 'Fone de ouvido',
           originalDescription: 'SHOPEE *LarkSpComercio (Parcela 04 de 05)',

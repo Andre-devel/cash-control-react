@@ -107,6 +107,7 @@ export const MOCK_FATURA_PREVIEW: FaturaImportPreviewResponse = {
         {
           lineNumber: 59,
           externalRef: 'ref-nova',
+          ordinal: 0,
           date: '2026-04-04',
           description: 'SHOPEE *LarkSpComercio (Parcela 04 de 05)',
           amount: '55.19',
@@ -120,6 +121,7 @@ export const MOCK_FATURA_PREVIEW: FaturaImportPreviewResponse = {
         {
           lineNumber: 60,
           externalRef: 'ref-ja-importada',
+          ordinal: 0,
           date: '2026-07-15',
           description: 'ANTHROPIC* CLAUDE SUB',
           amount: '110.00',
@@ -139,6 +141,7 @@ export const MOCK_FATURA_PREVIEW: FaturaImportPreviewResponse = {
         {
           lineNumber: 70,
           externalRef: 'ref-sem-cartao',
+          ordinal: 0,
           date: '2026-07-24',
           description: 'CP PARC SHOPPING INTER (Parcela 01 de 10)',
           amount: '336.81',
@@ -183,6 +186,7 @@ export const cardsHandlers = [
         futureInstallments: 0,
         skippedDuplicates: 0,
         failed: 0,
+        markedPaidInvoices: body.alreadyPaid ? 1 : 0,
         errors: [],
       },
       { status: 201 },
@@ -257,10 +261,6 @@ export const cardsHandlers = [
       c.id === params.id ? { ...c, archivedAt: new Date().toISOString() } : c,
     )
     return new HttpResponse(null, { status: 204 })
-  }),
-
-  http.post('*/cards/:id/charges', async () => {
-    return new HttpResponse(null, { status: 201 })
   }),
 
   http.post('*/cards/invoices/:invoiceId/pay', async () => {

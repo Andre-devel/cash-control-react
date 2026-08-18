@@ -61,6 +61,12 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
    */
   const [accountId, setAccountId] = useState('')
   const [preview, setPreview] = useState<FaturaImportPreviewResponse | null>(null)
+  /**
+   * A fatura já foi paga na vida real (importação de histórico). Quando marcado, o servidor
+   * grava a fatura do mês como paga; as compras seguem pendentes e o saldo da conta não se
+   * move. Só faz sentido depois da prévia, quando já se sabe qual é a fatura.
+   */
+  const [alreadyPaid, setAlreadyPaid] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   /** Cartão escolhido por seção do PDF, indexado por `cardLast4`. */
   const [cardByGroup, setCardByGroup] = useState<Record<string, string>>({})
@@ -80,6 +86,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
     setFile(null)
     setAccountId('')
     setPreview(null)
+    setAlreadyPaid(false)
     setSelected(new Set())
     setCardByGroup({})
     setEdits({})
@@ -173,6 +180,9 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
         // O externalRef vai como veio do servidor: é ele, e não a descrição, que
         // identifica a linha na deduplicação.
         externalRef: row.externalRef,
+        // Devolvido como veio: recontar o ordinal aqui daria outro número, porque a
+        // confirmação leva só as linhas marcadas.
+        ordinal: row.ordinal,
         date: row.date,
         description: descriptionOf(row),
         // A original vai junto e sem edição: é dela que o servidor deriva a chave das
@@ -186,7 +196,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
     )
 
     commit(
-      { format, referenceMonth: preview.referenceMonth, accountId, rows },
+      { format, referenceMonth: preview.referenceMonth, accountId, rows, alreadyPaid },
       { onSuccess: handleClose },
     )
   }
@@ -203,7 +213,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
       title="Importar fatura"
       subtitle={subtitle}
       onClose={handleClose}
-      wide
+      xwide
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
@@ -246,6 +256,36 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
             )}
           </div>
 
+          <label
+            style={{
+              display: 'flex',
+              gap: 10,
+              alignItems: 'flex-start',
+              padding: '10px 12px',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--r-3)',
+              background: 'var(--surface-2)',
+              cursor: 'pointer',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={alreadyPaid}
+              onChange={(e) => setAlreadyPaid(e.target.checked)}
+              style={{ marginTop: 2, flexShrink: 0 }}
+            />
+            <span style={{ fontSize: 13 }}>
+              <strong>Esta fatura já está paga</strong>
+              <span
+                style={{ display: 'block', fontSize: 12, color: 'var(--text-dim)', marginTop: 2 }}
+              >
+                Para importar um extrato antigo já quitado. A fatura entra como paga; as compras
+                ficam pendentes e o saldo da conta não é alterado. As parcelas dos próximos meses
+                continuam em aberto.
+              </span>
+            </span>
+          </label>
+
           {preview.errors.length > 0 && (
             <div role="alert" className="err">
               {preview.errors.length} linha(s) não puderam ser lidas e ficarão de fora:{' '}
@@ -286,8 +326,11 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                 </Select>
               </Field>
 
-              <div className="tbl-wrap" style={{ maxHeight: 320, overflowY: 'auto' }}>
-                <table className="tbl">
+              <div
+                className="tbl-wrap fatura-tbl-wrap"
+                style={{ maxHeight: 320, overflowY: 'auto' }}
+              >
+                <table className="tbl fatura-tbl">
                   <thead>
                     <tr>
                       <th style={{ width: 36, paddingLeft: 16 }}>
@@ -317,7 +360,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                         style={row.duplicate ? { opacity: 0.55 } : undefined}
                         data-testid={`fatura-row-${row.lineNumber}`}
                       >
-                        <td style={{ paddingLeft: 16 }}>
+                        <td className="cell-check" style={{ paddingLeft: 16 }}>
                           <input
                             type="checkbox"
                             aria-label={`Importar ${row.description}`}
@@ -325,8 +368,8 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                             onChange={() => toggleRow(row)}
                           />
                         </td>
-                        <td>{fmtDate(row.date)}</td>
-                        <td>
+                        <td className="cell-date">{fmtDate(row.date)}</td>
+                        <td className="cell-desc">
                           <EditableTextCell
                             value={descriptionOf(row)}
                             label={`Descrição da linha ${row.lineNumber}`}
@@ -347,12 +390,12 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                             </>
                           )}
                         </td>
-                        <td style={{ color: 'var(--text-dim)' }}>
+                        <td className="cell-meta" style={{ color: 'var(--text-dim)' }}>
                           {row.installmentNumber && row.totalInstallments
                             ? `${row.installmentNumber}/${row.totalInstallments}`
                             : '—'}
                         </td>
-                        <td>
+                        <td className="cell-cat">
                           <EditableCategoryCell
                             value={categoryIdOf(row)}
                             label={`Categoria da linha ${row.lineNumber}`}
@@ -367,7 +410,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                             }
                           />
                         </td>
-                        <td className="num">
+                        <td className="num cell-amount">
                           <Money value={Number(row.amount)} />
                         </td>
                       </tr>

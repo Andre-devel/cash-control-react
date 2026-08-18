@@ -16,6 +16,8 @@ interface ModalProps {
   children?: ReactNode
   footer?: ReactNode
   wide?: boolean
+  /** Ainda mais largo que `wide`. Para diálogos com tabela/grade, que sufocam em 680px. */
+  xwide?: boolean
   alert?: boolean
 }
 
@@ -26,6 +28,7 @@ export function Modal({
   children,
   footer,
   wide,
+  xwide,
   alert = false,
 }: ModalProps) {
   const idRef = useRef(`modal-title-${Math.random().toString(36).slice(2)}`)
@@ -75,7 +78,7 @@ export function Modal({
   return createPortal(
     <div className="modal-back" onClick={onClose} data-testid="modal-backdrop">
       <div
-        className={`modal${wide ? ' wide' : ''}`}
+        className={`modal${xwide ? ' xwide' : wide ? ' wide' : ''}`}
         onClick={(e) => e.stopPropagation()}
         role={alert ? 'alertdialog' : 'dialog'}
         aria-modal="true"

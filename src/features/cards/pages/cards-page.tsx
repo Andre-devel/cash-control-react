@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Receipt, Upload } from 'lucide-react'
+import { Plus, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCards } from '@/features/cards/hooks/use-cards'
 import { useInvoice } from '@/features/cards/hooks/use-invoice'
@@ -10,20 +10,9 @@ import { AddCardVisual } from '@/features/cards/components/add-card-visual'
 import { InvoiceCard } from '@/features/cards/components/invoice-card'
 import { CardSidebar } from '@/features/cards/components/card-sidebar'
 import { CreateCardDialog } from '@/features/cards/components/create-card-dialog'
-import { RecordChargeDialog } from '@/features/cards/components/record-charge-dialog'
 import { PayInvoiceDialog } from '@/features/cards/components/pay-invoice-dialog'
 import { ImportFaturaDialog } from '@/features/cards/components/import-fatura-dialog'
-
-function getBillingCycleMonth(closingDay: number): string {
-  const today = new Date()
-  const day = today.getDate()
-  if (day <= closingDay) {
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
-  } else {
-    const next = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-    return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`
-  }
-}
+import { getCurrentInvoiceMonth } from '@/features/cards/utils/invoice-month'
 
 function getSpendingRange(referenceMonth: string) {
   const [y, m] = referenceMonth.split('-').map(Number)
@@ -64,7 +53,6 @@ export default function CardsPage() {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const [referenceMonth, setReferenceMonth] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
-  const [chargeOpen, setChargeOpen] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
 
@@ -73,7 +61,7 @@ export default function CardsPage() {
 
   useEffect(() => {
     if (selectedCard) {
-      setReferenceMonth(getBillingCycleMonth(selectedCard.closingDay))
+      setReferenceMonth(getCurrentInvoiceMonth(selectedCard.dueDay))
     }
   }, [selectedCard])
 
@@ -106,13 +94,6 @@ export default function CardsPage() {
               e é a própria leitura que diz quais. */}
           <Button leading={<Upload size={14} />} onClick={() => setImportOpen(true)}>
             Importar fatura
-          </Button>
-          <Button
-            leading={<Receipt size={14} />}
-            onClick={() => setChargeOpen(true)}
-            disabled={!selectedCard}
-          >
-            Novo lançamento
           </Button>
           <Button
             variant="primary"
@@ -196,12 +177,6 @@ export default function CardsPage() {
       <CreateCardDialog open={createOpen} onClose={() => setCreateOpen(false)} />
 
       <ImportFaturaDialog open={importOpen} onClose={() => setImportOpen(false)} />
-
-      <RecordChargeDialog
-        cardId={selectedCard?.id ?? ''}
-        open={chargeOpen && !!selectedCard}
-        onClose={() => setChargeOpen(false)}
-      />
 
       {invoice && selectedCard && (
         <PayInvoiceDialog

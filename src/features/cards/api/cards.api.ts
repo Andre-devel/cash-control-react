@@ -6,7 +6,6 @@ import type {
   SpendingItem,
   CreateCardRequest,
   UpdateCardRequest,
-  RecordChargeRequest,
   PayInvoiceRequest,
   SpendingBreakdownParams,
 } from '@/features/cards/types'
@@ -42,10 +41,6 @@ export async function updateCard(id: string, data: UpdateCardRequest): Promise<C
 
 export async function archiveCard(id: string): Promise<void> {
   await axiosInstance.post(`/cards/${id}/archive`)
-}
-
-export async function recordCharge(id: string, data: RecordChargeRequest): Promise<void> {
-  await axiosInstance.post(`/cards/${id}/charges`, data)
 }
 
 export async function getInvoice(id: string, referenceMonth: string): Promise<Invoice> {

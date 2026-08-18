@@ -7,52 +7,15 @@ import { Money } from '@/components/ui/money'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 import type { Card, Invoice } from '@/features/cards/types'
-
-const MONTH_LABELS = [
-  'Jan',
-  'Fev',
-  'Mar',
-  'Abr',
-  'Mai',
-  'Jun',
-  'Jul',
-  'Ago',
-  'Set',
-  'Out',
-  'Nov',
-  'Dez',
-]
+import {
+  dueMonthLabel,
+  getCurrentInvoiceMonth,
+  shiftMonth,
+} from '@/features/cards/utils/invoice-month'
 
 function fmtDate(dateStr: string) {
   const d = new Date(dateStr + 'T00:00:00')
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
-
-function fmtDateShort(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-}
-
-function getMonthLabel(yyyyMm: string) {
-  const [, m] = yyyyMm.split('-').map(Number)
-  return MONTH_LABELS[m - 1]
-}
-
-function getBillingCycleMonth(closingDay: number): string {
-  const today = new Date()
-  const day = today.getDate()
-  if (day <= closingDay) {
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
-  } else {
-    const next = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-    return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`
-  }
-}
-
-function shiftMonth(yyyyMm: string, delta: number) {
-  const [year, month] = yyyyMm.split('-').map(Number)
-  const d = new Date(year, month - 1 + delta, 1)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
 interface InvoiceCardProps {
@@ -77,13 +40,18 @@ export function InvoiceCard({
   // nunca encontra subcategorias.
   const flatCategories = useMemo(() => flattenCategories(categories ?? []), [categories])
 
-  const billingMonth = getBillingCycleMonth(card.closingDay)
-  const tabs = [
-    { key: shiftMonth(billingMonth, -2), label: getMonthLabel(shiftMonth(billingMonth, -2)) },
-    { key: shiftMonth(billingMonth, -1), label: getMonthLabel(shiftMonth(billingMonth, -1)) },
-    { key: billingMonth, label: 'Atual' },
-    { key: shiftMonth(billingMonth, 1), label: getMonthLabel(shiftMonth(billingMonth, 1)) },
-  ]
+  const currentMonth = getCurrentInvoiceMonth(card.dueDay)
+  // O rótulo é o mês do vencimento, não o do fechamento: é assim que o emissor nomeia a
+  // fatura, e a chave que vai para a API continua sendo o mês de fechamento. A aba corrente
+  // diz o mês também — rotulada só como "Atual", ela escondia o seu, e as vizinhas pareciam
+  // pular um mês.
+  const tabs = [-2, -1, 0, 1].map((offset) => {
+    const key = shiftMonth(currentMonth, offset)
+    return {
+      key,
+      label: offset === 0 ? `${dueMonthLabel(key)} · Atual` : dueMonthLabel(key),
+    }
+  })
 
   const closesAtDay = String(card.closingDay).padStart(2, '0')
   const closesAt = invoice?.closingDate ?? `${referenceMonth}-${closesAtDay}`
@@ -104,7 +72,7 @@ export function InvoiceCard({
           <h3>Fatura — {card.name}</h3>
           {invoice && (
             <div className="sub">
-              Período {fmtDateShort(closesAt)} · Fecha em {fmtDate(closesAt)}
+              Fecha em {fmtDate(closesAt)} · Vence em {fmtDate(invoice.dueDate)}
             </div>
           )}
         </div>

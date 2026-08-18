@@ -58,13 +58,6 @@ describe('CardsPage — page header', () => {
     renderWithProviders(<CardsPage />)
     await waitFor(() => expect(screen.getByRole('button', { name: /novo cartão/i })).toBeTruthy())
   })
-
-  it('shows "Novo lançamento" action button', async () => {
-    renderWithProviders(<CardsPage />)
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: /novo lançamento/i })).toBeTruthy(),
-    )
-  })
 })
 
 describe('CardsPage — loading skeleton', () => {
@@ -204,10 +197,12 @@ describe('CardsPage — invoice section', () => {
     })
   })
 
-  it('"Atual" tab is selected by default', async () => {
+  it('the "Atual" tab is selected by default', async () => {
     renderWithProviders(<CardsPage />)
     await waitFor(() => {
-      const atualTab = screen.getByRole('tab', { name: 'Atual' })
+      // O rótulo traz o mês do vencimento junto ("Set · Atual"), e ele depende da data de
+      // hoje — só a marca "Atual" é estável.
+      const atualTab = screen.getByRole('tab', { name: /atual/i })
       expect(atualTab.getAttribute('aria-selected')).toBe('true')
     })
   })
@@ -357,19 +352,6 @@ describe('CardsPage — create card dialog', () => {
   })
 })
 
-describe('CardsPage — record charge dialog', () => {
-  it('"Novo lançamento" button opens record charge dialog', async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<CardsPage />)
-    await waitFor(() => screen.getByRole('button', { name: /novo lançamento/i }))
-    await user.click(screen.getByRole('button', { name: /novo lançamento/i }))
-    await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeTruthy()
-      expect(screen.getByRole('heading', { name: /registrar cobrança/i })).toBeTruthy()
-    })
-  })
-})
-
 describe('CardsPage — Phase 7 acceptance criteria', () => {
   it('renders issuer in card details when present', async () => {
     renderWithProviders(<CardsPage />)
@@ -394,16 +376,34 @@ describe('CardsPage — Phase 7 acceptance criteria', () => {
     })
   })
 
-  it('uses closingDate from invoice for the period display', async () => {
+  /**
+   * Fechamento e vencimento lado a lado. O vencimento entrou no subtítulo justamente porque
+   * a aba nomeia a fatura pelo mês em que ela vence: sem ele, "Jun" ao lado de um
+   * fechamento em 01/05 não tinha como ser lido.
+   */
+  it('shows both the closing and the due date of the invoice', async () => {
     renderWithProviders(<CardsPage />)
     await waitFor(() => expect(screen.getByText(/fatura — nubank/i)).toBeTruthy())
-    // The invoice has closingDate '2026-05-01' — period should show a formatted date
-    // InvoiceCard renders fmtDateShort(closesAt) and fmtDate(closesAt)
-    // closingDate='2026-05-01' → fmtDateShort → '01/05' (pt-BR)
     await waitFor(() => {
-      const periodText = screen.getByText(/período/i)
-      expect(periodText.textContent).toMatch(/01\/05/)
+      const subtitle = screen.getByText(/fecha em/i)
+      expect(subtitle.textContent).toMatch(/01\/05\/2026/)
+      expect(subtitle.textContent).toMatch(/10\/06\/2026/)
     })
+  })
+
+  /** A fatura que fecha em 01/05 vence em 10/06, e é a de junho para o emissor. */
+  it('labels the month tabs by the month the invoice is due', async () => {
+    renderWithProviders(<CardsPage />)
+    await waitFor(() => screen.getAllByRole('tab'))
+    const labels = screen.getAllByRole('tab').map((tab) => tab.textContent)
+
+    // Toda aba diz o mês do vencimento; a corrente acrescenta a marca "Atual".
+    expect(labels.filter((label) => /· Atual$/.test(label ?? ''))).toHaveLength(1)
+    expect(
+      labels.every((label) =>
+        /^(Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)/.test(label ?? ''),
+      ),
+    ).toBe(true)
   })
 
   it('shows closing day from card.closingDay in sidebar details', async () => {

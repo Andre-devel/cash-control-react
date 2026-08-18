@@ -31,6 +31,13 @@ export function useCommitFaturaImport() {
       if (result.futureInstallments > 0) {
         parts.push(`${result.futureInstallments} parcelas futuras criadas`)
       }
+      if (result.markedPaidInvoices > 0) {
+        parts.push(
+          result.markedPaidInvoices === 1
+            ? 'fatura marcada como paga'
+            : `${result.markedPaidInvoices} faturas marcadas como pagas`,
+        )
+      }
       if (result.skippedDuplicates > 0) {
         parts.push(`${result.skippedDuplicates} já existiam`)
       }
