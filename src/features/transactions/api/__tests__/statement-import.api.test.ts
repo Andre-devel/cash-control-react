@@ -75,6 +75,7 @@ describe('statement-import.api', () => {
           externalRef: 'ref-1',
           date: '2026-08-04',
           description: 'Pix Marketplace',
+          originalDescription: 'Pix Marketplace',
           amount: '144.06',
           type: 'EXPENSE' as const,
           paymentMethod: 'PIX' as const,

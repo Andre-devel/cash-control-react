@@ -121,6 +121,12 @@ export interface FaturaImportPreviewRow {
    * estabelecimento" agrupa as linhas da prévia.
    */
   merchantKey: string | null
+  /**
+   * Como o usuário renomeou este estabelecimento da última vez, ou `null` se nunca
+   * renomeou. Não substitui `description`, que continua sendo o texto do arquivo: a tela
+   * pré-preenche o apelido e mostra o original ao lado.
+   */
+  suggestedDescription: string | null
   suggestedCategoryId: string | null
   suggestedCategoryName: string | null
   suggestedSubcategoryId: string | null

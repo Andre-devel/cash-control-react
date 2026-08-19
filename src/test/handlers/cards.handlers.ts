@@ -115,6 +115,7 @@ export const MOCK_FATURA_PREVIEW: FaturaImportPreviewResponse = {
           installmentNumber: 4,
           totalInstallments: 5,
           merchantKey: 'shopee larkspcomercio',
+          suggestedDescription: null,
           // Igual ao que categories.handlers devolve para 'cat-1'.
           suggestedCategoryId: 'cat-1',
           suggestedCategoryName: 'Food',
@@ -133,6 +134,8 @@ export const MOCK_FATURA_PREVIEW: FaturaImportPreviewResponse = {
           installmentNumber: null,
           totalInstallments: null,
           merchantKey: 'anthropic claude sub',
+          // O caso que motivou a memória de apelido: renomeado numa importação anterior.
+          suggestedDescription: 'Claude - mensalidade',
           suggestedCategoryId: null,
           suggestedCategoryName: null,
           suggestedSubcategoryId: null,
@@ -157,6 +160,7 @@ export const MOCK_FATURA_PREVIEW: FaturaImportPreviewResponse = {
           installmentNumber: 1,
           totalInstallments: 10,
           merchantKey: 'cp parc shopping inter',
+          suggestedDescription: null,
           suggestedCategoryId: null,
           suggestedCategoryName: null,
           suggestedSubcategoryId: null,

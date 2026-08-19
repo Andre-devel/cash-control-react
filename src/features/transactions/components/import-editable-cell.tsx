@@ -17,9 +17,31 @@ interface EditableTextCellProps {
   label: string
   onChange: (value: string) => void
   edited: boolean
+  /**
+   * O texto como o arquivo o trouxe. Quando difere do que está sendo exibido, aparece
+   * abaixo, atenuado — a descrição da fatura é ilegível, mas é ela que o usuário reconhece
+   * ao conferir o extrato do banco, então esconder o original não é opção.
+   */
+  original?: string | null
+  /**
+   * `true` quando o valor exibido é o apelido que o servidor lembrou e o usuário ainda não
+   * mexeu nele. Ganha um selo discreto, no mesmo espírito do "histórico" da categoria: é
+   * memória, não algo que ele escreveu agora.
+   */
+  fromMemory?: boolean
+  /** Volta a linha ao texto do arquivo. Só é oferecido quando há o que desfazer. */
+  onResetToOriginal?: () => void
 }
 
-export function EditableTextCell({ value, label, onChange, edited }: EditableTextCellProps) {
+export function EditableTextCell({
+  value,
+  label,
+  onChange,
+  edited,
+  original,
+  fromMemory = false,
+  onResetToOriginal,
+}: EditableTextCellProps) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -36,31 +58,72 @@ export function EditableTextCell({ value, label, onChange, edited }: EditableTex
     setEditing(false)
   }
 
+  const showsOriginal = Boolean(original) && original !== value
+
   if (!editing) {
     return (
-      <button
-        type="button"
-        aria-label={label}
-        onClick={() => {
-          setDraft(value)
-          setEditing(true)
-        }}
-        style={{
-          background: 'none',
-          border: 0,
-          padding: 0,
-          font: 'inherit',
-          color: 'inherit',
-          textAlign: 'left',
-          cursor: 'text',
-          borderBottom: '1px dashed var(--border)',
-        }}
-      >
-        {value}
-        {edited && (
-          <span style={{ color: 'var(--text-faint)', marginLeft: 6, fontSize: 11 }}>(editada)</span>
+      <span>
+        <button
+          type="button"
+          aria-label={label}
+          onClick={() => {
+            setDraft(value)
+            setEditing(true)
+          }}
+          style={{
+            background: 'none',
+            border: 0,
+            padding: 0,
+            font: 'inherit',
+            color: 'inherit',
+            textAlign: 'left',
+            cursor: 'text',
+            borderBottom: '1px dashed var(--border)',
+          }}
+        >
+          {value}
+          {edited && (
+            <span style={{ color: 'var(--text-faint)', marginLeft: 6, fontSize: 11 }}>
+              (editada)
+            </span>
+          )}
+        </button>
+        {fromMemory && (
+          <Badge kind="muted" square dot={false} style={{ marginLeft: 6 }}>
+            apelido
+          </Badge>
         )}
-      </button>
+        {showsOriginal && (
+          <span
+            style={{
+              display: 'block',
+              color: 'var(--text-faint)',
+              fontSize: 11,
+              marginTop: 2,
+            }}
+          >
+            <span title={original ?? undefined}>{original}</span>
+            {onResetToOriginal && (
+              <button
+                type="button"
+                onClick={onResetToOriginal}
+                style={{
+                  background: 'none',
+                  border: 0,
+                  padding: 0,
+                  marginLeft: 6,
+                  font: 'inherit',
+                  color: 'var(--primary)',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                }}
+              >
+                usar original
+              </button>
+            )}
+          </span>
+        )}
+      </span>
     )
   }
 

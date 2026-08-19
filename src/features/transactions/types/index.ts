@@ -165,6 +165,12 @@ export interface ImportPreviewRow {
    * estabelecimento" agrupa as linhas da prévia.
    */
   merchantKey: string | null
+  /**
+   * Como o usuário renomeou este estabelecimento da última vez, ou `null` se nunca
+   * renomeou. Não substitui `description`, que continua sendo o texto do arquivo: a tela
+   * pré-preenche o apelido e mostra o original ao lado.
+   */
+  suggestedDescription: string | null
   suggestedCategoryId: string | null
   suggestedCategoryName: string | null
   suggestedSubcategoryId: string | null
@@ -196,6 +202,11 @@ export interface ImportCommitRow {
   externalRef: string
   date: string
   description: string
+  /**
+   * A descrição como o arquivo a trouxe, sem edição. Não vai para o lançamento: é a
+   * identidade do estabelecimento com que o servidor grava (ou apaga) o apelido.
+   */
+  originalDescription: string
   amount: string
   type: TransactionType
   paymentMethod: PaymentMethodSlug

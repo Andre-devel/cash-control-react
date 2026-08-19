@@ -67,6 +67,7 @@ function previewWithRepeatedMerchant(): FaturaImportPreviewResponse {
     installmentNumber: null,
     totalInstallments: null,
     merchantKey: 'sorveteka penapolis',
+    suggestedDescription: null,
     suggestedCategoryId: null,
     suggestedCategoryName: null,
     suggestedSubcategoryId: null,
@@ -357,6 +358,93 @@ describe('ImportFaturaDialog', () => {
       // A original vai intacta: é dela que sai a chave das parcelas futuras.
       originalDescription: 'SHOPEE *LarkSpComercio (Parcela 04 de 05)',
     })
+  })
+
+  it('prefills the name the user gave that merchant before, without hiding the original', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    const row = within(screen.getByTestId('fatura-row-60'))
+    // O que a linha vai levar é o apelido lembrado...
+    expect(row.getByRole('button', { name: /descrição da linha 60/i })).toHaveTextContent(
+      'Claude - mensalidade',
+    )
+    expect(row.getByText('apelido')).toBeInTheDocument()
+    // ...e o texto ilegível da fatura continua à vista, que é como o usuário confere.
+    expect(row.getByText('ANTHROPIC* CLAUDE SUB')).toBeInTheDocument()
+  })
+
+  it('does not mark a merchant that was never renamed', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    const row = within(screen.getByTestId('fatura-row-59'))
+    expect(row.queryByText('apelido')).not.toBeInTheDocument()
+    expect(row.getByRole('button', { name: /descrição da linha 59/i })).toHaveTextContent(
+      'SHOPEE *LarkSpComercio (Parcela 04 de 05)',
+    )
+  })
+
+  it('sends the remembered name when the user leaves the prefilled row as it is', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    // A linha vem desmarcada por ser duplicata; marcá-la é o que a coloca no envio. A 70
+    // sai porque a seção dela não tem cartão escolhido e bloquearia a importação.
+    await user.click(within(screen.getByTestId('fatura-row-60')).getByRole('checkbox'))
+    await user.click(within(screen.getByTestId('fatura-row-70')).getByRole('checkbox'))
+    await user.click(screen.getByRole('button', { name: /importar 2 lançamentos/i }))
+
+    await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
+    const sent = getLastFaturaCommit()!.rows.find((row) => row.externalRef === 'ref-ja-importada')
+    expect(sent).toMatchObject({
+      description: 'Claude - mensalidade',
+      // A do arquivo vai junto: é com ela que o servidor reconhece o estabelecimento.
+      originalDescription: 'ANTHROPIC* CLAUDE SUB',
+    })
+  })
+
+  it('gives the original back when the user asks for it', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    const row = within(screen.getByTestId('fatura-row-60'))
+    await user.click(row.getByRole('button', { name: 'usar original' }))
+
+    expect(row.getByRole('button', { name: /descrição da linha 60/i })).toHaveTextContent(
+      'ANTHROPIC* CLAUDE SUB',
+    )
+    // Sem apelido em vigor não há o que desfazer, nem o que sinalizar.
+    expect(row.queryByText('apelido')).not.toBeInTheDocument()
+    expect(row.queryByRole('button', { name: 'usar original' })).not.toBeInTheDocument()
+  })
+
+  it('applies a rewritten name to every other row of the same estabelecimento', async () => {
+    vi.mocked(previewFaturaImport).mockImplementationOnce(async () => previewWithRepeatedMerchant())
+    const user = userEvent.setup()
+    renderDialog()
+    await user.upload(screen.getByLabelText(/arquivo/i), pdfFile())
+    await chooseAccount(user)
+    await user.click(screen.getByRole('button', { name: /analisar arquivo/i }))
+    await waitFor(() => expect(screen.getAllByText('Sorveteka Penapolis Bra')).toHaveLength(2))
+
+    const label = /descrição da linha 10/i
+    await user.click(screen.getByRole('button', { name: label }))
+    await user.clear(screen.getByRole('textbox', { name: label }))
+    await user.type(screen.getByRole('textbox', { name: label }), 'Sorveteria')
+    await user.tab()
+
+    await user.click(screen.getByRole('button', { name: /aplicar nome a \+1 do estabelecimento/i }))
+    await user.click(screen.getByRole('button', { name: /importar 2 lançamentos/i }))
+
+    await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
+    const rows = getLastFaturaCommit()!.rows
+    expect(rows.find((row) => row.externalRef === 'ref-sorvete-1')?.description).toBe('Sorveteria')
+    expect(rows.find((row) => row.externalRef === 'ref-sorvete-2')?.description).toBe('Sorveteria')
   })
 
   it('keeps an emptied description as it was, since the backend requires one', async () => {

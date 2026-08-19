@@ -212,6 +212,7 @@ export const MOCK_IMPORT_PREVIEW: ImportPreviewResponse = {
       // resolve o nome pela lista de categorias e cai no nome da prévia só enquanto ela
       // carrega. Nomes diferentes deixariam o teste dependente dessa corrida.
       merchantKey: 'pix marketplace',
+      suggestedDescription: null,
       suggestedCategoryId: 'cat-1',
       suggestedCategoryName: 'Food',
       suggestedSubcategoryId: null,
@@ -230,6 +231,8 @@ export const MOCK_IMPORT_PREVIEW: ImportPreviewResponse = {
       type: 'EXPENSE',
       paymentMethod: 'DEBIT_CARD',
       merchantKey: 'dias e damasceno ltda',
+      // Estabelecimento que o usuário já renomeou numa importação anterior.
+      suggestedDescription: 'Padaria do Dias',
       suggestedCategoryId: null,
       suggestedCategoryName: null,
       suggestedSubcategoryId: null,
@@ -248,6 +251,7 @@ export const MOCK_IMPORT_PREVIEW: ImportPreviewResponse = {
       type: 'INCOME',
       paymentMethod: 'OTHER',
       merchantKey: 'tarifa cesta b',
+      suggestedDescription: null,
       suggestedCategoryId: null,
       suggestedCategoryName: null,
       suggestedSubcategoryId: null,

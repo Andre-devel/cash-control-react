@@ -68,6 +68,7 @@ function previewWithRepeatedMerchant(): ImportPreviewResponse {
     amount: '65.30',
     type: 'EXPENSE',
     paymentMethod: 'DEBIT_CARD',
+    suggestedDescription: null,
     merchantKey,
     suggestedCategoryId: null,
     suggestedCategoryName: null,
@@ -270,6 +271,62 @@ describe('ImportStatementDialog — edição na prévia', () => {
     await user.click(screen.getByRole('combobox', { name: label }))
     await user.click(await screen.findByRole('option', { name: categoryName }))
   }
+
+  it('prefills the name the user gave that merchant before, without hiding the original', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    const row = within(screen.getByTestId('import-row-8'))
+    expect(row.getByRole('button', { name: /descrição da linha 8/i })).toHaveTextContent(
+      'Padaria do Dias',
+    )
+    expect(row.getByText('apelido')).toBeInTheDocument()
+    // O texto do extrato continua à vista para o usuário conferir.
+    expect(row.getByText('Dias E Damasceno Ltda')).toBeInTheDocument()
+  })
+
+  it('does not mark a merchant that was never renamed', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    expect(
+      within(screen.getByTestId('import-row-7')).queryByText('apelido'),
+    ).not.toBeInTheDocument()
+  })
+
+  it('gives the original back when the user asks for it', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    const row = within(screen.getByTestId('import-row-8'))
+    await user.click(row.getByRole('button', { name: 'usar original' }))
+
+    expect(row.getByRole('button', { name: /descrição da linha 8/i })).toHaveTextContent(
+      'Dias E Damasceno Ltda',
+    )
+    expect(row.queryByText('apelido')).not.toBeInTheDocument()
+  })
+
+  it('sends the original description alongside the one the user kept or wrote', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    await editDescription(user, 7, 'Mercado do Zé')
+    await user.click(within(screen.getByTestId('import-row-9')).getByRole('checkbox'))
+    await user.click(screen.getByRole('button', { name: /importar 1 transações/i }))
+
+    await waitFor(() => expect(getLastImportCommit()).not.toBeNull())
+    // É a original que identifica o estabelecimento no servidor; sem ela, a memória de
+    // apelido não teria como saber o que "Mercado do Zé" substitui.
+    expect(getLastImportCommit()!.rows[0]).toMatchObject({
+      description: 'Mercado do Zé',
+      originalDescription: 'Pix Marketplace',
+    })
+  })
 
   it('sends the edited description instead of the one read from the file', async () => {
     const user = userEvent.setup()

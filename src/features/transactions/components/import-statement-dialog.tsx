@@ -86,8 +86,12 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
+  /**
+   * O que a linha vai levar como descrição: a edição desta sessão, senão o apelido que o
+   * servidor lembrou para o estabelecimento, senão o texto do arquivo.
+   */
   function descriptionOf(row: ImportPreviewRow): string {
-    return edits[row.externalRef]?.description ?? row.description
+    return edits[row.externalRef]?.description ?? row.suggestedDescription ?? row.description
   }
 
   function categoryIdOf(row: ImportPreviewRow): string | null {
@@ -122,6 +126,26 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
       for (const other of preview.rows) {
         if (similarityKey(other) === key) {
           next[other.externalRef] = { ...next[other.externalRef], categoryId }
+        }
+      }
+      return next
+    })
+  }
+
+  /**
+   * Aplica a descrição às linhas do mesmo estabelecimento, como
+   * {@link applyCategoryToSimilar} faz com a categoria: renomear é uma decisão sobre o
+   * estabelecimento, não sobre a linha.
+   */
+  function applyDescriptionToSimilar(row: ImportPreviewRow) {
+    if (!preview) return
+    const description = descriptionOf(row)
+    const key = similarityKey(row)
+    setEdits((current) => {
+      const next = { ...current }
+      for (const other of preview.rows) {
+        if (similarityKey(other) === key) {
+          next[other.externalRef] = { ...next[other.externalRef], description }
         }
       }
       return next
@@ -213,6 +237,9 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
         // É ele, e não a descrição, que identifica a linha na deduplicação — por isso
         // reescrever a descrição aqui não faz o lançamento ser importado duas vezes.
         description: descriptionOf(row),
+        // A do arquivo, sem edição: é a identidade com que o servidor grava — ou apaga —
+        // o apelido do estabelecimento.
+        originalDescription: row.description,
         amount: row.amount,
         type: row.type,
         paymentMethod: row.paymentMethod,
@@ -356,8 +383,35 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                           value={descriptionOf(row)}
                           label={`Descrição da linha ${row.lineNumber}`}
                           edited={edits[row.externalRef]?.description !== undefined}
+                          original={row.description}
+                          fromMemory={
+                            edits[row.externalRef]?.description === undefined &&
+                            row.suggestedDescription !== null
+                          }
+                          onResetToOriginal={() =>
+                            editRow(row.externalRef, { description: row.description })
+                          }
                           onChange={(description) => editRow(row.externalRef, { description })}
                         />
+                        {descriptionOf(row) !== row.description && similarCount(row) > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => applyDescriptionToSimilar(row)}
+                            title={`Aplicar esta descrição às ${similarCount(row)} outras linhas deste estabelecimento`}
+                            style={{
+                              display: 'block',
+                              background: 'none',
+                              border: 0,
+                              padding: 0,
+                              marginTop: 2,
+                              color: 'var(--accent)',
+                              fontSize: 11,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            aplicar nome a +{similarCount(row)} iguais
+                          </button>
+                        )}
                         {row.duplicate && (
                           <>
                             {' '}

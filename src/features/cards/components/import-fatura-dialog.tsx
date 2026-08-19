@@ -163,8 +163,30 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
     return row.externalRef in edits ? edits[row.externalRef] : row.suggestedCategoryId
   }
 
+  /**
+   * O que a linha vai levar como descrição: a edição desta sessão, senão o apelido que o
+   * servidor lembrou para o estabelecimento, senão o texto do arquivo.
+   */
   function descriptionOf(row: FaturaImportPreviewRow): string {
-    return descriptionEdits[row.externalRef] ?? row.description
+    return descriptionEdits[row.externalRef] ?? row.suggestedDescription ?? row.description
+  }
+
+  /**
+   * Aplica a descrição de uma linha às outras do mesmo estabelecimento, como
+   * {@link applyCategoryToMerchant} faz com a categoria: renomear um estabelecimento é uma
+   * decisão só, mesmo quando ele aparece cinco vezes na fatura.
+   */
+  function applyDescriptionToMerchant(row: FaturaImportPreviewRow) {
+    if (!preview || !row.merchantKey) return
+    const description = descriptionOf(row)
+    const key = row.merchantKey
+    setDescriptionEdits((current) => {
+      const next = { ...current }
+      for (const other of preview.groups.flatMap((group) => group.rows)) {
+        if (other.merchantKey === key) next[other.externalRef] = description
+      }
+      return next
+    })
   }
 
   /** Outras linhas da prévia — de qualquer seção — com o mesmo estabelecimento. */
@@ -526,6 +548,17 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                             value={descriptionOf(row)}
                             label={`Descrição da linha ${row.lineNumber}`}
                             edited={row.externalRef in descriptionEdits}
+                            original={row.description}
+                            fromMemory={
+                              !(row.externalRef in descriptionEdits) &&
+                              row.suggestedDescription !== null
+                            }
+                            onResetToOriginal={() =>
+                              setDescriptionEdits((current) => ({
+                                ...current,
+                                [row.externalRef]: row.description,
+                              }))
+                            }
                             onChange={(description) =>
                               setDescriptionEdits((current) => ({
                                 ...current,
@@ -533,6 +566,26 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                               }))
                             }
                           />
+                          {descriptionOf(row) !== row.description &&
+                            merchantRowsOf(row).length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => applyDescriptionToMerchant(row)}
+                                title={`Aplicar esta descrição às ${merchantRowsOf(row).length} outras linhas deste estabelecimento`}
+                                style={{
+                                  display: 'block',
+                                  background: 'none',
+                                  border: 0,
+                                  padding: 0,
+                                  marginTop: 2,
+                                  color: 'var(--accent)',
+                                  fontSize: 11,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                aplicar nome a +{merchantRowsOf(row).length} do estabelecimento
+                              </button>
+                            )}
                           {isDuplicate(group, row) && (
                             <>
                               {' '}
