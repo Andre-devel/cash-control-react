@@ -144,6 +144,22 @@ export interface FaturaImportPreviewResponse {
   errors: FaturaImportRowError[]
 }
 
+/**
+ * Pergunta ao servidor quais linhas da prévia já estão na fatura de um cartão escolhido
+ * à mão. A prévia só marca duplicatas dos grupos cujo cartão ela sugeriu; quando o
+ * usuário troca o cartão de destino, a marcação passa a valer para outra fatura.
+ */
+export interface FaturaImportDuplicateCheckRequest {
+  creditCardId: string
+  referenceMonth: string
+  externalRefs: string[]
+}
+
+export interface FaturaImportDuplicateCheckResponse {
+  /** Subconjunto dos `externalRefs` enviados que já foram importados. */
+  duplicateExternalRefs: string[]
+}
+
 export interface FaturaImportCommitRow {
   lineNumber: number
   creditCardId: string

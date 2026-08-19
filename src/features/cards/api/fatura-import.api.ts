@@ -1,6 +1,8 @@
 import { axiosInstance } from '@/services/http'
 import type {
   FaturaImportCommitRequest,
+  FaturaImportDuplicateCheckRequest,
+  FaturaImportDuplicateCheckResponse,
   FaturaImportPreviewResponse,
   FaturaImportResultResponse,
   InvoiceImportFormat,
@@ -34,6 +36,20 @@ export async function commitFaturaImport(
 ): Promise<FaturaImportResultResponse> {
   const response = await axiosInstance.post<FaturaImportResultResponse>(
     '/cards/invoices/import',
+    data,
+  )
+  return response.data
+}
+
+/**
+ * Refaz a marcação de "já importado" de uma seção do PDF contra o cartão que o usuário
+ * escolheu. Não grava nada — é a mesma checagem da prévia, com outro cartão.
+ */
+export async function checkFaturaImportDuplicates(
+  data: FaturaImportDuplicateCheckRequest,
+): Promise<FaturaImportDuplicateCheckResponse> {
+  const response = await axiosInstance.post<FaturaImportDuplicateCheckResponse>(
+    '/cards/invoices/import/duplicates',
     data,
   )
   return response.data

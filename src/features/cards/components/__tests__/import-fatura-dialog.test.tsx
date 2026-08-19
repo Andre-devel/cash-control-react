@@ -5,6 +5,7 @@ import { renderWithProviders } from '@/test/utils'
 import {
   resetCardsStore,
   resetFaturaImportStore,
+  setFaturaImportDuplicates,
   getLastFaturaCommit,
   MOCK_FATURA_PREVIEW,
 } from '@/test/handlers/cards.handlers'
@@ -383,6 +384,68 @@ describe('ImportFaturaDialog', () => {
 
     await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
     expect(getLastFaturaCommit()!.alreadyPaid).toBe(true)
+  })
+
+  /**
+   * A prévia só marca duplicatas do grupo cujo cartão ela sugeriu. Escolher o cartão de
+   * destino à mão — um cartão virtual, cujos 4 dígitos não batem com nenhum cadastrado —
+   * refaz a marcação contra a fatura desse cartão.
+   */
+  it('flags the rows already imported on a card chosen by hand', async () => {
+    setFaturaImportDuplicates('card-2', ['ref-sem-cartao'])
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    const row = screen.getByTestId('fatura-row-70')
+    expect(within(row).queryByText(/já importada/i)).toBeNull()
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /cartão da seção 9999/i }),
+      'card-2',
+    )
+
+    await waitFor(() => expect(within(row).getByText(/já importada/i)).toBeInTheDocument())
+    expect(within(row).getByRole('checkbox')).not.toBeChecked()
+    expect(screen.getByText(/2 já importados/i)).toBeInTheDocument()
+  })
+
+  it('never sends a row already imported on the card chosen by hand', async () => {
+    setFaturaImportDuplicates('card-2', ['ref-sem-cartao'])
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /cartão da seção 9999/i }),
+      'card-2',
+    )
+
+    const importButton = await screen.findByRole('button', { name: /importar 1 lançamentos/i })
+    await user.click(importButton)
+
+    await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
+    expect(getLastFaturaCommit()!.rows).toHaveLength(1)
+    expect(getLastFaturaCommit()!.rows[0].externalRef).toBe('ref-nova')
+  })
+
+  /** Trocar para um cartão que não tem a compra devolve a linha à seleção. */
+  it('unflags the row when the destination card changes to one without it', async () => {
+    setFaturaImportDuplicates('card-2', ['ref-sem-cartao'])
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    const group = screen.getByRole('combobox', { name: /cartão da seção 9999/i })
+    await user.selectOptions(group, 'card-2')
+    const row = screen.getByTestId('fatura-row-70')
+    await waitFor(() => expect(within(row).getByText(/já importada/i)).toBeInTheDocument())
+
+    await user.selectOptions(group, 'card-1')
+
+    await waitFor(() => expect(within(row).queryByText(/já importada/i)).toBeNull())
+    expect(within(row).getByRole('checkbox')).toBeChecked()
+    expect(screen.getByRole('button', { name: /importar 2 lançamentos/i })).toBeInTheDocument()
   })
 
   it('summarises the reading, including the discarded payments', async () => {

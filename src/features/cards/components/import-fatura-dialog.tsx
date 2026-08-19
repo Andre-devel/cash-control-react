@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
@@ -15,6 +15,7 @@ import {
   EditableTextCell,
 } from '@/features/transactions/components/import-editable-cell'
 import { useFaturaImportPreview } from '@/features/cards/hooks/use-fatura-import-preview'
+import { useFaturaImportDuplicates } from '@/features/cards/hooks/use-fatura-import-duplicates'
 import { useCommitFaturaImport } from '@/features/cards/hooks/use-commit-fatura-import'
 import {
   INVOICE_IMPORT_FORMATS,
@@ -81,6 +82,64 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   const { mutate: analyze, isPending: isAnalyzing } = useFaturaImportPreview()
   const { mutate: commit, isPending: isImporting } = useCommitFaturaImport()
 
+  /**
+   * A prévia marca "já importada" olhando a fatura do cartão que ela mesma sugeriu. Quando
+   * o cartão de destino é escolhido à mão, a marca da prévia é sobre outra fatura — daí a
+   * consulta por grupo, refeita a cada troca de cartão.
+   */
+  const { byGroup: duplicatesByGroup, fetchingByGroup } = useFaturaImportDuplicates(
+    preview?.groups ?? [],
+    preview?.referenceMonth,
+    cardByGroup,
+  )
+
+  /** A resposta do servidor manda; enquanto ela não chega, vale o que a prévia disse. */
+  function isDuplicate(group: FaturaImportGroupPreview, row: FaturaImportPreviewRow): boolean {
+    const checked = duplicatesByGroup[group.cardLast4]
+    return checked ? checked.has(row.externalRef) : row.duplicate
+  }
+
+  /**
+   * O que a seleção já reflete, por grupo. Guardado num ref para que o ajuste abaixo veja
+   * só o que mudou de fato — reaplicar o conjunto inteiro apagaria as marcações e
+   * desmarcações que o usuário fez à mão.
+   */
+  const appliedDuplicates = useRef<Record<string, Set<string>>>({})
+
+  useEffect(() => {
+    if (!preview) return
+
+    const toSelect: string[] = []
+    const toDeselect: string[] = []
+
+    for (const group of preview.groups) {
+      // Sem resposta e sem consulta em andamento, o grupo voltou a valer pela prévia —
+      // é o caso de desfazer a escolha do cartão ou voltar ao que a prévia sugeriu.
+      if (!duplicatesByGroup[group.cardLast4] && fetchingByGroup[group.cardLast4]) continue
+
+      const fromPreview = new Set(
+        group.rows.filter((row) => row.duplicate).map((row) => row.externalRef),
+      )
+      const next = duplicatesByGroup[group.cardLast4] ?? fromPreview
+      const previous = appliedDuplicates.current[group.cardLast4] ?? fromPreview
+
+      // Virou duplicata com o cartão novo: sai da seleção, como na prévia.
+      for (const ref of next) if (!previous.has(ref)) toDeselect.push(ref)
+      // Deixou de ser: volta marcada, que é o estado em que a prévia a entregaria.
+      for (const ref of previous) if (!next.has(ref)) toSelect.push(ref)
+
+      appliedDuplicates.current[group.cardLast4] = next
+    }
+
+    if (toSelect.length === 0 && toDeselect.length === 0) return
+    setSelected((current) => {
+      const updated = new Set(current)
+      for (const ref of toDeselect) updated.delete(ref)
+      for (const ref of toSelect) updated.add(ref)
+      return updated
+    })
+  }, [preview, duplicatesByGroup, fetchingByGroup])
+
   function reset() {
     setFormat('INTER_FATURA_PDF')
     setFile(null)
@@ -89,6 +148,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
     setAlreadyPaid(false)
     setSelected(new Set())
     setCardByGroup({})
+    appliedDuplicates.current = {}
     setEdits({})
     setDescriptionEdits({})
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -113,6 +173,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
       { file, format },
       {
         onSuccess: (result) => {
+          appliedDuplicates.current = {}
           setPreview(result)
           // Duplicatas já entraram numa importação anterior: vêm desmarcadas para que
           // confirmar sem revisar não seja um caminho para duplicar a fatura.
@@ -145,7 +206,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   }
 
   function toggleGroup(group: FaturaImportGroupPreview) {
-    const importable = group.rows.filter((row) => !row.duplicate)
+    const importable = group.rows.filter((row) => !isDuplicate(group, row))
     const allSelected = importable.every((row) => selected.has(row.externalRef))
     setSelected((current) => {
       const next = new Set(current)
@@ -204,8 +265,16 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   if (!open) return null
 
   const selectedCount = selected.size
+  // Não é `preview.duplicateCount`: a contagem do servidor só conhece os cartões que ele
+  // sugeriu, e os escolhidos à mão entram depois.
+  const duplicateCount = preview
+    ? preview.groups.reduce(
+        (total, group) => total + group.rows.filter((row) => isDuplicate(group, row)).length,
+        0,
+      )
+    : 0
   const subtitle = preview
-    ? `${preview.totalRows} lançamentos lidos · ${preview.duplicateCount} já importados · ${preview.excludedPaymentsCount} pagamentos ignorados`
+    ? `${preview.totalRows} lançamentos lidos · ${duplicateCount} já importados · ${preview.excludedPaymentsCount} pagamentos ignorados`
     : 'Envie o PDF da fatura para conferir os lançamentos antes de gravar'
 
   return (
@@ -326,6 +395,12 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                 </Select>
               </Field>
 
+              {fetchingByGroup[group.cardLast4] && (
+                <div style={{ fontSize: 12, color: 'var(--text-dim)' }} aria-live="polite">
+                  Verificando o que já foi importado neste cartão…
+                </div>
+              )}
+
               <div
                 className="tbl-wrap fatura-tbl-wrap"
                 style={{ maxHeight: 320, overflowY: 'auto' }}
@@ -338,9 +413,9 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                           type="checkbox"
                           aria-label={`Selecionar todos do cartão ${group.cardLast4}`}
                           checked={
-                            group.rows.filter((row) => !row.duplicate).length > 0 &&
+                            group.rows.filter((row) => !isDuplicate(group, row)).length > 0 &&
                             group.rows
-                              .filter((row) => !row.duplicate)
+                              .filter((row) => !isDuplicate(group, row))
                               .every((row) => selected.has(row.externalRef))
                           }
                           onChange={() => toggleGroup(group)}
@@ -357,7 +432,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                     {group.rows.map((row) => (
                       <tr
                         key={row.externalRef}
-                        style={row.duplicate ? { opacity: 0.55 } : undefined}
+                        style={isDuplicate(group, row) ? { opacity: 0.55 } : undefined}
                         data-testid={`fatura-row-${row.lineNumber}`}
                       >
                         <td className="cell-check" style={{ paddingLeft: 16 }}>
@@ -381,7 +456,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                               }))
                             }
                           />
-                          {row.duplicate && (
+                          {isDuplicate(group, row) && (
                             <>
                               {' '}
                               <Badge kind="muted" square dot={false}>

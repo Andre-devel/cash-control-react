@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw'
 import type {
   Card,
   FaturaImportCommitRequest,
+  FaturaImportDuplicateCheckRequest,
   FaturaImportPreviewResponse,
   Invoice,
   LimitUsage,
@@ -162,8 +163,17 @@ export function getLastFaturaCommit() {
   return lastFaturaCommit
 }
 
+/** O que cada cartão já tem importado, por id. Alimenta `/invoices/import/duplicates`. */
+let faturaDuplicatesByCard: Record<string, string[]> = {}
+
+/** Faz o cartão responder que estes `externalRef` já estão na fatura do mês. */
+export function setFaturaImportDuplicates(creditCardId: string, externalRefs: string[]) {
+  faturaDuplicatesByCard[creditCardId] = externalRefs
+}
+
 export function resetFaturaImportStore() {
   lastFaturaCommit = null
+  faturaDuplicatesByCard = {}
 }
 
 let cardsStore: Card[] = [MOCK_CARD_1, MOCK_CARD_2]
@@ -177,6 +187,16 @@ export const cardsHandlers = [
   // os testes de tela mockam `previewFaturaImport` e usam MOCK_FATURA_PREVIEW. A
   // confirmação é JSON e passa por aqui normalmente. Precisa vir antes de
   // `*/cards/:id`, senão "invoices" seria capturado como um id.
+  // Precisa vir antes de `*/cards/invoices/import` só por clareza — o match do MSW é do
+  // caminho inteiro, e não do prefixo.
+  http.post('*/cards/invoices/import/duplicates', async ({ request }) => {
+    const body = (await request.json()) as FaturaImportDuplicateCheckRequest
+    const known = faturaDuplicatesByCard[body.creditCardId] ?? []
+    return HttpResponse.json({
+      duplicateExternalRefs: body.externalRefs.filter((ref) => known.includes(ref)),
+    })
+  }),
+
   http.post('*/cards/invoices/import', async ({ request }) => {
     const body = (await request.json()) as FaturaImportCommitRequest
     lastFaturaCommit = body
