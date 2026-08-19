@@ -167,6 +167,60 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
     return descriptionEdits[row.externalRef] ?? row.description
   }
 
+  /** Outras linhas da prévia — de qualquer seção — com o mesmo estabelecimento. */
+  function merchantRowsOf(row: FaturaImportPreviewRow): FaturaImportPreviewRow[] {
+    if (!preview || !row.merchantKey) return []
+    return preview.groups
+      .flatMap((group) => group.rows)
+      .filter(
+        (other) => other.externalRef !== row.externalRef && other.merchantKey === row.merchantKey,
+      )
+  }
+
+  /**
+   * Aplica a categoria escolhida numa linha a todas as outras da prévia com o mesmo
+   * `merchantKey` — é aqui que revisar um estabelecimento vira uma decisão só, em vez de
+   * uma por linha.
+   */
+  function applyCategoryToMerchant(row: FaturaImportPreviewRow) {
+    if (!preview || !row.merchantKey) return
+    const categoryId = categoryIdOf(row)
+    const key = row.merchantKey
+    setEdits((current) => {
+      const next = { ...current }
+      for (const other of preview.groups.flatMap((group) => group.rows)) {
+        if (other.merchantKey === key) next[other.externalRef] = categoryId
+      }
+      return next
+    })
+  }
+
+  /**
+   * Linhas cuja sugestão ainda não foi confirmada pelo usuário e não veio de uma regra
+   * declarada — é nelas que vale a pena olhar antes de importar. Uma regra (`RULE`) é
+   * intenção do próprio usuário e não entra na lista; `HISTORY` e `NONE` sim.
+   */
+  function reviewRows(): FaturaImportPreviewRow[] {
+    if (!preview) return []
+    return preview.groups.flatMap((group) =>
+      group.rows.filter((row) => row.suggestionSource !== 'RULE' && !(row.externalRef in edits)),
+    )
+  }
+
+  /** Rola até a primeira linha pendente de revisão e leva o foco à sua categoria. */
+  function jumpToReview() {
+    const [target] = reviewRows()
+    if (!target) return
+    const rowEl = document.querySelector(`[data-testid="fatura-row-${target.lineNumber}"]`)
+    // O jsdom não implementa scrollIntoView, e isto roda em teste também.
+    if (rowEl instanceof HTMLElement && typeof rowEl.scrollIntoView === 'function') {
+      rowEl.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }
+    rowEl
+      ?.querySelector<HTMLElement>(`[aria-label="Categoria da linha ${target.lineNumber}"]`)
+      ?.focus()
+  }
+
   function handleAnalyze() {
     if (!file) return
     analyze(
@@ -276,6 +330,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   const subtitle = preview
     ? `${preview.totalRows} lançamentos lidos · ${duplicateCount} já importados · ${preview.excludedPaymentsCount} pagamentos ignorados`
     : 'Envie o PDF da fatura para conferir os lançamentos antes de gravar'
+  const reviewCount = reviewRows().length
 
   return (
     <Modal
@@ -369,6 +424,28 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
           {groupsMissingCard.length > 0 && (
             <div role="alert" className="err">
               Escolha o cartão de destino de cada seção antes de importar.
+            </div>
+          )}
+
+          {reviewCount > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+              <span style={{ color: 'var(--text-dim)' }}>
+                {reviewCount} sem categoria confirmada
+              </span>
+              <button
+                type="button"
+                onClick={jumpToReview}
+                style={{
+                  background: 'none',
+                  border: 0,
+                  padding: 0,
+                  color: 'var(--accent)',
+                  cursor: 'pointer',
+                  font: 'inherit',
+                }}
+              >
+                revisar
+              </button>
             </div>
           )}
 
@@ -480,10 +557,31 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                                 ? row.suggestedCategoryName
                                 : null
                             }
+                            suggestionSource={row.suggestionSource}
+                            reviewed={row.externalRef in edits}
                             onChange={(categoryId) =>
                               setEdits((current) => ({ ...current, [row.externalRef]: categoryId }))
                             }
                           />
+                          {categoryIdOf(row) !== null && merchantRowsOf(row).length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => applyCategoryToMerchant(row)}
+                              title={`Aplicar esta categoria às ${merchantRowsOf(row).length} outras linhas deste estabelecimento`}
+                              style={{
+                                display: 'block',
+                                background: 'none',
+                                border: 0,
+                                padding: 0,
+                                marginTop: 2,
+                                color: 'var(--accent)',
+                                fontSize: 11,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              aplicar a +{merchantRowsOf(row).length} do estabelecimento
+                            </button>
+                          )}
                         </td>
                         <td className="num cell-amount">
                           <Money value={Number(row.amount)} />

@@ -54,7 +54,12 @@ function renderDialog(open = true) {
 
 /** Prévia com o mesmo estabelecimento repetido, que é o caso do "aplicar às iguais". */
 function previewWithRepeatedMerchant(): ImportPreviewResponse {
-  const row = (lineNumber: number, externalRef: string, description: string): ImportPreviewRow => ({
+  const row = (
+    lineNumber: number,
+    externalRef: string,
+    description: string,
+    merchantKey: string,
+  ): ImportPreviewRow => ({
     lineNumber,
     externalRef,
     date: '2026-07-19',
@@ -63,8 +68,12 @@ function previewWithRepeatedMerchant(): ImportPreviewResponse {
     amount: '65.30',
     type: 'EXPENSE',
     paymentMethod: 'DEBIT_CARD',
+    merchantKey,
     suggestedCategoryId: null,
     suggestedCategoryName: null,
+    suggestedSubcategoryId: null,
+    suggestedSubcategoryName: null,
+    suggestionSource: 'NONE',
     duplicate: false,
     unknownHistory: false,
   })
@@ -77,9 +86,9 @@ function previewWithRepeatedMerchant(): ImportPreviewResponse {
     warningCount: 0,
     errors: [],
     rows: [
-      row(10, 'ref-sorvete-1', 'Sorveteka Penapolis Bra'),
-      row(11, 'ref-sorvete-2', 'Sorveteka Penapolis Bra'),
-      row(12, 'ref-outra', 'Drogal Penapolis Bra'),
+      row(10, 'ref-sorvete-1', 'Sorveteka Penapolis Bra', 'sorveteka penapolis'),
+      row(11, 'ref-sorvete-2', 'Sorveteka Penapolis Bra', 'sorveteka penapolis'),
+      row(12, 'ref-outra', 'Drogal Penapolis Bra', 'drogal penapolis'),
     ],
   }
 }
@@ -390,5 +399,46 @@ describe('ImportStatementDialog — edição na prévia', () => {
     await pickCategory(user, 9, 'Restaurant')
 
     expect(screen.queryByRole('button', { name: /aplicar a \+/i })).toBeNull()
+  })
+
+  /**
+   * Uma sugestão vinda do histórico é um palpite estatístico, não uma decisão do
+   * usuário como uma regra — por isso fica marcada até ser revisada.
+   */
+  it('marks an unreviewed history suggestion, but not a row with no suggestion', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    expect(within(screen.getByTestId('import-row-7')).getByText('histórico')).toBeInTheDocument()
+    expect(within(screen.getByTestId('import-row-8')).queryByText('histórico')).toBeNull()
+  })
+
+  it('drops the history badge once the user picks a category for that row', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    await pickCategory(user, 7, 'Restaurant')
+
+    expect(within(screen.getByTestId('import-row-7')).queryByText('histórico')).toBeNull()
+  })
+
+  /**
+   * O contador conta RULE fora — regra é intenção declarada, não palpite a revisar —
+   * e deixa pular direto para a próxima linha pendente.
+   */
+  it('offers to jump to the rows still needing a confirmed category', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    expect(screen.getByText(/3 sem categoria confirmada/i)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^revisar$/i }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /categoria da linha 7/i })).toHaveFocus(),
+    )
   })
 })

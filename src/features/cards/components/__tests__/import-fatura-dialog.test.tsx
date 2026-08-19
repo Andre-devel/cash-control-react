@@ -10,6 +10,8 @@ import {
   MOCK_FATURA_PREVIEW,
 } from '@/test/handlers/cards.handlers'
 import type * as FaturaImportApi from '@/features/cards/api/fatura-import.api'
+import { previewFaturaImport } from '@/features/cards/api/fatura-import.api'
+import type { FaturaImportPreviewResponse, FaturaImportPreviewRow } from '@/features/cards/types'
 import { ImportFaturaDialog } from '../import-fatura-dialog'
 
 // O XHR do jsdom trava num POST multipart com arquivo, então a prévia não pode passar
@@ -51,6 +53,42 @@ function renderDialog(open = true) {
 
 function pdfFile() {
   return new File(['%PDF-1.4'], 'fatura-inter-2026-07.pdf', { type: 'application/pdf' })
+}
+
+/** Prévia com o mesmo estabelecimento repetido, que é o caso do "aplicar ao estabelecimento". */
+function previewWithRepeatedMerchant(): FaturaImportPreviewResponse {
+  const row = (lineNumber: number, externalRef: string): FaturaImportPreviewRow => ({
+    lineNumber,
+    externalRef,
+    ordinal: 0,
+    date: '2026-07-19',
+    description: 'Sorveteka Penapolis Bra',
+    amount: '65.30',
+    installmentNumber: null,
+    totalInstallments: null,
+    merchantKey: 'sorveteka penapolis',
+    suggestedCategoryId: null,
+    suggestedCategoryName: null,
+    suggestedSubcategoryId: null,
+    suggestedSubcategoryName: null,
+    suggestionSource: 'NONE',
+    duplicate: false,
+  })
+
+  return {
+    ...MOCK_FATURA_PREVIEW,
+    totalRows: 2,
+    duplicateCount: 0,
+    errors: [],
+    groups: [
+      {
+        cardLast4: '7866',
+        suggestedCreditCardId: 'card-1',
+        suggestedCreditCardName: 'Nubank',
+        rows: [row(10, 'ref-sorvete-1'), row(11, 'ref-sorvete-2')],
+      },
+    ],
+  }
 }
 
 /**
@@ -455,5 +493,68 @@ describe('ImportFaturaDialog', () => {
 
     expect(screen.getByText(/1 pagamentos ignorados/i)).toBeInTheDocument()
     expect(screen.getByText('2026-07')).toBeInTheDocument()
+  })
+
+  /**
+   * Uma sugestão vinda do histórico é um palpite estatístico, não uma decisão do
+   * usuário como uma regra — por isso fica marcada até ser revisada.
+   */
+  it('marks an unreviewed history suggestion, but not a row with no suggestion', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    expect(within(screen.getByTestId('fatura-row-59')).getByText('histórico')).toBeInTheDocument()
+    expect(within(screen.getByTestId('fatura-row-70')).queryByText('histórico')).toBeNull()
+  })
+
+  it('drops the history badge once the user picks a category for that row', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    await user.click(screen.getByRole('combobox', { name: /categoria da linha 59/i }))
+    await user.click(await screen.findByRole('option', { name: 'Restaurant' }))
+
+    expect(within(screen.getByTestId('fatura-row-59')).queryByText('histórico')).toBeNull()
+  })
+
+  /**
+   * O contador conta RULE fora — regra é intenção declarada, não palpite a revisar —
+   * e cai conforme cada linha é revisada.
+   */
+  it('offers to jump to the rows still needing a confirmed category', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    expect(screen.getByText(/3 sem categoria confirmada/i)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^revisar$/i }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /categoria da linha 59/i })).toHaveFocus(),
+    )
+  })
+
+  it('applies a category to every other row of the same estabelecimento', async () => {
+    vi.mocked(previewFaturaImport).mockImplementationOnce(async () => previewWithRepeatedMerchant())
+    const user = userEvent.setup()
+    renderDialog()
+    await user.upload(screen.getByLabelText(/arquivo/i), pdfFile())
+    await chooseAccount(user)
+    await user.click(screen.getByRole('button', { name: /analisar arquivo/i }))
+    await waitFor(() => expect(screen.getAllByText('Sorveteka Penapolis Bra')).toHaveLength(2))
+
+    await user.click(screen.getByRole('combobox', { name: /categoria da linha 10/i }))
+    await user.click(await screen.findByRole('option', { name: 'Restaurant' }))
+    await user.click(screen.getByRole('button', { name: /aplicar a \+1 do estabelecimento/i }))
+
+    await user.click(screen.getByRole('button', { name: /importar 2 lançamentos/i }))
+
+    await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
+    const rows = getLastFaturaCommit()!.rows
+    expect(rows.find((row) => row.externalRef === 'ref-sorvete-1')?.categoryId).toBe('cat-3')
+    expect(rows.find((row) => row.externalRef === 'ref-sorvete-2')?.categoryId).toBe('cat-3')
   })
 })

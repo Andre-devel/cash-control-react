@@ -97,6 +97,9 @@ export interface FaturaImportRowError {
   message: string
 }
 
+/** De onde veio a categoria sugerida, na ordem em que o backend as resolve. */
+export type SuggestionSource = 'RULE' | 'HISTORY' | 'NONE'
+
 export interface FaturaImportPreviewRow {
   lineNumber: number
   /** Hash da linha de origem. Devolvido inalterado na confirmação — é a chave de deduplicação. */
@@ -112,8 +115,18 @@ export interface FaturaImportPreviewRow {
   amount: string
   installmentNumber: number | null
   totalInstallments: number | null
+  /**
+   * Identidade do estabelecimento, derivada da descrição. `null` quando a descrição não
+   * deixa nada identificável. É por ela que "aplicar a todas as linhas deste
+   * estabelecimento" agrupa as linhas da prévia.
+   */
+  merchantKey: string | null
   suggestedCategoryId: string | null
   suggestedCategoryName: string | null
+  suggestedSubcategoryId: string | null
+  suggestedSubcategoryName: string | null
+  /** De onde veio a sugestão: regra do usuário, histórico do estabelecimento, ou nenhuma. */
+  suggestionSource: SuggestionSource
   /** Já existe na fatura deste mês: veio de uma importação anterior. */
   duplicate: boolean
 }

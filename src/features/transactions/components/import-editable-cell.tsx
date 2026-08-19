@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import { CategoryCombobox } from '@/features/categories/components/category-combobox'
 import type { Category } from '@/features/categories/types'
 
@@ -89,6 +90,9 @@ export function EditableTextCell({ value, label, onChange, edited }: EditableTex
   )
 }
 
+/** De onde veio a categoria sugerida — mesmos valores do `SuggestionSource` do backend. */
+export type CategorySuggestionSource = 'RULE' | 'HISTORY' | 'NONE'
+
 interface EditableCategoryCellProps {
   value: string | null
   label: string
@@ -100,6 +104,19 @@ interface EditableCategoryCellProps {
    * mesmo tendo sugestão.
    */
   fallbackName?: string | null
+  /**
+   * De onde veio o valor sugerido para esta linha. Só muda a aparência da célula
+   * enquanto `reviewed` for `false` — depois que o usuário mexe na categoria, o palpite
+   * original deixa de importar.
+   */
+  suggestionSource?: CategorySuggestionSource
+  /**
+   * `false` enquanto o valor exibido é exatamente a sugestão do servidor, ainda não
+   * confirmada pelo usuário. Um palpite por `HISTORY` fica atenuado e com um selo
+   * discreto — é estatística sobre o próprio estabelecimento, não uma decisão declarada
+   * como a de uma regra (`RULE`), que aparece decidida, sem selo.
+   */
+  reviewed?: boolean
   onChange: (categoryId: string | null) => void
 }
 
@@ -108,19 +125,29 @@ export function EditableCategoryCell({
   label,
   categories,
   fallbackName,
+  suggestionSource,
+  reviewed = true,
   onChange,
 }: EditableCategoryCellProps) {
+  const isUnreviewedHistory = !reviewed && suggestionSource === 'HISTORY'
   // Ao contrário das outras células, esta não precisa do clique-para-editar: o gatilho é
   // só um botão, e a lista (com busca e cadastro rápido) só monta quando é aberta.
   return (
-    <CategoryCombobox
-      variant="inline"
-      aria-label={label}
-      value={value}
-      categories={categories}
-      fallbackName={fallbackName}
-      emptyLabel="sem categoria"
-      onChange={onChange}
-    />
+    <span style={isUnreviewedHistory ? { opacity: 0.72 } : undefined}>
+      <CategoryCombobox
+        variant="inline"
+        aria-label={label}
+        value={value}
+        categories={categories}
+        fallbackName={fallbackName}
+        emptyLabel="sem categoria"
+        onChange={onChange}
+      />
+      {isUnreviewedHistory && (
+        <Badge kind="muted" square dot={false} style={{ marginLeft: 6 }}>
+          histórico
+        </Badge>
+      )}
+    </span>
   )
 }

@@ -100,18 +100,27 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
   }
 
   /**
-   * Aplica a categoria a todas as linhas que o banco descreveu igual — o mesmo mercado
+   * Chave de agrupamento de "linhas iguais": o `merchantKey` do servidor quando a
+   * descrição deixou algo identificável, e a descrição normalizada quando não — mesma
+   * regra que já valia antes de o servidor derivar o estabelecimento.
+   */
+  function similarityKey(row: ImportPreviewRow): string {
+    return row.merchantKey ?? descriptionKey(row.description)
+  }
+
+  /**
+   * Aplica a categoria a todas as linhas do mesmo estabelecimento — o mesmo mercado
    * costuma aparecer dezenas de vezes num extrato de dois anos, e classificar uma a uma
    * seria trabalho manual demais para o recurso valer a pena.
    */
   function applyCategoryToSimilar(row: ImportPreviewRow) {
     if (!preview) return
     const categoryId = categoryIdOf(row)
-    const key = descriptionKey(row.description)
+    const key = similarityKey(row)
     setEdits((current) => {
       const next = { ...current }
       for (const other of preview.rows) {
-        if (descriptionKey(other.description) === key) {
+        if (similarityKey(other) === key) {
           next[other.externalRef] = { ...next[other.externalRef], categoryId }
         }
       }
@@ -119,11 +128,36 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
     })
   }
 
-  /** Quantas outras linhas o banco descreveu igual a esta. */
+  /** Quantas outras linhas são do mesmo estabelecimento que esta. */
   function similarCount(row: ImportPreviewRow): number {
     if (!preview) return 0
-    const key = descriptionKey(row.description)
-    return preview.rows.filter((other) => descriptionKey(other.description) === key).length - 1
+    const key = similarityKey(row)
+    return preview.rows.filter((other) => similarityKey(other) === key).length - 1
+  }
+
+  /**
+   * Linhas cuja sugestão ainda não foi confirmada e não veio de uma regra declarada pelo
+   * usuário — as que valem a pena olhar antes de importar.
+   */
+  function reviewRows(): ImportPreviewRow[] {
+    if (!preview) return []
+    return preview.rows.filter(
+      (row) => row.suggestionSource !== 'RULE' && !('categoryId' in (edits[row.externalRef] ?? {})),
+    )
+  }
+
+  /** Rola até a primeira linha pendente de revisão e leva o foco à sua categoria. */
+  function jumpToReview() {
+    const [target] = reviewRows()
+    if (!target) return
+    const rowEl = document.querySelector(`[data-testid="import-row-${target.lineNumber}"]`)
+    // O jsdom não implementa scrollIntoView, e isto roda em teste também.
+    if (rowEl instanceof HTMLElement && typeof rowEl.scrollIntoView === 'function') {
+      rowEl.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }
+    rowEl
+      ?.querySelector<HTMLElement>(`[aria-label="Categoria da linha ${target.lineNumber}"]`)
+      ?.focus()
   }
 
   function handleClose() {
@@ -194,6 +228,7 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
   const subtitle = preview
     ? `${preview.totalRows} lançamentos lidos · ${preview.duplicateCount} já importados · ${preview.warningCount} para revisar`
     : 'Envie o arquivo do extrato para conferir os lançamentos antes de gravar'
+  const reviewCount = reviewRows().length
 
   return (
     <Modal
@@ -252,6 +287,28 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                 .map((error) => `linha ${error.lineNumber} (${error.message})`)
                 .join('; ')}
               {preview.errors.length > 3 && '…'}
+            </div>
+          )}
+
+          {reviewCount > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+              <span style={{ color: 'var(--text-dim)' }}>
+                {reviewCount} sem categoria confirmada
+              </span>
+              <button
+                type="button"
+                onClick={jumpToReview}
+                style={{
+                  background: 'none',
+                  border: 0,
+                  padding: 0,
+                  color: 'var(--accent)',
+                  cursor: 'pointer',
+                  font: 'inherit',
+                }}
+              >
+                revisar
+              </button>
             </div>
           )}
 
@@ -333,13 +390,15 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                               ? row.suggestedCategoryName
                               : null
                           }
+                          suggestionSource={row.suggestionSource}
+                          reviewed={'categoryId' in (edits[row.externalRef] ?? {})}
                           onChange={(categoryId) => editRow(row.externalRef, { categoryId })}
                         />
                         {categoryIdOf(row) !== null && similarCount(row) > 0 && (
                           <button
                             type="button"
                             onClick={() => applyCategoryToSimilar(row)}
-                            title={`Aplicar esta categoria às ${similarCount(row)} outras linhas com a mesma descrição`}
+                            title={`Aplicar esta categoria às ${similarCount(row)} outras linhas deste estabelecimento`}
                             style={{
                               display: 'block',
                               background: 'none',
