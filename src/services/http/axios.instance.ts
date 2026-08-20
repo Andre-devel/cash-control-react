@@ -120,7 +120,10 @@ async function endSession(correlationId: string): Promise<void> {
   router.navigate('/login', { replace: true })
 
   const { toast } = await import('@/lib/toast')
-  toast.warn('Sua sessão expirou. Faça login novamente.', correlationId)
+  toast.warn(
+    'Sua sessão expirou. Faça login novamente.',
+    correlationId ? `Ref: ${correlationId}` : undefined,
+  )
 }
 
 export function normalizeError(error: AxiosError): NormalizedError {

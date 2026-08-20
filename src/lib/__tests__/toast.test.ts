@@ -38,8 +38,8 @@ describe('toast', () => {
     expect(sonnerToast.warning).toHaveBeenCalledWith('Careful!')
   })
 
-  it('calls sonner toast.warning via toast.warn with correlationId', () => {
-    toast.warn('Session expired.', 'session-ref-456')
+  it('calls sonner toast.warning via toast.warn with a description', () => {
+    toast.warn('Session expired.', 'Ref: session-ref-456')
     expect(sonnerToast.warning).toHaveBeenCalledWith('Session expired.', {
       description: 'Ref: session-ref-456',
     })

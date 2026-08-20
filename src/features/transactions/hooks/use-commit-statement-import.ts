@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { commitStatementImport } from '@/features/transactions/api/statement-import.api'
 import { toast } from '@/lib/toast'
+import { describeErrors } from '@/lib/import-errors'
 import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { TRANSACTIONS_QUERY_KEY } from './use-transactions'
 import { ACCOUNTS_QUERY_KEY } from '@/features/accounts/hooks/use-accounts'
@@ -32,7 +33,7 @@ export function useCommitStatementImport() {
       const message = `${parts.join(' · ')}.`
 
       if (result.failed > 0) {
-        toast.warn(message)
+        toast.warn(message, describeErrors(result.errors))
       } else {
         toast.success(message)
       }

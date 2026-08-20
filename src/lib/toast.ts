@@ -9,9 +9,9 @@ export const toast = {
       sonnerToast.error(message)
     }
   },
-  warn: (message: string, correlationId?: string) => {
-    if (correlationId) {
-      sonnerToast.warning(message, { description: `Ref: ${correlationId}` })
+  warn: (message: string, description?: string) => {
+    if (description) {
+      sonnerToast.warning(message, { description })
     } else {
       sonnerToast.warning(message)
     }

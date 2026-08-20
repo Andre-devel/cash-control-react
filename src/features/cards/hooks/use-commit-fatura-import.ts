@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { commitFaturaImport } from '@/features/cards/api/fatura-import.api'
 import { toast } from '@/lib/toast'
+import { describeErrors } from '@/lib/import-errors'
 import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { CARDS_QUERY_KEY } from './use-cards'
 import { TRANSACTIONS_QUERY_KEY } from '@/features/transactions/hooks/use-transactions'
@@ -47,7 +48,7 @@ export function useCommitFaturaImport() {
       const message = `${parts.join(' · ')}.`
 
       if (result.failed > 0) {
-        toast.warn(message)
+        toast.warn(message, describeErrors(result.errors))
       } else {
         toast.success(message)
       }
