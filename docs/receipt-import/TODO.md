@@ -1,8 +1,8 @@
 # Comprovante de PIX via Web Share Target — o que falta
 
 Estado após a implementação inicial (backend Fases 1+2, frontend PWA/share target
-completo). Ver o plano original em `~/.claude/plans/vamos-discutir-sobre-uma-abstract-phoenix.md`
-para o desenho completo; este arquivo é só a lista do que ainda falta.
+completo). Ver [`PLAN.md`](./PLAN.md), neste mesmo diretório, para o desenho completo;
+este arquivo é só a lista do que ainda falta.
 
 ## Testes automatizados
 
