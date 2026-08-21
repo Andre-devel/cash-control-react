@@ -9,6 +9,7 @@ import { useProfile } from '@/features/profile/hooks/use-profile'
 import { useUpdateProfile } from '@/features/profile/hooks/use-update-profile'
 import { ConsentHistorySection } from '@/features/profile/components/consent-history-section'
 import { ChangePasswordSection } from '@/features/profile/components/change-password-section'
+import { useInstallPrompt } from '@/app/pwa/use-install-prompt'
 import type { UpdateProfileFormValues } from '@/features/profile/schemas/update-profile.schema'
 
 function ProfileSkeleton() {
@@ -24,6 +25,7 @@ function ProfileSkeleton() {
 export default function ProfilePage() {
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const { mutate: updateProfile, isPending } = useUpdateProfile()
+  const { canInstall, promptInstall } = useInstallPrompt()
 
   const form = useForm<UpdateProfileFormValues>({
     resolver: zodResolver(updateProfileSchema),
@@ -98,6 +100,23 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+
+      {canInstall && (
+        <div className="card">
+          <div className="card-h">
+            <h3>Instalar app</h3>
+          </div>
+          <div className="card-b space-y-2">
+            <p className="text-sm text-dim">
+              Instale o Cash Control para lançar um comprovante de PIX direto do botão compartilhar
+              do app do seu banco.
+            </p>
+            <Button variant="ghost" size="sm" onClick={() => void promptInstall()}>
+              Instalar
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <div className="card-h">
