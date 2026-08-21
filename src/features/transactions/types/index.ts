@@ -225,3 +225,50 @@ export interface ImportResultResponse {
   failed: number
   errors: ImportRowError[]
 }
+
+export interface ReceiptPreviewResponse {
+  /**
+   * Chave de deduplicação: o endToEndId do PIX quando o comprovante o traz, senão um hash
+   * de data+valor+destinatário. `null` quando nada foi lido — nesse caso a duplicata não
+   * pode ser checada até o usuário preencher os campos na revisão.
+   */
+  externalRef: string | null
+  amount: string | null
+  date: string | null
+  recipientName: string | null
+  recipientDocument: string | null
+  institution: string | null
+  message: string | null
+  /** Identidade do destinatário, derivada de recipientName — mesma ideia de merchantKey. */
+  merchantKey: string | null
+  /** Como o usuário renomeou este destinatário da última vez, ou `null` se nunca renomeou. */
+  suggestedDescription: string | null
+  suggestedCategoryId: string | null
+  suggestedCategoryName: string | null
+  suggestedSubcategoryId: string | null
+  suggestedSubcategoryName: string | null
+  suggestionSource: SuggestionSource
+  duplicate: boolean
+  duplicateTransactionId: string | null
+  /** Campos que a leitura não conseguiu identificar, ex: `["destinatário"]`. */
+  unreadFields: string[]
+  /** Nada pôde ser lido do arquivo — a tela cai para preenchimento manual. */
+  unreadable: boolean
+}
+
+export interface ReceiptCommitRequest {
+  accountId: string
+  externalRef: string
+  type: TransactionType
+  amount: string
+  description: string
+  /**
+   * O nome do destinatário como o comprovante trouxe, antes de qualquer edição do
+   * usuário. É dele que o servidor deriva o apelido a lembrar.
+   */
+  originalDescription: string
+  competenceDate: string
+  categoryId?: string | null
+  subcategoryId?: string | null
+  status?: TransactionStatus
+}

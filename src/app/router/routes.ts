@@ -20,6 +20,8 @@ export const ROUTES = {
   CARDS: '/cards',
   CARD_DETAIL: '/cards/:id',
   PROFILE: '/profile',
+  /** Destino do Web Share Target (manifest `share_target.action`) e do link manual. */
+  SHARE_TARGET: '/share-target',
 } as const
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES]

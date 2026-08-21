@@ -33,6 +33,7 @@ const CardsPage = lazy(() => import('@/features/cards/pages/cards-page'))
 const CardDetailPage = lazy(() => import('@/features/cards/pages/card-detail-page'))
 const ProfilePage = lazy(() => import('@/features/profile/pages/profile-page'))
 const AuditPage = lazy(() => import('@/features/audit/pages/audit-page'))
+const ShareTargetPage = lazy(() => import('@/features/transactions/pages/share-target-page'))
 
 function PageLoader() {
   return (
@@ -194,6 +195,14 @@ export const routeConfig: RouteObject[] = [
                 element: (
                   <Suspense fallback={<PageLoader />}>
                     <ProfilePage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.SHARE_TARGET,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <ShareTargetPage />
                   </Suspense>
                 ),
               },

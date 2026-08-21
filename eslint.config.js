@@ -17,6 +17,16 @@ export default [
     },
   },
   {
+    // O service worker roda fora do escopo de window/document — precisa dos globals de
+    // worker (self, ServiceWorkerGlobalScope, caches) e não dos de browser.
+    files: ['src/sw.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.serviceworker,
+      },
+    },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
@@ -41,10 +51,7 @@ export default [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports' },
-      ],
+      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
     },
     settings: {
       react: { version: 'detect' },
