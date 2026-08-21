@@ -43,11 +43,13 @@ export const MOCK_INVOICE: Invoice = {
   totalAmount: '800.00',
   paidAmount: '300.00',
   status: 'PARTIALLY_PAID',
+  paidWithoutTransaction: false,
   dueDate: '2026-06-10',
   items: [
     {
       id: 'item-1',
       description: 'Supermarket',
+      imported: true,
       amount: '350.00',
       competenceDate: '2026-05-10',
       categoryId: 'category-1',
@@ -55,6 +57,7 @@ export const MOCK_INVOICE: Invoice = {
     {
       id: 'item-2',
       description: 'Gas station',
+      imported: false,
       amount: '450.00',
       competenceDate: '2026-05-15',
       categoryId: null,

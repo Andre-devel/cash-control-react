@@ -68,7 +68,8 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
     resolver: zodResolver(schema),
     defaultValues: {
       amount: remainingAmountStr,
-      accountId: '',
+      sourceAccountId: '',
+      paymentDate: todayIso(),
     },
   })
 
@@ -188,8 +189,12 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
           </Button>
         </div>
 
-        <Field label="Conta de origem" required error={form.formState.errors.accountId?.message}>
-          <Select aria-label="Conta de origem" {...form.register('accountId')}>
+        <Field
+          label="Conta de origem"
+          required
+          error={form.formState.errors.sourceAccountId?.message}
+        >
+          <Select aria-label="Conta de origem" {...form.register('sourceAccountId')}>
             <option value="">Selecionar conta</option>
             {accounts?.map((account) => (
               <option key={account.id} value={account.id}>
@@ -199,8 +204,12 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
           </Select>
         </Field>
 
-        <Field label="Data do pagamento" required>
-          <Input type="date" defaultValue={todayIso()} />
+        <Field
+          label="Data do pagamento"
+          required
+          error={form.formState.errors.paymentDate?.message}
+        >
+          <Input type="date" {...form.register('paymentDate')} />
         </Field>
       </form>
     </Modal>

@@ -19,6 +19,8 @@ export const ROUTES = {
   CATEGORIES: '/categories',
   CARDS: '/cards',
   CARD_DETAIL: '/cards/:id',
+  INVOICES: '/invoices',
+  INVOICE_DETAIL: '/invoices/:invoiceId',
   PROFILE: '/profile',
 } as const
 

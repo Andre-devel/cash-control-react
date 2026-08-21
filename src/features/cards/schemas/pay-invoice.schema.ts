@@ -19,7 +19,8 @@ export function createPayInvoiceSchema(remainingAmount: string) {
         },
         { message: 'Valor não pode exceder o saldo restante' },
       ),
-    accountId: z.string().min(1, 'Conta é obrigatória'),
+    sourceAccountId: z.string().min(1, 'Conta é obrigatória'),
+    paymentDate: z.string().min(1, 'Data é obrigatória'),
   })
 }
 

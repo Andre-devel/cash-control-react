@@ -120,6 +120,16 @@ describe('Financial feature routes — authenticated rendering', () => {
     expect(await screen.findByRole('heading', { name: /card/i }, { timeout: 5000 })).toBeTruthy()
   })
 
+  it('renders invoices page at /invoices', async () => {
+    renderAtPath('/invoices')
+    expect(await screen.findByRole('heading', { name: /faturas/i }, { timeout: 5000 })).toBeTruthy()
+  })
+
+  it('renders invoice detail page at /invoices/:invoiceId', async () => {
+    renderAtPath('/invoices/test-id')
+    expect(await screen.findByRole('heading', { name: /fatura/i }, { timeout: 5000 })).toBeTruthy()
+  })
+
   it('renders profile page at /profile', async () => {
     renderAtPath('/profile')
     expect(await screen.findByRole('heading', { name: /perfil/i })).toBeTruthy()

@@ -21,6 +21,11 @@ export interface Card {
 export interface InvoiceItem {
   id: string
   description: string
+  /** A descrição como o arquivo trouxe, antes de qualquer edição. `null` em itens
+   * lançados à mão ou importados antes desta coluna existir. */
+  originalDescription?: string | null
+  /** `true` quando o item veio de uma importação de fatura. */
+  imported: boolean
   amount: string
   competenceDate: string
   categoryId: string | null
@@ -42,8 +47,26 @@ export interface Invoice {
   totalAmount: string
   paidAmount: string
   status: InvoiceStatus
+  /** `true` quando o status PAID veio de "Marcar como paga" e não de um pagamento real —
+   * o único caso em que "Reabrir fatura" é seguro. */
+  paidWithoutTransaction: boolean
   dueDate: string
   items: InvoiceItem[]
+}
+
+/** Uma linha da lista de faturas de um cartão, sem os itens. */
+export interface InvoiceSummary {
+  id: string
+  creditCardId: string
+  referenceMonth: string
+  status: InvoiceStatus
+  closingDate: string
+  dueDate: string
+  totalAmount: string
+  paidAmount: string
+  paidWithoutTransaction: boolean
+  itemCount: number
+  importedItemCount: number
 }
 
 export interface LimitUsage {
@@ -75,7 +98,8 @@ export type UpdateCardRequest = CreateCardRequest
 
 export interface PayInvoiceRequest {
   amount: string
-  accountId: string
+  sourceAccountId: string
+  paymentDate: string
 }
 
 export interface SpendingBreakdownParams {

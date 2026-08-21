@@ -31,6 +31,8 @@ const RecurrencesPage = lazy(() => import('@/features/recurrences/pages/recurren
 const CategoriesPage = lazy(() => import('@/features/categories/pages/categories-page'))
 const CardsPage = lazy(() => import('@/features/cards/pages/cards-page'))
 const CardDetailPage = lazy(() => import('@/features/cards/pages/card-detail-page'))
+const InvoicesPage = lazy(() => import('@/features/invoices/pages/invoices-page'))
+const InvoiceDetailPage = lazy(() => import('@/features/invoices/pages/invoice-detail-page'))
 const ProfilePage = lazy(() => import('@/features/profile/pages/profile-page'))
 const AuditPage = lazy(() => import('@/features/audit/pages/audit-page'))
 
@@ -186,6 +188,22 @@ export const routeConfig: RouteObject[] = [
                 element: (
                   <Suspense fallback={<PageLoader />}>
                     <CardDetailPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.INVOICES,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <InvoicesPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.INVOICE_DETAIL,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <InvoiceDetailPage />
                   </Suspense>
                 ),
               },
