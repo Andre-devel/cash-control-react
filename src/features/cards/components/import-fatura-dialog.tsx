@@ -501,10 +501,10 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
               )}
 
               <div
-                className="tbl-wrap fatura-tbl-wrap"
+                className="tbl-wrap stack-tbl-wrap fatura-tbl-wrap"
                 style={{ maxHeight: 320, overflowY: 'auto' }}
               >
-                <table className="tbl fatura-tbl">
+                <table className="tbl stack-tbl fatura-tbl">
                   <thead>
                     <tr>
                       <th style={{ width: 36, paddingLeft: 16 }}>

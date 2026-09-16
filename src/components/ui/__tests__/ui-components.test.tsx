@@ -747,7 +747,7 @@ describe('EmptyState', () => {
 
   it('applies empty class', () => {
     const { container } = render(<EmptyState title="Empty" />)
-    expect(container.querySelector('.empty')).toBeTruthy()
+    expect(container.querySelector('.empty-state')).toBeTruthy()
   })
 })
 

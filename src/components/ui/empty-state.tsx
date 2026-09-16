@@ -9,7 +9,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon: Icon, title, desc, action }: EmptyStateProps) {
   return (
-    <div className="empty">
+    <div className="empty-state">
       <div className="icon">
         {Icon ? (
           <Icon size={22} stroke={1.4} />

@@ -339,8 +339,11 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
             </div>
           )}
 
-          <div className="tbl-wrap" style={{ maxHeight: 420, overflowY: 'auto' }}>
-            <table className="tbl">
+          <div
+            className="tbl-wrap stack-tbl-wrap statement-tbl-wrap"
+            style={{ maxHeight: 420, overflowY: 'auto' }}
+          >
+            <table className="tbl stack-tbl statement-tbl">
               <thead>
                 <tr>
                   <th style={{ width: 36, paddingLeft: 16 }}>
@@ -369,7 +372,7 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                       style={row.duplicate ? { opacity: 0.55 } : undefined}
                       data-testid={`import-row-${row.lineNumber}`}
                     >
-                      <td style={{ paddingLeft: 16 }}>
+                      <td className="cell-check" style={{ paddingLeft: 16 }}>
                         <input
                           type="checkbox"
                           aria-label={`Importar ${descriptionOf(row)}`}
@@ -377,8 +380,8 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                           onChange={() => toggleRow(row)}
                         />
                       </td>
-                      <td>{fmtDate(row.date)}</td>
-                      <td>
+                      <td className="cell-date">{fmtDate(row.date)}</td>
+                      <td className="cell-desc">
                         <EditableTextCell
                           value={descriptionOf(row)}
                           label={`Descrição da linha ${row.lineNumber}`}
@@ -429,12 +432,16 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                           </>
                         )}
                       </td>
-                      <td style={{ color: 'var(--text-dim)' }}>{row.rawHistory}</td>
-                      <td>
+                      <td className="cell-hist" style={{ color: 'var(--text-dim)' }}>
+                        {row.rawHistory}
+                      </td>
+                      <td className="cell-type">
                         <TypeBadge type={row.type} />
                       </td>
-                      <td>{PAYMENT_METHOD_LABELS[row.paymentMethod] ?? row.paymentMethod}</td>
-                      <td>
+                      <td className="cell-method">
+                        {PAYMENT_METHOD_LABELS[row.paymentMethod] ?? row.paymentMethod}
+                      </td>
+                      <td className="cell-cat">
                         <EditableCategoryCell
                           value={categoryIdOf(row)}
                           label={`Categoria da linha ${row.lineNumber}`}
@@ -468,7 +475,7 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                           </button>
                         )}
                       </td>
-                      <td className="num">
+                      <td className="num cell-amount">
                         <Money value={Number(row.amount)} />
                       </td>
                     </tr>

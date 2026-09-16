@@ -887,15 +887,18 @@
 /* ============================================================
    Empty state
    ============================================================ */
-.empty {
+/* `empty-state`, e não `empty`: este bloco é o estado vazio de uma lista inteira, e o
+   nome curto colidia com o modificador `.empty` do seletor de categoria — que herdava
+   daqui a coluna centralizada. */
+.empty-state {
   display: flex; flex-direction: column; align-items: center;
   padding: 56px 24px;
   text-align: center;
   color: var(--text-dim);
 }
-.empty .icon { width: 48px; height: 48px; border-radius: var(--r-4); background: var(--surface-2); display: grid; place-items: center; margin-bottom: 12px; color: var(--text-muted); }
-.empty h4 { margin: 0 0 4px; color: var(--text); font-size: 14px; font-weight: 500; }
-.empty p { margin: 0 0 16px; font-size: 12.5px; max-width: 320px; }
+.empty-state .icon { width: 48px; height: 48px; border-radius: var(--r-4); background: var(--surface-2); display: grid; place-items: center; margin-bottom: 12px; color: var(--text-muted); }
+.empty-state h4 { margin: 0 0 4px; color: var(--text); font-size: 14px; font-weight: 500; }
+.empty-state p { margin: 0 0 16px; font-size: 12.5px; max-width: 320px; }
 
 /* ============================================================
    Utilitários de viewport — o par é alternado no bloco mobile
@@ -1306,18 +1309,16 @@
   /* ----------------------------------------------------------
      Tabela "empilhável" → cards no mobile, base compartilhada.
      Usada onde uma tabela tem colunas demais para caber num celular sem rolagem
-     lateral: import de fatura (seleção, data, descrição editável, parcela,
-     categoria editável, valor) e a lista de itens da tela de faturas (data,
-     descrição, categoria, parcela, valor, editar). Cada tabela concreta só
-     define seu próprio grid-template-columns/areas em cima desta base — ver
-     `.fatura-tbl` e `.invoice-items-tbl` logo abaixo.
+     lateral: import de fatura, import de extrato e a lista de itens da tela de
+     faturas. Cada tabela concreta marca `stack-tbl`/`stack-tbl-wrap` junto da sua
+     própria classe e só define seu grid-template-columns/areas em cima desta base
+     — ver `.fatura-tbl`, `.statement-tbl` e `.invoice-items-tbl` logo abaixo.
      ---------------------------------------------------------- */
-  .fatura-tbl-wrap, .invoice-items-tbl-wrap { overflow-x: visible; max-height: none !important; }
-  .fatura-tbl thead, .invoice-items-tbl thead { display: none; }
-  .fatura-tbl, .fatura-tbl tbody,
-  .invoice-items-tbl, .invoice-items-tbl tbody { display: block; }
-  .fatura-tbl tbody, .invoice-items-tbl tbody { display: flex; flex-direction: column; gap: 8px; }
-  .fatura-tbl tr, .invoice-items-tbl tr {
+  .stack-tbl-wrap { overflow-x: visible; max-height: none !important; }
+  .stack-tbl thead { display: none; }
+  .stack-tbl, .stack-tbl tbody { display: block; }
+  .stack-tbl tbody { display: flex; flex-direction: column; gap: 8px; }
+  .stack-tbl tr {
     display: grid;
     column-gap: 10px;
     row-gap: 6px;
@@ -1327,21 +1328,27 @@
     padding: 12px;
     background: var(--surface-1);
   }
-  .fatura-tbl tbody tr:hover, .invoice-items-tbl tbody tr:hover { background: var(--surface-1); }
-  .fatura-tbl td, .invoice-items-tbl td {
+  .stack-tbl tbody tr:hover { background: var(--surface-1); }
+  .stack-tbl td {
     display: block;
     padding: 0 !important;
     border: 0 !important;
   }
   /* Rótulos que o cabeçalho dava e some no empilhamento. */
-  .fatura-tbl td.cell-meta::before, .invoice-items-tbl td.cell-meta::before { content: 'Parcela: '; }
-  .fatura-tbl td.cell-cat::before, .invoice-items-tbl td.cell-cat::before {
+  .stack-tbl td.cell-meta::before { content: 'Parcela: '; }
+  .stack-tbl td.cell-cat::before {
     content: 'Categoria';
     display: block;
     font-size: 11px;
     color: var(--text-dim);
     margin-bottom: 2px;
   }
+  .stack-tbl td.cell-date { grid-area: date; font-size: 12px; color: var(--text-dim); }
+  .stack-tbl td.cell-amount { grid-area: amount; text-align: right; }
+  .stack-tbl td.cell-desc { grid-area: desc; }
+  .stack-tbl td.cell-meta { grid-area: meta; font-size: 12px; color: var(--text-dim); }
+  .stack-tbl td.cell-cat { grid-area: cat; }
+  .stack-tbl td.cell-check { grid-area: check; align-self: start; }
 
   .fatura-tbl tr {
     grid-template-columns: auto 1fr auto;
@@ -1351,12 +1358,29 @@
       'check meta   meta'
       'check cat    cat';
   }
-  .fatura-tbl td.cell-check { grid-area: check; align-self: start; }
-  .fatura-tbl td.cell-date { grid-area: date; font-size: 12px; color: var(--text-dim); }
-  .fatura-tbl td.cell-amount { grid-area: amount; text-align: right; }
-  .fatura-tbl td.cell-desc { grid-area: desc; }
-  .fatura-tbl td.cell-meta { grid-area: meta; font-size: 12px; color: var(--text-dim); }
-  .fatura-tbl td.cell-cat { grid-area: cat; }
+
+  /* Extrato: sem parcela, mas com histórico do banco, tipo e forma de pagamento. */
+  .statement-tbl tr {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'check date   amount'
+      'check desc   desc'
+      'check hist   hist'
+      'check type   method'
+      'check cat    cat';
+  }
+  .statement-tbl td.cell-hist {
+    grid-area: hist;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .statement-tbl td.cell-type { grid-area: type; }
+  .statement-tbl td.cell-method {
+    grid-area: method;
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
 
   .invoice-items-tbl tr {
     grid-template-columns: 1fr auto;
@@ -1367,11 +1391,6 @@
       'cat    cat'
       'action action';
   }
-  .invoice-items-tbl td.cell-date { grid-area: date; font-size: 12px; color: var(--text-dim); }
-  .invoice-items-tbl td.cell-amount { grid-area: amount; text-align: right; }
-  .invoice-items-tbl td.cell-desc { grid-area: desc; }
-  .invoice-items-tbl td.cell-meta { grid-area: meta; font-size: 12px; color: var(--text-dim); }
-  .invoice-items-tbl td.cell-cat { grid-area: cat; }
   .invoice-items-tbl td.cell-action { grid-area: action; }
   .invoice-items-tbl td.cell-action button { width: 100%; min-height: 44px; }
 

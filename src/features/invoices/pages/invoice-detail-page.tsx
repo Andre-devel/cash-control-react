@@ -166,8 +166,8 @@ export default function InvoiceDetailPage() {
                 Nenhum lançamento neste período.
               </p>
             ) : (
-              <div className="tbl-wrap invoice-items-tbl-wrap">
-                <table className="tbl invoice-items-tbl">
+              <div className="tbl-wrap stack-tbl-wrap invoice-items-tbl-wrap">
+                <table className="tbl stack-tbl invoice-items-tbl">
                   <thead>
                     <tr>
                       <th>Data</th>
