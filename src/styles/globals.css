@@ -1394,6 +1394,19 @@
   .invoice-items-tbl td.cell-action { grid-area: action; }
   .invoice-items-tbl td.cell-action button { width: 100%; min-height: 44px; }
 
+  /* Transações recentes do dashboard: as larguras fixas das colunas do desktop
+     estouravam o card (tabela de 384 px dentro de 338 px) e cortavam o valor. */
+  .recent-tbl tr {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'icon date   amount'
+      'icon desc   desc'
+      'icon status status';
+  }
+  .recent-tbl td { width: auto !important; }
+  .recent-tbl td.cell-icon { grid-area: icon; align-self: start; }
+  .recent-tbl td.cell-status { grid-area: status; }
+
   /* Filterbar — pill row wraps cleanly */
   .filterbar { gap: 6px; }
   .filterbar .search { min-width: 0; flex: 1 1 100%; }
@@ -1451,6 +1464,10 @@
   .card-h { flex-wrap: wrap; align-items: flex-start; }
   .card-h .right, .card-h-controls { margin-left: 0; flex-basis: 100%; }
   .input-compact { font-size: 16px; padding: 0 10px; height: 44px; flex: 1 1 0; min-width: 0; }
+
+  /* input[type=month] renderiza "setembro de 2026" + ícone: não cabe em meia
+     linha (138 px) e o mês vinha truncado. Um por linha. */
+  .input-compact[type='month'] { flex: 1 1 100%; }
 
   /* Gráfico SVG de proporção fixa: rola em vez de encolher até ficar ilegível */
   .chart-scroll .bar-chart { min-width: 520px; }

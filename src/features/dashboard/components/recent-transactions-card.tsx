@@ -126,8 +126,8 @@ export function RecentTransactionsCard() {
             Nenhuma transação recente.
           </p>
         ) : (
-          <div className="tbl-wrap">
-            <table className="tbl">
+          <div className="tbl-wrap stack-tbl-wrap">
+            <table className="tbl stack-tbl recent-tbl">
               <tbody>
                 {transactions.map((tx) => {
                   const amountValue = parseFloat(tx.amount)
@@ -138,14 +138,14 @@ export function RecentTransactionsCard() {
 
                   return (
                     <tr key={tx.id}>
-                      <td style={{ paddingLeft: 16, width: 44 }}>
+                      <td className="cell-icon" style={{ paddingLeft: 16, width: 44 }}>
                         <IconBubble
                           color={transactionTypeColor(tx.type, amountValue)}
                           icon={icon}
                           size="sm"
                         />
                       </td>
-                      <td style={{ whiteSpace: 'normal' }}>
+                      <td className="cell-desc" style={{ whiteSpace: 'normal' }}>
                         <Link
                           to={ROUTES.TRANSACTION_DETAIL.replace(':id', tx.id)}
                           style={{ color: 'inherit', textDecoration: 'none' }}
@@ -157,14 +157,14 @@ export function RecentTransactionsCard() {
                           </div>
                         </Link>
                       </td>
-                      <td>
+                      <td className="cell-status">
                         <StatusBadge status={status} />
                       </td>
-                      <td className="text-xs text-dim" style={{ width: 90 }}>
+                      <td className="cell-date text-xs text-dim" style={{ width: 90 }}>
                         {fmtDateShort(tx.competenceDate)}
                       </td>
                       <td
-                        className="num"
+                        className="num cell-amount"
                         style={{ paddingRight: 16, color: amountColor, fontWeight: 500 }}
                       >
                         <Money value={amountValue} signed={isPositive} />
