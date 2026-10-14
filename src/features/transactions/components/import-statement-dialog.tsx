@@ -262,7 +262,7 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
       title="Importar extrato"
       subtitle={subtitle}
       onClose={handleClose}
-      wide
+      xwide
       footer={
         <>
           <Button type="button" variant="ghost" onClick={handleClose}>
@@ -341,7 +341,9 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
 
           <div
             className="tbl-wrap stack-tbl-wrap statement-tbl-wrap"
-            style={{ maxHeight: 420, overflowY: 'auto' }}
+            // A altura acompanha a janela para que só a tabela role: com um teto fixo, em
+            // telas baixas o corpo do modal rolava junto e a página ficava com duas barras.
+            style={{ maxHeight: 'calc(100vh - 340px)', overflowY: 'auto' }}
           >
             <table className="tbl stack-tbl statement-tbl">
               <thead>
