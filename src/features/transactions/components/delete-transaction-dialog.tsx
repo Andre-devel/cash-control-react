@@ -71,6 +71,11 @@ export function DeleteTransactionDialog({
         Tem certeza que deseja excluir permanentemente <strong>{transaction?.description}</strong>?
         Esta ação não pode ser desfeita.
       </p>
+      {transaction?.type === 'INVOICE_PAYMENT' && (
+        <p className="mt-2">
+          O valor volta para a conta e sai do pago da fatura, que reabre se ficar devendo.
+        </p>
+      )}
     </Modal>
   )
 }

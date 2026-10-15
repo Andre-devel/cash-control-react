@@ -8,6 +8,8 @@ import { useLimitUsage } from '@/features/cards/hooks/use-limit-usage'
 import { useSpendingBreakdown } from '@/features/cards/hooks/use-spending-breakdown'
 import { EditCardDialog } from '@/features/cards/components/edit-card-dialog'
 import { PayInvoiceDialog } from '@/features/cards/components/pay-invoice-dialog'
+import { ArchiveCardDialog } from '@/features/cards/components/archive-card-dialog'
+import { useUnarchiveCard } from '@/features/cards/hooks/use-unarchive-card'
 import {
   dueMonthLabelWithYear,
   getCurrentInvoiceMonth,
@@ -37,6 +39,8 @@ export default function CardDetailPage() {
   const [referenceMonth, setReferenceMonth] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
+  const [archiveOpen, setArchiveOpen] = useState(false)
+  const { mutate: unarchiveCard, isPending: unarchivePending } = useUnarchiveCard()
 
   const spendingFrom = referenceMonth ? `${referenceMonth}-01` : ''
   const spendingTo = referenceMonth
@@ -115,6 +119,27 @@ export default function CardDetailPage() {
               >
                 Editar
               </Button>
+              {card.archivedAt ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="min-h-[44px]"
+                  disabled={unarchivePending}
+                  aria-busy={unarchivePending}
+                  onClick={() => unarchiveCard(card.id)}
+                >
+                  Desarquivar
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="min-h-[44px]"
+                  onClick={() => setArchiveOpen(true)}
+                >
+                  Arquivar
+                </Button>
+              )}
             </div>
           </div>
 
@@ -289,6 +314,7 @@ export default function CardDetailPage() {
           )}
 
           <EditCardDialog card={card} open={editOpen} onClose={() => setEditOpen(false)} />
+          <ArchiveCardDialog card={card} open={archiveOpen} onClose={() => setArchiveOpen(false)} />
           {invoice && (
             <PayInvoiceDialog
               invoice={invoice}

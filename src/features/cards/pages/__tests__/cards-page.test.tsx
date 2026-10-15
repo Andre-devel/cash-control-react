@@ -423,3 +423,19 @@ describe('CardsPage — Phase 7 acceptance criteria', () => {
     })
   })
 })
+
+describe('CardsPage — cartões arquivados', () => {
+  it('lists archived cards with a link to their detail page, out of the active row', async () => {
+    server.use(
+      http.get('*/cards', () =>
+        HttpResponse.json([MOCK_CARD_1, { ...MOCK_CARD_2, archivedAt: '2026-01-01T00:00:00Z' }]),
+      ),
+    )
+    renderWithProviders(<CardsPage />)
+
+    await waitFor(() => expect(screen.getByText('1 cartão')).toBeTruthy())
+    expect(screen.getByText('Arquivados:')).toBeTruthy()
+    const link = screen.getByRole('link', { name: MOCK_CARD_2.name })
+    expect(link.getAttribute('href')).toBe(`/cards/${MOCK_CARD_2.id}`)
+  })
+})

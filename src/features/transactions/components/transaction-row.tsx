@@ -221,7 +221,7 @@ export const TransactionRow = memo(function TransactionRow({
               Cancelar
             </Button>
           )}
-          {!isSeries && !isLocked && (
+          {!isSeries && (
             <Button
               type="button"
               size="sm"

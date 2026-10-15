@@ -43,6 +43,10 @@ export async function archiveCard(id: string): Promise<void> {
   await axiosInstance.post(`/cards/${id}/archive`)
 }
 
+export async function unarchiveCard(id: string): Promise<void> {
+  await axiosInstance.post(`/cards/${id}/unarchive`)
+}
+
 export async function getInvoice(id: string, referenceMonth: string): Promise<Invoice> {
   const response = await axiosInstance.get<Invoice>(`/cards/${id}/invoices/${referenceMonth}`)
   return response.data

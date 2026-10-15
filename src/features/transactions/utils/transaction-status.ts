@@ -23,8 +23,8 @@ export function canPayTransaction(
 }
 
 /**
- * Pagamento de fatura não aceita edição, cancelamento nem exclusão: ele é o dinheiro que
- * quitou a fatura e as compras dela.
+ * Pagamento de fatura não aceita edição nem cancelamento: ele é o dinheiro que quitou a
+ * fatura e as compras dela. Excluir é permitido e desfaz o pagamento na fatura.
  */
 export function isLockedTransaction(transaction: Pick<Transaction, 'type'>): boolean {
   return transaction.type === 'INVOICE_PAYMENT'

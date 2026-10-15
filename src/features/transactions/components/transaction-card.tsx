@@ -151,7 +151,7 @@ export const TransactionCard = memo(function TransactionCard({
             Cancelar
           </Button>
         )}
-        {!isSeries && !isLocked && (
+        {!isSeries && (
           <Button
             type="button"
             size="sm"

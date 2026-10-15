@@ -92,16 +92,14 @@ export default function TransactionDetailPage() {
               </Button>
             </>
           )}
-          {!isLockedTransaction(transaction) && (
-            <Button
-              variant="destructive"
-              size="sm"
-              className="min-h-[44px]"
-              onClick={() => setDeleteOpen(true)}
-            >
-              Excluir
-            </Button>
-          )}
+          <Button
+            variant="destructive"
+            size="sm"
+            className="min-h-[44px]"
+            onClick={() => setDeleteOpen(true)}
+          >
+            Excluir
+          </Button>
         </div>
       </div>
 

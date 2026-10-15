@@ -302,6 +302,11 @@ export const cardsHandlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
+  http.post('*/cards/:id/unarchive', ({ params }) => {
+    cardsStore = cardsStore.map((c) => (c.id === params.id ? { ...c, archivedAt: null } : c))
+    return new HttpResponse(null, { status: 204 })
+  }),
+
   http.post('*/cards/invoices/:invoiceId/pay', async () => {
     return new HttpResponse(null, { status: 204 })
   }),

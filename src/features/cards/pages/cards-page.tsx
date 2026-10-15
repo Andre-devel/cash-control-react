@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { Plus, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCards } from '@/features/cards/hooks/use-cards'
@@ -13,6 +14,7 @@ import { CreateCardDialog } from '@/features/cards/components/create-card-dialog
 import { PayInvoiceDialog } from '@/features/cards/components/pay-invoice-dialog'
 import { ImportFaturaDialog } from '@/features/cards/components/import-fatura-dialog'
 import { getCurrentInvoiceMonth } from '@/features/cards/utils/invoice-month'
+import { ROUTES } from '@/app/router/routes'
 
 function getSpendingRange(referenceMonth: string) {
   const [y, m] = referenceMonth.split('-').map(Number)
@@ -57,6 +59,7 @@ export default function CardsPage() {
   const [importOpen, setImportOpen] = useState(false)
 
   const activeCards = cards?.filter((c) => !c.archivedAt) ?? []
+  const archivedCards = cards?.filter((c) => c.archivedAt) ?? []
   const selectedCard = activeCards.find((c) => c.id === selectedCardId) ?? activeCards[0] ?? null
 
   useEffect(() => {
@@ -157,6 +160,16 @@ export default function CardsPage() {
             <AddCardVisual onClick={() => setCreateOpen(true)} />
           </div>
 
+          {selectedCard && (
+            <div className="row gap-2 mb-4" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to={ROUTES.CARD_DETAIL.replace(':id', selectedCard.id)}>
+                  Detalhes de {selectedCard.name}
+                </Link>
+              </Button>
+            </div>
+          )}
+
           {/* Invoice + sidebar */}
           {selectedCard && (
             <div className="grid" style={{ gridTemplateColumns: '1fr 360px' }}>
@@ -172,6 +185,17 @@ export default function CardsPage() {
             </div>
           )}
         </>
+      )}
+
+      {archivedCards.length > 0 && (
+        <div className="row gap-2 mt-6" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
+          <span className="text-xs text-dim">Arquivados:</span>
+          {archivedCards.map((card) => (
+            <Button key={card.id} variant="ghost" size="sm" asChild>
+              <Link to={ROUTES.CARD_DETAIL.replace(':id', card.id)}>{card.name}</Link>
+            </Button>
+          ))}
+        </div>
       )}
 
       <CreateCardDialog open={createOpen} onClose={() => setCreateOpen(false)} />
