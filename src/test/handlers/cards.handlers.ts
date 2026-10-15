@@ -42,7 +42,7 @@ export const MOCK_INVOICE: Invoice = {
   closingDate: '2026-05-01',
   totalAmount: '800.00',
   paidAmount: '300.00',
-  status: 'PARTIALLY_PAID',
+  status: 'PARTIAL',
   paidWithoutTransaction: false,
   dueDate: '2026-06-10',
   items: [

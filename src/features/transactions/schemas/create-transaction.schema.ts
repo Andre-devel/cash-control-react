@@ -5,6 +5,9 @@ import { moneyField } from '@/lib/money'
 export const TRANSACTION_TYPES = ['INCOME', 'EXPENSE', 'REFUND'] as const
 export const TRANSACTION_STATUSES = ['PENDING', 'PAID', 'CANCELLED'] as const
 
+/** VENCIDA é atribuída pelo job noturno, nunca escolhida na criação — mas é filtrável. */
+export const TRANSACTION_FILTER_STATUSES = ['PENDING', 'OVERDUE', 'PAID', 'CANCELLED'] as const
+
 export const createTransactionSchema = z
   .object({
     description: z

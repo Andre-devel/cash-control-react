@@ -8,13 +8,8 @@ import { DeleteTransactionDialog } from '@/features/transactions/components/dele
 import { CancelTransactionDialog } from '@/features/transactions/components/cancel-transaction-dialog'
 import { PayTransactionButton } from '@/features/transactions/components/pay-transaction-button'
 import { TRANSACTION_TYPE_DISPLAY } from '@/features/transactions/utils/transaction-type'
+import { TRANSACTION_STATUS_LABELS } from '@/features/transactions/utils/transaction-status'
 import { ROUTES } from '@/app/router/routes'
-
-const STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Pendente',
-  PAID: 'Pago',
-  CANCELLED: 'Cancelado',
-}
 
 function DetailSkeleton() {
   return (
@@ -118,7 +113,7 @@ export default function TransactionDetailPage() {
             </div>
             <div>
               <p className="text-xs text-dim">Situação</p>
-              <p className="text-sm">{STATUS_LABELS[transaction.status]}</p>
+              <p className="text-sm">{TRANSACTION_STATUS_LABELS[transaction.status]}</p>
             </div>
             <div>
               <p className="text-xs text-dim">Data</p>

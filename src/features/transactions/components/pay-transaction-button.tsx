@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { usePayTransaction } from '@/features/transactions/hooks/use-pay-transaction'
 import type { Transaction } from '@/features/transactions/types'
+import { isPayableStatus } from '@/features/transactions/utils/transaction-status'
 
 interface PayTransactionButtonProps {
   transaction: Transaction
@@ -9,7 +10,7 @@ interface PayTransactionButtonProps {
 export function PayTransactionButton({ transaction }: PayTransactionButtonProps) {
   const { mutate: payTransaction, isPending } = usePayTransaction()
 
-  if (transaction.status !== 'PENDING') return null
+  if (!isPayableStatus(transaction.status)) return null
 
   return (
     <Button
@@ -26,10 +27,10 @@ export function PayTransactionButton({ transaction }: PayTransactionButtonProps)
             className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"
             aria-hidden="true"
           />
-          Paying…
+          Pagando…
         </>
       ) : (
-        'Mark as Paid'
+        'Marcar como pago'
       )}
     </Button>
   )

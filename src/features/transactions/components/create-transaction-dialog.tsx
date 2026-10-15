@@ -21,17 +21,12 @@ import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { PaymentMethodSelect } from './payment-method-select'
 import { CreditCardSelect } from './credit-card-select'
 import { useCards } from '@/features/cards/hooks/use-cards'
+import { TRANSACTION_STATUS_LABELS } from '@/features/transactions/utils/transaction-status'
 
 const TRANSACTION_TYPE_LABELS: Record<string, string> = {
   INCOME: 'Receita',
   EXPENSE: 'Despesa',
   REFUND: 'Reembolso',
-}
-
-const TRANSACTION_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Pendente',
-  PAID: 'Pago',
-  CANCELLED: 'Cancelado',
 }
 
 const DEFAULT_VALUES: CreateTransactionFormValues = {

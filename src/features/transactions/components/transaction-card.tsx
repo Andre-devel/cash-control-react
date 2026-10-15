@@ -9,6 +9,7 @@ import {
   isPositiveTransaction,
   transactionTypeColor,
 } from '@/features/transactions/utils/transaction-type'
+import { isPayableStatus } from '@/features/transactions/utils/transaction-status'
 import {
   effectiveAmount,
   installmentLabel,
@@ -131,7 +132,7 @@ export const TransactionCard = memo(function TransactionCard({
             Ver parcelas
           </Button>
         )}
-        {!isSeries && transaction.status === 'PENDING' && (
+        {!isSeries && isPayableStatus(transaction.status) && (
           <Button type="button" size="sm" variant="ghost" onClick={() => onPay(transaction)}>
             Pagar
           </Button>

@@ -1,5 +1,5 @@
 export type CardBrand = 'VISA' | 'MASTERCARD' | 'ELO' | 'AMEX' | 'HIPERCARD' | 'OTHER'
-export type InvoiceStatus = 'OPEN' | 'CLOSED' | 'PAID' | 'PARTIALLY_PAID' | 'PARTIAL' | 'OVERDUE'
+export type InvoiceStatus = 'OPEN' | 'CLOSED' | 'PAID' | 'PARTIAL' | 'OVERDUE'
 
 export interface Card {
   id: string

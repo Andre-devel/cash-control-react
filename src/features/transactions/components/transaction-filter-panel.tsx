@@ -1,6 +1,10 @@
 import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { TRANSACTION_FILTER_TYPES, TRANSACTION_STATUSES } from '@/features/transactions/schemas'
+import {
+  TRANSACTION_FILTER_TYPES,
+  TRANSACTION_FILTER_STATUSES,
+} from '@/features/transactions/schemas'
+import { TRANSACTION_STATUS_LABELS } from '@/features/transactions/utils/transaction-status'
 import { PaymentMethodSelect } from '@/features/transactions/components/payment-method-select'
 import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
@@ -16,12 +20,6 @@ const TRANSACTION_TYPE_LABELS: Record<string, string> = {
   EXPENSE: 'Despesa',
   REFUND: 'Reembolso',
   TRANSFER: 'Transferência',
-}
-
-const TRANSACTION_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Pendente',
-  PAID: 'Pago',
-  CANCELLED: 'Cancelado',
 }
 
 interface TransactionFilterPanelProps {
@@ -80,7 +78,7 @@ export function TransactionFilterPanel({
         onChange={(e) => update({ status: (e.target.value as TransactionStatus) || undefined })}
       >
         <option value="">Status</option>
-        {TRANSACTION_STATUSES.map((s) => (
+        {TRANSACTION_FILTER_STATUSES.map((s) => (
           <option key={s} value={s}>
             {TRANSACTION_STATUS_LABELS[s]}
           </option>

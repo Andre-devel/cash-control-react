@@ -19,7 +19,8 @@ const INVOICE_STATUS_LABELS: Record<string, string> = {
   OPEN: 'Aberta',
   CLOSED: 'Fechada',
   PAID: 'Paga',
-  PARTIALLY_PAID: 'Parcialmente paga',
+  PARTIAL: 'Parcial',
+  OVERDUE: 'Vencida',
 }
 
 function CardDetailSkeleton() {

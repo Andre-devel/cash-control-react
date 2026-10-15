@@ -51,7 +51,7 @@ export function RecentTransactionsWidget() {
               const statusColor =
                 tx.status === 'PAID'
                   ? 'var(--income)'
-                  : tx.status === 'PENDING'
+                  : tx.status === 'PENDING' || tx.status === 'OVERDUE'
                     ? 'var(--pending)'
                     : 'var(--cancelled)'
 

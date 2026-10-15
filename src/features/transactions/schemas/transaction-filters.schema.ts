@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { TRANSACTION_TYPES, TRANSACTION_STATUSES } from './create-transaction.schema'
+import { TRANSACTION_TYPES, TRANSACTION_FILTER_STATUSES } from './create-transaction.schema'
 import { PAYMENT_METHOD_SLUGS } from '@/features/transactions/types'
 import { moneyField } from '@/lib/money'
 
@@ -8,7 +8,7 @@ export const TRANSACTION_FILTER_TYPES = [...TRANSACTION_TYPES, 'TRANSFER'] as co
 export const transactionFiltersSchema = z.object({
   accountId: z.string().optional(),
   type: z.enum(TRANSACTION_FILTER_TYPES).optional(),
-  status: z.enum(TRANSACTION_STATUSES).optional(),
+  status: z.enum(TRANSACTION_FILTER_STATUSES).optional(),
   categoryId: z.string().optional(),
   paymentMethod: z.enum(PAYMENT_METHOD_SLUGS).optional(),
   competenceDateFrom: z.string().optional(),
