@@ -7,6 +7,7 @@ import { Money } from '@/components/ui/money'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 import type { Card, Invoice } from '@/features/cards/types'
+import { canPayInvoice } from '@/features/invoices/utils/invoice-status'
 import {
   dueMonthLabel,
   getCurrentInvoiceMonth,
@@ -153,7 +154,7 @@ export function InvoiceCard({
                 </Badge>
                 <div className="text-xs text-dim mt-2">{fmtDate(invoice.dueDate)}</div>
               </div>
-              {remainingAmount > 0 && (
+              {canPayInvoice(invoice) && (
                 <Button variant="primary" onClick={onPay} leading={<Check size={14} />}>
                   Pagar fatura
                 </Button>
