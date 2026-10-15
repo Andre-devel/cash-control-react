@@ -130,6 +130,8 @@ export interface UpdateTransactionRequest {
   categoryId?: string
   competenceDate: string
   notes?: string
+  paymentMethod?: PaymentMethodSlug
+  creditCardId?: string
 }
 
 export interface MarkAsPaidRequest {

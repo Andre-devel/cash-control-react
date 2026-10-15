@@ -20,6 +20,7 @@ const TRANSACTION_TYPE_LABELS: Record<string, string> = {
   EXPENSE: 'Despesa',
   REFUND: 'Reembolso',
   TRANSFER: 'Transferência',
+  MANUAL_ADJUSTMENT: 'Ajuste',
   INVOICE_PAYMENT: 'Pagamento de fatura',
 }
 

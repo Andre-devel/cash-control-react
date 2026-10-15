@@ -17,12 +17,13 @@ import type { Transaction } from '@/features/transactions/types'
 import { PaymentMethodSelect } from './payment-method-select'
 import { CreditCardSelect } from './credit-card-select'
 import { useCards } from '@/features/cards/hooks/use-cards'
+import { localIsoDate } from '@/lib/local-date'
 
 const DEFAULT_VALUES: UpdateTransactionFormValues = {
   description: '',
   amount: '0.00',
   categoryId: '',
-  competenceDate: new Date().toISOString().split('T')[0],
+  competenceDate: localIsoDate(),
   notes: '',
   paymentMethod: 'OTHER',
   creditCardId: '',

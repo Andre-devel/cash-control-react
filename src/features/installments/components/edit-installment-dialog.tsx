@@ -11,6 +11,7 @@ import { useUpdateInstallment } from '@/features/installments/hooks/use-update-i
 import { useInstallmentSeriesDetail } from '@/features/installments/hooks/use-installment-series-detail'
 import { moneyField } from '@/lib/money'
 import type { InstallmentSeries } from '@/features/installments/types'
+import { localIsoDate } from '@/lib/local-date'
 
 const editInstallmentSchema = z.object({
   transactionId: z.string().min(1, 'Selecione a parcela'),
@@ -28,7 +29,7 @@ const DEFAULT_VALUES: EditInstallmentFormValues = {
   transactionId: '',
   description: '',
   amount: '0.00',
-  competenceDate: new Date().toISOString().split('T')[0],
+  competenceDate: localIsoDate(),
 }
 
 interface EditInstallmentDialogProps {

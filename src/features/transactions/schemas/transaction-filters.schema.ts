@@ -6,6 +6,7 @@ import { moneyField } from '@/lib/money'
 export const TRANSACTION_FILTER_TYPES = [
   ...TRANSACTION_TYPES,
   'TRANSFER',
+  'MANUAL_ADJUSTMENT',
   'INVOICE_PAYMENT',
 ] as const
 

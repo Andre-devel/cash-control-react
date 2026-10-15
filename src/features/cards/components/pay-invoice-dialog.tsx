@@ -14,6 +14,7 @@ import {
 } from '@/features/cards/schemas/pay-invoice.schema'
 import { usePayInvoice } from '@/features/cards/hooks/use-pay-invoice'
 import type { Invoice } from '@/features/cards/types'
+import { localIsoDate } from '@/lib/local-date'
 
 function fmtDate(dateStr: string) {
   const d = new Date(dateStr + 'T00:00:00')
@@ -25,7 +26,7 @@ function toDecimalString(value: number): string {
 }
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
+  return localIsoDate()
 }
 
 interface MiniStatProps {

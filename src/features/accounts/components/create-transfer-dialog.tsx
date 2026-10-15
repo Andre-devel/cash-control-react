@@ -12,6 +12,7 @@ import {
 } from '@/features/accounts/schemas/create-transfer.schema'
 import { useCreateTransfer } from '@/features/accounts/hooks/use-create-transfer'
 import type { Account } from '@/features/accounts/types'
+import { localIsoDate } from '@/lib/local-date'
 
 interface CreateTransferDialogProps {
   defaultFromAccount: Account | null
@@ -21,7 +22,7 @@ interface CreateTransferDialogProps {
 }
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
+  return localIsoDate()
 }
 
 export function CreateTransferDialog({

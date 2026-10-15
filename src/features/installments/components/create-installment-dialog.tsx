@@ -18,6 +18,7 @@ import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { PaymentMethodSelect } from '@/features/transactions/components/payment-method-select'
 import { CreditCardSelect } from '@/features/transactions/components/credit-card-select'
 import { useCards } from '@/features/cards/hooks/use-cards'
+import { localIsoDate } from '@/lib/local-date'
 
 const DEFAULT_VALUES: CreateInstallmentFormValues = {
   description: '',
@@ -25,7 +26,7 @@ const DEFAULT_VALUES: CreateInstallmentFormValues = {
   totalInstallments: 2,
   accountId: '',
   categoryId: '',
-  firstPaymentDate: new Date().toISOString().split('T')[0],
+  firstPaymentDate: localIsoDate(),
   paymentMethod: 'OTHER',
   creditCardId: '',
 }

@@ -1,5 +1,6 @@
 import type { BadgeKind } from '@/components/ui/badge'
 import type { Invoice, InvoiceStatus } from '@/features/cards/types'
+import { localIsoDate } from '@/lib/local-date'
 
 export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
   OPEN: 'Aberta',
@@ -22,12 +23,6 @@ export function invoiceStatusBadgeKind(status: InvoiceStatus): BadgeKind {
     default:
       return 'muted'
   }
-}
-
-/** Data local no formato `aaaa-mm-dd`, comparável com as datas que a API devolve. */
-function localIsoDate(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
 /**

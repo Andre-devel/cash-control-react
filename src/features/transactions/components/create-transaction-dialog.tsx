@@ -22,6 +22,7 @@ import { PaymentMethodSelect } from './payment-method-select'
 import { CreditCardSelect } from './credit-card-select'
 import { useCards } from '@/features/cards/hooks/use-cards'
 import { TRANSACTION_STATUS_LABELS } from '@/features/transactions/utils/transaction-status'
+import { localIsoDate } from '@/lib/local-date'
 
 const TRANSACTION_TYPE_LABELS: Record<string, string> = {
   INCOME: 'Receita',
@@ -35,7 +36,7 @@ const DEFAULT_VALUES: CreateTransactionFormValues = {
   type: 'EXPENSE',
   accountId: '',
   categoryId: '',
-  competenceDate: new Date().toISOString().split('T')[0],
+  competenceDate: localIsoDate(),
   status: 'PENDING',
   paymentMethod: 'OTHER',
   creditCardId: '',

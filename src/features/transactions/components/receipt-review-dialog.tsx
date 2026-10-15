@@ -23,6 +23,7 @@ import {
   type ReceiptReviewFormValues,
 } from '@/features/transactions/schemas/receipt-review.schema'
 import type { ReceiptPreviewResponse } from '@/features/transactions/types'
+import { localIsoDate } from '@/lib/local-date'
 
 const RECEIPT_TYPE_LABELS: Record<string, string> = {
   EXPENSE: 'PIX enviado',
@@ -42,7 +43,7 @@ interface ReceiptReviewDialogProps {
 }
 
 function todayIso(): string {
-  return new Date().toISOString().split('T')[0]
+  return localIsoDate()
 }
 
 function defaultValuesFrom(preview: ReceiptPreviewResponse | null): ReceiptReviewFormValues {
