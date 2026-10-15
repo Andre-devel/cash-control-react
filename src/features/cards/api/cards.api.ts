@@ -64,7 +64,3 @@ export async function getSpendingBreakdown(
   const response = await axiosInstance.get<SpendingItem[]>(`/cards/${id}/spending`, { params })
   return response.data
 }
-
-export async function deleteCard(id: string): Promise<void> {
-  await axiosInstance.delete(`/cards/${id}`)
-}

@@ -132,8 +132,9 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
           </Select>
         </Field>
 
+        {/* A moeda é fixa depois da criação: o backend recusa a troca. */}
         <Field label="Moeda" error={form.formState.errors.currencyCode?.message}>
-          <Input placeholder="ex: BRL" {...form.register('currencyCode')} />
+          <Input readOnly aria-readonly="true" {...form.register('currencyCode')} />
         </Field>
 
         <Field label="Descrição (opcional)" error={form.formState.errors.description?.message}>
