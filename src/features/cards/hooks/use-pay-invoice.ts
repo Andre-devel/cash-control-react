@@ -5,6 +5,7 @@ import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { TRANSACTIONS_QUERY_KEY } from '@/features/transactions/hooks/use-transactions'
 import { ACCOUNTS_QUERY_KEY } from '@/features/accounts/hooks/use-accounts'
 import { CARDS_QUERY_KEY } from './use-cards'
+import { INVOICES_QUERY_KEY } from '@/features/invoices/hooks/use-invoices'
 import type { PayInvoiceRequest } from '@/features/cards/types'
 import type { NormalizedError } from '@/features/auth/types'
 
@@ -18,6 +19,7 @@ export function usePayInvoice() {
         CARDS_QUERY_KEY,
         ACCOUNTS_QUERY_KEY,
         TRANSACTIONS_QUERY_KEY,
+        INVOICES_QUERY_KEY,
       ])
       toast.success('Pagamento da fatura registrado com sucesso.')
     },

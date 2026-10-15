@@ -3,7 +3,11 @@ import { TRANSACTION_TYPES, TRANSACTION_FILTER_STATUSES } from './create-transac
 import { PAYMENT_METHOD_SLUGS } from '@/features/transactions/types'
 import { moneyField } from '@/lib/money'
 
-export const TRANSACTION_FILTER_TYPES = [...TRANSACTION_TYPES, 'TRANSFER'] as const
+export const TRANSACTION_FILTER_TYPES = [
+  ...TRANSACTION_TYPES,
+  'TRANSFER',
+  'INVOICE_PAYMENT',
+] as const
 
 export const transactionFiltersSchema = z.object({
   accountId: z.string().optional(),

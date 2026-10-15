@@ -9,7 +9,10 @@ import {
   isPositiveTransaction,
   transactionTypeColor,
 } from '@/features/transactions/utils/transaction-type'
-import { isPayableStatus } from '@/features/transactions/utils/transaction-status'
+import {
+  canPayTransaction,
+  isLockedTransaction,
+} from '@/features/transactions/utils/transaction-status'
 import {
   effectiveAmount,
   installmentLabel,
@@ -76,6 +79,7 @@ export const TransactionRow = memo(function TransactionRow({
   const { icon } = TRANSACTION_TYPE_DISPLAY[transaction.type]
   const bubbleColor = category?.color ?? transactionTypeColor(transaction.type, amountValue)
   const isCancelled = transaction.status === 'CANCELLED'
+  const isLocked = isLockedTransaction(transaction)
   const isIncome = isPositiveTransaction(transaction.type, amountValue)
   const amountColor = isIncome ? 'var(--income)' : 'var(--text)'
 
@@ -202,22 +206,22 @@ export const TransactionRow = memo(function TransactionRow({
               Ver parcelas
             </Button>
           )}
-          {!isSeries && isPayableStatus(transaction.status) && (
+          {!isSeries && canPayTransaction(transaction) && (
             <Button type="button" size="sm" variant="ghost" onClick={() => onPay(transaction)}>
               Pagar
             </Button>
           )}
-          {!isSeries && !isCancelled && (
+          {!isSeries && !isCancelled && !isLocked && (
             <Button type="button" size="sm" variant="ghost" onClick={() => onEdit(transaction)}>
               Editar
             </Button>
           )}
-          {!isSeries && !isCancelled && (
+          {!isSeries && !isCancelled && !isLocked && (
             <Button type="button" size="sm" variant="ghost" onClick={() => onCancel(transaction)}>
               Cancelar
             </Button>
           )}
-          {!isSeries && (
+          {!isSeries && !isLocked && (
             <Button
               type="button"
               size="sm"

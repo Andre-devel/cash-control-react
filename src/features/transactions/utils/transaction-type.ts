@@ -1,5 +1,12 @@
 import type { ComponentType } from 'react'
-import { ArrowDownLeft, ArrowUpRight, RotateCcw, ArrowLeftRight, Scale } from 'lucide-react'
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  RotateCcw,
+  ArrowLeftRight,
+  Scale,
+  CreditCard,
+} from 'lucide-react'
 import type { BadgeKind } from '@/components/ui/badge'
 import type { TransactionType } from '@/features/transactions/types'
 
@@ -59,6 +66,13 @@ export const TRANSACTION_TYPE_DISPLAY: Record<TransactionType, TransactionTypeDi
     label: 'Ajuste',
     color: null,
     badgeKind: null,
+  },
+  // Saída da conta que quita a fatura; o gasto são as compras dela, não este lançamento.
+  INVOICE_PAYMENT: {
+    icon: asIcon(CreditCard),
+    label: 'Pagamento de fatura',
+    color: 'var(--info)',
+    badgeKind: 'info',
   },
 }
 

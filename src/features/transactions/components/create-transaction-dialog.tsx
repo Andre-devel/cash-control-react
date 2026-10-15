@@ -93,6 +93,8 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
       createTransaction(
         {
           ...data,
+          // Compra no cartão fica pendente até a fatura ser paga — o backend recusa PAGA.
+          status: data.paymentMethod === 'CREDIT_CARD' ? 'PENDING' : data.status,
           categoryId: data.categoryId || undefined,
           creditCardId: data.creditCardId || undefined,
         },
@@ -217,15 +219,17 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
           <Input type="date" {...form.register('competenceDate')} />
         </Field>
 
-        <Field label="Status" error={form.formState.errors.status?.message}>
-          <Select aria-label="Status" {...form.register('status')}>
-            {TRANSACTION_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {TRANSACTION_STATUS_LABELS[status]}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        {paymentMethod !== 'CREDIT_CARD' && (
+          <Field label="Status" error={form.formState.errors.status?.message}>
+            <Select aria-label="Status" {...form.register('status')}>
+              {TRANSACTION_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {TRANSACTION_STATUS_LABELS[status]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
 
         <Controller
           control={form.control}

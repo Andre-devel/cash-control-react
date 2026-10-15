@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { usePayTransaction } from '@/features/transactions/hooks/use-pay-transaction'
 import type { Transaction } from '@/features/transactions/types'
-import { isPayableStatus } from '@/features/transactions/utils/transaction-status'
+import { canPayTransaction } from '@/features/transactions/utils/transaction-status'
 
 interface PayTransactionButtonProps {
   transaction: Transaction
@@ -10,7 +10,7 @@ interface PayTransactionButtonProps {
 export function PayTransactionButton({ transaction }: PayTransactionButtonProps) {
   const { mutate: payTransaction, isPending } = usePayTransaction()
 
-  if (!isPayableStatus(transaction.status)) return null
+  if (!canPayTransaction(transaction)) return null
 
   return (
     <Button

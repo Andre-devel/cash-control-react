@@ -20,6 +20,7 @@ const TRANSACTION_TYPE_LABELS: Record<string, string> = {
   EXPENSE: 'Despesa',
   REFUND: 'Reembolso',
   TRANSFER: 'Transferência',
+  INVOICE_PAYMENT: 'Pagamento de fatura',
 }
 
 interface TransactionFilterPanelProps {

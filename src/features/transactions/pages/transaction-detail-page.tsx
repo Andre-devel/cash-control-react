@@ -8,7 +8,10 @@ import { DeleteTransactionDialog } from '@/features/transactions/components/dele
 import { CancelTransactionDialog } from '@/features/transactions/components/cancel-transaction-dialog'
 import { PayTransactionButton } from '@/features/transactions/components/pay-transaction-button'
 import { TRANSACTION_TYPE_DISPLAY } from '@/features/transactions/utils/transaction-type'
-import { TRANSACTION_STATUS_LABELS } from '@/features/transactions/utils/transaction-status'
+import {
+  TRANSACTION_STATUS_LABELS,
+  isLockedTransaction,
+} from '@/features/transactions/utils/transaction-status'
 import { ROUTES } from '@/app/router/routes'
 
 function DetailSkeleton() {
@@ -69,7 +72,7 @@ export default function TransactionDetailPage() {
 
         <div className="flex items-center gap-2">
           <PayTransactionButton transaction={transaction} />
-          {transaction.status !== 'CANCELLED' && (
+          {transaction.status !== 'CANCELLED' && !isLockedTransaction(transaction) && (
             <>
               <Button
                 variant="ghost"
@@ -89,14 +92,16 @@ export default function TransactionDetailPage() {
               </Button>
             </>
           )}
-          <Button
-            variant="destructive"
-            size="sm"
-            className="min-h-[44px]"
-            onClick={() => setDeleteOpen(true)}
-          >
-            Excluir
-          </Button>
+          {!isLockedTransaction(transaction) && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="min-h-[44px]"
+              onClick={() => setDeleteOpen(true)}
+            >
+              Excluir
+            </Button>
+          )}
         </div>
       </div>
 
