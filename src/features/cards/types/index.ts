@@ -159,6 +159,8 @@ export interface FaturaImportPreviewRow {
   suggestionSource: SuggestionSource
   /** Já existe na fatura deste mês: veio de uma importação anterior. */
   duplicate: boolean
+  /** Crédito na fatura que não é o pagamento dela: vira estorno e abate o total. */
+  refund: boolean
 }
 
 /**
@@ -222,6 +224,7 @@ export interface FaturaImportCommitRow {
   installmentNumber?: number | null
   totalInstallments?: number | null
   categoryId?: string | null
+  refund?: boolean
 }
 
 export interface FaturaImportCommitRequest {

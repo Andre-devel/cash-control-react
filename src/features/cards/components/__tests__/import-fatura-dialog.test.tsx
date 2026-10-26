@@ -74,6 +74,7 @@ function previewWithRepeatedMerchant(): FaturaImportPreviewResponse {
     suggestedSubcategoryName: null,
     suggestionSource: 'NONE',
     duplicate: false,
+    refund: false,
   })
 
   return {
@@ -238,7 +239,8 @@ describe('ImportFaturaDialog', () => {
     expect(commit!.format).toBe('INTER_FATURA_PDF')
     expect(commit!.referenceMonth).toBe('2026-07')
     expect(commit!.accountId).toBe('account-1')
-    expect(commit!.rows).toHaveLength(2)
+    // A já importada vai junto, para o servidor corrigir o valor dela (ver o teste abaixo).
+    expect(commit!.rows).toHaveLength(3)
     expect(commit!.rows[0]).toMatchObject({
       creditCardId: 'card-1',
       cardLast4: '7866',
@@ -251,7 +253,7 @@ describe('ImportFaturaDialog', () => {
       totalInstallments: 5,
       categoryId: 'cat-1',
     })
-    expect(commit!.rows[1]).toMatchObject({
+    expect(commit!.rows[2]).toMatchObject({
       creditCardId: 'card-2',
       cardLast4: '9999',
       externalRef: 'ref-sem-cartao',
@@ -280,7 +282,11 @@ describe('ImportFaturaDialog', () => {
     )
   })
 
-  it('never sends a row the user left unchecked, even a duplicate', async () => {
+  /**
+   * A já importada não grava nada de novo, mas é por ela que o servidor troca o valor da
+   * parcela que nasceu por estimativa (56,15) pelo que o PDF cobra (56,08).
+   */
+  it('sends the rows already imported along, to correct their amount', async () => {
     const user = userEvent.setup()
     renderDialog()
     await reachPreview(user)
@@ -294,6 +300,7 @@ describe('ImportFaturaDialog', () => {
     await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
     expect(getLastFaturaCommit()!.rows.map((row) => row.externalRef)).toEqual([
       'ref-nova',
+      'ref-ja-importada',
       'ref-sem-cartao',
     ])
   })
@@ -312,6 +319,43 @@ describe('ImportFaturaDialog', () => {
     expect(within(screen.getByTestId('fatura-row-60')).getByRole('checkbox')).not.toBeChecked()
   })
 
+  it('shows a refund in green with a minus sign and sends it as refund', async () => {
+    const base = MOCK_FATURA_PREVIEW
+    vi.mocked(previewFaturaImport).mockImplementationOnce(async () => ({
+      ...base,
+      groups: [
+        {
+          ...base.groups[0],
+          rows: [
+            {
+              ...base.groups[0].rows[0],
+              externalRef: 'ref-estorno',
+              description: 'MERCADOLIVRE*MELI',
+              amount: '96.98',
+              installmentNumber: null,
+              totalInstallments: null,
+              refund: true,
+            },
+          ],
+        },
+      ],
+    }))
+    const user = userEvent.setup()
+    renderDialog()
+    await user.upload(screen.getByLabelText(/arquivo/i), pdfFile())
+    await chooseAccount(user)
+    await user.click(screen.getByRole('button', { name: /analisar arquivo/i }))
+    await waitFor(() => expect(screen.getByText('MERCADOLIVRE*MELI')).toBeInTheDocument())
+
+    expect(screen.getByText('estorno')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /importar 1 lançamentos/i }))
+
+    await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
+    expect(getLastFaturaCommit()!.rows).toEqual([
+      expect.objectContaining({ externalRef: 'ref-estorno', refund: true, amount: '96.98' }),
+    ])
+  })
+
   it('sends the category chosen on a row that had no suggestion', async () => {
     const user = userEvent.setup()
     renderDialog()
@@ -328,7 +372,7 @@ describe('ImportFaturaDialog', () => {
     await user.click(screen.getByRole('button', { name: /importar 2 lançamentos/i }))
 
     await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
-    expect(getLastFaturaCommit()!.rows[1]).toMatchObject({
+    expect(getLastFaturaCommit()!.rows[2]).toMatchObject({
       externalRef: 'ref-sem-cartao',
       categoryId: 'cat-3',
     })
@@ -536,7 +580,7 @@ describe('ImportFaturaDialog', () => {
     expect(screen.getByText(/2 já importados/i)).toBeInTheDocument()
   })
 
-  it('never sends a row already imported on the card chosen by hand', async () => {
+  it('treats a row already on the card chosen by hand as imported', async () => {
     setFaturaImportDuplicates('card-2', ['ref-sem-cartao'])
     const user = userEvent.setup()
     renderDialog()
@@ -551,8 +595,12 @@ describe('ImportFaturaDialog', () => {
     await user.click(importButton)
 
     await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
-    expect(getLastFaturaCommit()!.rows).toHaveLength(1)
-    expect(getLastFaturaCommit()!.rows[0].externalRef).toBe('ref-nova')
+    // Só uma nova; as duas já importadas vão apenas para correção de valor.
+    expect(getLastFaturaCommit()!.rows.map((row) => row.externalRef)).toEqual([
+      'ref-nova',
+      'ref-ja-importada',
+      'ref-sem-cartao',
+    ])
   })
 
   /** Trocar para um cartão que não tem a compra devolve a linha à seleção. */

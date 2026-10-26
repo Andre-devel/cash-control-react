@@ -126,6 +126,7 @@ export const MOCK_FATURA_PREVIEW: FaturaImportPreviewResponse = {
           suggestedSubcategoryName: null,
           suggestionSource: 'HISTORY',
           duplicate: false,
+          refund: false,
         },
         {
           lineNumber: 60,
@@ -145,6 +146,7 @@ export const MOCK_FATURA_PREVIEW: FaturaImportPreviewResponse = {
           suggestedSubcategoryName: null,
           suggestionSource: 'NONE',
           duplicate: true,
+          refund: false,
         },
       ],
     },
@@ -170,6 +172,7 @@ export const MOCK_FATURA_PREVIEW: FaturaImportPreviewResponse = {
           suggestedSubcategoryName: null,
           suggestionSource: 'NONE',
           duplicate: false,
+          refund: false,
         },
       ],
     },

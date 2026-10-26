@@ -308,28 +308,38 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   function handleImport() {
     if (!preview) return
     const rows: FaturaImportCommitRow[] = preview.groups.flatMap((group) =>
-      selectedRowsOf(group).map((row) => ({
-        lineNumber: row.lineNumber,
-        creditCardId: cardByGroup[group.cardLast4],
-        // Os 4 dígitos vão junto porque fazem parte da identidade da linha: é deles que
-        // sai a chave das parcelas futuras que o servidor gera.
-        cardLast4: group.cardLast4,
-        // O externalRef vai como veio do servidor: é ele, e não a descrição, que
-        // identifica a linha na deduplicação.
-        externalRef: row.externalRef,
-        // Devolvido como veio: recontar o ordinal aqui daria outro número, porque a
-        // confirmação leva só as linhas marcadas.
-        ordinal: row.ordinal,
-        date: row.date,
-        description: descriptionOf(row),
-        // A original vai junto e sem edição: é dela que o servidor deriva a chave das
-        // parcelas seguintes, que precisa bater com o PDF do mês que vem.
-        originalDescription: row.description,
-        amount: row.amount,
-        installmentNumber: row.installmentNumber,
-        totalInstallments: row.totalInstallments,
-        categoryId: categoryIdOf(row) ?? undefined,
-      })),
+      // As já importadas vão junto mesmo desmarcadas: não gravam nada novo, mas é por elas
+      // que o servidor corrige a parcela que nasceu por estimativa no mês anterior
+      // (56,15 previstos, 56,08 cobrados) para o valor que este PDF traz.
+      group.rows
+        .filter(
+          (row) =>
+            selected.has(row.externalRef) ||
+            (isDuplicate(group, row) && Boolean(cardByGroup[group.cardLast4])),
+        )
+        .map((row) => ({
+          lineNumber: row.lineNumber,
+          creditCardId: cardByGroup[group.cardLast4],
+          // Os 4 dígitos vão junto porque fazem parte da identidade da linha: é deles que
+          // sai a chave das parcelas futuras que o servidor gera.
+          cardLast4: group.cardLast4,
+          // O externalRef vai como veio do servidor: é ele, e não a descrição, que
+          // identifica a linha na deduplicação.
+          externalRef: row.externalRef,
+          // Devolvido como veio: recontar o ordinal aqui daria outro número, porque a
+          // confirmação leva só as linhas marcadas.
+          ordinal: row.ordinal,
+          date: row.date,
+          description: descriptionOf(row),
+          // A original vai junto e sem edição: é dela que o servidor deriva a chave das
+          // parcelas seguintes, que precisa bater com o PDF do mês que vem.
+          originalDescription: row.description,
+          amount: row.amount,
+          installmentNumber: row.installmentNumber,
+          totalInstallments: row.totalInstallments,
+          categoryId: categoryIdOf(row) ?? undefined,
+          refund: row.refund,
+        })),
     )
 
     commit(
@@ -586,6 +596,14 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                                 aplicar nome a +{merchantRowsOf(row).length} do estabelecimento
                               </button>
                             )}
+                          {row.refund && (
+                            <>
+                              {' '}
+                              <Badge kind="income" square dot={false}>
+                                estorno
+                              </Badge>
+                            </>
+                          )}
                           {isDuplicate(group, row) && (
                             <>
                               {' '}
@@ -596,7 +614,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                           )}
                         </td>
                         <td className="cell-meta" style={{ color: 'var(--text-dim)' }}>
-                          {row.installmentNumber && row.totalInstallments
+                          {!row.refund && row.installmentNumber && row.totalInstallments
                             ? `${row.installmentNumber}/${row.totalInstallments}`
                             : '—'}
                         </td>
@@ -636,8 +654,12 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                             </button>
                           )}
                         </td>
-                        <td className="num cell-amount">
-                          <Money value={Number(row.amount)} />
+                        <td
+                          className="num cell-amount"
+                          style={row.refund ? { color: 'var(--income)' } : undefined}
+                        >
+                          {/* Estorno abate a fatura: aparece com sinal, em verde. */}
+                          <Money value={row.refund ? -Number(row.amount) : Number(row.amount)} />
                         </td>
                       </tr>
                     ))}
