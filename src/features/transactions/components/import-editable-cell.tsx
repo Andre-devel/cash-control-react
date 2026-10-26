@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Select } from '@/components/ui/select'
+import { TypeBadge } from '@/components/ui/type-badge'
 import { CategoryCombobox } from '@/features/categories/components/category-combobox'
 import type { Category } from '@/features/categories/types'
+import type { TransactionType } from '@/features/transactions/types'
+import { TRANSACTION_TYPE_DISPLAY } from '@/features/transactions/utils/transaction-type'
 
 /**
  * Célula que só vira campo quando clicada.
@@ -211,6 +216,110 @@ export function EditableCategoryCell({
           histórico
         </Badge>
       )}
+    </span>
+  )
+}
+
+interface EditableTypeOption {
+  value: string
+  label: string
+}
+
+interface EditableTypeCellProps {
+  /** Rótulo acessível do botão e do seletor de tipo. */
+  label: string
+  type: TransactionType
+  typeOptions: TransactionType[]
+  /** Linha abaixo do badge: para onde vai o dinheiro, ou a fatura sugerida. */
+  detail?: string | null
+  /** O outro lado da movimentação, quando o tipo pede um: conta ou fatura. */
+  target?: {
+    label: string
+    value: string
+    options: EditableTypeOption[]
+    onChange: (value: string) => void
+  } | null
+  onTypeChange: (type: TransactionType) => void
+}
+
+/**
+ * Tipo da linha, com o outro lado quando há (conta da transferência, fatura paga). Mesmo
+ * clique-para-editar do texto: os dois seletores só montam na linha que o usuário abriu.
+ */
+export function EditableTypeCell({
+  label,
+  type,
+  typeOptions,
+  detail,
+  target,
+  onTypeChange,
+}: EditableTypeCellProps) {
+  const [editing, setEditing] = useState(false)
+  const selectRef = useRef<HTMLSelectElement>(null)
+
+  useEffect(() => {
+    if (editing) selectRef.current?.focus()
+  }, [editing])
+
+  if (!editing) {
+    return (
+      <span>
+        <button
+          type="button"
+          aria-label={label}
+          onClick={() => setEditing(true)}
+          style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
+        >
+          <TypeBadge type={type} />
+        </button>
+        {detail && (
+          <span style={{ display: 'block', color: 'var(--text-dim)', fontSize: 11, marginTop: 2 }}>
+            {detail}
+          </span>
+        )}
+      </span>
+    )
+  }
+
+  return (
+    <span
+      style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 180 }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          // Mesmo motivo do texto: o Escape não pode chegar ao Modal e fechar o diálogo.
+          e.stopPropagation()
+          setEditing(false)
+        }
+      }}
+    >
+      <Select
+        ref={selectRef}
+        aria-label={label}
+        value={type}
+        onChange={(e) => onTypeChange(e.target.value as TransactionType)}
+      >
+        {typeOptions.map((option) => (
+          <option key={option} value={option}>
+            {TRANSACTION_TYPE_DISPLAY[option].label}
+          </option>
+        ))}
+      </Select>
+      {target && (
+        <Select
+          aria-label={target.label}
+          value={target.value}
+          onChange={(e) => target.onChange(e.target.value)}
+        >
+          {target.options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+      )}
+      <Button type="button" variant="ghost" onClick={() => setEditing(false)}>
+        ok
+      </Button>
     </span>
   )
 }

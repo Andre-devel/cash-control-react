@@ -52,6 +52,31 @@ function renderDialog(open = true) {
   return { onClose }
 }
 
+const INVOICE_SEP = {
+  id: 'invoice-9',
+  label: 'Inter - PF · 2026-09',
+  totalAmount: '1754.74',
+  dueDate: '2026-10-10',
+}
+
+/** Prévia com uma linha só, para os testes de troca de tipo. */
+function previewWithSingleRow(patch: Partial<ImportPreviewRow>): ImportPreviewResponse {
+  const base = previewWithRepeatedMerchant()
+  return {
+    ...base,
+    totalRows: 1,
+    importableCount: 1,
+    rows: [{ ...base.rows[0], externalRef: 'ref-unica', ...patch }],
+  }
+}
+
+async function analyzeFile(user: ReturnType<typeof userEvent.setup>) {
+  await waitFor(() => screen.getByRole('option', { name: 'Nubank' }))
+  await user.selectOptions(screen.getByRole('combobox', { name: /conta de destino/i }), 'account-1')
+  await user.upload(screen.getByLabelText(/arquivo/i), csvFile())
+  await user.click(screen.getByRole('button', { name: /analisar arquivo/i }))
+}
+
 /** Prévia com o mesmo estabelecimento repetido, que é o caso do "aplicar às iguais". */
 function previewWithRepeatedMerchant(): ImportPreviewResponse {
   const row = (
@@ -77,6 +102,13 @@ function previewWithRepeatedMerchant(): ImportPreviewResponse {
     suggestionSource: 'NONE',
     duplicate: false,
     unknownHistory: false,
+    outgoing: true,
+    transferAccountId: null,
+    transferAccountName: null,
+    invoiceId: null,
+    invoiceLabel: null,
+    invoiceAmountMismatch: false,
+    invoiceOptions: [],
   })
 
   return {
@@ -446,6 +478,127 @@ describe('ImportStatementDialog — edição na prévia', () => {
     expect(rows.find((row) => row.externalRef === 'ref-sorvete-1')?.categoryId).toBe('cat-1')
     expect(rows.find((row) => row.externalRef === 'ref-sorvete-2')?.categoryId).toBe('cat-1')
     expect(rows.find((row) => row.externalRef === 'ref-outra')?.categoryId).toBeUndefined()
+  })
+
+  it('shows where an investment or invoice payment goes and sends it back on commit', async () => {
+    const base = previewWithRepeatedMerchant()
+    vi.mocked(previewStatementImport).mockImplementationOnce(async () => ({
+      ...base,
+      totalRows: 2,
+      importableCount: 2,
+      rows: [
+        {
+          ...base.rows[0],
+          externalRef: 'ref-cdb',
+          description: 'Cdb Porq Obj Banco Inter',
+          type: 'TRANSFER',
+          outgoing: true,
+          transferAccountId: 'account-invest',
+          transferAccountName: 'Investimentos',
+        },
+        {
+          ...base.rows[2],
+          externalRef: 'ref-fatura',
+          description: 'Pagamento Fatura',
+          type: 'INVOICE_PAYMENT',
+          invoiceId: 'invoice-9',
+          invoiceLabel: 'Inter - PF · 2026-09',
+          invoiceOptions: [INVOICE_SEP],
+        },
+      ],
+    }))
+    const user = userEvent.setup()
+    renderDialog()
+    await waitFor(() => screen.getByRole('option', { name: 'Nubank' }))
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: /conta de destino/i }),
+      'account-1',
+    )
+    await user.upload(screen.getByLabelText(/arquivo/i), csvFile())
+    await user.click(screen.getByRole('button', { name: /analisar arquivo/i }))
+
+    expect(await screen.findByText('para Investimentos')).toBeInTheDocument()
+    expect(screen.getByText('fatura Inter - PF · 2026-09')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /importar 2 transações/i }))
+
+    await waitFor(() => expect(getLastImportCommit()).not.toBeNull())
+    const rows = getLastImportCommit()!.rows
+    expect(rows.find((row) => row.externalRef === 'ref-cdb')).toMatchObject({
+      type: 'TRANSFER',
+      outgoing: true,
+      transferAccountId: 'account-invest',
+    })
+    expect(rows.find((row) => row.externalRef === 'ref-fatura')).toMatchObject({
+      type: 'INVOICE_PAYMENT',
+      invoiceId: 'invoice-9',
+    })
+  })
+
+  it('keeps a payment that does not match the invoice total as expense, flagged for review', async () => {
+    vi.mocked(previewStatementImport).mockImplementationOnce(async () =>
+      previewWithSingleRow({
+        description: 'Pagamento Fatura',
+        invoiceId: 'invoice-9',
+        invoiceLabel: 'Inter - PF · 2026-09',
+        invoiceAmountMismatch: true,
+        invoiceOptions: [INVOICE_SEP],
+      }),
+    )
+    const user = userEvent.setup()
+    renderDialog()
+    await analyzeFile(user)
+
+    expect(await screen.findByText('possível fatura Inter - PF · 2026-09')).toBeInTheDocument()
+    expect(screen.getByTitle(/não bate com o total da fatura/)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Tipo da linha 10' }))
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo da linha 10' }),
+      'INVOICE_PAYMENT',
+    )
+    await user.click(screen.getByRole('button', { name: 'ok' }))
+
+    expect(screen.getByText('fatura Inter - PF · 2026-09')).toBeInTheDocument()
+    expect(screen.queryByTitle(/não bate com o total da fatura/)).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: /importar 1 transações/i }))
+    await waitFor(() => expect(getLastImportCommit()).not.toBeNull())
+    expect(getLastImportCommit()!.rows[0]).toMatchObject({
+      type: 'INVOICE_PAYMENT',
+      invoiceId: 'invoice-9',
+      transferAccountId: null,
+    })
+    // Sem categoria: transferência e pagamento de fatura não são gasto.
+    expect(getLastImportCommit()!.rows[0].categoryId).toBeUndefined()
+  })
+
+  it('turns an expense into a transfer to another account, without category', async () => {
+    vi.mocked(previewStatementImport).mockImplementationOnce(async () =>
+      previewWithSingleRow({ description: 'Cdb Porq', suggestedCategoryId: 'cat-1' }),
+    )
+    const user = userEvent.setup()
+    renderDialog()
+    await analyzeFile(user)
+
+    await user.click(await screen.findByRole('button', { name: 'Tipo da linha 10' }))
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Tipo da linha 10' }), 'TRANSFER')
+
+    // A importada (Nubank) não é oferecida como o outro lado.
+    const target = screen.getByRole('combobox', { name: 'Conta de destino da linha 10' })
+    expect(within(target).queryByRole('option', { name: 'Nubank' })).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'ok' }))
+    expect(screen.getByText('para Savings')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /importar 1 transações/i }))
+    await waitFor(() => expect(getLastImportCommit()).not.toBeNull())
+    expect(getLastImportCommit()!.rows[0]).toMatchObject({
+      type: 'TRANSFER',
+      outgoing: true,
+      transferAccountId: 'account-2',
+    })
+    // Sem categoria: transferência e pagamento de fatura não são gasto.
+    expect(getLastImportCommit()!.rows[0].categoryId).toBeUndefined()
   })
 
   it('does not offer "apply to similar" when no other row matches', async () => {

@@ -7,12 +7,12 @@ import { FilePicker } from '@/components/ui/file-picker'
 import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Money } from '@/components/ui/money'
-import { TypeBadge } from '@/components/ui/type-badge'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import {
   EditableCategoryCell,
   EditableTextCell,
+  EditableTypeCell,
 } from '@/features/transactions/components/import-editable-cell'
 import { useStatementImportPreview } from '@/features/transactions/hooks/use-statement-import-preview'
 import { useCommitStatementImport } from '@/features/transactions/hooks/use-commit-statement-import'
@@ -22,6 +22,7 @@ import {
   type ImportPreviewResponse,
   type ImportPreviewRow,
   type StatementFormat,
+  type TransactionType,
 } from '@/features/transactions/types'
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
@@ -42,11 +43,33 @@ function fmtDate(iso: string): string {
 interface RowEdit {
   description?: string
   categoryId?: string | null
+  type?: TransactionType
+  transferAccountId?: string
+  invoiceId?: string
 }
+
+/** Tipos que movem dinheiro sem ser gasto nem renda: não levam categoria. */
+const MOVEMENT_TYPES: TransactionType[] = ['TRANSFER', 'INVOICE_PAYMENT']
 
 /** Duas linhas são "iguais" quando o banco descreveu o mesmo estabelecimento. */
 function descriptionKey(description: string): string {
   return description.trim().toLowerCase()
+}
+
+/**
+ * Tipos que a linha pode assumir. Saída: despesa, transferência e — havendo fatura
+ * vencendo perto — pagamento de fatura. Entrada: receita, estorno e transferência. O tipo
+ * que o servidor deduziu entra sempre, mesmo fora dessa lista.
+ */
+function typeOptionsOf(row: ImportPreviewRow): TransactionType[] {
+  const options: TransactionType[] = row.outgoing
+    ? [
+        'EXPENSE',
+        'TRANSFER',
+        ...(row.invoiceOptions.length > 0 ? ['INVOICE_PAYMENT' as const] : []),
+      ]
+    : ['INCOME', 'REFUND', 'TRANSFER']
+  return options.includes(row.type) ? options : [row.type, ...options]
 }
 
 interface ImportStatementDialogProps {
@@ -97,6 +120,74 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
   function categoryIdOf(row: ImportPreviewRow): string | null {
     const edit = edits[row.externalRef]
     return edit && 'categoryId' in edit ? (edit.categoryId ?? null) : row.suggestedCategoryId
+  }
+
+  function typeOf(row: ImportPreviewRow): TransactionType {
+    return edits[row.externalRef]?.type ?? row.type
+  }
+
+  /** Contas que podem estar do outro lado de uma transferência: todas menos a importada. */
+  const transferAccounts = accounts.filter((a) => a.id !== accountId)
+
+  function transferAccountIdOf(row: ImportPreviewRow): string | null {
+    return (
+      edits[row.externalRef]?.transferAccountId ??
+      row.transferAccountId ??
+      transferAccounts[0]?.id ??
+      null
+    )
+  }
+
+  function invoiceIdOf(row: ImportPreviewRow): string | null {
+    return edits[row.externalRef]?.invoiceId ?? row.invoiceId ?? row.invoiceOptions[0]?.id ?? null
+  }
+
+  /** O que aparece embaixo do tipo: o outro lado da movimentação, ou a fatura sugerida. */
+  function detailOf(row: ImportPreviewRow): string | null {
+    const type = typeOf(row)
+    if (type === 'TRANSFER') {
+      const id = transferAccountIdOf(row)
+      const name =
+        transferAccounts.find((a) => a.id === id)?.name ??
+        (id === row.transferAccountId ? row.transferAccountName : null)
+      return name ? `${row.outgoing ? 'para' : 'de'} ${name}` : 'escolha a conta'
+    }
+    if (type === 'INVOICE_PAYMENT') {
+      const label = row.invoiceOptions.find((o) => o.id === invoiceIdOf(row))?.label
+      return label ? `fatura ${label}` : null
+    }
+    if (needsInvoiceReview(row)) return `possível fatura ${row.invoiceLabel}`
+    return null
+  }
+
+  /** O seletor do outro lado, quando o tipo escolhido pede um. */
+  function targetOf(row: ImportPreviewRow) {
+    const type = typeOf(row)
+    if (type === 'TRANSFER') {
+      return {
+        label: `Conta ${row.outgoing ? 'de destino' : 'de origem'} da linha ${row.lineNumber}`,
+        value: transferAccountIdOf(row) ?? '',
+        options: transferAccounts.map((a) => ({ value: a.id, label: a.name })),
+        onChange: (transferAccountId: string) => editRow(row.externalRef, { transferAccountId }),
+      }
+    }
+    if (type === 'INVOICE_PAYMENT') {
+      return {
+        label: `Fatura da linha ${row.lineNumber}`,
+        value: invoiceIdOf(row) ?? '',
+        options: row.invoiceOptions.map((o) => ({
+          value: o.id,
+          label: `${o.label} · ${Number(o.totalAmount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
+        })),
+        onChange: (invoiceId: string) => editRow(row.externalRef, { invoiceId }),
+      }
+    }
+    return null
+  }
+
+  /** Valor não bate com a fatura sugerida, e o usuário ainda não decidiu o tipo. */
+  function needsInvoiceReview(row: ImportPreviewRow): boolean {
+    return row.invoiceAmountMismatch && edits[row.externalRef]?.type === undefined
   }
 
   function editRow(externalRef: string, patch: RowEdit) {
@@ -166,7 +257,10 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
   function reviewRows(): ImportPreviewRow[] {
     if (!preview) return []
     return preview.rows.filter(
-      (row) => row.suggestionSource !== 'RULE' && !('categoryId' in (edits[row.externalRef] ?? {})),
+      (row) =>
+        !MOVEMENT_TYPES.includes(typeOf(row)) &&
+        row.suggestionSource !== 'RULE' &&
+        !('categoryId' in (edits[row.externalRef] ?? {})),
     )
   }
 
@@ -241,9 +335,16 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
         // o apelido do estabelecimento.
         originalDescription: row.description,
         amount: row.amount,
-        type: row.type,
+        type: typeOf(row),
         paymentMethod: row.paymentMethod,
-        categoryId: categoryIdOf(row) ?? undefined,
+        categoryId: MOVEMENT_TYPES.includes(typeOf(row))
+          ? undefined
+          : (categoryIdOf(row) ?? undefined),
+        // Aplicação, resgate e pagamento de fatura: o servidor precisa do outro lado da
+        // movimentação, que só a prévia sabe.
+        outgoing: row.outgoing,
+        transferAccountId: typeOf(row) === 'TRANSFER' ? transferAccountIdOf(row) : null,
+        invoiceId: typeOf(row) === 'INVOICE_PAYMENT' ? invoiceIdOf(row) : null,
       }))
 
     commit({ accountId, format, rows }, { onSuccess: handleClose })
@@ -425,6 +526,18 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                             </Badge>
                           </>
                         )}
+                        {needsInvoiceReview(row) && (
+                          <>
+                            {' '}
+                            <span
+                              title={`O valor não bate com o total da fatura ${row.invoiceLabel}. Confira e, se for o pagamento dela, troque o tipo.`}
+                            >
+                              <Badge kind="pending" square dot={false}>
+                                revisar
+                              </Badge>
+                            </span>
+                          </>
+                        )}
                         {row.unknownHistory && (
                           <>
                             {' '}
@@ -438,43 +551,56 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                         {row.rawHistory}
                       </td>
                       <td className="cell-type">
-                        <TypeBadge type={row.type} />
+                        <EditableTypeCell
+                          label={`Tipo da linha ${row.lineNumber}`}
+                          type={typeOf(row)}
+                          typeOptions={typeOptionsOf(row)}
+                          detail={detailOf(row)}
+                          target={targetOf(row)}
+                          onTypeChange={(type) => editRow(row.externalRef, { type })}
+                        />
                       </td>
                       <td className="cell-method">
                         {PAYMENT_METHOD_LABELS[row.paymentMethod] ?? row.paymentMethod}
                       </td>
                       <td className="cell-cat">
-                        <EditableCategoryCell
-                          value={categoryIdOf(row)}
-                          label={`Categoria da linha ${row.lineNumber}`}
-                          categories={categories}
-                          fallbackName={
-                            categoryIdOf(row) === row.suggestedCategoryId
-                              ? row.suggestedCategoryName
-                              : null
-                          }
-                          suggestionSource={row.suggestionSource}
-                          reviewed={'categoryId' in (edits[row.externalRef] ?? {})}
-                          onChange={(categoryId) => editRow(row.externalRef, { categoryId })}
-                        />
-                        {categoryIdOf(row) !== null && similarCount(row) > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => applyCategoryToSimilar(row)}
-                            title={`Aplicar esta categoria às ${similarCount(row)} outras linhas deste estabelecimento`}
-                            style={{
-                              display: 'block',
-                              background: 'none',
-                              border: 0,
-                              padding: 0,
-                              marginTop: 2,
-                              color: 'var(--accent)',
-                              fontSize: 11,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            aplicar a +{similarCount(row)} iguais
-                          </button>
+                        {MOVEMENT_TYPES.includes(typeOf(row)) ? (
+                          <span style={{ color: 'var(--text-faint)' }}>—</span>
+                        ) : (
+                          <>
+                            <EditableCategoryCell
+                              value={categoryIdOf(row)}
+                              label={`Categoria da linha ${row.lineNumber}`}
+                              categories={categories}
+                              fallbackName={
+                                categoryIdOf(row) === row.suggestedCategoryId
+                                  ? row.suggestedCategoryName
+                                  : null
+                              }
+                              suggestionSource={row.suggestionSource}
+                              reviewed={'categoryId' in (edits[row.externalRef] ?? {})}
+                              onChange={(categoryId) => editRow(row.externalRef, { categoryId })}
+                            />
+                            {categoryIdOf(row) !== null && similarCount(row) > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => applyCategoryToSimilar(row)}
+                                title={`Aplicar esta categoria às ${similarCount(row)} outras linhas deste estabelecimento`}
+                                style={{
+                                  display: 'block',
+                                  background: 'none',
+                                  border: 0,
+                                  padding: 0,
+                                  marginTop: 2,
+                                  color: 'var(--accent)',
+                                  fontSize: 11,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                aplicar a +{similarCount(row)} iguais
+                              </button>
+                            )}
+                          </>
                         )}
                       </td>
                       <td className="num cell-amount">

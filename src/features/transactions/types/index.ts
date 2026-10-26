@@ -189,6 +189,29 @@ export interface ImportPreviewRow {
   duplicate: boolean
   /** Histórico desconhecido: o tipo foi deduzido do sinal do valor e merece revisão. */
   unknownHistory: boolean
+  /** O dinheiro saiu da conta. Dá a direção de uma TRANSFER. */
+  outgoing: boolean
+  /** Conta do outro lado quando o tipo é TRANSFER (aplicação ou resgate). */
+  transferAccountId: string | null
+  transferAccountName: string | null
+  /**
+   * Fatura que a linha paga. Com tipo INVOICE_PAYMENT, já casada; com EXPENSE e
+   * `invoiceAmountMismatch`, só uma sugestão para o usuário confirmar.
+   */
+  invoiceId: string | null
+  /** Cartão e mês da fatura, ex.: "Inter - PF · 2026-09". */
+  invoiceLabel: string | null
+  /** A descrição indica pagamento de fatura, mas o valor não bate com o total da sugerida. */
+  invoiceAmountMismatch: boolean
+  /** Faturas que esta linha de saída pode pagar, as de vencimento mais próximo primeiro. */
+  invoiceOptions: ImportInvoiceOption[]
+}
+
+export interface ImportInvoiceOption {
+  id: string
+  label: string
+  totalAmount: string
+  dueDate: string
 }
 
 export interface ImportPreviewResponse {
@@ -219,6 +242,9 @@ export interface ImportCommitRow {
   type: TransactionType
   paymentMethod: PaymentMethodSlug
   categoryId?: string | null
+  outgoing?: boolean
+  transferAccountId?: string | null
+  invoiceId?: string | null
 }
 
 export interface ImportCommitRequest {
