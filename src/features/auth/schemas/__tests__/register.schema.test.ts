@@ -7,7 +7,13 @@ describe('registerSchema', () => {
     email: 'user@example.com',
     password: 'securepass',
     confirmPassword: 'securepass',
+    consentAccepted: true,
   }
+
+  it('rejects registration without privacy policy consent', () => {
+    const result = registerSchema.safeParse({ ...validData, consentAccepted: false })
+    expect(result.success).toBe(false)
+  })
 
   it('accepts valid registration data', () => {
     const result = registerSchema.safeParse(validData)

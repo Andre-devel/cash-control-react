@@ -15,6 +15,8 @@ const RegisterPage = lazy(() => import('@/features/auth/pages/register-page'))
 const VerifyEmailPage = lazy(() => import('@/features/auth/pages/verify-email-page'))
 const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/forgot-password-page'))
 const ResetPasswordPage = lazy(() => import('@/features/auth/pages/reset-password-page'))
+const OAuth2CallbackPage = lazy(() => import('@/features/auth/pages/oauth2-callback-page'))
+const PrivacyPolicyPage = lazy(() => import('@/features/auth/pages/privacy-policy-page'))
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/dashboard-page'))
 const NotFoundPage = lazy(() => import('@/components/feedback/not-found-page'))
 const ForbiddenPage = lazy(() => import('@/components/feedback/forbidden-page'))
@@ -101,6 +103,30 @@ export const routeConfig: RouteObject[] = [
             element: (
               <Suspense fallback={<PageLoader />}>
                 <ResetPasswordPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: ROUTES.OAUTH2_CALLBACK,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <OAuth2CallbackPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: ROUTES.PRIVACY_POLICY,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <PrivacyPolicyPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: ROUTES.OAUTH2_ERROR,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <OAuth2CallbackPage />
               </Suspense>
             ),
           },

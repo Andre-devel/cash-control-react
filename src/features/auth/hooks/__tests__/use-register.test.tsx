@@ -33,6 +33,7 @@ const validData = {
   email: 'newuser@example.com',
   password: 'password123',
   confirmPassword: 'password123',
+  consentAccepted: true,
 }
 
 beforeEach(() => {
@@ -59,6 +60,7 @@ describe('use-register', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
     expect(capturedBody).toMatchObject({ name: 'Test User', email: 'newuser@example.com' })
+    expect(capturedBody).toHaveProperty('consentAccepted', true)
     expect(capturedBody).not.toHaveProperty('confirmPassword')
   })
 

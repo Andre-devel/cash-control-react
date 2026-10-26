@@ -6,6 +6,9 @@ export const registerSchema = z
     email: z.string().min(1, 'E-mail é obrigatório').email('Informe um e-mail válido'),
     password: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres'),
     confirmPassword: z.string().min(1, 'Confirme sua senha'),
+    consentAccepted: z
+      .boolean()
+      .refine((accepted) => accepted, 'Aceite a Política de Privacidade para criar a conta'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'As senhas não coincidem',

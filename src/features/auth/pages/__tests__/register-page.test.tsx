@@ -39,12 +39,14 @@ const validForm = {
 async function fillForm(
   user: ReturnType<typeof userEvent.setup>,
   overrides: Partial<typeof validForm> = {},
+  consent = true,
 ) {
   const data = { ...validForm, ...overrides }
   await user.type(screen.getByLabelText(/nome/i), data.name)
   await user.type(screen.getByLabelText(/e-mail/i), data.email)
   await user.type(screen.getByLabelText(/^senha/i), data.password)
   await user.type(screen.getByLabelText(/confirmar senha/i), data.confirmPassword)
+  if (consent) await user.click(screen.getByRole('checkbox', { name: /política de privacidade/i }))
 }
 
 beforeEach(() => {
@@ -202,5 +204,14 @@ describe('RegisterPage — accessibility', () => {
     await screen.findByRole('heading', { name: /crie sua conta/i })
     const button = screen.getByRole('button', { name: 'Criar conta' })
     expect(button.className).toContain('btn-lg')
+  })
+
+  it('blocks submission until the privacy policy is accepted', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<RegisterPage />)
+    await fillForm(user, {}, false)
+    await user.click(screen.getByRole('button', { name: 'Criar conta' }))
+
+    expect(await screen.findByText(/aceite a política de privacidade/i)).toBeTruthy()
   })
 })

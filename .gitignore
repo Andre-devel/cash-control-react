@@ -27,3 +27,6 @@ yarn-error.log*
 
 # Claude Code
 .claude/
+
+# Service worker gerado pelo vite-plugin-pwa em `pnpm dev`
+dev-dist/

@@ -4,6 +4,11 @@ export const ROUTES = {
   VERIFY_EMAIL: '/verify-email',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
+  /** Destinos do redirect da API ao fim do OAuth2 (OAUTH2_SUCCESS/FAILURE_REDIRECT_URL). */
+  OAUTH2_CALLBACK: '/auth/oauth2/callback',
+  OAUTH2_ERROR: '/auth/oauth2/error',
+  /** Pública, sem login: é a URL cadastrada no consentimento OAuth do Google. */
+  PRIVACY_POLICY: '/privacidade',
   DASHBOARD: '/dashboard',
   ADMIN: '/admin',
   ROLES: '/admin/roles',
