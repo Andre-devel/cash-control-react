@@ -130,6 +130,26 @@ describe('CategoryCombobox', () => {
     expect(onChange).toHaveBeenCalledWith('cat-12')
   })
 
+  it('Enter na busca escolhe o primeiro resultado, não "Sem categoria"', async () => {
+    const user = userEvent.setup()
+    const { onChange } = renderCombobox()
+    await open(user)
+
+    await user.type(screen.getByRole('textbox', { name: /buscar categoria/i }), 'transp{Enter}')
+
+    expect(onChange).toHaveBeenCalledWith('cat-2')
+  })
+
+  it('Enter pula a raiz exibida só como contexto da subcategoria encontrada', async () => {
+    const user = userEvent.setup()
+    const { onChange } = renderCombobox()
+    await open(user)
+
+    await user.type(screen.getByRole('textbox', { name: /buscar categoria/i }), 'combus{Enter}')
+
+    expect(onChange).toHaveBeenCalledWith('cat-21')
+  })
+
   it('mostra o nome da raiz junto ao da subcategoria escolhida', () => {
     renderCombobox({ value: 'cat-11' })
 

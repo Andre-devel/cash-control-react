@@ -29,17 +29,17 @@ export default function ProfilePage() {
 
   const form = useForm<UpdateProfileFormValues>({
     resolver: zodResolver(updateProfileSchema),
-    defaultValues: { name: '' },
+    defaultValues: { displayName: '' },
   })
 
   useEffect(() => {
     if (profile) {
-      form.reset({ name: profile.name })
+      form.reset({ displayName: profile.displayName ?? '' })
     }
   }, [profile, form])
 
   function onSubmit(data: UpdateProfileFormValues) {
-    updateProfile({ name: data.name })
+    updateProfile({ displayName: data.displayName })
   }
 
   return (
@@ -64,15 +64,19 @@ export default function ProfilePage() {
             </div>
           ) : (
             <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="col gap-4">
-              {profile?.email && (
+              {profile?.maskedEmail && (
                 <div className="space-y-1">
                   <p className="text-sm fw-500">E-mail</p>
-                  <p className="text-sm text-dim">{profile.email}</p>
+                  <p className="text-sm text-dim">{profile.maskedEmail}</p>
                 </div>
               )}
 
-              <Field label="Nome de exibição" error={form.formState.errors.name?.message}>
-                <Input placeholder="Seu nome" autoComplete="name" {...form.register('name')} />
+              <Field label="Nome de exibição" error={form.formState.errors.displayName?.message}>
+                <Input
+                  placeholder="Seu nome"
+                  autoComplete="name"
+                  {...form.register('displayName')}
+                />
               </Field>
 
               <Button type="submit" disabled={isPending} aria-busy={isPending}>

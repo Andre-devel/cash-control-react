@@ -82,6 +82,16 @@ export async function uploadAttachment(
   return response.data
 }
 
+export async function downloadAttachment(id: string, attachmentId: string): Promise<Blob> {
+  const response = await axiosInstance.get<Blob>(
+    `/transactions/${id}/attachments/${attachmentId}`,
+    {
+      responseType: 'blob',
+    },
+  )
+  return response.data
+}
+
 export async function deleteAttachment(id: string, attachmentId: string): Promise<void> {
   await axiosInstance.delete(`/transactions/${id}/attachments/${attachmentId}`)
 }

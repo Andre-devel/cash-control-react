@@ -61,8 +61,8 @@ export function MonthComparisonSection() {
         },
         {
           label: 'Saldo',
-          [data.month1.month]: parseFloat(data.month1.balance ?? '0'),
-          [data.month2.month]: parseFloat(data.month2.balance ?? '0'),
+          [data.month1.month]: parseFloat(data.month1.savings),
+          [data.month2.month]: parseFloat(data.month2.savings),
         },
       ]
     : []
@@ -162,7 +162,7 @@ export function MonthComparisonSection() {
                     style={{ borderTop: '1px solid var(--border)', paddingTop: 4 }}
                   >
                     <span className="fw-500">Saldo</span>
-                    <span className="mono fw-600">{fmt(parseFloat(m.balance ?? '0'))}</span>
+                    <span className="mono fw-600">{fmt(parseFloat(m.savings))}</span>
                   </div>
                 </div>
               ))}

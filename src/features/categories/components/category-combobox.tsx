@@ -14,6 +14,7 @@ import { resolveCategoryIcon } from '@/features/categories/utils/category-icon'
 import {
   buildCategoryGroups,
   filterCategoryGroups,
+  normalizeForSearch,
 } from '@/features/categories/utils/category-groups'
 import { CreateCategoryDialog } from '@/features/categories/components/create-category-dialog'
 import type { Category } from '@/features/categories/types'
@@ -186,6 +187,16 @@ export function CategoryCombobox({
     closePopover()
   }
 
+  /**
+   * Com busca, Enter deve escolher o primeiro resultado, não "Sem categoria" (índice 0).
+   * A raiz aparece só como contexto quando quem casa é a subcategoria, então ela é pulada.
+   */
+  function firstMatchIndex(term: string): number {
+    const first = filterCategoryGroups(groups, term)[0]
+    if (!term.trim() || !first) return 0
+    return normalizeForSearch(first.root.name).includes(normalizeForSearch(term)) ? 1 : 2
+  }
+
   function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault()
@@ -268,7 +279,8 @@ export function CategoryCombobox({
             openPopover()
           }
         }}
-        className={`cat-combo-trigger ${variant}${displayName ? '' : ' empty'}`}
+        // Modificador com prefixo: `field` puro colide com o `.field` do wrapper de formulário.
+        className={`cat-combo-trigger cat-combo-trigger--${variant}${displayName ? '' : ' empty'}`}
       >
         {selected ? (
           <IconBubble
@@ -307,8 +319,9 @@ export function CategoryCombobox({
                 aria-controls={listboxId.current}
                 placeholder="Buscar categoria…"
                 onChange={(event) => {
-                  setQuery(event.target.value)
-                  setActiveIndex(0)
+                  const next = event.target.value
+                  setQuery(next)
+                  setActiveIndex(firstMatchIndex(next))
                 }}
                 onKeyDown={handleSearchKeyDown}
               />

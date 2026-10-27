@@ -33,7 +33,7 @@ describe('useUpdateProfile', () => {
     const { result } = renderHook(() => useUpdateProfile(), { wrapper: Wrapper })
 
     act(() => {
-      result.current.mutate({ name: 'Updated Name' })
+      result.current.mutate({ displayName: 'Updated Name' })
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -44,7 +44,7 @@ describe('useUpdateProfile', () => {
     const { result } = renderHook(() => useUpdateProfile(), { wrapper: Wrapper })
 
     act(() => {
-      result.current.mutate({ name: 'Updated Name' })
+      result.current.mutate({ displayName: 'Updated Name' })
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -57,7 +57,7 @@ describe('useUpdateProfile', () => {
     const { result } = renderHook(() => useUpdateProfile(), { wrapper: Wrapper })
 
     act(() => {
-      result.current.mutate({ name: 'Updated Name' })
+      result.current.mutate({ displayName: 'Updated Name' })
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -69,12 +69,12 @@ describe('useUpdateProfile', () => {
     const { result } = renderHook(() => useUpdateProfile(), { wrapper: Wrapper })
 
     act(() => {
-      result.current.mutate({ name: 'New Name' })
+      result.current.mutate({ displayName: 'New Name' })
     })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(result.current.data).toEqual({ ...MOCK_PROFILE, name: 'New Name' })
+    expect(result.current.data).toEqual({ ...MOCK_PROFILE, displayName: 'New Name' })
   })
 
   it('shows an error toast on API failure', async () => {
@@ -95,7 +95,7 @@ describe('useUpdateProfile', () => {
     const { result } = renderHook(() => useUpdateProfile(), { wrapper: Wrapper })
 
     act(() => {
-      result.current.mutate({ name: 'Bad Name' })
+      result.current.mutate({ displayName: 'Bad Name' })
     })
 
     await waitFor(() => expect(result.current.isError).toBe(true))

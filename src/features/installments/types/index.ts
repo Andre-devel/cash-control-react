@@ -61,6 +61,11 @@ export interface UpdateInstallmentRequest {
   competenceDate: string
 }
 
+export interface EarlySettlementRequest {
+  settlementAmount: string
+  settlementDate: string
+}
+
 export interface AdvanceInstallmentsRequest {
   installmentIds: string[]
   newPaymentDate: string

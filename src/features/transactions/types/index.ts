@@ -74,12 +74,10 @@ export interface TransactionSummary {
 
 export interface Attachment {
   id: string
-  transactionId: string
-  fileName: string
-  contentType: string
-  size: number
-  url: string
-  createdAt: string
+  originalFilename: string
+  mimeType: string
+  fileSizeBytes: number
+  uploadedAt: string
 }
 
 export interface PaginatedResponse<T> {

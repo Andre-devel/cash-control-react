@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
-import { MOCK_PROFILE, MOCK_CONSENTS } from '@/test/msw/handlers'
+import { MOCK_PROFILE } from '@/test/msw/handlers'
 import { renderWithProviders } from '@/test/utils'
 import ProfilePage from '../profile-page'
 
@@ -39,13 +39,15 @@ describe('ProfilePage', () => {
   it('pre-populates the form with the current profile name after loading', async () => {
     renderWithProviders(<ProfilePage />)
 
-    await waitFor(() => expect(screen.getByDisplayValue(MOCK_PROFILE.name)).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByDisplayValue(MOCK_PROFILE.displayName)).toBeInTheDocument(),
+    )
   })
 
   it('displays the user email in the profile card', async () => {
     renderWithProviders(<ProfilePage />)
 
-    await waitFor(() => expect(screen.getByText(MOCK_PROFILE.email)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(MOCK_PROFILE.maskedEmail)).toBeInTheDocument())
   })
 
   it('shows a success toast after a successful update submission', async () => {
@@ -53,7 +55,9 @@ describe('ProfilePage', () => {
     const user = userEvent.setup()
     renderWithProviders(<ProfilePage />)
 
-    await waitFor(() => expect(screen.getByDisplayValue(MOCK_PROFILE.name)).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByDisplayValue(MOCK_PROFILE.displayName)).toBeInTheDocument(),
+    )
 
     const input = screen.getByRole('textbox', { name: /nome de exibição/i })
     await user.clear(input)
@@ -71,7 +75,9 @@ describe('ProfilePage', () => {
     const user = userEvent.setup()
     renderWithProviders(<ProfilePage />)
 
-    await waitFor(() => expect(screen.getByDisplayValue(MOCK_PROFILE.name)).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByDisplayValue(MOCK_PROFILE.displayName)).toBeInTheDocument(),
+    )
 
     const input = screen.getByRole('textbox', { name: /nome de exibição/i })
     await user.clear(input)
@@ -101,8 +107,12 @@ describe('ProfilePage', () => {
   it('renders consent history after loading', async () => {
     renderWithProviders(<ProfilePage />)
 
-    await waitFor(() => expect(screen.getByText(MOCK_CONSENTS[0].type)).toBeInTheDocument())
-    expect(screen.getByText(MOCK_CONSENTS[1].type)).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByText('Termos e privacidade · versão 1.0')).toBeInTheDocument(),
+    )
+    expect(screen.getByText('Termos e privacidade · versão 2.0')).toBeInTheDocument()
+    expect(screen.getByText('Revogado')).toBeInTheDocument()
+    expect(screen.getByText('Aceito')).toBeInTheDocument()
   })
 
   it('shows empty state in consent history when there are no records', async () => {

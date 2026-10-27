@@ -3,30 +3,30 @@ import { updateProfileSchema } from '../update-profile.schema'
 
 describe('updateProfileSchema', () => {
   it('accepts a valid name', () => {
-    const result = updateProfileSchema.safeParse({ name: 'John Doe' })
+    const result = updateProfileSchema.safeParse({ displayName: 'John Doe' })
     expect(result.success).toBe(true)
   })
 
   it('rejects an empty name', () => {
-    const result = updateProfileSchema.safeParse({ name: '' })
+    const result = updateProfileSchema.safeParse({ displayName: '' })
     expect(result.success).toBe(false)
     if (!result.success) {
-      const nameIssue = result.error.issues.find((i) => i.path[0] === 'name')
+      const nameIssue = result.error.issues.find((i) => i.path[0] === 'displayName')
       expect(nameIssue?.message).toBe('Nome é obrigatório')
     }
   })
 
   it('rejects a name exceeding 100 characters', () => {
-    const result = updateProfileSchema.safeParse({ name: 'a'.repeat(101) })
+    const result = updateProfileSchema.safeParse({ displayName: 'a'.repeat(101) })
     expect(result.success).toBe(false)
     if (!result.success) {
-      const nameIssue = result.error.issues.find((i) => i.path[0] === 'name')
+      const nameIssue = result.error.issues.find((i) => i.path[0] === 'displayName')
       expect(nameIssue?.message).toBe('Nome deve ter no máximo 100 caracteres')
     }
   })
 
   it('accepts a name of exactly 100 characters', () => {
-    const result = updateProfileSchema.safeParse({ name: 'a'.repeat(100) })
+    const result = updateProfileSchema.safeParse({ displayName: 'a'.repeat(100) })
     expect(result.success).toBe(true)
   })
 

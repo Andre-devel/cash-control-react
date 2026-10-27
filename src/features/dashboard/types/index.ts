@@ -46,8 +46,7 @@ export interface ComparisonMonth {
   month: string
   income: string
   expenses: string
-  savings?: string
-  balance?: string
+  savings: string
 }
 
 export interface MonthComparison {

@@ -117,7 +117,9 @@ describe('Financial feature routes — authenticated rendering', () => {
 
   it('renders card detail page at /cards/:id', async () => {
     renderAtPath('/cards/test-id')
-    expect(await screen.findByRole('heading', { name: /card/i }, { timeout: 5000 })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /cartão|nubank/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('renders invoices page at /invoices', async () => {

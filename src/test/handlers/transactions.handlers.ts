@@ -123,13 +123,14 @@ export const MOCK_TRANSACTION_CREDIT_CARD: Transaction = {
 
 export const MOCK_ATTACHMENT_1: Attachment = {
   id: 'att-1',
-  transactionId: 'tx-1',
-  fileName: 'receipt.pdf',
-  contentType: 'application/pdf',
-  size: 12345,
-  url: 'https://example.com/receipts/receipt.pdf',
-  createdAt: '2026-05-01T10:05:00Z',
+  originalFilename: 'receipt.pdf',
+  mimeType: 'application/pdf',
+  fileSizeBytes: 12345,
+  uploadedAt: '2026-05-01T10:05:00Z',
 }
+
+// A API não devolve a transação dona do anexo; o mock guarda para filtrar a listagem.
+type StoredAttachment = Attachment & { transactionId: string }
 
 let transactionsStore: Transaction[] = [
   MOCK_TRANSACTION_1,
@@ -141,7 +142,7 @@ let transactionsStore: Transaction[] = [
   MOCK_TRANSACTION_CREDIT_CARD,
 ]
 
-let attachmentsStore: Attachment[] = [MOCK_ATTACHMENT_1]
+let attachmentsStore: StoredAttachment[] = [{ ...MOCK_ATTACHMENT_1, transactionId: 'tx-1' }]
 
 export function resetTransactionsStore() {
   transactionsStore = [
@@ -153,7 +154,7 @@ export function resetTransactionsStore() {
     MOCK_TRANSACTION_CASH,
     MOCK_TRANSACTION_CREDIT_CARD,
   ]
-  attachmentsStore = [MOCK_ATTACHMENT_1]
+  attachmentsStore = [{ ...MOCK_ATTACHMENT_1, transactionId: 'tx-1' }]
 }
 
 /**
@@ -169,14 +170,12 @@ export function addMockAttachment(
 ): Attachment {
   const created: Attachment = {
     id: `att-${Date.now()}`,
-    transactionId,
-    fileName,
-    contentType: 'application/pdf',
-    size: 1024,
-    url: `https://example.com/uploads/${fileName}`,
-    createdAt: new Date().toISOString(),
+    originalFilename: fileName,
+    mimeType: 'application/pdf',
+    fileSizeBytes: 1024,
+    uploadedAt: new Date().toISOString(),
   }
-  attachmentsStore = [...attachmentsStore, created]
+  attachmentsStore = [...attachmentsStore, { ...created, transactionId }]
   return created
 }
 
@@ -402,7 +401,9 @@ export const transactionsHandlers = [
   }),
 
   http.get('*/transactions/:id/attachments', ({ params }) => {
-    const txAttachments = attachmentsStore.filter((a) => a.transactionId === params.id)
+    const txAttachments = attachmentsStore
+      .filter((a) => a.transactionId === params.id)
+      .map(({ transactionId: _owner, ...attachment }) => attachment)
     return HttpResponse.json(txAttachments)
   }),
 

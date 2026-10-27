@@ -52,13 +52,13 @@ export const MOCK_COMPARISON: MonthComparison = {
     month: '2026-04',
     income: '4700.00',
     expenses: '3100.00',
-    balance: '1600.00',
+    savings: '1600.00',
   },
   month2: {
     month: '2026-05',
     income: '5000.00',
     expenses: '3200.00',
-    balance: '1800.00',
+    savings: '1800.00',
   },
 }
 

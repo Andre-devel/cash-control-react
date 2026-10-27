@@ -1,6 +1,8 @@
 import { useRef, useState, type ChangeEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
+import { saveBlob, toast } from '@/lib'
+import { downloadAttachment } from '@/features/transactions/api/transactions.api'
 import { useAttachments } from '@/features/transactions/hooks/use-attachments'
 import { useUploadAttachment } from '@/features/transactions/hooks/use-upload-attachment'
 import { useDeleteAttachment } from '@/features/transactions/hooks/use-delete-attachment'
@@ -8,7 +10,14 @@ import type { Attachment } from '@/features/transactions/types'
 
 const MAX_FILE_SIZE_MB = 10
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'application/pdf', 'image/gif', 'image/webp']
+// Mesma lista que a API aceita (AttachmentServiceImpl.ALLOWED_MIME_TYPES).
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'application/pdf']
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / (1024 * 1024)).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} MB`
+}
 
 interface DeleteAttachmentDialogProps {
   attachment: Attachment | null
@@ -55,7 +64,7 @@ function DeleteAttachmentDialog({
       }
     >
       <p>
-        Tem certeza que deseja excluir <strong>{attachment?.fileName}</strong>?
+        Tem certeza que deseja excluir <strong>{attachment?.originalFilename}</strong>?
       </p>
     </Modal>
   )
@@ -72,6 +81,12 @@ export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
   const [clientError, setClientError] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Attachment | null>(null)
 
+  function handleDownload(att: Attachment) {
+    downloadAttachment(transactionId, att.id)
+      .then((blob) => saveBlob(blob, att.originalFilename))
+      .catch(() => toast.error('Não foi possível baixar o anexo.'))
+  }
+
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -79,7 +94,7 @@ export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
     setClientError(null)
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      setClientError('Tipo de arquivo não suportado. Aceitos: JPEG, PNG, PDF, GIF, WebP.')
+      setClientError('Tipo de arquivo não suportado. Aceitos: JPEG, PNG e PDF.')
       e.target.value = ''
       return
     }
@@ -162,20 +177,22 @@ export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
               className="flex items-center justify-between gap-2 rounded px-3 py-2"
               style={{ border: '1px solid var(--border)' }}
             >
-              <a
-                href={att.url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
                 className="text-sm truncate hover:underline"
+                style={{ textAlign: 'left', minWidth: 0 }}
+                title={`Baixar ${att.originalFilename}`}
+                onClick={() => handleDownload(att)}
               >
-                {att.fileName}
-              </a>
+                {att.originalFilename}
+                <span className="text-dim"> · {formatFileSize(att.fileSizeBytes)}</span>
+              </button>
               <Button
                 type="button"
                 variant="danger"
                 size="sm"
                 className="shrink-0"
-                aria-label={`Excluir ${att.fileName}`}
+                aria-label={`Excluir ${att.originalFilename}`}
                 onClick={() => setDeleteTarget(att)}
               >
                 Excluir

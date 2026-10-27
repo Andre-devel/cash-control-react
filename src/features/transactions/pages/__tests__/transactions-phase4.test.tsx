@@ -121,12 +121,10 @@ describe('Attachment upload field name — Phase 4.2', () => {
       data: [
         {
           id: 'att-1',
-          transactionId: 'tx-1',
-          fileName: 'test.pdf',
-          contentType: 'application/pdf',
-          size: 1024,
-          url: 'https://example.com/test.pdf',
-          createdAt: new Date().toISOString(),
+          originalFilename: 'test.pdf',
+          mimeType: 'application/pdf',
+          fileSizeBytes: 1024,
+          uploadedAt: new Date().toISOString(),
         },
       ],
     })
@@ -144,7 +142,7 @@ describe('Attachment upload field name — Phase 4.2', () => {
     expect(formDataArg.get('file')).toBeNull()
 
     expect(Array.isArray(result)).toBe(true)
-    expect(result[0].fileName).toBe('test.pdf')
+    expect(result[0].originalFilename).toBe('test.pdf')
 
     spy.mockRestore()
   })
@@ -184,12 +182,10 @@ describe('Attachment upload field name — Phase 4.2', () => {
       data: [
         {
           id: 'att-1',
-          transactionId: 'tx-1',
-          fileName: 'receipt.jpg',
-          contentType: 'image/jpeg',
-          size: 2048,
-          url: 'https://example.com/receipt.jpg',
-          createdAt: new Date().toISOString(),
+          originalFilename: 'receipt.jpg',
+          mimeType: 'image/jpeg',
+          fileSizeBytes: 2048,
+          uploadedAt: new Date().toISOString(),
         },
       ],
     })

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Download, Plus, Wallet, ArrowDown, ArrowUp, BarChart2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { buildCsvBlob, csvMoney, localIsoDate, saveBlob } from '@/lib'
 import { useAuthStore } from '@/features/auth/store/auth.store'
 import { useOverview } from '@/features/dashboard/hooks/use-overview'
 import { useMonthlyChart } from '@/features/dashboard/hooks/use-monthly-chart'
@@ -124,25 +125,18 @@ export default function DashboardPage() {
     const rows: string[][] = [['Mês', 'Receitas (R$)', 'Despesas (R$)', 'Saldo (R$)']]
     const entries = chartData?.months ?? []
     for (const entry of entries) {
-      const net = (parseFloat(entry.income) - parseFloat(entry.expenses)).toFixed(2)
-      rows.push([entry.month, entry.income, entry.expenses, net])
+      const net = parseFloat(entry.income) - parseFloat(entry.expenses)
+      rows.push([entry.month, csvMoney(entry.income), csvMoney(entry.expenses), csvMoney(net)])
     }
     if (overview) {
       rows.push([])
       rows.push(['Resumo atual', '', '', ''])
-      rows.push(['Patrimônio total', overview.totalBalance, '', ''])
-      rows.push([`Receitas (${monthAbbr}.)`, overview.monthlyIncome, '', ''])
-      rows.push([`Despesas (${monthAbbr}.)`, overview.monthlyExpenses, '', ''])
-      rows.push(['Saldo do mês', balanceDelta.toFixed(2), '', ''])
+      rows.push(['Patrimônio total', csvMoney(overview.totalBalance), '', ''])
+      rows.push([`Receitas (${monthAbbr}.)`, csvMoney(overview.monthlyIncome), '', ''])
+      rows.push([`Despesas (${monthAbbr}.)`, csvMoney(overview.monthlyExpenses), '', ''])
+      rows.push(['Saldo do mês', csvMoney(balanceDelta), '', ''])
     }
-    const csv = rows.map((r) => r.join(',')).join('\n')
-    const blob = new Blob(['﻿' + csv, ''], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `cash-control-${now.toISOString().split('T')[0]}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+    saveBlob(buildCsvBlob(rows), `cash-control-${localIsoDate(now)}.csv`)
   }
 
   return (

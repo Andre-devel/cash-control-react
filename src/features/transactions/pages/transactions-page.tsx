@@ -13,6 +13,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
 import { useTransactions } from '@/features/transactions/hooks/use-transactions'
+import { localIsoDate, saveBlob, toast } from '@/lib'
+import { exportTransactionsCsv } from '@/features/transactions/utils/export-transactions'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { flattenCategories } from '@/features/categories/utils/flatten-categories'
@@ -284,6 +286,15 @@ export default function TransactionsPage() {
     (t: Transaction) => void navigate(ROUTES.TRANSACTION_DETAIL.replace(':id', t.id)),
     [navigate],
   )
+  const [exporting, setExporting] = useState(false)
+  const handleExport = useCallback(() => {
+    setExporting(true)
+    exportTransactionsCsv(filters)
+      .then((blob) => saveBlob(blob, `transacoes-${localIsoDate()}.csv`))
+      .catch(() => toast.error('Não foi possível exportar as transações.'))
+      .finally(() => setExporting(false))
+  }, [filters])
+
   const handleViewSeries = useCallback(() => void navigate(ROUTES.INSTALLMENTS), [navigate])
 
   const isMobile = useMediaQuery(MOBILE_QUERY)
@@ -334,7 +345,14 @@ export default function TransactionsPage() {
         </div>
         <div className="spacer" />
         <div className="actions">
-          <Button leading={<Download size={14} />}>Exportar</Button>
+          <Button
+            leading={<Download size={14} />}
+            disabled={exporting || totalElements === 0}
+            aria-busy={exporting}
+            onClick={handleExport}
+          >
+            {exporting ? 'Exportando…' : 'Exportar'}
+          </Button>
           <Button leading={<Upload size={14} />} onClick={() => setImportOpen(true)}>
             Importar
           </Button>

@@ -86,7 +86,7 @@ export default function CardDetailPage() {
       </div>
 
       <h1 className="fw-700" style={{ fontSize: 24, letterSpacing: '-0.01em' }}>
-        {card?.name ?? 'Card'}
+        {card?.name ?? 'Cartão'}
       </h1>
 
       {cardLoading ? (

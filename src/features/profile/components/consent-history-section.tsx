@@ -1,7 +1,7 @@
 import { useConsentHistory } from '@/features/profile/hooks/use-consent-history'
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString(undefined, {
+function formatDate(instant: string): string {
+  return new Date(instant).toLocaleDateString('pt-BR', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -56,12 +56,14 @@ export function ConsentHistorySection() {
           className="flex items-center justify-between rounded px-3 py-2 text-sm"
           style={{ border: '1px solid var(--border)' }}
         >
-          <span className="fw-500">{record.type}</span>
-          <span className="text-dim">{formatDate(record.date)}</span>
-          <span
-            style={{ color: record.status === 'ACCEPTED' ? 'var(--income)' : 'var(--expense)' }}
-          >
-            {record.status}
+          <span className="fw-500">Termos e privacidade · versão {record.consentVersion}</span>
+          <span className="text-dim">
+            {record.revokedAt
+              ? `${formatDate(record.acceptedAt)} – ${formatDate(record.revokedAt)}`
+              : formatDate(record.acceptedAt)}
+          </span>
+          <span style={{ color: record.active ? 'var(--income)' : 'var(--expense)' }}>
+            {record.active ? 'Aceito' : 'Revogado'}
           </span>
         </li>
       ))}

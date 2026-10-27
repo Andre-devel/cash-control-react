@@ -145,7 +145,18 @@ export const installmentsHandlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.post('*/installments/series/:seriesId/settle', ({ params }) => {
+  http.post('*/installments/series/:seriesId/settle', async ({ params, request }) => {
+    // A API exige EarlySettlementRequest; POST sem corpo dá 400 "Corpo da requisição malformado".
+    const body = (await request.json().catch(() => null)) as {
+      settlementAmount?: string
+      settlementDate?: string
+    } | null
+    if (!body?.settlementAmount || !body.settlementDate) {
+      return HttpResponse.json(
+        { errorCode: 'MALFORMED_REQUEST', message: 'Corpo da requisição malformado.' },
+        { status: 400 },
+      )
+    }
     seriesStore = seriesStore.map((s) =>
       s.id === params.seriesId ? { ...s, settled: true, settledAt: new Date().toISOString() } : s,
     )

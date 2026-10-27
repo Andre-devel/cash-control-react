@@ -6,6 +6,7 @@ import type {
   EditSeriesRequest,
   UpdateInstallmentRequest,
   AdvanceInstallmentsRequest,
+  EarlySettlementRequest,
 } from '@/features/installments/types'
 
 export async function listInstallmentSeries(): Promise<InstallmentSeries[]> {
@@ -47,8 +48,8 @@ export async function updateInstallment(
   await axiosInstance.put(`/installments/${transactionId}`, data)
 }
 
-export async function settleSeries(seriesId: string): Promise<void> {
-  await axiosInstance.post(`/installments/series/${seriesId}/settle`)
+export async function settleSeries(seriesId: string, data: EarlySettlementRequest): Promise<void> {
+  await axiosInstance.post(`/installments/series/${seriesId}/settle`, data)
 }
 
 export async function advanceInstallments(data: AdvanceInstallmentsRequest): Promise<void> {

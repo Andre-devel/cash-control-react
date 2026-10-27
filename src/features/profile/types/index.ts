@@ -1,19 +1,15 @@
-export interface UserProfile {
-  id: string
-  name: string
-  email: string
-  preferences: Record<string, unknown>
-  createdAt: string
-}
+import type { UserProfileResponse } from '@/features/auth/types'
+
+export type UserProfile = UserProfileResponse
 
 export interface ConsentRecord {
   id: string
-  type: string
-  status: string
-  date: string
+  consentVersion: string
+  acceptedAt: string
+  revokedAt: string | null
+  active: boolean
 }
 
 export interface UpdateProfileRequest {
-  name: string
-  preferences?: Record<string, unknown>
+  displayName: string
 }

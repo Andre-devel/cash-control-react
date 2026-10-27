@@ -57,12 +57,10 @@ describe('Attachment upload — Phase 9.2 integration regression guard', () => {
       data: [
         {
           id: 'att-new',
-          transactionId: 'tx-1',
-          fileName: 'invoice.pdf',
-          contentType: 'application/pdf',
-          size: 1024,
-          url: 'https://example.com/uploads/invoice.pdf',
-          createdAt: new Date().toISOString(),
+          originalFilename: 'invoice.pdf',
+          mimeType: 'application/pdf',
+          fileSizeBytes: 1024,
+          uploadedAt: new Date().toISOString(),
         },
       ],
     })

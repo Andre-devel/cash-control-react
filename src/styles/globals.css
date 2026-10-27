@@ -1057,7 +1057,7 @@
 .cat-combo-trigger:disabled { cursor: not-allowed; opacity: 0.6; }
 
 /* Variante de formulário: mesma caixa dos demais campos */
-.cat-combo-trigger.field {
+.cat-combo-trigger--field {
   height: 36px;
   padding: 0 10px;
   font-size: 13px;
@@ -1067,21 +1067,21 @@
   border-radius: var(--r-2);
   transition: border-color 80ms, box-shadow 80ms;
 }
-.cat-combo-trigger.field:hover:not(:disabled) { border-color: var(--border-strong); }
-.cat-combo-trigger.field:focus-visible,
-.cat-combo-trigger.field[aria-expanded='true'] {
+.cat-combo-trigger--field:hover:not(:disabled) { border-color: var(--border-strong); }
+.cat-combo-trigger--field:focus-visible,
+.cat-combo-trigger--field[aria-expanded='true'] {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
-.cat-combo-trigger.field[aria-invalid='true'] {
+.cat-combo-trigger--field[aria-invalid='true'] {
   border-color: var(--expense);
   box-shadow: 0 0 0 3px var(--expense-soft);
 }
-.cat-combo-trigger.field.empty .cat-combo-value { color: var(--text-faint); }
+.cat-combo-trigger--field.empty .cat-combo-value { color: var(--text-faint); }
 
 /* Variante de célula de tabela: discreta até receber o foco */
-.cat-combo-trigger.inline {
+.cat-combo-trigger--inline {
   min-height: 24px;
   padding: 2px 4px 2px 0;
   font: inherit;
@@ -1091,9 +1091,9 @@
   border-bottom: 1px dashed var(--border);
   border-radius: 0;
 }
-.cat-combo-trigger.inline:hover:not(:disabled) { border-bottom-color: var(--accent); }
-.cat-combo-trigger.inline:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; }
-.cat-combo-trigger.inline.empty { color: var(--text-faint); }
+.cat-combo-trigger--inline:hover:not(:disabled) { border-bottom-color: var(--accent); }
+.cat-combo-trigger--inline:focus-visible { outline: 2px solid var(--accent-ring); outline-offset: 2px; }
+.cat-combo-trigger--inline.empty { color: var(--text-faint); }
 
 .cat-combo-value {
   flex: 1; min-width: 0;

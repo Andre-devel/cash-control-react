@@ -30,24 +30,30 @@ export const MOCK_TOKEN = makeTestToken()
 
 export const MOCK_PROFILE: UserProfile = {
   id: 'user-123',
-  name: 'Test User',
-  email: 'user@example.com',
-  preferences: {},
+  maskedEmail: 'u***@example.com',
+  displayName: 'Test User',
+  accountStatus: 'ACTIVE',
+  authOrigin: 'LOCAL',
+  lastLoginAt: '2026-01-02T00:00:00Z',
+  roles: ['USER'],
+  permissions: [],
   createdAt: '2026-01-01T00:00:00Z',
 }
 
 export const MOCK_CONSENTS: ConsentRecord[] = [
   {
     id: 'consent-1',
-    type: 'TERMS_OF_SERVICE',
-    status: 'ACCEPTED',
-    date: '2026-01-01T00:00:00Z',
+    consentVersion: '1.0',
+    acceptedAt: '2026-01-01T12:00:00Z',
+    revokedAt: '2026-03-01T12:00:00Z',
+    active: false,
   },
   {
     id: 'consent-2',
-    type: 'PRIVACY_POLICY',
-    status: 'ACCEPTED',
-    date: '2026-01-01T00:00:00Z',
+    consentVersion: '2.0',
+    acceptedAt: '2026-03-01T12:00:00Z',
+    revokedAt: null,
+    active: true,
   },
 ]
 
@@ -57,8 +63,8 @@ export const profileHandlers = [
   }),
 
   http.put('*/users/me', async ({ request }) => {
-    const body = (await request.json()) as { name: string }
-    return HttpResponse.json({ ...MOCK_PROFILE, name: body.name })
+    const body = (await request.json()) as { displayName: string }
+    return HttpResponse.json({ ...MOCK_PROFILE, displayName: body.displayName })
   }),
 
   http.get('*/users/me/consents', () => {

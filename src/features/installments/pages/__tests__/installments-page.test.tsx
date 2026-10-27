@@ -233,8 +233,9 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /liquidar série antecipadamente/i })).toBeTruthy()
-    expect(screen.getAllByText(/total de parcelas/i).length).toBeGreaterThan(0)
-    expect(screen.getByText(MOCK_SERIES_1.totalAmount)).toBeTruthy()
+    // MOCK_SERIES_1 tem 3 parcelas de R$ 300,00 em aberto.
+    await waitFor(() => expect(screen.getByText('3 de 12')).toBeTruthy())
+    expect(screen.getByLabelText(/valor da quitação/i)).toHaveValue('900,00')
   })
 
   it('settle → series status updates in the list', async () => {
