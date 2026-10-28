@@ -45,3 +45,10 @@ export function formatMoneyInput(value: string | number): string {
   if (!Number.isFinite(number)) return String(value)
   return number.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
+
+/** Valor da API (`"6997.9"`) formatado para exibição: `R$ 6.997,90`. */
+export function formatMoney(value: string | number, currency = 'BRL'): string {
+  const number = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(number)) return String(value)
+  return number.toLocaleString('pt-BR', { style: 'currency', currency })
+}

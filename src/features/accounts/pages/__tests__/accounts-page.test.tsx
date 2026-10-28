@@ -176,7 +176,30 @@ describe('AccountsPage', () => {
       await waitFor(() => expect(screen.getByText(MOCK_ARCHIVED_ACCOUNT.name)).toBeTruthy())
     })
 
+    it('archive is blocked while the account has balance', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AccountsPage />)
+
+      await waitFor(() => expect(screen.getByText(MOCK_ACCOUNT_1.name)).toBeTruthy())
+
+      const moreButtons = screen.getAllByRole('button', { name: /mais opções para/i })
+      await user.click(moreButtons[0])
+      await waitFor(() => screen.getByRole('button', { name: /^arquivar$/i }))
+      await user.click(screen.getByRole('button', { name: /^arquivar$/i }))
+
+      await waitFor(() => screen.getByRole('dialog'))
+      expect(screen.getByText(/zere o saldo antes/i)).toBeTruthy()
+      expect(
+        (screen.getByRole('button', { name: /arquivar conta/i }) as HTMLButtonElement).disabled,
+      ).toBe(true)
+    })
+
     it('archive account → disappears from default view', async () => {
+      server.use(
+        http.get('*/accounts', () =>
+          HttpResponse.json([{ ...MOCK_ACCOUNT_1, balance: '0.00' }, MOCK_ACCOUNT_2]),
+        ),
+      )
       const user = userEvent.setup()
       renderWithProviders(<AccountsPage />)
 
@@ -212,16 +235,17 @@ describe('AccountsPage', () => {
       await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     })
 
-    it('409 conflict shows explanatory error message', async () => {
+    it('business rule error shows the API message in the dialog', async () => {
       server.use(
         http.delete('*/accounts/:id', () =>
           HttpResponse.json(
             {
-              errorCode: 'ACCOUNT_HAS_TRANSACTIONS',
-              message: 'Account has linked transactions and cannot be deleted.',
+              errorCode: 'BUSINESS_RULE_VIOLATION',
+              message:
+                'A conta não pode ser excluída porque possui transações. Arquive-a em vez disso.',
               correlationId: 'test-id',
             },
-            { status: 409 },
+            { status: 422 },
           ),
         ),
       )
@@ -242,7 +266,7 @@ describe('AccountsPage', () => {
       await user.click(screen.getByRole('button', { name: /excluir conta/i }))
 
       await waitFor(() =>
-        expect(screen.getByText(/arquive-a para preservar o histórico/i)).toBeTruthy(),
+        expect(screen.getAllByText(/arquive-a em vez disso/i).length).toBeGreaterThan(0),
       )
     })
   })

@@ -9,6 +9,7 @@ import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
 import {
   createAccountSchema,
+  ACCOUNT_CURRENCIES,
   ACCOUNT_TYPES,
   type CreateAccountFormValues,
 } from '@/features/accounts/schemas/create-account.schema'
@@ -132,7 +133,13 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
         </Field>
 
         <Field label="Moeda" error={form.formState.errors.currencyCode?.message}>
-          <Input placeholder="ex: BRL" {...form.register('currencyCode')} />
+          <Select aria-label="Moeda" {...form.register('currencyCode')}>
+            {ACCOUNT_CURRENCIES.map((currency) => (
+              <option key={currency.code} value={currency.code}>
+                {currency.label}
+              </option>
+            ))}
+          </Select>
         </Field>
 
         <Field label="Saldo inicial" error={form.formState.errors.initialBalance?.message}>

@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Modal } from '@/components/ui/modal'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useHideCategory } from '@/features/categories/hooks/use-hide-category'
@@ -43,12 +44,13 @@ export default function CategoriesPage() {
 
   const { mutate: hideCategory } = useHideCategory()
   const { mutate: showCategory } = useShowCategory()
-  const { mutate: archiveCategory } = useArchiveCategory()
+  const { mutate: archiveCategory, isPending: isArchiving } = useArchiveCategory()
   const { mutate: unarchiveCategory } = useUnarchiveCategory()
   const { data: accounts } = useAccounts()
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Category | null>(null)
+  const [archiveTarget, setArchiveTarget] = useState<Category | null>(null)
 
   const allCategories = useMemo(() => categories ?? [], [categories])
   const activeAccounts = useMemo(() => (accounts ?? []).filter((a) => !a.archivedAt), [accounts])
@@ -56,10 +58,12 @@ export default function CategoriesPage() {
   const handleEdit = useCallback((category: Category) => setEditTarget(category), [])
   const handleHide = useCallback((category: Category) => hideCategory(category.id), [hideCategory])
   const handleShow = useCallback((category: Category) => showCategory(category.id), [showCategory])
-  const handleArchive = useCallback(
-    (category: Category) => archiveCategory(category.id),
-    [archiveCategory],
-  )
+  const handleArchive = useCallback((category: Category) => setArchiveTarget(category), [])
+
+  function confirmArchive() {
+    if (!archiveTarget) return
+    archiveCategory(archiveTarget.id, { onSuccess: () => setArchiveTarget(null) })
+  }
   const handleUnarchive = useCallback(
     (category: Category) => unarchiveCategory(category.id),
     [unarchiveCategory],
@@ -82,19 +86,19 @@ export default function CategoriesPage() {
         <div className="actions">
           <Button
             size="sm"
-            variant="ghost"
+            variant={showHidden ? 'default' : 'ghost'}
             onClick={() => setShowHidden((v) => !v)}
             aria-pressed={showHidden}
           >
-            {showHidden ? 'Ocultar ocultas' : 'Mostrar ocultas'}
+            {showHidden ? '✓ ' : ''}Mostrar ocultas
           </Button>
           <Button
             size="sm"
-            variant="ghost"
+            variant={showArchived ? 'default' : 'ghost'}
             onClick={() => setShowArchived((v) => !v)}
             aria-pressed={showArchived}
           >
-            {showArchived ? 'Ocultar arquivadas' : 'Mostrar arquivadas'}
+            {showArchived ? '✓ ' : ''}Mostrar arquivadas
           </Button>
           <Button
             variant="primary"
@@ -105,6 +109,13 @@ export default function CategoriesPage() {
           </Button>
         </div>
       </div>
+
+      <p className="text-sm text-dim" style={{ marginBottom: 16 }}>
+        <strong>Ocultar</strong> tira a categoria (e as subcategorias) dos seletores, mas os
+        lançamentos que já usam ela continuam nos relatórios; vale também para as categorias do
+        sistema. <strong>Arquivar</strong> é para categorias suas que deixaram de existir: leva as
+        subcategorias junto e libera o nome para uma nova.
+      </p>
 
       {isLoading ? (
         <CategoriesSkeleton />
@@ -159,6 +170,39 @@ export default function CategoriesPage() {
         open={editTarget !== null}
         onClose={() => setEditTarget(null)}
       />
+
+      {archiveTarget && (
+        <Modal
+          title="Arquivar categoria"
+          onClose={() => setArchiveTarget(null)}
+          footer={
+            <>
+              <Button type="button" variant="ghost" onClick={() => setArchiveTarget(null)}>
+                Cancelar
+              </Button>
+              <div className="spacer" />
+              <Button
+                type="button"
+                variant="primary"
+                disabled={isArchiving}
+                aria-busy={isArchiving}
+                onClick={confirmArchive}
+              >
+                {isArchiving ? 'Arquivando…' : 'Arquivar categoria'}
+              </Button>
+            </>
+          }
+        >
+          <p>
+            Arquivar <strong>{archiveTarget.name}</strong>
+            {archiveTarget.subcategories && archiveTarget.subcategories.length > 0
+              ? ' e as subcategorias dela'
+              : ''}
+            ? Ela deixa de aparecer nos seletores; os lançamentos existentes continuam com ela. Dá
+            para desarquivar em &ldquo;Mostrar arquivadas&rdquo;.
+          </p>
+        </Modal>
+      )}
     </div>
   )
 }

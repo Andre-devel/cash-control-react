@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeMoneyInput, moneyField } from '../money'
+import { normalizeMoneyInput, moneyField, formatMoney } from '../money'
 
 describe('normalizeMoneyInput', () => {
   it('converte vírgula decimal do teclado pt-BR em ponto', () => {
@@ -53,5 +53,12 @@ describe('moneyField', () => {
   it('recusa negativo por padrão e aceita com signed', () => {
     expect(schema.safeParse('-50,00').success).toBe(false)
     expect(moneyField('inválido', { signed: true }).parse('-50,00')).toBe('-50.00')
+  })
+})
+
+describe('formatMoney', () => {
+  it('formats API decimals in pt-BR currency', () => {
+    expect(formatMoney('6997.9')).toMatch(/^R\$\s6\.997,90$/)
+    expect(formatMoney(-50, 'USD')).toMatch(/US\$\s50,00/)
   })
 })

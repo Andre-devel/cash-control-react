@@ -7,10 +7,12 @@ import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import {
   adjustBalanceSchema,
+  adjustmentDelta,
   type AdjustBalanceFormValues,
 } from '@/features/accounts/schemas/adjust-balance.schema'
 import { useAdjustBalance } from '@/features/accounts/hooks/use-adjust-balance'
 import type { Account } from '@/features/accounts/types'
+import { formatMoney } from '@/lib/money'
 
 interface AdjustBalanceDialogProps {
   account: Account | null
@@ -24,15 +26,20 @@ export function AdjustBalanceDialog({ account, open, onClose }: AdjustBalanceDia
   const form = useForm<AdjustBalanceFormValues>({
     resolver: zodResolver(adjustBalanceSchema),
     defaultValues: {
-      amount: '',
-      note: '',
+      targetBalance: '',
+      description: '',
     },
   })
 
   function onSubmit(data: AdjustBalanceFormValues) {
     if (!account) return
+    const amount = adjustmentDelta(account.balance, data.targetBalance)
+    if (Number(amount) === 0) {
+      form.setError('targetBalance', { message: 'O novo saldo é igual ao saldo atual' })
+      return
+    }
     adjustBalance(
-      { id: account.id, data },
+      { id: account.id, data: { amount, description: data.description || undefined } },
       {
         onSuccess: () => {
           form.reset()
@@ -95,12 +102,26 @@ export function AdjustBalanceDialog({ account, open, onClose }: AdjustBalanceDia
         noValidate
         className="col gap-4"
       >
-        <Field label="Valor do ajuste" error={form.formState.errors.amount?.message}>
-          <MoneyInput placeholder="ex: 100,00 ou -50,00" {...form.register('amount')} />
+        <p className="text-sm text-dim">
+          Saldo atual:{' '}
+          <strong className="mono">
+            {formatMoney(account?.balance ?? 0, account?.currencyCode)}
+          </strong>
+        </p>
+
+        <Field
+          label="Novo saldo"
+          hint="Informe o saldo que o banco mostra; a diferença vira um lançamento de ajuste."
+          error={form.formState.errors.targetBalance?.message}
+        >
+          <MoneyInput placeholder="ex: 1.250,40" {...form.register('targetBalance')} />
         </Field>
 
-        <Field label="Observação (opcional)" error={form.formState.errors.note?.message}>
-          <Textarea placeholder="ex: Conciliação com extrato bancário" {...form.register('note')} />
+        <Field label="Observação (opcional)" error={form.formState.errors.description?.message}>
+          <Textarea
+            placeholder="ex: Conciliação com extrato bancário"
+            {...form.register('description')}
+          />
         </Field>
       </form>
     </Modal>

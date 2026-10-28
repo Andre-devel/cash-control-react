@@ -12,6 +12,8 @@ export interface CategoryTreeNode extends Category {
 interface CategoryNodeProps {
   node: CategoryTreeNode
   depth?: number
+  /** A categoria pai está oculta: esta some dos seletores junto com ela. */
+  parentHidden?: boolean
   onEdit: (category: Category) => void
   onHide: (category: Category) => void
   onShow: (category: Category) => void
@@ -22,6 +24,7 @@ interface CategoryNodeProps {
 export const CategoryNode = memo(function CategoryNode({
   node,
   depth = 0,
+  parentHidden = false,
   onEdit,
   onHide,
   onShow,
@@ -39,38 +42,46 @@ export const CategoryNode = memo(function CategoryNode({
           <div className="fw-500 truncate">{node.name}</div>
         </div>
         {node.isDefault && (
-          <Badge kind="muted" dot={false} square>
-            Sistema
-          </Badge>
+          <span title="Categoria do sistema: não pode ser editada nem arquivada, mas pode ser ocultada.">
+            <Badge kind="muted" dot={false} square>
+              Sistema
+            </Badge>
+          </span>
         )}
-        {node.isHidden && (
+        {node.isHidden ? (
           <Badge kind="muted" dot={false} square>
-            Oculto
+            Oculta
           </Badge>
+        ) : (
+          parentHidden && (
+            <Badge kind="muted" dot={false} square>
+              Oculta pela categoria pai
+            </Badge>
+          )
         )}
         {node.isArchived && (
           <Badge kind="muted" dot={false} square>
-            Arquivado
+            Arquivada
           </Badge>
         )}
         <div className="category-row-actions">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onEdit(node)}
-            aria-label={`Edit ${node.name}`}
-            disabled={node.isDefault}
-          >
-            Editar
-          </Button>
+          {!node.isDefault && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(node)}
+              aria-label={`Editar ${node.name}`}
+            >
+              Editar
+            </Button>
+          )}
 
           {node.isHidden ? (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onShow(node)}
-              aria-label={`Show ${node.name}`}
-              disabled={node.isDefault}
+              aria-label={`Mostrar ${node.name}`}
             >
               Mostrar
             </Button>
@@ -79,34 +90,32 @@ export const CategoryNode = memo(function CategoryNode({
               variant="ghost"
               size="sm"
               onClick={() => onHide(node)}
-              aria-label={`Hide ${node.name}`}
-              disabled={node.isDefault}
+              aria-label={`Ocultar ${node.name}`}
             >
               Ocultar
             </Button>
           )}
 
-          {node.isArchived ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onUnarchive(node)}
-              aria-label={`Unarchive ${node.name}`}
-              disabled={node.isDefault}
-            >
-              Desarquivar
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onArchive(node)}
-              aria-label={`Archive ${node.name}`}
-              disabled={node.isDefault}
-            >
-              Arquivar
-            </Button>
-          )}
+          {!node.isDefault &&
+            (node.isArchived ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onUnarchive(node)}
+                aria-label={`Desarquivar ${node.name}`}
+              >
+                Desarquivar
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onArchive(node)}
+                aria-label={`Arquivar ${node.name}`}
+              >
+                Arquivar
+              </Button>
+            ))}
         </div>
       </div>
 
@@ -117,6 +126,7 @@ export const CategoryNode = memo(function CategoryNode({
               key={child.id}
               node={child}
               depth={depth + 1}
+              parentHidden={parentHidden || node.isHidden}
               onEdit={onEdit}
               onHide={onHide}
               onShow={onShow}

@@ -13,6 +13,7 @@ import {
 import { useCreateTransfer } from '@/features/accounts/hooks/use-create-transfer'
 import type { Account } from '@/features/accounts/types'
 import { localIsoDate } from '@/lib/local-date'
+import { formatMoney } from '@/lib/money'
 
 interface CreateTransferDialogProps {
   defaultFromAccount: Account | null
@@ -45,6 +46,9 @@ export function CreateTransferDialog({
       description: '',
     },
   })
+
+  const sourceAccountId = form.watch('sourceAccountId')
+  const destinationAccounts = activeAccounts.filter((a) => a.id !== sourceAccountId)
 
   function onSubmit(data: CreateTransferFormValues) {
     createTransfer(data, {
@@ -113,7 +117,7 @@ export function CreateTransferDialog({
             <option value="">Selecionar conta de origem</option>
             {activeAccounts.map((acc) => (
               <option key={acc.id} value={acc.id}>
-                {acc.name} ({acc.currencyCode} {acc.balance})
+                {acc.name} ({formatMoney(acc.balance, acc.currencyCode)})
               </option>
             ))}
           </Select>
@@ -122,9 +126,9 @@ export function CreateTransferDialog({
         <Field label="Conta de destino" error={form.formState.errors.destinationAccountId?.message}>
           <Select aria-label="Conta de destino" {...form.register('destinationAccountId')}>
             <option value="">Selecionar conta de destino</option>
-            {activeAccounts.map((acc) => (
+            {destinationAccounts.map((acc) => (
               <option key={acc.id} value={acc.id}>
-                {acc.name} ({acc.currencyCode} {acc.balance})
+                {acc.name} ({formatMoney(acc.balance, acc.currencyCode)})
               </option>
             ))}
           </Select>

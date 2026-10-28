@@ -768,7 +768,7 @@ describe('Money', () => {
 
   it('shows USD symbol', () => {
     render(<Money value={100} currency="USD" />)
-    expect(screen.getByText('$')).toBeTruthy()
+    expect(screen.getByText('US$')).toBeTruthy()
   })
 
   it('shows negative sign for negative values', () => {

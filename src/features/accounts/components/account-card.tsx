@@ -101,7 +101,7 @@ export function AccountCard({
           )}
         </div>
         <div className="text-xl mono fw-500">
-          <Money value={balance} currency={account.currencyCode as 'BRL' | 'USD'} />
+          <Money value={balance} currency={account.currencyCode} />
         </div>
         <div className="row gap-2 mt-2 text-xs text-dim" style={{ alignItems: 'center' }}>
           <span>Criado {fmtCreatedAt(account.createdAt)}</span>

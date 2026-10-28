@@ -57,7 +57,10 @@ export default function AccountsPage() {
   const [transferOpen, setTransferOpen] = useState(false)
 
   const activeAccounts = accounts ?? []
-  const totalBalance = activeAccounts.reduce((sum, a) => sum + parseFloat(a.balance), 0)
+  // Mesmo critério do patrimônio no dashboard: conta arquivada fica fora, com ou sem o toggle.
+  const totalBalance = activeAccounts
+    .filter((a) => !a.archivedAt)
+    .reduce((sum, a) => sum + parseFloat(a.balance), 0)
 
   function handleUnarchive(account: Account) {
     unarchiveAccount(account.id)

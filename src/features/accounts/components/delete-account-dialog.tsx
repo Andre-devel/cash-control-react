@@ -22,10 +22,9 @@ export function DeleteAccountDialog({ account, open, onClose }: DeleteAccountDia
         onClose()
       },
       onError: (error) => {
-        if (error.status === 409) {
-          setConflictError(
-            'Esta conta não pode ser excluída pois possui transações vinculadas. Arquive-a para preservar o histórico.',
-          )
+        // Regra de negócio (transações vinculadas, saldo): a mensagem da API diz o que fazer.
+        if (error.status === 409 || error.status === 422) {
+          setConflictError(error.message)
         }
       },
     })

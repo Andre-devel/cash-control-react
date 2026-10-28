@@ -1,11 +1,12 @@
 const CURRENCY_SYMBOLS: Record<string, string> = {
   BRL: 'R$',
-  USD: '$',
+  USD: 'US$',
+  EUR: '€',
 }
 
 interface MoneyProps {
   value: number
-  currency?: 'BRL' | 'USD'
+  currency?: string
   signed?: boolean
   muted?: boolean
   className?: string

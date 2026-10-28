@@ -224,7 +224,7 @@ describe('CategoriesPage', () => {
 
       await waitFor(() => screen.getAllByText(MOCK_CATEGORY_FOOD.name).length > 0)
 
-      const hideButton = screen.getByRole('button', { name: /^hide food$/i })
+      const hideButton = screen.getByRole('button', { name: /^ocultar food$/i })
       expect(hideButton).toBeTruthy()
       await user.click(hideButton)
     })
@@ -246,40 +246,51 @@ describe('CategoriesPage', () => {
       expect(screen.getByText('Sistema')).toBeTruthy()
     })
 
-    it('Edit button is disabled for system categories', async () => {
+    it('system categories can be hidden but not edited or archived', async () => {
       renderWithProviders(<CategoriesPage />)
       await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_SYSTEM.name)).toBeTruthy())
-      const editBtn = screen.getByRole('button', {
-        name: new RegExp(`Edit ${MOCK_CATEGORY_SYSTEM.name}`, 'i'),
-      })
-      expect(editBtn).toBeDisabled()
-    })
-
-    it('Hide button is disabled for system categories', async () => {
-      renderWithProviders(<CategoriesPage />)
-      await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_SYSTEM.name)).toBeTruthy())
-      const hideBtn = screen.getByRole('button', {
-        name: new RegExp(`Hide ${MOCK_CATEGORY_SYSTEM.name}`, 'i'),
-      })
-      expect(hideBtn).toBeDisabled()
-    })
-
-    it('Archive button is disabled for system categories', async () => {
-      renderWithProviders(<CategoriesPage />)
-      await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_SYSTEM.name)).toBeTruthy())
-      const archiveBtn = screen.getByRole('button', {
-        name: new RegExp(`Archive ${MOCK_CATEGORY_SYSTEM.name}`, 'i'),
-      })
-      expect(archiveBtn).toBeDisabled()
+      const name = MOCK_CATEGORY_SYSTEM.name
+      expect(
+        screen.getByRole('button', { name: new RegExp(`^Ocultar ${name}$`, 'i') }),
+      ).not.toBeDisabled()
+      expect(screen.queryByRole('button', { name: new RegExp(`^Editar ${name}$`, 'i') })).toBeNull()
+      expect(
+        screen.queryByRole('button', { name: new RegExp(`^Arquivar ${name}$`, 'i') }),
+      ).toBeNull()
     })
 
     it('Edit button is enabled for non-system categories', async () => {
       renderWithProviders(<CategoriesPage />)
       await waitFor(() => screen.getAllByText(MOCK_CATEGORY_FOOD.name).length > 0)
       const editBtn = screen.getByRole('button', {
-        name: new RegExp(`Edit ${MOCK_CATEGORY_FOOD.name}`, 'i'),
+        name: new RegExp(`^Editar ${MOCK_CATEGORY_FOOD.name}$`, 'i'),
       })
       expect(editBtn).not.toBeDisabled()
+    })
+
+    it('archive asks for confirmation before calling the API', async () => {
+      let archived = false
+      server.use(
+        http.post('*/categories/:id/archive', () => {
+          archived = true
+          return new HttpResponse(null, { status: 204 })
+        }),
+      )
+      const user = userEvent.setup()
+      renderWithProviders(<CategoriesPage />)
+      await waitFor(() => screen.getAllByText(MOCK_CATEGORY_FOOD.name).length > 0)
+
+      await user.click(
+        screen.getByRole('button', {
+          name: new RegExp(`^Arquivar ${MOCK_CATEGORY_FOOD.name}$`, 'i'),
+        }),
+      )
+      await waitFor(() => screen.getByRole('dialog'))
+      expect(archived).toBe(false)
+
+      await user.click(screen.getByRole('button', { name: /arquivar categoria/i }))
+      await waitFor(() => expect(archived).toBe(true))
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     })
   })
 

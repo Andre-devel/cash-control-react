@@ -33,8 +33,9 @@ export interface UpdateAccountRequest {
 }
 
 export interface AdjustBalanceRequest {
+  /** Delta com sinal: positivo aumenta o saldo. */
   amount: string
-  note?: string
+  description?: string
 }
 
 export interface CreateTransferRequest {
