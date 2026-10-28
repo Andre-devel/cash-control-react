@@ -16,6 +16,10 @@ export const MOCK_OVERVIEW: DashboardOverview = {
   monthlyIncome: '5000.00',
   monthlyExpenses: '3200.00',
   cashFlow: '1800.00',
+  netWorth: '15000.00',
+  previousNetWorth: '14000.00',
+  previousMonthIncome: '4000.00',
+  previousMonthExpenses: '4000.00',
 }
 
 export const MOCK_CATEGORIES_CHART: CategoriesChart = {

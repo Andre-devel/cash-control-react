@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useComparisonChart } from '@/features/dashboard/hooks/use-comparison-chart'
 import { formatYearMonth } from '@/lib/format-date'
+import { formatChartMoney, formatCompactNumber, formatMoneyInput } from '@/lib/money'
 
 function getCurrentMonth(): string {
   const now = new Date()
@@ -24,12 +25,7 @@ function getPreviousMonth(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
-function fmt(v: number): string {
-  return new Intl.NumberFormat(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(v)
-}
+const fmt = formatMoneyInput
 
 function ChartSkeleton() {
   return (
@@ -120,18 +116,8 @@ export function MonthComparisonSection() {
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(v: number) =>
-                    new Intl.NumberFormat(undefined, { notation: 'compact' }).format(v)
-                  }
-                />
-                <Tooltip
-                  formatter={(value) => {
-                    const n = typeof value === 'number' ? value : parseFloat(String(value))
-                    return isNaN(n) ? String(value) : fmt(n)
-                  }}
-                />
+                <YAxis tick={{ fontSize: 12 }} tickFormatter={formatCompactNumber} />
+                <Tooltip formatter={formatChartMoney} />
                 <Legend />
                 <Bar
                   dataKey={data.month1.month}

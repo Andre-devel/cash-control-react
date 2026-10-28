@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Download, Plus, Wallet, ArrowDown, ArrowUp, BarChart2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { buildCsvBlob, csvMoney, localIsoDate, saveBlob } from '@/lib'
+import { formatMoney } from '@/lib/money'
 import { useAuthStore } from '@/features/auth/store/auth.store'
 import { useOverview } from '@/features/dashboard/hooks/use-overview'
 import { useMonthlyChart } from '@/features/dashboard/hooks/use-monthly-chart'
@@ -46,20 +47,29 @@ const MONTH_ABBR_PT = [
   'dez',
 ]
 
-type Period = '7d' | '30d' | 'mes' | 'ano'
+type DeltaKind = 'up' | 'down' | 'neutral'
 
-const PERIODS: { id: Period; label: string }[] = [
-  { id: '7d', label: '7d' },
-  { id: '30d', label: '30d' },
-  { id: 'mes', label: 'Mês' },
-  { id: 'ano', label: 'Ano' },
-]
+interface KpiDelta {
+  text: string
+  kind: DeltaKind
+  trend?: 'up' | 'down'
+}
 
-const PERIOD_MONTHS: Record<Period, number> = {
-  '7d': 1,
-  '30d': 2,
-  mes: 6,
-  ano: 12,
+function signOf(value: number): 'up' | 'down' | undefined {
+  return value > 0 ? 'up' : value < 0 ? 'down' : undefined
+}
+
+/** Variação percentual de um fluxo do mês contra o mês anterior. `higherIsBetter` define a cor. */
+function flowDelta(current: number, previous: number, prevLabel: string, higherIsBetter: boolean) {
+  if (previous === 0) return { text: `Sem movimento em ${prevLabel}`, kind: 'neutral' } as KpiDelta
+  const pct = ((current - previous) / Math.abs(previous)) * 100
+  const trend = signOf(Math.round(pct))
+  const good = higherIsBetter ? pct > 0 : pct < 0
+  return {
+    text: `${pct > 0 ? '+' : ''}${pct.toFixed(0)}% vs ${prevLabel}`,
+    kind: trend ? (good ? 'up' : 'down') : 'neutral',
+    trend,
+  } as KpiDelta
 }
 
 function KpiSkeleton() {
@@ -95,7 +105,7 @@ function KpiSkeleton() {
 }
 
 export default function DashboardPage() {
-  const [period, setPeriod] = useState<Period>('mes')
+  const [chartMonths, setChartMonths] = useState(6)
   const [createOpen, setCreateOpen] = useState(false)
   const user = useAuthStore((s) => s.user)
   const userName = user?.name ?? 'Usuário'
@@ -104,8 +114,7 @@ export default function DashboardPage() {
   const monthName = MONTH_NAMES_PT[now.getMonth()] ?? ''
   const monthAbbr = MONTH_ABBR_PT[now.getMonth()] ?? ''
   const year = now.getFullYear()
-
-  const months = PERIOD_MONTHS[period]
+  const prevMonthLabel = `${MONTH_ABBR_PT[(now.getMonth() + 11) % 12]}.`
 
   const {
     data: overview,
@@ -114,12 +123,34 @@ export default function DashboardPage() {
     refetch: retryOverview,
   } = useOverview()
 
-  const { data: chartData } = useMonthlyChart(months)
+  const { data: chartData } = useMonthlyChart(chartMonths)
 
-  const totalBalance = overview ? parseFloat(overview.totalBalance) : 0
+  // Patrimônio inclui as contas de investimento: aplicar não diminui o que a pessoa tem.
+  const netWorth = overview ? parseFloat(overview.netWorth ?? overview.totalBalance) : 0
   const monthlyIncome = overview ? parseFloat(overview.monthlyIncome) : 0
   const monthlyExpenses = overview ? parseFloat(overview.monthlyExpenses) : 0
   const balanceDelta = monthlyIncome - monthlyExpenses
+
+  const netWorthChange = netWorth - parseFloat(overview?.previousNetWorth ?? String(netWorth))
+  const netWorthDelta: KpiDelta = {
+    text:
+      netWorthChange === 0
+        ? `Igual ao fim de ${prevMonthLabel}`
+        : `${netWorthChange > 0 ? '+' : '−'}${formatMoney(Math.abs(netWorthChange))} desde ${prevMonthLabel}`,
+    kind: signOf(netWorthChange) ?? 'neutral',
+  }
+  const incomeDelta = flowDelta(
+    monthlyIncome,
+    parseFloat(overview?.previousMonthIncome ?? '0'),
+    prevMonthLabel,
+    true,
+  )
+  const expensesDelta = flowDelta(
+    monthlyExpenses,
+    parseFloat(overview?.previousMonthExpenses ?? '0'),
+    prevMonthLabel,
+    false,
+  )
 
   function handleExport() {
     const rows: string[][] = [['Mês', 'Receitas (R$)', 'Despesas (R$)', 'Saldo (R$)']]
@@ -131,7 +162,7 @@ export default function DashboardPage() {
     if (overview) {
       rows.push([])
       rows.push(['Resumo atual', '', '', ''])
-      rows.push(['Patrimônio total', csvMoney(overview.totalBalance), '', ''])
+      rows.push(['Patrimônio total', csvMoney(netWorth), '', ''])
       rows.push([`Receitas (${monthAbbr}.)`, csvMoney(overview.monthlyIncome), '', ''])
       rows.push([`Despesas (${monthAbbr}.)`, csvMoney(overview.monthlyExpenses), '', ''])
       rows.push(['Saldo do mês', csvMoney(balanceDelta), '', ''])
@@ -151,20 +182,6 @@ export default function DashboardPage() {
         </div>
         <div className="spacer" />
         <div className="actions">
-          <div className="tabs" role="tablist" aria-label="Período">
-            {PERIODS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                role="tab"
-                aria-selected={period === p.id}
-                className={period === p.id ? 'on' : ''}
-                onClick={() => setPeriod(p.id)}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
           <Button leading={<Download size={14} />} onClick={handleExport}>
             Exportar
           </Button>
@@ -204,25 +221,27 @@ export default function DashboardPage() {
           <KpiCard
             label="Patrimônio total"
             icon={Wallet}
-            value={totalBalance}
-            delta="—"
-            deltaKind="neutral"
+            value={netWorth}
+            delta={netWorthDelta.text}
+            deltaKind={netWorthDelta.kind}
           />
           <KpiCard
             label={`Receitas (${monthAbbr}.)`}
             icon={ArrowDown}
             value={monthlyIncome}
             tone="income"
-            delta="—"
-            deltaKind="neutral"
+            delta={incomeDelta.text}
+            deltaKind={incomeDelta.kind}
+            trend={incomeDelta.trend}
           />
           <KpiCard
             label={`Despesas (${monthAbbr}.)`}
             icon={ArrowUp}
             value={monthlyExpenses}
             tone="expense"
-            delta="—"
-            deltaKind="neutral"
+            delta={expensesDelta.text}
+            deltaKind={expensesDelta.kind}
+            trend={expensesDelta.trend}
           />
           <KpiCard
             label="Saldo do mês"
@@ -237,7 +256,7 @@ export default function DashboardPage() {
 
       {/* Main row: bar chart + upcoming bills */}
       <div className="grid mb-6" style={{ gridTemplateColumns: '1.65fr 1fr' }}>
-        <BarChartCard months={months} />
+        <BarChartCard months={chartMonths} onMonthsChange={setChartMonths} />
         <UpcomingBillsCard />
       </div>
 

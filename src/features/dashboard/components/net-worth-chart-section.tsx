@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useNetWorthChart } from '@/features/dashboard/hooks/use-net-worth-chart'
 import { formatLocalDate } from '@/lib/format-date'
+import { formatChartMoney, formatCompactNumber } from '@/lib/money'
 
 function getDefaultRange() {
   const now = new Date()
@@ -94,23 +95,10 @@ export function NetWorthChartSection() {
             >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="date" tick={{ fontSize: 12 }} tickFormatter={formatLocalDate} />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                tickFormatter={(v: number) =>
-                  new Intl.NumberFormat(undefined, { notation: 'compact' }).format(v)
-                }
-              />
+              <YAxis tick={{ fontSize: 12 }} tickFormatter={formatCompactNumber} />
               <Tooltip
                 labelFormatter={(label) => formatLocalDate(String(label))}
-                formatter={(value) => {
-                  const n = typeof value === 'number' ? value : parseFloat(String(value))
-                  return isNaN(n)
-                    ? String(value)
-                    : new Intl.NumberFormat(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }).format(n)
-                }}
+                formatter={formatChartMoney}
               />
               <Line
                 type="monotone"

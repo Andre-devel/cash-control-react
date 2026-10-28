@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Button } from '@/components/ui/button'
 import { useCategoriesChart } from '@/features/dashboard/hooks/use-categories-chart'
+import { formatChartMoney } from '@/lib/money'
 
 const CAT_COLORS = [
   'var(--cat-1)',
@@ -108,20 +109,15 @@ export function CategoriesChartSection() {
                 }
               >
                 {data.entries.map((_, index) => (
-                  <Cell key={index} fill={CAT_COLORS[index % CAT_COLORS.length]} />
+                  <Cell
+                    key={index}
+                    fill={CAT_COLORS[index % CAT_COLORS.length]}
+                    // A borda separa as fatias; com uma só ela vira um risco do centro à borda.
+                    stroke={data.entries.length > 1 ? 'var(--surface)' : 'none'}
+                  />
                 ))}
               </Pie>
-              <Tooltip
-                formatter={(value) => {
-                  const n = typeof value === 'number' ? value : parseFloat(String(value))
-                  return isNaN(n)
-                    ? String(value)
-                    : new Intl.NumberFormat(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }).format(n)
-                }}
-              />
+              <Tooltip formatter={formatChartMoney} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>

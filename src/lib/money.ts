@@ -52,3 +52,14 @@ export function formatMoney(value: string | number, currency = 'BRL'): string {
   if (!Number.isFinite(number)) return String(value)
   return number.toLocaleString('pt-BR', { style: 'currency', currency })
 }
+
+/** Valor curto para eixos e rótulos de gráfico, em pt-BR: `30 mil`, `1,2 mi`. */
+export function formatCompactNumber(value: number): string {
+  return value.toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: 1 })
+}
+
+/** Formatter dos tooltips do recharts: o valor chega como número ou texto. */
+export function formatChartMoney(value: unknown): string {
+  const number = typeof value === 'number' ? value : parseFloat(String(value))
+  return Number.isNaN(number) ? String(value) : formatMoney(number)
+}

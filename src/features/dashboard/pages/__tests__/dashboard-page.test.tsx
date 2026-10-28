@@ -158,14 +158,22 @@ describe('DashboardPage', () => {
     await waitFor(() => expect(screen.getByText(/nenhuma conta/i)).toBeTruthy())
   })
 
-  it('renders period tabs with Mês selected by default', async () => {
+  it('period tabs belong to the chart, with 6 months by default', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
-      const tablist = screen.getByRole('tablist', { name: /período/i })
-      expect(tablist).toBeTruthy()
+      expect(screen.getByRole('tablist', { name: /período do gráfico/i })).toBeTruthy()
     })
-    const selectedTab = screen.getByRole('tab', { name: /mês/i })
-    expect(selectedTab.getAttribute('aria-selected')).toBe('true')
+    expect(screen.getByRole('tab', { name: '6m' }).getAttribute('aria-selected')).toBe('true')
+  })
+
+  it('KPIs compare with the previous month and use net worth', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => expect(screen.getByText(/\+25% vs/)).toBeTruthy())
+    // Despesa caiu 20%: seta para baixo, mas cor de "bom".
+    const expenses = screen.getByText(/−20% vs|-20% vs/)
+    expect(expenses.className).toContain('up')
+    expect(screen.getByText(/desde/).textContent).toMatch(/\+R\$\s1\.000,00 desde/)
+    expect(screen.getAllByText('15.000').length).toBeGreaterThan(0)
   })
 
   it('renders KPI section with Saldo calculation (income minus expenses)', async () => {
@@ -203,11 +211,11 @@ describe('DashboardPage', () => {
     expect(screen.getByText(/tentar novamente/i)).toBeTruthy()
   })
 
-  it('MOCK_OVERVIEW totalBalance value is formatted and displayed', async () => {
+  it('MOCK_OVERVIEW netWorth value is formatted and displayed', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
       expect(screen.getByText('Patrimônio total')).toBeTruthy()
     })
-    expect(screen.getByText(/12\.500/)).toBeTruthy()
+    expect(screen.getByText(/15\.000/)).toBeTruthy()
   })
 })

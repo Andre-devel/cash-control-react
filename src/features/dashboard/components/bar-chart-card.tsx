@@ -1,6 +1,8 @@
-import { MoreHorizontal } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useMonthlyChart } from '@/features/dashboard/hooks/use-monthly-chart'
+import { formatCompactNumber } from '@/lib/money'
+
+/** Janelas do gráfico. Os cards de resumo são sempre do mês corrente. */
+const MONTH_OPTIONS = [3, 6, 12] as const
 
 const MONTH_ABBR_PT: Record<string, string> = {
   '01': 'jan',
@@ -30,14 +32,20 @@ function ChartSkeleton() {
 
 interface BarChartCardProps {
   months?: number
+  onMonthsChange?: (months: number) => void
 }
 
-export function BarChartCard({ months = 6 }: BarChartCardProps) {
+function signedCompactMoney(value: number): string {
+  const sign = value > 0 ? '+' : value < 0 ? '−' : ''
+  return `${sign}R$ ${formatCompactNumber(Math.abs(value))}`
+}
+
+export function BarChartCard({ months = 6, onMonthsChange }: BarChartCardProps) {
   const { data, isLoading, isError } = useMonthlyChart(months)
 
   const W = 620,
     H = 280,
-    PAD_L = 44,
+    PAD_L = 56,
     PAD_R = 12,
     PAD_T = 20,
     PAD_B = 32
@@ -65,9 +73,7 @@ export function BarChartCard({ months = 6 }: BarChartCardProps) {
       <div className="card-h">
         <div>
           <h3>Receitas vs Despesas</h3>
-          <div className="sub">
-            Últimos {months} {months === 1 ? 'mês' : 'meses'} · R$ mil
-          </div>
+          <div className="sub">Últimos {months} meses · saldo do mês atual em destaque</div>
         </div>
         <div className="right">
           <span className="legend">
@@ -78,9 +84,22 @@ export function BarChartCard({ months = 6 }: BarChartCardProps) {
             <span className="sw" style={{ background: 'var(--expense)' }} />
             Despesas
           </span>
-          <Button size="icon" variant="ghost" aria-label="Mais opções">
-            <MoreHorizontal size={14} />
-          </Button>
+          {onMonthsChange && (
+            <div className="tabs" role="tablist" aria-label="Período do gráfico">
+              {MONTH_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  role="tab"
+                  aria-selected={months === option}
+                  className={months === option ? 'on' : ''}
+                  onClick={() => onMonthsChange(option)}
+                >
+                  {option}m
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <div className="card-b" style={{ padding: 12 }}>
@@ -112,7 +131,7 @@ export function BarChartCard({ months = 6 }: BarChartCardProps) {
                   <g key={i}>
                     <line className="gridline" x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} />
                     <text className="axis" x={PAD_L - 8} y={y + 3} textAnchor="end">
-                      {Math.round(v / 1000)}k
+                      {formatCompactNumber(v)}
                     </text>
                   </g>
                 )
@@ -127,10 +146,10 @@ export function BarChartCard({ months = 6 }: BarChartCardProps) {
                 const ey = PAD_T + chartH - expH
                 const isCurrent = i === parsed.length - 1
                 const diff = d.income - d.expense
-                const diffLabel =
-                  diff >= 0
-                    ? `+R$ ${(diff / 1000).toFixed(1)}k`
-                    : `-R$ ${(Math.abs(diff) / 1000).toFixed(1)}k`
+                const diffLabel = signedCompactMoney(diff)
+                // O destaque fica sobre a barra do mês atual, a última: sem o limite ele
+                // passava da borda direita do SVG e o valor aparecia cortado.
+                const labelX = Math.min(x0 - 52, W - 106)
 
                 return (
                   <g key={i}>
@@ -167,16 +186,16 @@ export function BarChartCard({ months = 6 }: BarChartCardProps) {
                     {isCurrent && incH > 4 && (
                       <g>
                         <rect
-                          x={x0 - 46}
+                          x={labelX}
                           y={iy - 34}
-                          width="92"
+                          width="104"
                           height="26"
                           rx="6"
                           fill="var(--surface-3)"
                           stroke="var(--border-strong)"
                         />
                         <text
-                          x={x0}
+                          x={labelX + 52}
                           y={iy - 16}
                           textAnchor="middle"
                           fontSize="11"

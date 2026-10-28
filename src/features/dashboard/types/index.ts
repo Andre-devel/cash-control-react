@@ -8,6 +8,10 @@ export interface DashboardOverview {
   monthlySavings?: string
   cashFlow?: string
   currentMonth?: string
+  /** Patrimônio no último dia do mês anterior. */
+  previousNetWorth?: string
+  previousMonthIncome?: string
+  previousMonthExpenses?: string
 }
 
 export interface CategoryChartItem {

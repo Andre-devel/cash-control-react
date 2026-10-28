@@ -9,7 +9,10 @@ interface KpiCardProps {
   icon: ComponentType<LucideProps>
   value: number
   delta?: string
+  /** Cor do comparativo: `up` é bom (verde), `down` é ruim (vermelho). */
   deltaKind?: DeltaKind
+  /** Seta do comparativo, quando a direção não coincide com a cor (despesa que caiu é boa). */
+  trend?: 'up' | 'down'
   tone?: 'income' | 'expense'
   signed?: boolean
 }
@@ -20,6 +23,7 @@ export function KpiCard({
   value,
   delta,
   deltaKind = 'neutral',
+  trend,
   tone,
   signed = false,
 }: KpiCardProps) {
@@ -51,8 +55,8 @@ export function KpiCard({
       </div>
       {delta && (
         <div className={`delta ${deltaKind}`}>
-          {deltaKind === 'up' && <TrendingUp size={11} />}
-          {deltaKind === 'down' && <TrendingDown size={11} />}
+          {(trend ?? deltaKind) === 'up' && <TrendingUp size={11} />}
+          {(trend ?? deltaKind) === 'down' && <TrendingDown size={11} />}
           {delta}
         </div>
       )}

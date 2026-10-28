@@ -26,11 +26,14 @@ const MONTH_ABBR_PT = [
   'dez',
 ]
 
+/** `05 out`, com o ano quando não é o atual: `24 mar 2025`. */
 function fmtDateShort(iso: string): string {
   const parts = iso.split('-')
+  const year = parseInt(parts[0] ?? '0', 10)
   const month = parseInt(parts[1] ?? '1', 10) - 1
   const day = parseInt(parts[2] ?? '1', 10)
-  return `${String(day).padStart(2, '0')} ${MONTH_ABBR_PT[month] ?? ''}`
+  const label = `${String(day).padStart(2, '0')} ${MONTH_ABBR_PT[month] ?? ''}`
+  return year === new Date().getFullYear() ? label : `${label} ${year}`
 }
 
 function TableSkeleton() {
@@ -89,7 +92,7 @@ export function RecentTransactionsCard() {
       <div className="card-h">
         <div>
           <h3>Transações recentes</h3>
-          <div className="sub">Últimas atualizações</div>
+          <div className="sub">Últimos lançamentos até hoje</div>
         </div>
         <div className="right">
           <Button size="sm" variant="ghost" asChild>
@@ -160,12 +163,20 @@ export function RecentTransactionsCard() {
                       <td className="cell-status">
                         <StatusBadge status={status} />
                       </td>
-                      <td className="cell-date text-xs text-dim" style={{ width: 90 }}>
+                      <td
+                        className="cell-date text-xs text-dim"
+                        style={{ width: 90, whiteSpace: 'nowrap' }}
+                      >
                         {fmtDateShort(tx.competenceDate)}
                       </td>
                       <td
                         className="num cell-amount"
-                        style={{ paddingRight: 16, color: amountColor, fontWeight: 500 }}
+                        style={{
+                          paddingRight: 16,
+                          color: amountColor,
+                          fontWeight: 500,
+                          whiteSpace: 'nowrap',
+                        }}
                       >
                         <Money value={amountValue} signed={isPositive} />
                       </td>
