@@ -210,6 +210,28 @@ describe('ImportFaturaDialog', () => {
     expect(screen.getByRole('button', { name: /importar 2 lançamentos/i })).toBeEnabled()
   })
 
+  it('names the section that still needs a card and explains the disabled button', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    expect(screen.getByText(/cartão final 9999 \(adicional ou virtual\)/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /importar 2 lançamentos/i })).toHaveAttribute(
+      'title',
+      'Escolha o cartão da seção ****9999',
+    )
+    await user.click(screen.getByRole('button', { name: /ir para a seção/i }))
+    expect(screen.getByRole('combobox', { name: /cartão da seção 9999/i })).toHaveFocus()
+  })
+
+  it('shows how far the rows read are from the total printed on the PDF', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    expect(screen.getByText(/difere do total do pdf/i)).toBeInTheDocument()
+  })
+
   it('allows importing when the group without a card has no row selected', async () => {
     const user = userEvent.setup()
     renderDialog()

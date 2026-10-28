@@ -295,6 +295,15 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
     return group.rows.filter((row) => selected.has(row.externalRef))
   }
 
+  /** Leva o foco ao seletor de cartão da seção, que pode estar fora da área visível. */
+  function focusCardSelect(cardLast4: string) {
+    const el = document.querySelector<HTMLElement>(`[aria-label="Cartão da seção ${cardLast4}"]`)
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }
+    el?.focus()
+  }
+
   /** Grupos que o usuário quer importar mas ainda não têm cartão escolhido. */
   const groupsMissingCard = preview
     ? preview.groups.filter(
@@ -348,8 +357,17 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   if (!open) return null
 
   const selectedCount = selected.size
-  // Não é `preview.duplicateCount`: a contagem do servidor só conhece os cartões que ele
-  // sugeriu, e os escolhidos à mão entram depois.
+  // Compras menos estornos de todas as seções, contra o total que o PDF declara (#84).
+  const readTotal = preview
+    ? preview.groups
+        .flatMap((group) => group.rows)
+        .reduce((sum, row) => sum + (row.refund ? -1 : 1) * Number(row.amount), 0)
+    : 0
+  const pdfDifference = preview?.totalAmount
+    ? Math.round((Number(preview.totalAmount) - readTotal) * 100) / 100
+    : null
+  // Recontada aqui porque a verificação do cartão escolhido à mão pode marcar mais linhas
+  // depois da prévia.
   const duplicateCount = preview
     ? preview.groups.reduce(
         (total, group) => total + group.rows.filter((row) => isDuplicate(group, row)).length,
@@ -379,6 +397,11 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
               variant="primary"
               onClick={handleImport}
               disabled={isImporting || selectedCount === 0 || groupsMissingCard.length > 0}
+              title={
+                groupsMissingCard.length > 0
+                  ? `Escolha o cartão da seção ${groupsMissingCard.map((g) => `****${g.cardLast4}`).join(', ')}`
+                  : undefined
+              }
               aria-busy={isImporting}
             >
               {isImporting ? 'Importando…' : `Importar ${selectedCount} lançamentos`}
@@ -452,7 +475,33 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
 
           {groupsMissingCard.length > 0 && (
             <div role="alert" className="err">
-              Escolha o cartão de destino de cada seção antes de importar.
+              {groupsMissingCard.length === 1
+                ? `A seção do cartão final ${groupsMissingCard[0]!.cardLast4} (adicional ou virtual) não tem cartão de destino.`
+                : `As seções dos cartões finais ${groupsMissingCard.map((g) => g.cardLast4).join(', ')} não têm cartão de destino.`}{' '}
+              Escolha o cartão em &quot;Cartão da seção&quot;, mais abaixo, para poder importar.{' '}
+              <button
+                type="button"
+                onClick={() => focusCardSelect(groupsMissingCard[0]!.cardLast4)}
+                style={{
+                  background: 'none',
+                  border: 0,
+                  padding: 0,
+                  color: 'inherit',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  font: 'inherit',
+                }}
+              >
+                Ir para a seção
+              </button>
+            </div>
+          )}
+
+          {pdfDifference !== null && Math.abs(pdfDifference) >= 0.01 && (
+            <div role="note" style={{ fontSize: 13, color: 'var(--text-dim)' }}>
+              A soma dos lançamentos lidos (<Money value={readTotal} />) difere do total do PDF em{' '}
+              <Money value={pdfDifference} />. Costuma ser saldo anterior, juros, IOF ou encargos,
+              que não viram lançamento; se não for o caso, confira as linhas não lidas.
             </div>
           )}
 
