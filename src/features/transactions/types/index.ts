@@ -41,6 +41,8 @@ export interface Transaction {
   notes?: string
   accountName?: string
   categoryName?: string
+  subcategoryName?: string | null
+  cancelledAt?: string | null
   /** Série de parcelamento à qual a transação pertence. Null fora de parcelamentos. */
   installmentSeriesId?: string | null
   installmentNumber?: number | null
@@ -88,6 +90,18 @@ export interface PaginatedResponse<T> {
   size: number
 }
 
+/** Totais de tudo que casa com o filtro (todas as páginas), sem as canceladas. */
+export interface TransactionTotals {
+  incomeAmount: string
+  incomeCount: number
+  expenseAmount: string
+  expenseCount: number
+  /** Pagamentos de fatura: tiram dinheiro da conta, mas as compras já contam em despesas. */
+  invoicePaymentAmount: string
+  invoicePaymentCount: number
+  netAmount: string
+}
+
 export interface ListTransactionsParams {
   accountId?: string
   type?: TransactionType
@@ -116,6 +130,8 @@ export interface CreateTransactionRequest {
   accountId: string
   categoryId?: string
   competenceDate: string
+  /** Só com status PAID; ausente, o backend usa a data de competência. */
+  paymentDate?: string
   status: TransactionStatus
   notes?: string
   paymentMethod?: PaymentMethodSlug
@@ -127,6 +143,8 @@ export interface UpdateTransactionRequest {
   amount: string
   categoryId?: string
   competenceDate: string
+  status?: TransactionStatus
+  paymentDate?: string
   notes?: string
   paymentMethod?: PaymentMethodSlug
   creditCardId?: string

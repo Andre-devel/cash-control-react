@@ -4,6 +4,7 @@ import type {
   Attachment,
   PaginatedResponse,
   ListTransactionsParams,
+  TransactionTotals,
   CreateTransactionRequest,
   UpdateTransactionRequest,
   MarkAsPaidRequest,
@@ -13,6 +14,15 @@ export async function listTransactions(
   params?: ListTransactionsParams,
 ): Promise<PaginatedResponse<Transaction>> {
   const response = await axiosInstance.get<PaginatedResponse<Transaction>>('/transactions', {
+    params,
+  })
+  return response.data
+}
+
+export async function getTransactionTotals(
+  params?: ListTransactionsParams,
+): Promise<TransactionTotals> {
+  const response = await axiosInstance.get<TransactionTotals>('/transactions/summary', {
     params,
   })
   return response.data
@@ -47,6 +57,11 @@ export async function payTransaction(id: string, body?: MarkAsPaidRequest): Prom
 
 export async function cancelTransaction(id: string): Promise<Transaction> {
   const response = await axiosInstance.post<Transaction>(`/transactions/${id}/cancel`)
+  return response.data
+}
+
+export async function reactivateTransaction(id: string): Promise<Transaction> {
+  const response = await axiosInstance.post<Transaction>(`/transactions/${id}/reactivate`)
   return response.data
 }
 

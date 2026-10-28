@@ -60,8 +60,11 @@ describe('createRecurrenceSchema', () => {
     expect(createRecurrenceSchema.safeParse({ ...VALID_INPUT, amount: '1500' }).success).toBe(true)
   })
 
-  it('accepts zero amount', () => {
-    expect(createRecurrenceSchema.safeParse({ ...VALID_INPUT, amount: '0.00' }).success).toBe(true)
+  it('rejects zero amount (a API exige valor positivo)', () => {
+    const result = createRecurrenceSchema.safeParse({ ...VALID_INPUT, amount: '0,00' })
+    expect(result.success).toBe(false)
+    if (!result.success)
+      expect(result.error.issues[0]?.message).toBe('Valor deve ser maior que zero')
   })
 
   it('rejects invalid frequency enum', () => {

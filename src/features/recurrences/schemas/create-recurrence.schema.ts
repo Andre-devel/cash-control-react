@@ -10,7 +10,7 @@ export const createRecurrenceSchema = z.object({
     .string()
     .min(1, 'Descrição é obrigatória')
     .max(255, 'Descrição deve ter no máximo 255 caracteres'),
-  amount: moneyField('Valor deve ser um decimal válido (ex: 150,00)'),
+  amount: moneyField('Valor deve ser um decimal válido (ex: 150,00)', { positive: true }),
   frequency: z.enum(RECURRENCE_FREQUENCIES, { message: 'Frequência é obrigatória' }),
   type: z.enum(RECURRENCE_TYPES, { message: 'Tipo é obrigatório' }),
   accountId: z.string().min(1, 'Conta é obrigatória'),

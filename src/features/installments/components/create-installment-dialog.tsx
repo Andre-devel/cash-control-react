@@ -22,7 +22,7 @@ import { localIsoDate } from '@/lib/local-date'
 
 const DEFAULT_VALUES: CreateInstallmentFormValues = {
   description: '',
-  totalAmount: '0.00',
+  totalAmount: '',
   totalInstallments: 2,
   accountId: '',
   categoryId: '',

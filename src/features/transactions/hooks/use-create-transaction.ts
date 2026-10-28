@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createTransaction } from '@/features/transactions/api/transactions.api'
 import { toast } from '@/lib/toast'
+import { reportMutationError } from '@/lib/form-errors'
 import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { TRANSACTIONS_QUERY_KEY } from './use-transactions'
 import { ACCOUNTS_QUERY_KEY } from '@/features/accounts/hooks/use-accounts'
@@ -25,12 +26,6 @@ export function useCreateTransaction(options?: UseCreateTransactionOptions) {
       ])
       toast.success('Transação criada com sucesso.')
     },
-    onError: (error) => {
-      if ((error.status === 409 || error.status === 422) && options?.onFieldError) {
-        options.onFieldError(error)
-        return
-      }
-      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
-    },
+    onError: (error) => reportMutationError(error, options?.onFieldError),
   })
 }

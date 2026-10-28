@@ -6,7 +6,7 @@ export const updateRecurrenceSchema = z.object({
     .string()
     .min(1, 'Descrição é obrigatória')
     .max(255, 'Descrição deve ter no máximo 255 caracteres'),
-  amount: moneyField('Valor deve ser um decimal válido (ex: 150,00)'),
+  amount: moneyField('Valor deve ser um decimal válido (ex: 150,00)', { positive: true }),
   accountId: z.string().min(1, 'Conta é obrigatória'),
   categoryId: z.string().optional(),
 })

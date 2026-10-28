@@ -8,10 +8,13 @@ export const updateTransactionSchema = z
       .string()
       .min(1, 'Descrição é obrigatória')
       .max(255, 'Descrição deve ter no máximo 255 caracteres'),
-    amount: moneyField('Valor deve ser um número decimal válido (ex: 150,75)'),
+    amount: moneyField('Valor deve ser um número decimal válido (ex: 150,75)', { positive: true }),
     categoryId: z.string().optional(),
     competenceDate: z.string().min(1, 'Data é obrigatória'),
-    notes: z.string().max(1000, 'Notas deve ter no máximo 1000 caracteres').optional(),
+    /** A API só aceita avançar: Pendente/Vencida → Pago. Cancelar tem ação própria. */
+    status: z.enum(['PENDING', 'OVERDUE', 'PAID']).optional(),
+    paymentDate: z.string().optional(),
+    notes: z.string().max(5000, 'Notas deve ter no máximo 5000 caracteres').optional(),
     paymentMethod: z.enum(PAYMENT_METHOD_SLUGS).optional(),
     creditCardId: z.string().optional(),
   })

@@ -8,7 +8,9 @@ export const createInstallmentSchema = z
       .string()
       .min(1, 'Descrição é obrigatória')
       .max(255, 'Descrição deve ter no máximo 255 caracteres'),
-    totalAmount: moneyField('Valor total deve ser um decimal válido (ex: 3600,00)'),
+    totalAmount: moneyField('Valor total deve ser um decimal válido (ex: 3600,00)', {
+      positive: true,
+    }),
     totalInstallments: z
       .number()
       .int('Número de parcelas deve ser um número inteiro')

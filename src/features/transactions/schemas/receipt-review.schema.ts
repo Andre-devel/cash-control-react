@@ -7,7 +7,7 @@ export const RECEIPT_TYPES = ['EXPENSE', 'INCOME'] as const
 export const receiptReviewSchema = z.object({
   accountId: z.string().min(1, 'Conta é obrigatória'),
   type: z.enum(RECEIPT_TYPES),
-  amount: moneyField('Valor deve ser um número decimal válido (ex: 150,75)'),
+  amount: moneyField('Valor deve ser um número decimal válido (ex: 150,75)', { positive: true }),
   description: z
     .string()
     .min(1, 'Descrição é obrigatória')

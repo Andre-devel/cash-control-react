@@ -28,7 +28,7 @@ const DEFAULT_VALUES: CreateAccountFormValues = {
   name: '',
   type: 'CHECKING',
   currencyCode: 'BRL',
-  initialBalance: '0.00',
+  initialBalance: '0,00',
   description: '',
 }
 

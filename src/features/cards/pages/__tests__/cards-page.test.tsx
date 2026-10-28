@@ -320,6 +320,7 @@ describe('CardsPage — create card dialog', () => {
 
     await user.clear(screen.getByRole('textbox', { name: /^nome$/i }))
     await user.type(screen.getByRole('textbox', { name: /^nome$/i }), 'My Test Card')
+    await user.type(screen.getByRole('textbox', { name: /limite/i }), '5000,00')
     await user.click(screen.getByRole('button', { name: /criar cartão/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())

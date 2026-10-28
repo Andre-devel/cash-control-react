@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo, useState } from 'react'
+import { Fragment, useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import {
   Download,
@@ -9,10 +9,23 @@ import {
   BarChart2,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
-import { useTransactions } from '@/features/transactions/hooks/use-transactions'
+import {
+  useTransactions,
+  useTransactionTotals,
+} from '@/features/transactions/hooks/use-transactions'
+import { useReactivateTransaction } from '@/features/transactions/hooks/use-reactivate-transaction'
+import {
+  parsePeriod,
+  periodLabel,
+  periodRange,
+  serializePeriod,
+  type TransactionPeriod,
+} from '@/features/transactions/utils/period'
 import { localIsoDate, saveBlob, toast } from '@/lib'
 import { exportTransactionsCsv } from '@/features/transactions/utils/export-transactions'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
@@ -34,21 +47,6 @@ import type { Transaction, ListTransactionsParams } from '@/features/transaction
 
 const DEFAULT_PAGE_SIZE = 20
 const DEFAULT_SORT = 'competenceDate,desc'
-
-const MONTH_NAMES_PT = [
-  'janeiro',
-  'fevereiro',
-  'março',
-  'abril',
-  'maio',
-  'junho',
-  'julho',
-  'agosto',
-  'setembro',
-  'outubro',
-  'novembro',
-  'dezembro',
-]
 
 const MONTH_ABBR_PT = [
   'jan',
@@ -73,7 +71,10 @@ function fmtDateFull(iso: string): string {
   return `${String(day).padStart(2, '0')} de ${MONTH_ABBR_PT[month] ?? ''} de ${year}`
 }
 
-function buildParams(searchParams: URLSearchParams): ListTransactionsParams {
+function buildParams(
+  searchParams: URLSearchParams,
+  period: TransactionPeriod,
+): ListTransactionsParams {
   const get = (key: string) => searchParams.get(key) ?? undefined
   return {
     accountId: get('accountId'),
@@ -81,8 +82,7 @@ function buildParams(searchParams: URLSearchParams): ListTransactionsParams {
     status: get('status') as ListTransactionsParams['status'],
     categoryId: get('categoryId'),
     paymentMethod: get('paymentMethod') as ListTransactionsParams['paymentMethod'],
-    competenceDateFrom: get('competenceDateFrom'),
-    competenceDateTo: get('competenceDateTo'),
+    ...periodRange(period),
     paymentDateFrom: get('paymentDateFrom'),
     paymentDateTo: get('paymentDateTo'),
     amountMin: get('amountMin'),
@@ -98,15 +98,18 @@ function buildParams(searchParams: URLSearchParams): ListTransactionsParams {
   }
 }
 
-function paramsToSearchParams(params: ListTransactionsParams): Record<string, string> {
+/** O período vai à parte (`period`): as datas de competência derivam dele. */
+function paramsToSearchParams(
+  params: ListTransactionsParams,
+  period: string | null,
+): Record<string, string> {
   const out: Record<string, string> = {}
+  if (period) out.period = period
   if (params.accountId) out.accountId = params.accountId
   if (params.type) out.type = params.type
   if (params.status) out.status = params.status
   if (params.categoryId) out.categoryId = params.categoryId
   if (params.paymentMethod) out.paymentMethod = params.paymentMethod
-  if (params.competenceDateFrom) out.competenceDateFrom = params.competenceDateFrom
-  if (params.competenceDateTo) out.competenceDateTo = params.competenceDateTo
   if (params.amountMin) out.amountMin = params.amountMin
   if (params.amountMax) out.amountMax = params.amountMax
   if (params.searchText) out.searchText = params.searchText
@@ -179,9 +182,11 @@ interface SummaryKpiProps {
   label: string
   value: number
   count: number
+  loading: boolean
+  note?: ReactNode
 }
 
-function SummaryKpi({ kind, label, value, count }: SummaryKpiProps) {
+function SummaryKpi({ kind, label, value, count, loading, note }: SummaryKpiProps) {
   const color =
     kind === 'income' ? 'var(--income)' : kind === 'expense' ? 'var(--expense)' : 'var(--text)'
   const IconCmp = kind === 'income' ? ArrowDownLeft : kind === 'expense' ? ArrowUpRight : BarChart2
@@ -191,10 +196,17 @@ function SummaryKpi({ kind, label, value, count }: SummaryKpiProps) {
       <div className="label" style={{ color }}>
         <IconCmp size={13} /> {label}
       </div>
-      <div className="value" style={{ color, fontSize: 22 }}>
-        <Money value={kind === 'net' ? value : Math.abs(value)} signed={kind === 'net'} />
+      <div className="value" style={{ color, fontSize: 22 }} aria-busy={loading}>
+        {loading ? (
+          '—'
+        ) : (
+          <Money value={kind === 'net' ? value : Math.abs(value)} signed={kind === 'net'} />
+        )}
       </div>
-      <div className="delta">{count} transações</div>
+      <div className="delta">
+        {loading ? '\u00a0' : `${count} ${count === 1 ? 'transação' : 'transações'}`}
+      </div>
+      {note && !loading && <div className="delta">{note}</div>}
     </div>
   )
 }
@@ -243,15 +255,19 @@ export default function TransactionsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
 
-  const filters = buildParams(searchParams)
+  const rawPeriod = searchParams.get('period')
+  const period = parsePeriod(rawPeriod)
+  const filters = buildParams(searchParams, period)
 
   const { data: pageData, isLoading, isError, refetch } = useTransactions(filters)
+  const { data: totals, isLoading: totalsLoading } = useTransactionTotals(filters)
   const { data: accounts = [] } = useAccounts()
   const { data: categories = [] } = useCategories()
   // useCategories devolve uma árvore; quem faz lookup por id precisa da lista
   // achatada, senão nenhuma subcategoria é encontrada.
   const flatCategories = useMemo(() => flattenCategories(categories), [categories])
   const { mutate: payTransaction } = usePayTransaction()
+  const { mutate: reactivateTransaction } = useReactivateTransaction()
 
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
@@ -261,20 +277,54 @@ export default function TransactionsPage() {
 
   const handleFiltersChange = useCallback(
     (newFilters: ListTransactionsParams) => {
-      setSearchParams(paramsToSearchParams(newFilters), { replace: true })
+      setSearchParams(paramsToSearchParams(newFilters, rawPeriod), { replace: true })
+    },
+    [rawPeriod, setSearchParams],
+  )
+
+  // Atualização funcional: a busca chega 300 ms depois da digitação e não pode desfazer um
+  // filtro trocado nesse meio-tempo.
+  const handleSearchChange = useCallback(
+    (searchText: string | undefined) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          if (searchText) next.set('searchText', searchText)
+          else next.delete('searchText')
+          next.delete('page')
+          return next
+        },
+        { replace: true },
+      )
     },
     [setSearchParams],
   )
 
+  const handlePeriodChange = useCallback(
+    (next: TransactionPeriod) => {
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev)
+          params.set('period', serializePeriod(next))
+          params.delete('page')
+          return params
+        },
+        { replace: true },
+      )
+    },
+    [setSearchParams],
+  )
+
+  // Limpar filtros mantém o período: ele é a "página" da lista, não um filtro.
   const handleReset = useCallback(() => {
-    setSearchParams({}, { replace: true })
-  }, [setSearchParams])
+    setSearchParams(rawPeriod ? { period: rawPeriod } : {}, { replace: true })
+  }, [rawPeriod, setSearchParams])
 
   const handlePageChange = useCallback(
     (page: number) => {
-      setSearchParams(paramsToSearchParams({ ...filters, page }), { replace: true })
+      setSearchParams(paramsToSearchParams({ ...filters, page }, rawPeriod), { replace: true })
     },
-    [filters, setSearchParams],
+    [filters, rawPeriod, setSearchParams],
   )
 
   const handleToggleIncludeCancelled = useCallback(() => {
@@ -282,6 +332,10 @@ export default function TransactionsPage() {
   }, [filters, handleFiltersChange])
 
   const handlePay = useCallback((t: Transaction) => payTransaction({ id: t.id }), [payTransaction])
+  const handleReactivate = useCallback(
+    (t: Transaction) => reactivateTransaction(t.id),
+    [reactivateTransaction],
+  )
   const handleView = useCallback(
     (t: Transaction) => void navigate(ROUTES.TRANSACTION_DETAIL.replace(':id', t.id)),
     [navigate],
@@ -314,24 +368,11 @@ export default function TransactionsPage() {
     return Array.from(groups.entries())
   }, [transactions])
 
-  const summary = useMemo(() => {
-    const income = transactions
-      .filter((t) => (t.type === 'INCOME' || t.type === 'REFUND') && t.status === 'PAID')
-      .reduce((s, t) => s + effectiveAmount(t), 0)
-    const expense = transactions
-      .filter((t) => t.type === 'EXPENSE' && t.status === 'PAID')
-      .reduce((s, t) => s + effectiveAmount(t), 0)
-    const incomeCount = transactions.filter(
-      (t) => (t.type === 'INCOME' || t.type === 'REFUND') && t.status === 'PAID',
-    ).length
-    const expenseCount = transactions.filter(
-      (t) => t.type === 'EXPENSE' && t.status === 'PAID',
-    ).length
-    return { income, expense, net: income - expense, incomeCount, expenseCount }
-  }, [transactions])
-
-  const now = new Date()
-  const monthLabel = `${MONTH_NAMES_PT[now.getMonth()]} ${now.getFullYear()}`
+  const income = Number(totals?.incomeAmount ?? 0)
+  const expense = Number(totals?.expenseAmount ?? 0)
+  const invoicePayments = Number(totals?.invoicePaymentAmount ?? 0)
+  const incomeCount = totals?.incomeCount ?? 0
+  const expenseCount = totals?.expenseCount ?? 0
 
   return (
     <div>
@@ -340,7 +381,8 @@ export default function TransactionsPage() {
         <div>
           <h1>Transações</h1>
           <div className="desc">
-            {totalElements} transações · {monthLabel}
+            {totalElements} {totalElements === 1 ? 'transação' : 'transações'} ·{' '}
+            {periodLabel(period).toLowerCase()}
           </div>
         </div>
         <div className="spacer" />
@@ -371,20 +413,32 @@ export default function TransactionsPage() {
         <SummaryKpi
           kind="income"
           label="Receitas (período)"
-          value={summary.income}
-          count={summary.incomeCount}
+          value={income}
+          count={incomeCount}
+          loading={totalsLoading}
         />
         <SummaryKpi
           kind="expense"
           label="Despesas (período)"
-          value={summary.expense}
-          count={summary.expenseCount}
+          value={expense}
+          count={expenseCount}
+          loading={totalsLoading}
         />
+        {/* Pagamento de fatura fica fora do resultado: as compras do cartão já contam em
+            despesas. Ele aparece à parte porque mesmo assim tira dinheiro da conta. */}
         <SummaryKpi
           kind="net"
           label="Resultado líquido"
-          value={summary.net}
-          count={totalElements}
+          value={Number(totals?.netAmount ?? 0)}
+          count={incomeCount + expenseCount}
+          loading={totalsLoading}
+          note={
+            totals && totals.invoicePaymentCount > 0 ? (
+              <>
+                Pagamentos de fatura: <Money value={invoicePayments} /> (fora do resultado)
+              </>
+            ) : undefined
+          }
         />
       </div>
 
@@ -394,7 +448,10 @@ export default function TransactionsPage() {
         accounts={accounts}
         categories={flatCategories}
         includeCancelled={filters.includeCancelled ?? false}
+        period={period}
+        onPeriodChange={handlePeriodChange}
         onFiltersChange={handleFiltersChange}
+        onSearchChange={handleSearchChange}
         onReset={handleReset}
         onToggleIncludeCancelled={handleToggleIncludeCancelled}
       />
@@ -428,8 +485,19 @@ export default function TransactionsPage() {
           className="card"
           style={{ textAlign: 'center', padding: 48, color: 'var(--text-dim)' }}
         >
-          <p style={{ fontSize: 14, marginBottom: 16 }}>Nenhuma transação encontrada.</p>
-          <Button onClick={() => setCreateOpen(true)}>Criar sua primeira transação</Button>
+          <p style={{ fontSize: 14, marginBottom: 16 }}>
+            {period.kind === 'month'
+              ? `Nenhuma transação em ${periodLabel(period)}.`
+              : 'Nenhuma transação encontrada.'}
+          </p>
+          <div className="row gap-2" style={{ justifyContent: 'center' }}>
+            {period.kind === 'month' && (
+              <Button onClick={() => handlePeriodChange({ kind: 'all' })}>
+                Ver todo o período
+              </Button>
+            )}
+            <Button onClick={() => setCreateOpen(true)}>Nova transação</Button>
+          </div>
         </div>
       ) : (
         <>
@@ -454,6 +522,7 @@ export default function TransactionsPage() {
                       onDelete={setDeleteTarget}
                       onPay={handlePay}
                       onCancel={setCancelTarget}
+                      onReactivate={handleReactivate}
                       onView={handleView}
                       onViewSeries={handleViewSeries}
                     />
@@ -463,7 +532,7 @@ export default function TransactionsPage() {
             </div>
           ) : (
             <div className="card flush">
-              <div className="tbl-wrap">
+              <div className="tbl-wrap scroll-x">
                 <table className="tbl">
                   <thead>
                     <tr>
@@ -493,6 +562,7 @@ export default function TransactionsPage() {
                             onDelete={setDeleteTarget}
                             onPay={handlePay}
                             onCancel={setCancelTarget}
+                            onReactivate={handleReactivate}
                             onView={handleView}
                             onViewSeries={handleViewSeries}
                           />
@@ -512,7 +582,16 @@ export default function TransactionsPage() {
                 {Math.min((currentPage + 1) * DEFAULT_PAGE_SIZE, totalElements)} de {totalElements}{' '}
                 transações
               </div>
-              <div className="row gap-2">
+              <div className="row gap-2" style={{ alignItems: 'center' }}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={currentPage === 0}
+                  onClick={() => handlePageChange(0)}
+                  aria-label="Primeira página"
+                >
+                  <ChevronsLeft size={14} />
+                </Button>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -522,7 +601,9 @@ export default function TransactionsPage() {
                 >
                   <ChevronLeft size={14} />
                 </Button>
-                <Button size="sm">{currentPage + 1}</Button>
+                <span className="text-xs text-dim" aria-current="page">
+                  Página {currentPage + 1} de {totalPages}
+                </span>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -531,6 +612,15 @@ export default function TransactionsPage() {
                   aria-label="Próxima página"
                 >
                   <ChevronRight size={14} />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={currentPage >= totalPages - 1}
+                  onClick={() => handlePageChange(totalPages - 1)}
+                  aria-label="Última página"
+                >
+                  <ChevronsRight size={14} />
                 </Button>
               </div>
             </div>

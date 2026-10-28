@@ -5,7 +5,7 @@ export const createTransferSchema = z
   .object({
     sourceAccountId: z.string().min(1, 'Conta de origem é obrigatória'),
     destinationAccountId: z.string().min(1, 'Conta de destino é obrigatória'),
-    amount: moneyField('Valor deve ser um decimal válido (ex: 500,00)'),
+    amount: moneyField('Valor deve ser um decimal válido (ex: 500,00)', { positive: true }),
     date: z.string().min(1, 'Data é obrigatória'),
     description: z.string().optional(),
   })

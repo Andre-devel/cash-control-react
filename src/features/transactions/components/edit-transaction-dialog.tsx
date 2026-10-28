@@ -6,6 +6,9 @@ import { Input } from '@/components/ui/input'
 import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
+import { Select } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { TRANSACTION_STATUS_LABELS } from '@/features/transactions/utils/transaction-status'
 import {
   updateTransactionSchema,
   type UpdateTransactionFormValues,
@@ -18,12 +21,16 @@ import { PaymentMethodSelect } from './payment-method-select'
 import { CreditCardSelect } from './credit-card-select'
 import { useCards } from '@/features/cards/hooks/use-cards'
 import { localIsoDate } from '@/lib/local-date'
+import { setFormErrors } from '@/lib/form-errors'
+import { formatMoneyInput } from '@/lib/money'
 
 const DEFAULT_VALUES: UpdateTransactionFormValues = {
   description: '',
-  amount: '0.00',
+  amount: '',
   categoryId: '',
   competenceDate: localIsoDate(),
+  status: undefined,
+  paymentDate: '',
   notes: '',
   paymentMethod: 'OTHER',
   creditCardId: '',
@@ -36,7 +43,6 @@ interface EditTransactionDialogProps {
 }
 
 export function EditTransactionDialog({ transaction, open, onClose }: EditTransactionDialogProps) {
-  const { mutate: updateTransaction, isPending } = useUpdateTransaction()
   const { data: categories = [] } = useCategories()
   const { data: allCards = [] } = useCards()
   const cards = allCards.filter((c) => !c.archivedAt)
@@ -45,17 +51,26 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
     resolver: zodResolver(updateTransactionSchema),
     defaultValues: DEFAULT_VALUES,
   })
+  const { mutate: updateTransaction, isPending } = useUpdateTransaction({
+    onFieldError: (error) => setFormErrors(error, form.setError),
+  })
 
   const description = form.watch('description')
   const paymentMethod = form.watch('paymentMethod')
+  const status = form.watch('status')
+  // Compra no cartão é paga pela fatura: status e data de pagamento não são editáveis aqui.
+  const editableStatus =
+    paymentMethod !== 'CREDIT_CARD' && transaction?.paymentMethod.slug !== 'CREDIT_CARD'
 
   useEffect(() => {
     if (transaction) {
       form.reset({
         description: transaction.description,
-        amount: transaction.amount,
+        amount: formatMoneyInput(transaction.amount),
         categoryId: transaction.categoryId ?? '',
         competenceDate: transaction.competenceDate,
+        status: transaction.status === 'CANCELLED' ? undefined : transaction.status,
+        paymentDate: transaction.paymentDate ?? '',
         notes: transaction.notes ?? '',
         paymentMethod: transaction.paymentMethod.slug,
         creditCardId: transaction.creditCard?.id ?? '',
@@ -67,6 +82,8 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
     if (!transaction) return
     const payload = {
       ...data,
+      status: editableStatus ? data.status : undefined,
+      paymentDate: (editableStatus && data.status === 'PAID' && data.paymentDate) || undefined,
       categoryId: data.categoryId || undefined,
       notes: data.notes || undefined,
       creditCardId: data.creditCardId || undefined,
@@ -135,6 +152,11 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
         noValidate
         className="col gap-4"
       >
+        {form.formState.errors.root && (
+          <div role="alert" className="err">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <Field label="Descrição" required error={form.formState.errors.description?.message}>
           <Input placeholder="Ex: Supermercado" {...form.register('description')} />
         </Field>
@@ -167,8 +189,31 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
           <Input type="date" {...form.register('competenceDate')} />
         </Field>
 
+        {/* Pago não volta a pendente (a API recusa); para desfazer, cancele a transação. */}
+        {editableStatus && status && transaction?.status !== 'PAID' && (
+          <Field label="Status" error={form.formState.errors.status?.message}>
+            <Select {...form.register('status')}>
+              {[transaction?.status === 'OVERDUE' ? 'OVERDUE' : 'PENDING', 'PAID'].map((s) => (
+                <option key={s} value={s}>
+                  {TRANSACTION_STATUS_LABELS[s as 'PENDING' | 'OVERDUE' | 'PAID']}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
+
+        {editableStatus && status === 'PAID' && (
+          <Field
+            label="Data do pagamento"
+            hint="Em branco, usa a data de hoje."
+            error={form.formState.errors.paymentDate?.message}
+          >
+            <Input type="date" {...form.register('paymentDate')} />
+          </Field>
+        )}
+
         <Field label="Notas" error={form.formState.errors.notes?.message}>
-          <Input placeholder="Observações opcionais…" {...form.register('notes')} />
+          <Textarea rows={2} placeholder="Observações opcionais…" {...form.register('notes')} />
         </Field>
 
         <Controller

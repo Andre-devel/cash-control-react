@@ -6,7 +6,7 @@ export const updateInstallmentSchema = z.object({
     .string()
     .min(1, 'Descrição é obrigatória')
     .max(255, 'Descrição deve ter no máximo 255 caracteres'),
-  amount: moneyField('Valor deve ser um decimal válido (ex: 300,00)'),
+  amount: moneyField('Valor deve ser um decimal válido (ex: 300,00)', { positive: true }),
   dueDate: z.string().min(1, 'Data de vencimento é obrigatória'),
 })
 

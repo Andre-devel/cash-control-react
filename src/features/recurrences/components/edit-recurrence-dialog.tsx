@@ -16,6 +16,8 @@ import { CategoryPickerCombobox } from '@/features/categories/components/categor
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import type { Recurrence } from '@/features/recurrences/types'
+import { setFormErrors } from '@/lib/form-errors'
+import { formatMoneyInput } from '@/lib/money'
 
 interface EditRecurrenceDialogProps {
   recurrence: Recurrence | null
@@ -24,7 +26,6 @@ interface EditRecurrenceDialogProps {
 }
 
 export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurrenceDialogProps) {
-  const { mutate: updateRecurrence, isPending } = useUpdateRecurrence()
   const { data: accounts = [] } = useAccounts()
   const { data: categories = [] } = useCategories()
 
@@ -32,17 +33,20 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
     resolver: zodResolver(updateRecurrenceSchema),
     defaultValues: {
       description: '',
-      amount: '0.00',
+      amount: '',
       accountId: '',
       categoryId: '',
     },
+  })
+  const { mutate: updateRecurrence, isPending } = useUpdateRecurrence({
+    onFieldError: (error) => setFormErrors(error, form.setError),
   })
 
   useEffect(() => {
     if (recurrence) {
       form.reset({
         description: recurrence.description,
-        amount: recurrence.amount,
+        amount: formatMoneyInput(recurrence.amount),
         accountId: recurrence.accountId,
         categoryId: recurrence.categoryId ?? '',
       })
@@ -117,6 +121,11 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
         noValidate
         className="col gap-4"
       >
+        {form.formState.errors.root && (
+          <div role="alert" className="err">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <Field label="Descrição" error={form.formState.errors.description?.message}>
           <Input placeholder="ex: Aluguel mensal" {...form.register('description')} />
         </Field>

@@ -16,6 +16,7 @@ import {
 import type { InstallmentSeries } from '@/features/installments/types'
 import { setFormErrors } from '@/lib/form-errors'
 import { localIsoDate } from '@/lib/local-date'
+import { formatMoneyInput } from '@/lib/money'
 
 interface SettleSeriesDialogProps {
   series: InstallmentSeries | null
@@ -40,7 +41,7 @@ export function SettleSeriesDialog({ series, open, onClose }: SettleSeriesDialog
 
   useEffect(() => {
     if (detail && !form.formState.dirtyFields.settlementAmount) {
-      form.setValue('settlementAmount', outstanding.toFixed(2).replace('.', ','))
+      form.setValue('settlementAmount', formatMoneyInput(outstanding))
     }
   }, [detail, outstanding, form])
 

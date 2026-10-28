@@ -75,7 +75,7 @@ describe('TransactionsPage', () => {
       ),
     )
     renderWithProviders(<TransactionsPage />)
-    await waitFor(() => expect(screen.getByText(/nenhuma transação encontrada/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/nenhuma transação em/i)).toBeTruthy())
   })
 
   it('shows empty state with create CTA', async () => {
@@ -86,8 +86,9 @@ describe('TransactionsPage', () => {
     )
     renderWithProviders(<TransactionsPage />)
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /criar sua primeira transação/i })).toBeTruthy(),
+      expect(screen.getByRole('button', { name: /ver todo o período/i })).toBeTruthy(),
     )
+    expect(screen.getAllByRole('button', { name: /^nova transação$/i })).toHaveLength(2)
   })
 
   it('shows error state when API fails', async () => {
@@ -187,8 +188,10 @@ describe('TransactionsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_TRANSACTION_1.description))
 
-    const cancelButtons = screen.getAllByRole('button', { name: /^cancelar$/i })
-    await user.click(cancelButtons[0])
+    await user.click(
+      screen.getByRole('button', { name: `Ações de ${MOCK_TRANSACTION_1.description}` }),
+    )
+    await user.click(screen.getByRole('menuitem', { name: /cancelar transação/i }))
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /cancelar transação/i })).toBeTruthy()
@@ -200,8 +203,10 @@ describe('TransactionsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_TRANSACTION_1.description))
 
-    const deleteButtons = screen.getAllByRole('button', { name: /^excluir$/i })
-    await user.click(deleteButtons[0])
+    await user.click(
+      screen.getByRole('button', { name: `Ações de ${MOCK_TRANSACTION_1.description}` }),
+    )
+    await user.click(screen.getByRole('menuitem', { name: /^excluir$/i }))
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /excluir transação/i })).toBeTruthy()
@@ -248,5 +253,101 @@ describe('TransactionsPage', () => {
     })
     expect(screen.getAllByText('Despesa').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Pago').length).toBeGreaterThan(0)
+  })
+
+  it('o resumo vem do endpoint de totais, não da página carregada', async () => {
+    server.use(
+      http.get('*/transactions/summary', () =>
+        HttpResponse.json({
+          incomeAmount: '14923.11',
+          incomeCount: 12,
+          expenseAmount: '25136.62',
+          expenseCount: 40,
+          invoicePaymentAmount: '3235.79',
+          invoicePaymentCount: 1,
+          netAmount: '-10213.51',
+        }),
+      ),
+    )
+    const { container } = renderWithProviders(<TransactionsPage />)
+    await waitFor(() => expect(container.textContent).toContain('14.923,11'))
+    expect(container.textContent).toContain('25.136,62')
+    expect(container.textContent).toMatch(/pagamentos de fatura: r\$\s?3\.235,79/i)
+  })
+
+  it('manda o mês atual como período e navega para o mês anterior', async () => {
+    const seen: URLSearchParams[] = []
+    server.use(
+      http.get('*/transactions', ({ request }) => {
+        seen.push(new URL(request.url).searchParams)
+        return HttpResponse.json({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 20,
+        })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionsPage />)
+
+    const now = new Date()
+    const first = new Date(now.getFullYear(), now.getMonth(), 1)
+    const iso = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    await waitFor(() => expect(seen.length).toBeGreaterThan(0))
+    expect(seen[seen.length - 1].get('competenceDateFrom')).toBe(iso(first))
+
+    await user.click(screen.getByRole('button', { name: 'Mês anterior' }))
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    await waitFor(() => expect(seen[seen.length - 1].get('competenceDateFrom')).toBe(iso(prev)))
+
+    await user.click(screen.getByRole('button', { name: 'Todo o período' }))
+    await waitFor(() => expect(seen[seen.length - 1].get('competenceDateFrom')).toBeNull())
+  })
+
+  it('a busca espera a digitação terminar e não perde letras', async () => {
+    const searches: (string | null)[] = []
+    server.use(
+      http.get('*/transactions', ({ request }) => {
+        searches.push(new URL(request.url).searchParams.get('searchText'))
+        return HttpResponse.json({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 20,
+        })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionsPage />)
+    const input = screen.getByRole('textbox', { name: /buscar por descrição/i })
+
+    await user.type(input, 'hostinger')
+
+    expect((input as HTMLInputElement).value).toBe('hostinger')
+    await waitFor(() => expect(searches[searches.length - 1]).toBe('hostinger'))
+    expect(searches.filter((s) => s !== null)).toEqual(['hostinger'])
+  })
+
+  it('reativa uma transação cancelada pelo menu', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionsPage />)
+    await waitFor(() => screen.getByText(MOCK_TRANSACTION_1.description))
+    await user.click(screen.getByRole('checkbox', { name: /incluir cancelados/i }))
+    await waitFor(() => screen.getByText(MOCK_TRANSACTION_CANCELLED.description))
+
+    await user.click(
+      screen.getByRole('button', { name: `Ações de ${MOCK_TRANSACTION_CANCELLED.description}` }),
+    )
+    expect(screen.queryByRole('menuitem', { name: /editar/i })).toBeNull()
+    await user.click(screen.getByRole('menuitem', { name: /reativar/i }))
+
+    await waitFor(() => {
+      const row = screen.getByText(MOCK_TRANSACTION_CANCELLED.description).closest('tr')!
+      expect(row.textContent).toContain('Pendente')
+    })
   })
 })

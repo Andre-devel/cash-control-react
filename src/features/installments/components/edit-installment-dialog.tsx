@@ -9,7 +9,7 @@ import { Select } from '@/components/ui/select'
 import { MoneyInput } from '@/components/ui/money-input'
 import { useUpdateInstallment } from '@/features/installments/hooks/use-update-installment'
 import { useInstallmentSeriesDetail } from '@/features/installments/hooks/use-installment-series-detail'
-import { moneyField } from '@/lib/money'
+import { moneyField, formatMoneyInput } from '@/lib/money'
 import type { InstallmentSeries } from '@/features/installments/types'
 import { localIsoDate } from '@/lib/local-date'
 
@@ -19,7 +19,7 @@ const editInstallmentSchema = z.object({
     .string()
     .min(1, 'Descrição é obrigatória')
     .max(255, 'Descrição deve ter no máximo 255 caracteres'),
-  amount: moneyField('Valor deve ser um decimal válido (ex: 300,00)'),
+  amount: moneyField('Valor deve ser um decimal válido (ex: 300,00)', { positive: true }),
   competenceDate: z.string().min(1, 'Data de vencimento é obrigatória'),
 })
 
@@ -28,7 +28,7 @@ type EditInstallmentFormValues = z.infer<typeof editInstallmentSchema>
 const DEFAULT_VALUES: EditInstallmentFormValues = {
   transactionId: '',
   description: '',
-  amount: '0.00',
+  amount: '',
   competenceDate: localIsoDate(),
 }
 
@@ -57,7 +57,7 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
     const selected = installments.find((i) => i.id === transactionId)
     if (!selected) return
     form.setValue('description', selected.description)
-    form.setValue('amount', selected.amount)
+    form.setValue('amount', formatMoneyInput(selected.amount))
     form.setValue('competenceDate', selected.competenceDate)
   }
 

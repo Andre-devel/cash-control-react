@@ -27,7 +27,7 @@ const DEFAULT_VALUES: CreateCardFormValues = {
   name: '',
   brand: 'VISA',
   last4Digits: '',
-  creditLimit: '0.00',
+  creditLimit: '',
   closingDay: 1,
   dueDay: 10,
 }

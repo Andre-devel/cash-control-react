@@ -15,7 +15,9 @@ export const createCardSchema = z.object({
     .regex(/^\d{4}$/, 'Informe exatamente 4 dígitos')
     .optional()
     .or(z.literal('')),
-  creditLimit: moneyField('Limite deve ser um valor decimal válido (ex: 5000,00)'),
+  creditLimit: moneyField('Limite deve ser um valor decimal válido (ex: 5000,00)', {
+    positive: true,
+  }),
   closingDay: z
     .number()
     .int('Dia de fechamento deve ser um número inteiro')

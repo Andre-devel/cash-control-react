@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { updateRecurrence } from '@/features/recurrences/api/recurrences.api'
 import { toast } from '@/lib/toast'
+import { reportMutationError, type MutationFormOptions } from '@/lib/form-errors'
 import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { TRANSACTIONS_QUERY_KEY } from '@/features/transactions/hooks/use-transactions'
 import { RECURRENCES_QUERY_KEY } from './use-recurrences'
@@ -12,7 +13,7 @@ interface UpdateRecurrenceVariables {
   data: UpdateRecurrenceRequest
 }
 
-export function useUpdateRecurrence() {
+export function useUpdateRecurrence(options?: MutationFormOptions) {
   const queryClient = useQueryClient()
 
   return useMutation<EditRecurrenceResult, NormalizedError, UpdateRecurrenceVariables>({
@@ -25,8 +26,6 @@ export function useUpdateRecurrence() {
       ])
       toast.success('Recorrência atualizada com sucesso.')
     },
-    onError: (error) => {
-      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
-    },
+    onError: (error) => reportMutationError(error, options?.onFieldError),
   })
 }

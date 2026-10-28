@@ -295,6 +295,28 @@ export function resetImportStore() {
   lastImportCommit = null
 }
 
+function filterStore(params: URLSearchParams): Transaction[] {
+  const type = params.get('type')
+  const status = params.get('status')
+  const accountId = params.get('accountId')
+  const paymentMethod = params.get('paymentMethod')
+  const searchText = params.get('searchText')
+
+  let result = transactionsStore
+  if (params.get('includeCancelled') !== 'true') {
+    result = result.filter((t) => t.status !== 'CANCELLED')
+  }
+  if (type) result = result.filter((t) => t.type === type)
+  if (status) result = result.filter((t) => t.status === status)
+  if (accountId) result = result.filter((t) => t.accountId === accountId)
+  if (paymentMethod) result = result.filter((t) => t.paymentMethod.slug === paymentMethod)
+  if (searchText) {
+    const lower = searchText.toLowerCase()
+    result = result.filter((t) => t.description.toLowerCase().includes(lower))
+  }
+  return result
+}
+
 export const transactionsHandlers = [
   // A prévia não tem handler: o XHR do jsdom trava num POST multipart com arquivo, então
   // os testes de tela mockam `previewStatementImport` diretamente e usam MOCK_IMPORT_PREVIEW.
@@ -309,30 +331,34 @@ export const transactionsHandlers = [
     )
   }),
 
+  // Precisa vir antes de `*/transactions/:id`, senão "summary" seria capturado como um id.
+  http.get('*/transactions/summary', ({ request }) => {
+    const result = filterStore(new URL(request.url).searchParams).filter(
+      (t) => t.status !== 'CANCELLED',
+    )
+    const total = (types: string[]) => {
+      const rows = result.filter((t) => types.includes(t.type))
+      return { amount: rows.reduce((s, t) => s + Number(t.amount), 0), count: rows.length }
+    }
+    const income = total(['INCOME', 'REFUND'])
+    const expense = total(['EXPENSE'])
+    const invoice = total(['INVOICE_PAYMENT'])
+    return HttpResponse.json({
+      incomeAmount: income.amount.toFixed(2),
+      incomeCount: income.count,
+      expenseAmount: expense.amount.toFixed(2),
+      expenseCount: expense.count,
+      invoicePaymentAmount: invoice.amount.toFixed(2),
+      invoicePaymentCount: invoice.count,
+      netAmount: (income.amount - expense.amount).toFixed(2),
+    })
+  }),
+
   http.get('*/transactions', ({ request }) => {
     const url = new URL(request.url)
-    const includeCancelled = url.searchParams.get('includeCancelled') === 'true'
-    const type = url.searchParams.get('type')
-    const status = url.searchParams.get('status')
-    const accountId = url.searchParams.get('accountId')
-    const paymentMethod = url.searchParams.get('paymentMethod')
-    const searchText = url.searchParams.get('searchText')
     const page = parseInt(url.searchParams.get('page') ?? '0', 10)
     const size = parseInt(url.searchParams.get('size') ?? '20', 10)
-
-    let result = transactionsStore
-
-    if (!includeCancelled) result = result.filter((t) => t.status !== 'CANCELLED')
-    if (type) result = result.filter((t) => t.type === type)
-    if (status) result = result.filter((t) => t.status === status)
-    if (accountId) result = result.filter((t) => t.accountId === accountId)
-    if (paymentMethod) result = result.filter((t) => t.paymentMethod.slug === paymentMethod)
-    if (searchText) {
-      const lower = searchText.toLowerCase()
-      result = result.filter((t) => t.description.toLowerCase().includes(lower))
-    }
-
-    return HttpResponse.json(makePaginatedResponse(result, page, size))
+    return HttpResponse.json(makePaginatedResponse(filterStore(url.searchParams), page, size))
   }),
 
   http.get('*/transactions/:id', ({ params }) => {
@@ -398,6 +424,13 @@ export const transactionsHandlers = [
     )
     const updated = transactionsStore.find((t) => t.id === params.id)
     return HttpResponse.json(updated)
+  }),
+
+  http.post('*/transactions/:id/reactivate', ({ params }) => {
+    transactionsStore = transactionsStore.map((t) =>
+      t.id === params.id ? { ...t, status: 'PENDING' } : t,
+    )
+    return HttpResponse.json(transactionsStore.find((t) => t.id === params.id))
   }),
 
   http.get('*/transactions/:id/attachments', ({ params }) => {

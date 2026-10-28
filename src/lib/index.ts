@@ -1,5 +1,6 @@
 export { cn } from './utils'
 export { localIsoDate } from './local-date'
+export { formatLocalDate, formatInstantDate } from './format-date'
 export { saveBlob } from './download'
 export { buildCsvBlob, csvMoney } from './csv'
 export { toast } from './toast'

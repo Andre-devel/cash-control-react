@@ -14,6 +14,8 @@ import {
 } from '@/features/cards/schemas/create-card.schema'
 import { useUpdateCard } from '@/features/cards/hooks/use-update-card'
 import type { Card } from '@/features/cards/types'
+import { setFormErrors } from '@/lib/form-errors'
+import { formatMoneyInput } from '@/lib/money'
 
 const BRAND_LABELS: Record<string, string> = {
   VISA: 'Visa',
@@ -31,18 +33,19 @@ interface EditCardDialogProps {
 }
 
 export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
-  const { mutate: updateCard, isPending } = useUpdateCard()
-
   const form = useForm<CreateCardFormValues>({
     resolver: zodResolver(createCardSchema),
     defaultValues: {
       name: '',
       brand: 'VISA',
       last4Digits: '',
-      creditLimit: '0.00',
+      creditLimit: '',
       closingDay: 1,
       dueDay: 10,
     },
+  })
+  const { mutate: updateCard, isPending } = useUpdateCard({
+    onFieldError: (error) => setFormErrors(error, form.setError),
   })
 
   useEffect(() => {
@@ -51,7 +54,7 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
         name: card.name,
         brand: card.brand,
         last4Digits: card.last4Digits ?? '',
-        creditLimit: card.creditLimit,
+        creditLimit: formatMoneyInput(card.creditLimit),
         closingDay: card.closingDay,
         dueDay: card.dueDay,
       })
@@ -122,6 +125,11 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
         noValidate
         className="col gap-4"
       >
+        {form.formState.errors.root && (
+          <div role="alert" className="err">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <Field label="Nome" error={form.formState.errors.name?.message}>
           <Input placeholder="ex: Nubank" {...form.register('name')} />
         </Field>

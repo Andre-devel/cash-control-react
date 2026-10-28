@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createInstallmentSeries } from '@/features/installments/api/installments.api'
 import { toast } from '@/lib/toast'
+import { reportMutationError } from '@/lib/form-errors'
 import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { INSTALLMENTS_QUERY_KEY } from './use-installment-series'
 import { TRANSACTIONS_QUERY_KEY } from '@/features/transactions/hooks/use-transactions'
@@ -30,12 +31,6 @@ export function useCreateInstallment(options?: UseCreateInstallmentOptions) {
       ])
       toast.success(`Parcelamento criado com ${data.series.totalInstallments} parcelas.`)
     },
-    onError: (error) => {
-      if ((error.status === 409 || error.status === 422) && options?.onFieldError) {
-        options.onFieldError(error)
-        return
-      }
-      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
-    },
+    onError: (error) => reportMutationError(error, options?.onFieldError),
   })
 }

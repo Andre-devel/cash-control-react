@@ -14,6 +14,7 @@ import {
 import { useUpdateCategory } from '@/features/categories/hooks/use-update-category'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import type { Category } from '@/features/categories/types'
+import { setFormErrors } from '@/lib/form-errors'
 
 interface EditCategoryDialogProps {
   category: Category | null
@@ -22,7 +23,6 @@ interface EditCategoryDialogProps {
 }
 
 export function EditCategoryDialog({ category, open, onClose }: EditCategoryDialogProps) {
-  const { mutate: updateCategory, isPending } = useUpdateCategory()
   const { data: categories } = useCategories()
 
   const form = useForm<CreateCategoryFormValues>({
@@ -33,6 +33,9 @@ export function EditCategoryDialog({ category, open, onClose }: EditCategoryDial
       icon: 'tag',
       parentId: undefined,
     },
+  })
+  const { mutate: updateCategory, isPending } = useUpdateCategory({
+    onFieldError: (error) => setFormErrors(error, form.setError),
   })
 
   useEffect(() => {
@@ -118,6 +121,11 @@ export function EditCategoryDialog({ category, open, onClose }: EditCategoryDial
         noValidate
         className="col gap-4"
       >
+        {form.formState.errors.root && (
+          <div role="alert" className="err">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <Field label="Nome" error={form.formState.errors.name?.message}>
           <Input placeholder="ex: Alimentação" {...form.register('name')} />
         </Field>

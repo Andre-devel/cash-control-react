@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen, waitFor, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { http, HttpResponse } from 'msw'
+import { server } from '@/test/msw/server'
 import { renderWithProviders } from '@/test/utils'
 import { resetTransactionsStore } from '@/test/handlers/transactions.handlers'
 import { resetCardsStore } from '@/test/handlers/cards.handlers'
@@ -132,5 +134,70 @@ describe('CreateTransactionDialog — payment method integration', () => {
       name: /cartão de crédito/i,
     }) as HTMLSelectElement
     expect(cardSelectAfter.value).toBe('')
+  })
+})
+
+describe('CreateTransactionDialog — padrões e validação', () => {
+  it('começa como Pago, com valor vazio e campo de data do pagamento', async () => {
+    renderDialog()
+    await waitForPaymentMethodsLoaded()
+    expect((screen.getByRole('combobox', { name: /status/i }) as HTMLSelectElement).value).toBe(
+      'PAID',
+    )
+    expect((screen.getByRole('textbox', { name: /valor/i }) as HTMLInputElement).value).toBe('')
+    expect(screen.getByLabelText(/data do pagamento/i)).toBeTruthy()
+    expect(screen.queryByRole('option', { name: /cancelado/i })).toBeNull()
+  })
+
+  it('data futura sugere Pendente e esconde a data do pagamento', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await waitForPaymentMethodsLoaded()
+    const date = screen.getByLabelText(/data de competência/i)
+    await user.clear(date)
+    await user.type(date, '2099-01-10')
+    await waitFor(() =>
+      expect((screen.getByRole('combobox', { name: /status/i }) as HTMLSelectElement).value).toBe(
+        'PENDING',
+      ),
+    )
+    expect(screen.queryByLabelText(/data do pagamento/i)).toBeNull()
+  })
+
+  it('recusa valor zero no próprio formulário', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await waitForPaymentMethodsLoaded()
+    await user.type(screen.getByRole('textbox', { name: /descrição/i }), 'Café')
+    await user.type(screen.getByRole('textbox', { name: /valor/i }), '0,00')
+    await user.click(screen.getByRole('button', { name: /criar transação/i }))
+    await waitFor(() => expect(screen.getByText('Valor deve ser maior que zero')).toBeTruthy())
+  })
+
+  it('mostra no campo o erro de validação devolvido pela API (400 com fieldErrors)', async () => {
+    server.use(
+      http.post('*/transactions', () =>
+        HttpResponse.json(
+          {
+            errorCode: 'VALIDATION_ERROR',
+            message: 'Falha na validação da requisição.',
+            fieldErrors: { description: 'Descrição recusada pelo servidor' },
+          },
+          { status: 400 },
+        ),
+      ),
+    )
+    const user = userEvent.setup()
+    renderDialog()
+    await waitForPaymentMethodsLoaded()
+    await user.type(screen.getByRole('textbox', { name: /descrição/i }), 'Café')
+    await user.type(screen.getByRole('textbox', { name: /valor/i }), '12,50')
+    await waitFor(() => {
+      const select = screen.getByRole('combobox', { name: /^conta$/i })
+      expect(select.querySelectorAll('option').length).toBeGreaterThan(1)
+    })
+    await user.selectOptions(screen.getByRole('combobox', { name: /^conta$/i }), 'account-1')
+    await user.click(screen.getByRole('button', { name: /criar transação/i }))
+    await waitFor(() => expect(screen.getByText('Descrição recusada pelo servidor')).toBeTruthy())
   })
 })

@@ -58,8 +58,8 @@ describe('updateTransactionSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects notes exceeding 1000 characters', () => {
-    const result = updateTransactionSchema.safeParse({ ...VALID_INPUT, notes: 'a'.repeat(1001) })
+  it('rejects notes exceeding 5000 characters', () => {
+    const result = updateTransactionSchema.safeParse({ ...VALID_INPUT, notes: 'a'.repeat(5001) })
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.issues.some((i) => i.path[0] === 'notes')).toBe(true)

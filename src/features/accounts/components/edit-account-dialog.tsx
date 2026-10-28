@@ -14,6 +14,7 @@ import {
 import { ACCOUNT_TYPES } from '@/features/accounts/schemas/create-account.schema'
 import { useUpdateAccount } from '@/features/accounts/hooks/use-update-account'
 import type { Account } from '@/features/accounts/types'
+import { setFormErrors } from '@/lib/form-errors'
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   CHECKING: 'Conta corrente',
@@ -31,8 +32,6 @@ interface EditAccountDialogProps {
 }
 
 export function EditAccountDialog({ account, open, onClose }: EditAccountDialogProps) {
-  const { mutate: updateAccount, isPending } = useUpdateAccount()
-
   const form = useForm<UpdateAccountFormValues>({
     resolver: zodResolver(updateAccountSchema),
     defaultValues: {
@@ -41,6 +40,9 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
       currencyCode: 'BRL',
       description: '',
     },
+  })
+  const { mutate: updateAccount, isPending } = useUpdateAccount({
+    onFieldError: (error) => setFormErrors(error, form.setError),
   })
 
   useEffect(() => {
@@ -118,6 +120,11 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
         noValidate
         className="col gap-4"
       >
+        {form.formState.errors.root && (
+          <div role="alert" className="err">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <Field label="Nome" error={form.formState.errors.name?.message}>
           <Input placeholder="ex: Nubank" {...form.register('name')} />
         </Field>

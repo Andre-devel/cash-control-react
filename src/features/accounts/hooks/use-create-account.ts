@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createAccount } from '@/features/accounts/api/accounts.api'
 import { toast } from '@/lib/toast'
+import { reportMutationError } from '@/lib/form-errors'
 import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { TRANSACTIONS_QUERY_KEY } from '@/features/transactions/hooks/use-transactions'
 import { ACCOUNTS_QUERY_KEY } from './use-accounts'
@@ -20,12 +21,6 @@ export function useCreateAccount(options?: UseCreateAccountOptions) {
       invalidateFinancialQueries(queryClient, [ACCOUNTS_QUERY_KEY, TRANSACTIONS_QUERY_KEY])
       toast.success('Conta criada com sucesso.')
     },
-    onError: (error) => {
-      if ((error.status === 409 || error.status === 422) && options?.onFieldError) {
-        options.onFieldError(error)
-        return
-      }
-      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
-    },
+    onError: (error) => reportMutationError(error, options?.onFieldError),
   })
 }

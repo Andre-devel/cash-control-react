@@ -16,6 +16,7 @@ import { useCreateRecurrence } from '@/features/recurrences/hooks/use-create-rec
 import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
+import { setFormErrors } from '@/lib/form-errors'
 
 const FREQUENCY_LABELS: Record<string, string> = {
   DAILY: 'Diário',
@@ -33,7 +34,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 const DEFAULT_VALUES: CreateRecurrenceFormValues = {
   description: '',
-  amount: '0.00',
+  amount: '',
   frequency: 'MONTHLY',
   type: 'EXPENSE',
   accountId: '',
@@ -47,13 +48,15 @@ interface CreateRecurrenceDialogProps {
 }
 
 export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialogProps) {
-  const { mutate: createRecurrence, isPending } = useCreateRecurrence()
   const { data: accounts = [] } = useAccounts()
   const { data: categories = [] } = useCategories()
 
   const form = useForm<CreateRecurrenceFormValues>({
     resolver: zodResolver(createRecurrenceSchema),
     defaultValues: DEFAULT_VALUES,
+  })
+  const { mutate: createRecurrence, isPending } = useCreateRecurrence({
+    onFieldError: (error) => setFormErrors(error, form.setError),
   })
 
   function onSubmit(data: CreateRecurrenceFormValues) {
@@ -122,6 +125,11 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
         noValidate
         className="col gap-4"
       >
+        {form.formState.errors.root && (
+          <div role="alert" className="err">
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <Field label="Descrição" error={form.formState.errors.description?.message}>
           <Input placeholder="ex: Aluguel mensal" {...form.register('description')} />
         </Field>

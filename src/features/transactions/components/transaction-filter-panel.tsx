@@ -1,4 +1,5 @@
-import { Search } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   TRANSACTION_FILTER_TYPES,
@@ -6,6 +7,13 @@ import {
 } from '@/features/transactions/schemas'
 import { TRANSACTION_STATUS_LABELS } from '@/features/transactions/utils/transaction-status'
 import { PaymentMethodSelect } from '@/features/transactions/components/payment-method-select'
+import {
+  currentPeriod,
+  periodLabel,
+  serializePeriod,
+  shiftPeriod,
+  type TransactionPeriod,
+} from '@/features/transactions/utils/period'
 import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
 import type {
@@ -30,7 +38,11 @@ interface TransactionFilterPanelProps {
   /** Lista achatada (raízes + subcategorias) — ver `flattenCategories`. */
   categories: Category[]
   includeCancelled: boolean
+  period: TransactionPeriod
+  onPeriodChange: (period: TransactionPeriod) => void
   onFiltersChange: (filters: ListTransactionsParams) => void
+  /** Busca já com debounce; quem chama deve preservar os demais filtros vigentes. */
+  onSearchChange: (searchText: string | undefined) => void
   onReset: () => void
   onToggleIncludeCancelled: () => void
 }
@@ -40,7 +52,10 @@ export function TransactionFilterPanel({
   accounts,
   categories,
   includeCancelled,
+  period,
+  onPeriodChange,
   onFiltersChange,
+  onSearchChange,
   onReset,
   onToggleIncludeCancelled,
 }: TransactionFilterPanelProps) {
@@ -48,14 +63,77 @@ export function TransactionFilterPanel({
     onFiltersChange({ ...filters, ...patch, page: 0 })
   }
 
+  // A busca tem estado próprio: gravar na URL a cada tecla disparava uma request por letra e,
+  // com a resposta chegando fora de ordem, o campo voltava a um valor antigo e perdia letras.
+  const appliedSearch = filters.searchText ?? ''
+  const [search, setSearch] = useState(appliedSearch)
+  const [sentSearch, setSentSearch] = useState(appliedSearch)
+  // Mudança vinda de fora (limpar filtros, voltar no histórico) sobrescreve o campo; o eco
+  // do que este campo mesmo enviou não, senão as letras digitadas depois se perdem.
+  if (appliedSearch !== sentSearch) {
+    setSentSearch(appliedSearch)
+    setSearch(appliedSearch)
+  }
+
+  useEffect(() => {
+    if (search === sentSearch) return
+    const timer = setTimeout(() => {
+      setSentSearch(search)
+      onSearchChange(search.trim() ? search : undefined)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search, sentSearch, onSearchChange])
+
+  const isCurrentMonth = serializePeriod(period) === serializePeriod(currentPeriod())
+
   return (
     <div className="filterbar" role="search" aria-label="Filtrar transações">
+      <div className="period" role="group" aria-label="Período">
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          aria-label="Mês anterior"
+          disabled={period.kind === 'all'}
+          onClick={() => onPeriodChange(shiftPeriod(period, -1))}
+        >
+          <ChevronLeft size={14} />
+        </Button>
+        <span className="period-label" aria-live="polite">
+          {periodLabel(period)}
+        </span>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          aria-label="Próximo mês"
+          disabled={period.kind === 'all'}
+          onClick={() => onPeriodChange(shiftPeriod(period, 1))}
+        >
+          <ChevronRight size={14} />
+        </Button>
+      </div>
+      <button
+        type="button"
+        className={period.kind === 'all' ? 'chip on' : 'chip'}
+        aria-pressed={period.kind === 'all'}
+        onClick={() => onPeriodChange(period.kind === 'all' ? currentPeriod() : { kind: 'all' })}
+      >
+        Todo o período
+      </button>
+      {period.kind === 'month' && !isCurrentMonth && (
+        <button type="button" className="chip" onClick={() => onPeriodChange(currentPeriod())}>
+          Mês atual
+        </button>
+      )}
+
       <div className="search">
         <Search size={13} className="ico" />
         <input
           placeholder="Buscar por descrição…"
-          value={filters.searchText ?? ''}
-          onChange={(e) => update({ searchText: e.target.value || undefined })}
+          aria-label="Buscar por descrição"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 

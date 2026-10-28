@@ -29,7 +29,7 @@ export function CreditCardSelect({
         </option>
       ) : (
         <>
-          <option value="" />
+          <option value="">Selecionar cartão</option>
           {cards.map((card) => (
             <option key={card.id} value={card.id}>
               {card.name} ({card.brand})

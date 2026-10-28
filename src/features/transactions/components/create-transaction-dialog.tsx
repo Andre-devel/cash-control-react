@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -6,6 +7,7 @@ import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import {
   createTransactionSchema,
   TRANSACTION_TYPES,
@@ -30,17 +32,22 @@ const TRANSACTION_TYPE_LABELS: Record<string, string> = {
   REFUND: 'Reembolso',
 }
 
-const DEFAULT_VALUES: CreateTransactionFormValues = {
-  description: '',
-  amount: '0.00',
-  type: 'EXPENSE',
-  accountId: '',
-  categoryId: '',
-  competenceDate: localIsoDate(),
-  status: 'PENDING',
-  paymentMethod: 'OTHER',
-  creditCardId: '',
-  installments: 1,
+function defaultValues(): CreateTransactionFormValues {
+  return {
+    description: '',
+    amount: '',
+    type: 'EXPENSE',
+    accountId: '',
+    categoryId: '',
+    competenceDate: localIsoDate(),
+    // Lançamento manual com data de hoje quase sempre já aconteceu.
+    status: 'PAID',
+    paymentDate: '',
+    notes: '',
+    paymentMethod: 'OTHER',
+    creditCardId: '',
+    installments: 1,
+  }
 }
 
 interface CreateTransactionDialogProps {
@@ -50,13 +57,14 @@ interface CreateTransactionDialogProps {
 
 export function CreateTransactionDialog({ open, onClose }: CreateTransactionDialogProps) {
   const { data: categories = [] } = useCategories()
-  const { data: accounts = [] } = useAccounts()
+  const { data: allAccounts = [] } = useAccounts()
+  const accounts = allAccounts.filter((a) => !a.archivedAt)
   const { data: allCards = [] } = useCards()
   const cards = allCards.filter((c) => !c.archivedAt)
 
   const form = useForm<CreateTransactionFormValues>({
     resolver: zodResolver(createTransactionSchema),
-    defaultValues: DEFAULT_VALUES,
+    defaultValues: defaultValues(),
   })
 
   const { mutate: createTransaction, isPending: isPendingTransaction } = useCreateTransaction({
@@ -69,10 +77,28 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
 
   const description = form.watch('description')
   const paymentMethod = form.watch('paymentMethod')
+  const status = form.watch('status')
+  const competenceDate = form.watch('competenceDate')
+  const creditCardId = form.watch('creditCardId')
+  const selectedCard = cards.find((c) => c.id === creditCardId)
+
+  // Com uma conta só não há o que escolher.
+  const onlyAccountId = accounts.length === 1 ? accounts[0]!.id : undefined
+  useEffect(() => {
+    if (open && onlyAccountId && !form.getValues('accountId')) {
+      form.setValue('accountId', onlyAccountId)
+    }
+  }, [open, onlyAccountId, form])
+
+  // Data futura sugere Pendente, até hoje sugere Pago — enquanto o usuário não escolher.
+  useEffect(() => {
+    if (form.getFieldState('status').isDirty || !competenceDate) return
+    form.setValue('status', competenceDate > localIsoDate() ? 'PENDING' : 'PAID')
+  }, [competenceDate, form])
 
   function onSubmit(data: CreateTransactionFormValues) {
     const onSuccess = () => {
-      form.reset(DEFAULT_VALUES)
+      form.reset(defaultValues())
       onClose()
     }
 
@@ -91,11 +117,15 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
         { onSuccess },
       )
     } else {
+      // Compra no cartão fica pendente até a fatura ser paga — o backend recusa PAGA.
+      const status = data.paymentMethod === 'CREDIT_CARD' ? 'PENDING' : data.status
+      const { installments: _installments, ...fields } = data
       createTransaction(
         {
-          ...data,
-          // Compra no cartão fica pendente até a fatura ser paga — o backend recusa PAGA.
-          status: data.paymentMethod === 'CREDIT_CARD' ? 'PENDING' : data.status,
+          ...fields,
+          status,
+          paymentDate: (status === 'PAID' && data.paymentDate) || undefined,
+          notes: data.notes?.trim() || undefined,
           categoryId: data.categoryId || undefined,
           creditCardId: data.creditCardId || undefined,
         },
@@ -105,7 +135,7 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
   }
 
   function handleClose() {
-    form.reset(DEFAULT_VALUES)
+    form.reset(defaultValues())
     onClose()
   }
 
@@ -223,12 +253,22 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
         {paymentMethod !== 'CREDIT_CARD' && (
           <Field label="Status" error={form.formState.errors.status?.message}>
             <Select aria-label="Status" {...form.register('status')}>
-              {TRANSACTION_STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {TRANSACTION_STATUS_LABELS[status]}
+              {TRANSACTION_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {TRANSACTION_STATUS_LABELS[s]}
                 </option>
               ))}
             </Select>
+          </Field>
+        )}
+
+        {paymentMethod !== 'CREDIT_CARD' && status === 'PAID' && (
+          <Field
+            label="Data do pagamento"
+            hint="Em branco, usa a data de competência."
+            error={form.formState.errors.paymentDate?.message}
+          >
+            <Input type="date" {...form.register('paymentDate')} />
           </Field>
         )}
 
@@ -258,7 +298,15 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
               control={form.control}
               name="creditCardId"
               render={({ field, fieldState }) => (
-                <Field label="Cartão de crédito" error={fieldState.error?.message}>
+                <Field
+                  label="Cartão de crédito"
+                  hint={
+                    selectedCard
+                      ? `Fecha dia ${selectedCard.closingDay} · vence dia ${selectedCard.dueDay}`
+                      : undefined
+                  }
+                  error={fieldState.error?.message}
+                >
                   <CreditCardSelect
                     value={field.value ?? ''}
                     onChange={field.onChange}
@@ -279,6 +327,10 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
             </Field>
           </>
         )}
+
+        <Field label="Notas" error={form.formState.errors.notes?.message}>
+          <Textarea rows={2} {...form.register('notes')} />
+        </Field>
       </form>
     </Modal>
   )

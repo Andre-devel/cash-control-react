@@ -29,3 +29,10 @@ export function canPayTransaction(
 export function isLockedTransaction(transaction: Pick<Transaction, 'type'>): boolean {
   return transaction.type === 'INVOICE_PAYMENT'
 }
+
+/** Espelha `reactivateTransaction` na API: só cancelada, e nunca parcela avulsa. */
+export function canReactivateTransaction(
+  transaction: Pick<Transaction, 'status' | 'installmentSeriesId'>,
+): boolean {
+  return transaction.status === 'CANCELLED' && !transaction.installmentSeriesId
+}
