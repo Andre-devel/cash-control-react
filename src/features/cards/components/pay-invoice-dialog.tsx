@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -73,6 +74,14 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
       paymentDate: todayIso(),
     },
   })
+
+  // O formulário fica montado entre aberturas: sem isto, depois de um pagamento parcial ele
+  // voltava com o total de quando foi montado, não com o restante.
+  useEffect(() => {
+    if (open) {
+      form.reset({ amount: remainingAmountStr, sourceAccountId: '', paymentDate: todayIso() })
+    }
+  }, [open, remainingAmountStr, form])
 
   function onSubmit(data: PayInvoiceFormValues) {
     payInvoice(

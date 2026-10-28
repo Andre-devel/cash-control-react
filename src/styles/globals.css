@@ -925,6 +925,7 @@
 .list-row .title { font-size: 13px; font-weight: 500; }
 .list-row .meta { font-size: 11.5px; color: var(--text-dim); }
 .list-row .right { margin-left: auto; text-align: right; }
+.invoice-due { display: flex; flex-direction: column; align-items: flex-end; }
 .list-row .amount { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 500; }
 
 /* Linha da árvore de categorias: as ações descem para a linha de baixo antes de
@@ -1525,7 +1526,7 @@
   /* Resumo da fatura: ao quebrar, o bloco de vencimento alinhado à direita e o
      botão com largura de conteúdo ficavam desencontrados. */
   .invoice-summary { gap: var(--s-3); align-items: stretch; }
-  .invoice-due { text-align: left; }
+  .invoice-due { align-items: flex-start; text-align: left; }
   .invoice-summary .btn { width: 100%; justify-content: center; }
 
   /* Seletor de categoria: campo de busca com 16 px para o iOS não dar zoom ao focar */

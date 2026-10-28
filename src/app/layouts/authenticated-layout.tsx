@@ -12,6 +12,7 @@ const ROUTE_LABELS: Array<{ path: string; label: string }> = [
   { path: ROUTES.TRANSACTIONS, label: 'Transações' },
   { path: ROUTES.ACCOUNTS, label: 'Contas' },
   { path: ROUTES.CARDS, label: 'Cartões' },
+  { path: ROUTES.INVOICES, label: 'Faturas' },
   { path: ROUTES.CATEGORIES, label: 'Categorias' },
   { path: ROUTES.INSTALLMENTS, label: 'Parcelamentos' },
   { path: ROUTES.RECURRENCES, label: 'Recorrências' },

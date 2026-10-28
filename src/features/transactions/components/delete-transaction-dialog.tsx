@@ -27,9 +27,12 @@ export function DeleteTransactionDialog({
 
   if (!open) return null
 
+  // Pagamento de fatura não some: excluir é estornar — o dinheiro volta e a fatura reabre.
+  const isRefund = transaction?.type === 'INVOICE_PAYMENT'
+
   return (
     <Modal
-      title="Excluir transação"
+      title={isRefund ? 'Estornar pagamento de fatura' : 'Excluir transação'}
       onClose={onClose}
       footer={
         <>
@@ -58,8 +61,10 @@ export function DeleteTransactionDialog({
                   }}
                   aria-hidden="true"
                 />
-                Excluindo…
+                {isRefund ? 'Estornando…' : 'Excluindo…'}
               </>
+            ) : isRefund ? (
+              'Estornar pagamento'
             ) : (
               'Excluir transação'
             )}
@@ -67,13 +72,15 @@ export function DeleteTransactionDialog({
         </>
       }
     >
-      <p>
-        Tem certeza que deseja excluir permanentemente <strong>{transaction?.description}</strong>?
-        Esta ação não pode ser desfeita.
-      </p>
-      {transaction?.type === 'INVOICE_PAYMENT' && (
-        <p className="mt-2">
-          O valor volta para a conta e sai do pago da fatura, que reabre se ficar devendo.
+      {isRefund ? (
+        <p>
+          Estornar <strong>{transaction?.description}</strong>? O valor volta para a conta e sai do
+          pago da fatura, que reabre se ficar devendo.
+        </p>
+      ) : (
+        <p>
+          Tem certeza que deseja excluir permanentemente <strong>{transaction?.description}</strong>
+          ? Esta ação não pode ser desfeita.
         </p>
       )}
     </Modal>

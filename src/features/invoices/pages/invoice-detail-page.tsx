@@ -13,9 +13,11 @@ import { useInvoiceDetail } from '@/features/invoices/hooks/use-invoice-detail'
 import { useSettleInvoice } from '@/features/invoices/hooks/use-settle-invoice'
 import { useReopenInvoice } from '@/features/invoices/hooks/use-reopen-invoice'
 import { EditInvoiceItemDialog } from '@/features/invoices/components/edit-invoice-item-dialog'
-import { dueMonthLabelWithYear } from '@/features/cards/utils/invoice-month'
+import { invoiceLabel } from '@/features/cards/utils/invoice-month'
 import {
   INVOICE_STATUS_LABELS,
+  canPayInvoice,
+  canSettleInvoice,
   invoiceStatusBadgeKind,
 } from '@/features/invoices/utils/invoice-status'
 import { ROUTES } from '@/app/router/routes'
@@ -75,7 +77,7 @@ export default function InvoiceDetailPage() {
           <div className="card">
             <div className="card-h">
               <div>
-                <h3>{dueMonthLabelWithYear(invoice.referenceMonth)}</h3>
+                <h3>{invoiceLabel(invoice.dueDate)}</h3>
                 <div className="sub">
                   Fecha em {formatLocalDate(invoice.closingDate ?? invoice.dueDate)} · Vence em{' '}
                   {formatLocalDate(invoice.dueDate)}
@@ -112,7 +114,7 @@ export default function InvoiceDetailPage() {
 
               <div className="col gap-2">
                 <div className="row gap-2" style={{ flexWrap: 'wrap' }}>
-                  {remainingAmount > 0 && (
+                  {canPayInvoice(invoice) && (
                     <Button
                       variant="primary"
                       leading={<Check size={14} />}
@@ -122,7 +124,7 @@ export default function InvoiceDetailPage() {
                       Pagar fatura
                     </Button>
                   )}
-                  {invoice.status !== 'PAID' && (
+                  {canSettleInvoice(invoice) && (
                     <Button
                       leading={<Check size={14} />}
                       disabled={isSettling}
@@ -147,7 +149,8 @@ export default function InvoiceDetailPage() {
                 <p className="text-xs" style={{ color: 'var(--text-dim)' }}>
                   <strong>Pagar fatura</strong> lança a despesa numa conta e baixa o saldo.{' '}
                   <strong>Marcar como paga</strong> só quita a fatura — para um histórico já
-                  liquidado fora do app; as compras seguem pendentes e o saldo não muda.
+                  liquidado fora do app; as compras ficam pagas e o saldo não muda. Só depois do
+                  fechamento.
                 </p>
               </div>
             </div>
@@ -203,9 +206,9 @@ export default function InvoiceDetailPage() {
                               <IconBubble
                                 color={cat?.color ?? 'var(--text-muted)'}
                                 size="sm"
-                                glyph={cat?.name?.[0]?.toUpperCase() ?? '?'}
+                                glyph={(cat?.name ?? item.description)[0]?.toUpperCase() ?? '·'}
                               />
-                              {item.subcategoryName ?? item.categoryName ?? '—'}
+                              {item.subcategoryName ?? item.categoryName ?? 'Sem categoria'}
                             </span>
                           </td>
                           <td className="cell-meta">

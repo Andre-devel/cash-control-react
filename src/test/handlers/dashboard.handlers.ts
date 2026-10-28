@@ -85,9 +85,11 @@ export const MOCK_UPCOMING_INVOICES: UpcomingInvoiceItem[] = [
   {
     invoiceId: 'invoice-1',
     cardName: 'Nubank',
-    referenceMonth: '2026-05',
     totalAmount: '800.00',
+    paidAmount: '0.00',
+    remainingAmount: '800.00',
     dueDate: '2026-06-10',
+    status: 'CLOSED',
   },
 ]
 

@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Money } from '@/components/ui/money'
 import { Select } from '@/components/ui/select'
 import { useCards } from '@/features/cards/hooks/use-cards'
-import { dueMonthLabelWithYear } from '@/features/cards/utils/invoice-month'
+import { invoiceLabel } from '@/features/cards/utils/invoice-month'
 import { useInvoices } from '@/features/invoices/hooks/use-invoices'
 import {
   INVOICE_STATUS_LABELS,
@@ -33,6 +33,14 @@ function invoiceHref(invoice: InvoiceSummary) {
   return ROUTES.INVOICE_DETAIL.replace(':invoiceId', invoice.id)
 }
 
+/** "4 lançamentos", ou "4 lançamentos (3 importados)" quando parte veio do PDF. */
+function itemCountLabel(invoice: InvoiceSummary): string {
+  const count = `${invoice.itemCount} ${invoice.itemCount === 1 ? 'lançamento' : 'lançamentos'}`
+  if (invoice.importedItemCount === 0) return count
+  if (invoice.importedItemCount === invoice.itemCount) return `${count}, importados`
+  return `${count} (${invoice.importedItemCount} importados)`
+}
+
 function InvoiceCard({ invoice }: { invoice: InvoiceSummary }) {
   return (
     <Link
@@ -42,15 +50,12 @@ function InvoiceCard({ invoice }: { invoice: InvoiceSummary }) {
     >
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="row between">
-          <span className="title">{dueMonthLabelWithYear(invoice.referenceMonth)}</span>
+          <span className="title">{invoiceLabel(invoice.dueDate)}</span>
           <Badge kind={invoiceStatusBadgeKind(invoice.status)} dot={false} square>
             {INVOICE_STATUS_LABELS[invoice.status]}
           </Badge>
         </div>
-        <div className="meta">
-          {invoice.itemCount} {invoice.itemCount === 1 ? 'lançamento' : 'lançamentos'}
-          {invoice.importedItemCount > 0 && ` · ${invoice.importedItemCount} importados`}
-        </div>
+        <div className="meta">{itemCountLabel(invoice)}</div>
       </div>
       <div className="amount mono" style={{ alignSelf: 'center' }}>
         <Money value={parseFloat(invoice.totalAmount)} />
@@ -63,6 +68,7 @@ export default function InvoicesPage() {
   const { data: cards, isLoading: cardsLoading } = useCards()
   const [cardId, setCardId] = useState<string | null>(null)
   const isMobile = useMediaQuery(MOBILE_QUERY)
+  const navigate = useNavigate()
 
   const activeCards = useMemo(() => cards?.filter((c) => !c.archivedAt) ?? [], [cards])
 
@@ -140,8 +146,12 @@ export default function InvoicesPage() {
               </thead>
               <tbody>
                 {invoices.content.map((invoice) => (
-                  <tr key={invoice.id}>
-                    <td>{dueMonthLabelWithYear(invoice.referenceMonth)}</td>
+                  <tr
+                    key={invoice.id}
+                    onClick={() => navigate(invoiceHref(invoice))}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>{invoiceLabel(invoice.dueDate)}</td>
                     <td>
                       <Badge kind={invoiceStatusBadgeKind(invoice.status)} dot={false} square>
                         {INVOICE_STATUS_LABELS[invoice.status]}
@@ -153,15 +163,11 @@ export default function InvoicesPage() {
                     <td className="num mono">
                       <Money value={parseFloat(invoice.paidAmount)} />
                     </td>
-                    <td>
-                      {invoice.itemCount}
-                      {invoice.importedItemCount > 0 &&
-                        ` · ${invoice.importedItemCount} importados`}
-                    </td>
+                    <td>{itemCountLabel(invoice)}</td>
                     <td>
                       <Link
                         to={invoiceHref(invoice)}
-                        aria-label={`Abrir fatura de ${dueMonthLabelWithYear(invoice.referenceMonth)}`}
+                        aria-label={`Abrir fatura de ${invoiceLabel(invoice.dueDate)}`}
                         style={{ display: 'flex', color: 'var(--text-dim)' }}
                       >
                         <ChevronRight size={16} aria-hidden="true" />

@@ -64,7 +64,7 @@ export default function CardsPage() {
 
   useEffect(() => {
     if (selectedCard) {
-      setReferenceMonth(getCurrentInvoiceMonth(selectedCard.dueDay))
+      setReferenceMonth(getCurrentInvoiceMonth(selectedCard))
     }
   }, [selectedCard])
 
@@ -143,9 +143,11 @@ export default function CardsPage() {
       ) : (
         <>
           {/* Card visuals row */}
+          {/* Quebra de linha em vez de rolagem lateral: rolando, o "Adicionar cartão" ficava
+              cortado na borda e parecia não existir. */}
           <div
             className="row gap-4 mb-6"
-            style={{ overflowX: 'auto', paddingBottom: 4 }}
+            style={{ flexWrap: 'wrap' }}
             role="list"
             aria-label="Cartões de crédito"
           >

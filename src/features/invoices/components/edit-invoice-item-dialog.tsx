@@ -22,7 +22,8 @@ export function EditInvoiceItemDialog({ item, open, onClose }: EditInvoiceItemDi
 
   const [description, setDescription] = useState('')
   const [categoryId, setCategoryId] = useState<string | null>(null)
-  const [rememberMerchant, setRememberMerchant] = useState(true)
+  // Desmarcado: gravar o padrão muda as próximas importações, e isso tem de ser escolha.
+  const [rememberMerchant, setRememberMerchant] = useState(false)
   const [applyToHistory, setApplyToHistory] = useState(false)
 
   // Reabre os campos a cada item novo — o diálogo é montado uma vez pela página e reusado.
@@ -30,7 +31,7 @@ export function EditInvoiceItemDialog({ item, open, onClose }: EditInvoiceItemDi
     if (open && item) {
       setDescription(item.description)
       setCategoryId(item.categoryId)
-      setRememberMerchant(true)
+      setRememberMerchant(false)
       setApplyToHistory(false)
     }
   }, [open, item])
@@ -55,7 +56,8 @@ export function EditInvoiceItemDialog({ item, open, onClose }: EditInvoiceItemDi
           description: description.trim(),
           categoryId,
           subcategoryId: null,
-          rememberMerchant,
+          // Lançamento manual não tem estabelecimento do PDF para virar padrão.
+          rememberMerchant: item.imported && rememberMerchant,
           applyToHistory,
         },
       },
@@ -127,33 +129,35 @@ export function EditInvoiceItemDialog({ item, open, onClose }: EditInvoiceItemDi
           />
         </Field>
 
-        <label
-          style={{
-            display: 'flex',
-            gap: 10,
-            alignItems: 'flex-start',
-            padding: '10px 12px',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--r-3)',
-            background: 'var(--surface-2)',
-            cursor: 'pointer',
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={rememberMerchant}
-            onChange={(e) => setRememberMerchant(e.target.checked)}
-            style={{ marginTop: 2, flexShrink: 0 }}
-          />
-          <span style={{ fontSize: 13 }}>
-            <strong>Gravar como padrão deste estabelecimento</strong>
-            <span
-              style={{ display: 'block', fontSize: 12, color: 'var(--text-dim)', marginTop: 2 }}
-            >
-              A próxima importação já vem com esta descrição pré-preenchida.
+        {item.imported && (
+          <label
+            style={{
+              display: 'flex',
+              gap: 10,
+              alignItems: 'flex-start',
+              padding: '10px 12px',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--r-3)',
+              background: 'var(--surface-2)',
+              cursor: 'pointer',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={rememberMerchant}
+              onChange={(e) => setRememberMerchant(e.target.checked)}
+              style={{ marginTop: 2, flexShrink: 0 }}
+            />
+            <span style={{ fontSize: 13 }}>
+              <strong>Gravar como padrão deste estabelecimento</strong>
+              <span
+                style={{ display: 'block', fontSize: 12, color: 'var(--text-dim)', marginTop: 2 }}
+              >
+                A próxima importação já vem com esta descrição pré-preenchida.
+              </span>
             </span>
-          </span>
-        </label>
+          </label>
+        )}
 
         {relatedCount > 0 && (
           <label

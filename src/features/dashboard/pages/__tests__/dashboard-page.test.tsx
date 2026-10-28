@@ -187,7 +187,7 @@ describe('DashboardPage', () => {
   it('renders bottom row with open invoices and recent transactions', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
-      expect(screen.getByText('Faturas em aberto')).toBeTruthy()
+      expect(screen.getByText('Faturas a pagar')).toBeTruthy()
       expect(screen.getByText('Transações recentes')).toBeTruthy()
     })
   })

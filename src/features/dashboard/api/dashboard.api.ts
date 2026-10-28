@@ -55,9 +55,10 @@ export async function getUpcomingBills(daysAhead?: number): Promise<UpcomingBill
   return response.data
 }
 
-export async function getUpcomingInvoices(): Promise<UpcomingInvoiceItem[]> {
+export async function getUpcomingInvoices(daysAhead?: number): Promise<UpcomingInvoiceItem[]> {
   const response = await axiosInstance.get<UpcomingInvoiceItem[]>(
     '/dashboard/widgets/upcoming-invoices',
+    { params: daysAhead !== undefined ? { daysAhead } : undefined },
   )
   return response.data
 }

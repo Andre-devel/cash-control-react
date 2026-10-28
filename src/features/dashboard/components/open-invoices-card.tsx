@@ -9,7 +9,7 @@ import { useUpcomingInvoices } from '@/features/dashboard/hooks/use-upcoming-inv
 import { ROUTES } from '@/app/router/routes'
 import { formatShortDate } from '@/lib/format-date'
 import { daysUntil } from '@/lib/local-date'
-import { dueMonthLabelWithYear } from '@/features/cards/utils/invoice-month'
+import { invoiceLabel } from '@/features/cards/utils/invoice-month'
 
 const INVOICE_COLORS = ['#60a5fa', '#c084fc', '#34d399', '#fbbf24', '#fb7185']
 
@@ -28,17 +28,21 @@ function CardSkeleton() {
   )
 }
 
+/** A mesma janela de "Próximas contas"; vencidas entram sempre. */
+const UPCOMING_DAYS = 14
+
 export function OpenInvoicesCard() {
-  const { data, isLoading, isError, refetch } = useUpcomingInvoices()
+  const { data, isLoading, isError, refetch } = useUpcomingInvoices(UPCOMING_DAYS)
   const invoices = data ?? []
 
   return (
     <div className="card">
       <div className="card-h">
         <div>
-          <h3>Faturas em aberto</h3>
+          <h3>Faturas a pagar</h3>
           <div className="sub">
-            {invoices.length} {invoices.length === 1 ? 'cartão' : 'cartões'} com fatura aberta
+            {invoices.length} {invoices.length === 1 ? 'fatura' : 'faturas'} · vencidas e próximos{' '}
+            {UPCOMING_DAYS} dias
           </div>
         </div>
         <div className="right">
@@ -51,9 +55,7 @@ export function OpenInvoicesCard() {
         <CardSkeleton />
       ) : isError ? (
         <div className="card-b" role="alert">
-          <p style={{ color: 'var(--expense)', fontSize: 13 }}>
-            Erro ao carregar faturas em aberto.
-          </p>
+          <p style={{ color: 'var(--expense)', fontSize: 13 }}>Erro ao carregar faturas a pagar.</p>
           <button
             type="button"
             onClick={() => void refetch()}
@@ -75,7 +77,7 @@ export function OpenInvoicesCard() {
           className="card-b"
           style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: 13 }}
         >
-          Nenhuma fatura em aberto.
+          Nenhuma fatura fechada a pagar.
         </div>
       ) : (
         <div
@@ -84,10 +86,10 @@ export function OpenInvoicesCard() {
         >
           {invoices.map((inv, idx) => {
             const color = INVOICE_COLORS[idx % INVOICE_COLORS.length] ?? '#60a5fa'
-            const days = Math.max(0, daysUntil(inv.dueDate))
+            const days = daysUntil(inv.dueDate)
             return (
               <div
-                key={inv.invoiceId ?? `${inv.cardName}-${inv.referenceMonth}`}
+                key={inv.invoiceId}
                 style={{
                   padding: 14,
                   borderRadius: 10,
@@ -113,17 +115,15 @@ export function OpenInvoicesCard() {
                       >
                         {inv.cardName}
                       </Link>
-                      <div className="text-xs text-dim">
-                        {inv.referenceMonth && dueMonthLabelWithYear(inv.referenceMonth)}
-                      </div>
+                      <div className="text-xs text-dim">{invoiceLabel(inv.dueDate)}</div>
                     </div>
                   </div>
-                  <Badge kind={days <= 3 ? 'pending' : 'info'}>
-                    Vence {formatShortDate(inv.dueDate)}
+                  <Badge kind={days < 0 ? 'cancelled' : days <= 3 ? 'pending' : 'info'}>
+                    {days < 0 ? 'Venceu' : 'Vence'} {formatShortDate(inv.dueDate)}
                   </Badge>
                 </div>
                 <div className="num text-2xl mt-2" style={{ fontWeight: 500 }}>
-                  <Money value={parseFloat(inv.totalAmount)} />
+                  <Money value={parseFloat(inv.remainingAmount)} />
                 </div>
               </div>
             )

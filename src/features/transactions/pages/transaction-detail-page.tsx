@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
 import { formatInstantDate, formatLocalDate } from '@/lib/format-date'
@@ -60,6 +60,8 @@ export default function TransactionDetailPage() {
     )
   }
 
+  const isInvoicePayment = transaction.type === 'INVOICE_PAYMENT'
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -114,7 +116,7 @@ export default function TransactionDetailPage() {
             className="min-h-[44px]"
             onClick={() => setDeleteOpen(true)}
           >
-            Excluir
+            {isInvoicePayment ? 'Estornar pagamento' : 'Excluir'}
           </Button>
         </div>
       </div>
@@ -166,6 +168,19 @@ export default function TransactionDetailPage() {
               <p className="text-xs text-dim">Criado em</p>
               <p className="text-sm">{formatInstantDate(transaction.createdAt)}</p>
             </div>
+            {isInvoicePayment && transaction.paidInvoiceId && (
+              <div>
+                <p className="text-xs text-dim">Fatura</p>
+                <p className="text-sm">
+                  <Link
+                    to={ROUTES.INVOICE_DETAIL.replace(':invoiceId', transaction.paidInvoiceId)}
+                    className="link"
+                  >
+                    Ver fatura paga
+                  </Link>
+                </p>
+              </div>
+            )}
             {transaction.accountName && (
               <div>
                 <p className="text-xs text-dim">Conta</p>

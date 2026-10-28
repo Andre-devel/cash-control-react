@@ -26,7 +26,7 @@ import {
   type FaturaImportPreviewRow,
   type InvoiceImportFormat,
 } from '@/features/cards/types'
-import { dueMonthLabelWithYear } from '@/features/cards/utils/invoice-month'
+import { invoiceLabel } from '@/features/cards/utils/invoice-month'
 import { formatLocalDate } from '@/lib/format-date'
 
 interface ImportFaturaDialogProps {
@@ -400,7 +400,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
       {preview ? (
         <div className="col gap-4">
           <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>
-            Fatura de <strong>{dueMonthLabelWithYear(preview.referenceMonth)}</strong> · vence em{' '}
+            Fatura de <strong>{invoiceLabel(preview.dueDate)}</strong> · vence em{' '}
             {formatLocalDate(preview.dueDate)}
             {preview.totalAmount && (
               <>

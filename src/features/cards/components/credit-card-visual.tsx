@@ -81,7 +81,7 @@ export function CreditCardVisual({ card, selected, onSelect }: CreditCardVisualP
             className="text-xs text-faint"
             style={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}
           >
-            Fatura aberta
+            Limite usado
           </div>
           <div className="mono text-sm fw-500">
             {usedAmount !== null ? <Money value={usedAmount} /> : '—'}

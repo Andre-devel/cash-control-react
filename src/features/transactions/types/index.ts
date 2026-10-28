@@ -38,6 +38,8 @@ export interface Transaction {
   createdAt: string
   paymentMethod: PaymentMethod
   creditCard: { id: string; name: string; brand: string } | null
+  /** Só em INVOICE_PAYMENT: a fatura que este pagamento quitou. */
+  paidInvoiceId?: string | null
   notes?: string
   accountName?: string
   categoryName?: string

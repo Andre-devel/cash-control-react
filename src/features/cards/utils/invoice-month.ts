@@ -2,16 +2,13 @@
  * A tradução entre o mês que o sistema guarda e o mês que o usuário reconhece.
  *
  * `referenceMonth` (`invoices.reference_month`) é o mês em que a fatura **fecha**. O
- * vencimento cai sempre no mês seguinte — o backend crava isso em
- * `InvoiceCycleCalculator.dueDateFor`, que faz `plusMonths(1)` sobre a data de fechamento.
+ * vencimento é o primeiro `dueDay` depois do fechamento — o backend crava isso em
+ * `InvoiceCycleCalculator.dueDateFor`: no mesmo mês quando `dueDay > closingDay` (fecha
+ * 01/11, vence 10/11), no mês seguinte caso contrário (fecha 25/10, vence 05/11).
  *
- * Só que o emissor nomeia a fatura pelo mês em que ela **vence**: a que o Inter chama de
- * "fatura de maio" é a que fecha em abril e é gravada aqui como `2026-04`. Exibir o
- * `referenceMonth` cru fazia a aba dizer "Abr" ao lado de um vencimento em 07/05.
- *
- * Por isso a chave continua sendo o mês de fechamento (é ela que busca a fatura na API) e
- * só o rótulo passa a ser o mês do vencimento. As duas convenções conviverem em um arquivo
- * só evita que a próxima tela redescubra o deslocamento por conta própria.
+ * O emissor nomeia a fatura pelo mês em que ela **vence**. Por isso a chave continua sendo o
+ * mês de fechamento (é ela que busca a fatura na API) e o rótulo é o mês do vencimento:
+ * pela `dueDate` quando a fatura já está em mãos, pelo ciclo do cartão quando só há a chave.
  */
 
 const MONTH_LABELS = [
@@ -36,34 +33,52 @@ export function shiftMonth(yyyyMm: string, delta: number): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
 
+/** Os dias do cartão que definem o ciclo da fatura. */
+export interface InvoiceCycle {
+  closingDay: number
+  dueDay: number
+}
+
+function dueInSameMonth(cycle: InvoiceCycle): boolean {
+  return cycle.dueDay > cycle.closingDay
+}
+
+/** `referenceMonth` → mês em que essa fatura vence. */
+export function dueMonthOf(yyyyMm: string, cycle: InvoiceCycle): string {
+  return shiftMonth(yyyyMm, dueInSameMonth(cycle) ? 0 : 1)
+}
+
 /**
  * O `referenceMonth` da fatura que o usuário chama de "atual": a do **próximo vencimento a
- * cair**, que é a que ele está a ponto de pagar.
+ * cair**, que é a que ele está a ponto de pagar — não a fatura em que cairia uma compra feita
+ * hoje (essa é a `calculateForCharge` do backend).
  *
- * <p>Sai do `dueDay`, não do `closingDay`. Derivar do fechamento responde outra pergunta —
- * "em que fatura cairia uma compra feita hoje" —, que é o que `calculateForCharge` faz no
- * backend. As duas coincidem quando o cartão fecha tarde no mês, e divergem quando fecha
- * cedo: com fechamento dia 1 e vencimento dia 10, em 18/08 a compra de hoje cai na fatura
- * `2026-09` (vence 10/10), mas a fatura atual é a `2026-08`, que vence em 10/09.
- *
- * <p>Como o vencimento é sempre no mês seguinte ao fechamento, a conta é: enquanto o
- * vencimento deste mês não passou, a fatura atual é a do mês anterior; depois dele, a deste
- * mês.
+ * <p>Enquanto o vencimento deste mês não passou, a fatura atual é a que vence neste mês;
+ * depois dele, a que vence no seguinte.
  */
-export function getCurrentInvoiceMonth(dueDay: number): string {
+export function getCurrentInvoiceMonth(cycle: InvoiceCycle): string {
   const today = new Date()
   const thisMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
-  return today.getDate() <= dueDay ? shiftMonth(thisMonth, -1) : thisMonth
+  const dueMonth = today.getDate() <= cycle.dueDay ? thisMonth : shiftMonth(thisMonth, 1)
+  return shiftMonth(dueMonth, dueInSameMonth(cycle) ? 0 : -1)
+}
+
+function monthLabel(yyyyMm: string): string {
+  return MONTH_LABELS[Number(yyyyMm.split('-')[1]) - 1]
 }
 
 /** `'2026-04'` → `'Mai'`, o mês em que essa fatura vence. */
-export function dueMonthLabel(yyyyMm: string): string {
-  const [, month] = shiftMonth(yyyyMm, 1).split('-').map(Number)
-  return MONTH_LABELS[month - 1]
+export function dueMonthLabel(yyyyMm: string, cycle: InvoiceCycle): string {
+  return monthLabel(dueMonthOf(yyyyMm, cycle))
 }
 
 /** `'2026-04'` → `'Mai 2026'`, para onde não cabe só a abreviação. */
-export function dueMonthLabelWithYear(yyyyMm: string): string {
-  const [year] = shiftMonth(yyyyMm, 1).split('-').map(Number)
-  return `${dueMonthLabel(yyyyMm)} ${year}`
+export function dueMonthLabelWithYear(yyyyMm: string, cycle: InvoiceCycle): string {
+  const dueMonth = dueMonthOf(yyyyMm, cycle)
+  return `${monthLabel(dueMonth)} ${dueMonth.slice(0, 4)}`
+}
+
+/** Vencimento `'2026-11-10'` → `'Nov 2026'`: o nome da fatura quando ela já está em mãos. */
+export function invoiceLabel(dueDate: string): string {
+  return `${monthLabel(dueDate.slice(0, 7))} ${dueDate.slice(0, 4)}`
 }

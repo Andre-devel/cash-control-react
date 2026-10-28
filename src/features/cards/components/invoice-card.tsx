@@ -7,14 +7,13 @@ import { Money } from '@/components/ui/money'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 import type { Card, Invoice } from '@/features/cards/types'
-import { canPayInvoice } from '@/features/invoices/utils/invoice-status'
+import { canPayInvoice, dueBadge } from '@/features/invoices/utils/invoice-status'
 import {
   dueMonthLabel,
   getCurrentInvoiceMonth,
   shiftMonth,
 } from '@/features/cards/utils/invoice-month'
 import { formatLocalDate } from '@/lib/format-date'
-import { daysUntil } from '@/lib/local-date'
 
 interface InvoiceCardProps {
   card: Card
@@ -38,7 +37,7 @@ export function InvoiceCard({
   // nunca encontra subcategorias.
   const flatCategories = useMemo(() => flattenCategories(categories ?? []), [categories])
 
-  const currentMonth = getCurrentInvoiceMonth(card.dueDay)
+  const currentMonth = getCurrentInvoiceMonth(card)
   // O rótulo é o mês do vencimento, não o do fechamento: é assim que o emissor nomeia a
   // fatura, e a chave que vai para a API continua sendo o mês de fechamento. A aba corrente
   // diz o mês também — rotulada só como "Atual", ela escondia o seu, e as vizinhas pareciam
@@ -47,14 +46,14 @@ export function InvoiceCard({
     const key = shiftMonth(currentMonth, offset)
     return {
       key,
-      label: offset === 0 ? `${dueMonthLabel(key)} · Atual` : dueMonthLabel(key),
+      label: offset === 0 ? `${dueMonthLabel(key, card)} · Atual` : dueMonthLabel(key, card),
     }
   })
 
   const closesAtDay = String(card.closingDay).padStart(2, '0')
   const closesAt = invoice?.closingDate ?? `${referenceMonth}-${closesAtDay}`
 
-  const daysUntilDue = invoice ? Math.max(0, daysUntil(invoice.dueDate)) : 0
+  const due = invoice ? dueBadge(invoice) : null
 
   const totalAmount = invoice ? parseFloat(invoice.totalAmount) : 0
   const paidAmount = invoice ? parseFloat(invoice.paidAmount) : 0
@@ -144,9 +143,11 @@ export function InvoiceCard({
                 </div>
               </div>
               <div className="invoice-due" style={{ textAlign: 'right' }}>
-                <Badge kind={daysUntilDue <= 3 ? 'pending' : 'info'} dot={false}>
-                  Vence em {daysUntilDue} {daysUntilDue === 1 ? 'dia' : 'dias'}
-                </Badge>
+                {due && (
+                  <Badge kind={due.kind} dot={false}>
+                    {due.label}
+                  </Badge>
+                )}
                 <div className="text-xs text-dim mt-2">{formatLocalDate(invoice.dueDate)}</div>
               </div>
               {canPayInvoice(invoice) && (
@@ -177,12 +178,13 @@ export function InvoiceCard({
                       <IconBubble
                         color={cat?.color ?? 'var(--text-muted)'}
                         size="sm"
-                        glyph={cat?.name?.[0]?.toUpperCase() ?? '?'}
+                        glyph={(cat?.name ?? item.description)[0]?.toUpperCase() ?? '·'}
                       />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="title">{item.description}</div>
                         <div className="meta">
-                          {cat?.name ?? '—'} · {formatLocalDate(item.competenceDate)}
+                          {item.subcategoryName ?? cat?.name ?? 'Sem categoria'} ·{' '}
+                          {formatLocalDate(item.competenceDate)}
                         </div>
                       </div>
                       <div className="amount mono">

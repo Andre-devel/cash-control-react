@@ -61,7 +61,7 @@ export default function CardDetailPage() {
 
   useEffect(() => {
     if (card && referenceMonth === null) {
-      setReferenceMonth(getCurrentInvoiceMonth(card.dueDay))
+      setReferenceMonth(getCurrentInvoiceMonth(card))
     }
   }, [card, referenceMonth])
 
@@ -187,7 +187,7 @@ export default function CardDetailPage() {
                   ‹
                 </Button>
                 <span className="text-sm fw-500" style={{ width: 80, textAlign: 'center' }}>
-                  {referenceMonth ? dueMonthLabelWithYear(referenceMonth) : '—'}
+                  {referenceMonth ? dueMonthLabelWithYear(referenceMonth, card) : '—'}
                 </span>
                 <Button
                   variant="ghost"

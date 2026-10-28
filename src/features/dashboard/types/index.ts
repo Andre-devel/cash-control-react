@@ -65,12 +65,13 @@ export interface UpcomingBillItem {
 }
 
 export interface UpcomingInvoiceItem {
-  invoiceId?: string
+  invoiceId: string
   cardName: string
-  referenceMonth?: string
   totalAmount: string
+  paidAmount: string
+  remainingAmount: string
   dueDate: string
-  status?: string
+  status: 'CLOSED' | 'PARTIAL' | 'OVERDUE'
 }
 
 export interface LargestExpenseItem {
