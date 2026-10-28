@@ -40,6 +40,7 @@ import { EditTransactionDialog } from '@/features/transactions/components/edit-t
 import { DeleteTransactionDialog } from '@/features/transactions/components/delete-transaction-dialog'
 import { CancelTransactionDialog } from '@/features/transactions/components/cancel-transaction-dialog'
 import { ImportStatementDialog } from '@/features/transactions/components/import-statement-dialog'
+import { ImportReconciliationDialog } from '@/features/transactions/components/import-reconciliation-dialog'
 import { usePayTransaction } from '@/features/transactions/hooks/use-pay-transaction'
 import { ROUTES } from '@/app/router/routes'
 import { useMediaQuery, MOBILE_QUERY } from '@/hooks/use-media-query'
@@ -271,6 +272,7 @@ export default function TransactionsPage() {
 
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  const [reconcileOpen, setReconcileOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Transaction | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null)
   const [cancelTarget, setCancelTarget] = useState<Transaction | null>(null)
@@ -629,7 +631,15 @@ export default function TransactionsPage() {
       )}
 
       <CreateTransactionDialog open={createOpen} onClose={() => setCreateOpen(false)} />
-      <ImportStatementDialog open={importOpen} onClose={() => setImportOpen(false)} />
+      <ImportStatementDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onReconcile={() => {
+          setImportOpen(false)
+          setReconcileOpen(true)
+        }}
+      />
+      <ImportReconciliationDialog open={reconcileOpen} onClose={() => setReconcileOpen(false)} />
 
       <EditTransactionDialog
         transaction={editTarget}

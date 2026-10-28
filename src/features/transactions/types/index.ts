@@ -334,3 +334,34 @@ export interface ReceiptCommitRequest {
   subcategoryId?: string | null
   status?: TransactionStatus
 }
+
+export type ReconciliationKind = 'INVOICE_PAYMENT' | 'INVESTMENT' | 'SERIES_MERGE'
+
+/** Correção proposta para um lançamento importado antes das regras atuais do import. */
+export interface ReconciliationProposal {
+  kind: ReconciliationKind
+  /** Transação a converter; em SERIES_MERGE, a série que fica. */
+  id: string
+  date: string
+  description: string
+  amount: string
+  accountName: string
+  /** O que vai acontecer, em pt-BR. */
+  detail: string
+}
+
+export interface ImportReconciliationResponse {
+  investmentAccountMissing: boolean
+  proposals: ReconciliationProposal[]
+}
+
+export interface ApplyReconciliationRequest {
+  items: { kind: ReconciliationKind; id: string }[]
+}
+
+export interface ApplyReconciliationResult {
+  invoicePayments: number
+  investments: number
+  seriesMerged: number
+  skipped: number
+}

@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '@/app/router/routes'
 import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
@@ -72,7 +74,18 @@ function typeOptionsOf(row: ImportPreviewRow): TransactionType[] {
 interface ImportStatementDialogProps {
   open: boolean
   onClose: () => void
+  /** Abre a correção dos lançamentos importados antes das regras atuais. */
+  onReconcile?: () => void
 }
+
+const LINK_STYLE = {
+  background: 'none',
+  border: 0,
+  padding: 0,
+  color: 'var(--accent)',
+  cursor: 'pointer',
+  font: 'inherit',
+} as const
 
 const NOTE_STYLE = {
   border: '1px solid var(--border)',
@@ -82,7 +95,7 @@ const NOTE_STYLE = {
   fontSize: 13,
 } as const
 
-export function ImportStatementDialog({ open, onClose }: ImportStatementDialogProps) {
+export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStatementDialogProps) {
   const { data: allAccounts = [] } = useAccounts()
   const accounts = useMemo(() => allAccounts.filter((a) => !a.archivedAt), [allAccounts])
   const { data: categories = [] } = useCategories()
@@ -101,6 +114,7 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
    */
   const [edits, setEdits] = useState<Record<string, RowEdit>>({})
   const [keepCurrentBalance, setKeepCurrentBalance] = useState(false)
+  const navigate = useNavigate()
 
   const { mutate: analyze, isPending: isAnalyzing } = useStatementImportPreview()
   const { mutate: commit, isPending: isImporting } = useCommitStatementImport()
@@ -749,6 +763,30 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
               Nada é gravado nesta etapa. Você vai conferir os lançamentos classificados antes de
               confirmar, e os que já tiverem sido importados nesta conta virão desmarcados.
             </span>
+          </div>
+
+          <div className="col gap-1" style={{ fontSize: 12, color: 'var(--text-dim)' }}>
+            <span>
+              Só um Pix?{' '}
+              <button
+                type="button"
+                onClick={() => void navigate(ROUTES.SHARE_TARGET)}
+                style={LINK_STYLE}
+              >
+                Lançar comprovante Pix
+              </button>{' '}
+              (imagem ou PDF do app do banco).
+            </span>
+            {onReconcile && (
+              <span>
+                Importou extratos ou faturas antes? Pagamentos de fatura como despesa, aplicações e
+                parcelamentos partidos podem ser corrigidos em{' '}
+                <button type="button" onClick={onReconcile} style={LINK_STYLE}>
+                  Corrigir importações antigas
+                </button>
+                .
+              </span>
+            )}
           </div>
         </div>
       )}

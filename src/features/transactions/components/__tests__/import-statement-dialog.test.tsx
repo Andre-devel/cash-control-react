@@ -283,6 +283,16 @@ describe('ImportStatementDialog', () => {
 })
 
 describe('ImportStatementDialog — saldo, investimento e fatura', () => {
+  it('links to the Pix receipt flow and to the reconciliation of old imports', async () => {
+    const onReconcile = vi.fn()
+    const user = userEvent.setup()
+    renderWithProviders(<ImportStatementDialog open onClose={vi.fn()} onReconcile={onReconcile} />)
+
+    expect(screen.getByRole('button', { name: /lançar comprovante pix/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /corrigir importações antigas/i }))
+    expect(onReconcile).toHaveBeenCalled()
+  })
+
   it('header checkbox is mixed when only part of the rows is checked', async () => {
     const user = userEvent.setup()
     renderDialog()
