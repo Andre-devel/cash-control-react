@@ -1,3 +1,5 @@
+import { formatCompactNumber } from '@/lib/money'
+
 interface DonutSegment {
   value: number
   color: string
@@ -71,7 +73,7 @@ export function DonutChart({ segments, total, size = 160 }: DonutChartProps) {
         fontWeight="500"
         style={{ fontVariantNumeric: 'tabular-nums' }}
       >
-        R$ {(total / 1000).toFixed(1).replace('.', ',')}k
+        R$ {formatCompactNumber(total)}
       </text>
     </svg>
   )

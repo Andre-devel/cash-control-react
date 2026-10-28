@@ -16,7 +16,7 @@ const ROUTE_LABELS: Array<{ path: string; label: string }> = [
   { path: ROUTES.CATEGORIES, label: 'Categorias' },
   { path: ROUTES.INSTALLMENTS, label: 'Parcelamentos' },
   { path: ROUTES.RECURRENCES, label: 'Recorrências' },
-  { path: ROUTES.PROFILE, label: 'Configurações' },
+  { path: ROUTES.PROFILE, label: 'Perfil' },
   { path: ROUTES.ROLES, label: 'Funções' },
   { path: ROUTES.AUDIT, label: 'Auditoria' },
 ]

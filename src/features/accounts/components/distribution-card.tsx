@@ -72,7 +72,7 @@ export function DistributionCard({ accounts, totalBalance }: DistributionCardPro
           {Object.entries(totalByType).map(([type, d]) => {
             const pct = totalBalance > 0 ? (d.value / totalBalance) * 100 : 0
             return (
-              <div key={type} className="row gap-3" style={{ alignItems: 'center' }}>
+              <div key={type} className="row gap-2" style={{ alignItems: 'center' }}>
                 <span
                   style={{
                     width: 8,
@@ -83,10 +83,7 @@ export function DistributionCard({ accounts, totalBalance }: DistributionCardPro
                     flexShrink: 0,
                   }}
                 />
-                <span
-                  className="truncate"
-                  style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0 }}
-                >
+                <span style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0 }}>
                   {ACCOUNT_TYPE_LABELS_PT[type] ?? type}
                 </span>
                 <span className="mono text-sm text-dim" style={{ flexShrink: 0 }}>

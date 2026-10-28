@@ -94,7 +94,7 @@ describe('Sidebar', () => {
 
   it('renders Sistema nav items', () => {
     renderSidebar()
-    expect(screen.getByText('Configurações')).toBeTruthy()
+    expect(screen.getByText('Perfil')).toBeTruthy()
   })
 
   it('applies active class to the current route nav item', () => {

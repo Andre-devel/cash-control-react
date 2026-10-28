@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/store/auth.store'
 import { getMeApi } from '@/features/auth/api/auth.api'
@@ -17,8 +17,14 @@ export function AuthProvider() {
   const token = useAuthStore((s) => s.token)
   const setUser = useAuthStore((s) => s.setUser)
   const clearSession = useAuthStore((s) => s.clearSession)
+  // StrictMode re-runs mount effects in dev; without this guard the session was
+  // restored (and /auth/me fetched) twice on every load.
+  const initStarted = useRef(false)
 
   useEffect(() => {
+    if (initStarted.current) return
+    initStarted.current = true
+
     async function init() {
       if (token) {
         // An expired access token is recoverable while the refresh cookie lives,
@@ -57,9 +63,12 @@ export function AuthProvider() {
     }
 
     void init()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
     startTokenRefreshScheduler()
     return stopTokenRefreshScheduler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (!initialized) {

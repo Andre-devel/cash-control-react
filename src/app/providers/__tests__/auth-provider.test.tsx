@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen, waitFor, cleanup } from '@testing-library/react'
 import { render } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
+import { StrictMode } from 'react'
 import { AuthProvider } from '../auth-provider'
+import { getMeApi } from '@/features/auth/api/auth.api'
 import { useAuthStore } from '@/features/auth/store/auth.store'
 
 vi.mock('@/styles/theme/dark-mode', () => ({
@@ -56,7 +58,7 @@ function makeValidToken(): string {
   return `${header}.${payload}.sig`
 }
 
-function renderAuthProvider(initialRoute = '/protected') {
+function renderAuthProvider(initialRoute = '/protected', strict = false) {
   const router = createMemoryRouter(
     [
       {
@@ -83,7 +85,8 @@ function renderAuthProvider(initialRoute = '/protected') {
     ],
     { initialEntries: [initialRoute] },
   )
-  return render(<RouterProvider router={router} />)
+  const tree = <RouterProvider router={router} />
+  return render(strict ? <StrictMode>{tree}</StrictMode> : tree)
 }
 
 beforeEach(() => {
@@ -136,5 +139,14 @@ describe('AuthProvider', () => {
       expect(user?.name).toBe('Test User')
       expect(user?.roles).toEqual(['USER'])
     })
+  })
+
+  it('fetches /auth/me only once under StrictMode', async () => {
+    vi.mocked(getMeApi).mockClear()
+    useAuthStore.getState().setToken(makeValidToken())
+    renderAuthProvider('/protected', true)
+
+    expect(await screen.findByRole('heading', { name: /protected/i })).toBeTruthy()
+    expect(getMeApi).toHaveBeenCalledTimes(1)
   })
 })

@@ -190,7 +190,8 @@
   flex-shrink: 0;
 }
 /* Só existe no drawer mobile — no desktop a sidebar é fixa */
-.sidebar-close { display: none; margin-left: auto; flex-shrink: 0; }
+/* Prefixed so it outranks .btn (declared later), which would show it on desktop. */
+.sidebar-brand .sidebar-close { display: none; margin-left: auto; flex-shrink: 0; }
 .sidebar-brand .logo {
   width: 28px; height: 28px;
   border-radius: 8px;
@@ -283,9 +284,7 @@
   color: var(--text-dim);
   font-size: 10px;
   font-family: var(--font-mono, monospace);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 /* ============================================================
@@ -1294,7 +1293,7 @@
     animation: fadeIn 160ms ease;
   }
   .sidebar-nav { overscroll-behavior: contain; }
-  .sidebar-close { display: inline-flex; }
+  .sidebar-brand .sidebar-close { display: inline-flex; }
 
   /* Topbar — mobile height */
   .topbar {

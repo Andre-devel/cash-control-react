@@ -58,14 +58,20 @@ export function ChangePasswordSection() {
 
       <Field label="Confirmar nova senha" error={form.formState.errors.confirmPassword?.message}>
         <PasswordInput
-          placeholder="••••••••"
+          placeholder="Confirmar nova senha"
           autoComplete="new-password"
           error={!!form.formState.errors.confirmPassword}
           {...form.register('confirmPassword')}
         />
       </Field>
 
-      <Button type="submit" disabled={isPending} aria-busy={isPending}>
+      <Button
+        type="submit"
+        variant="primary"
+        className="self-start"
+        disabled={isPending}
+        aria-busy={isPending}
+      >
         {isPending ? (
           <>
             <span

@@ -79,7 +79,13 @@ export default function ProfilePage() {
                 />
               </Field>
 
-              <Button type="submit" disabled={isPending} aria-busy={isPending}>
+              <Button
+                type="submit"
+                variant="primary"
+                className="self-start"
+                disabled={isPending}
+                aria-busy={isPending}
+              >
                 {isPending ? (
                   <>
                     <span

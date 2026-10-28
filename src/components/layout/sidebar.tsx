@@ -9,10 +9,10 @@ import {
   Tag,
   Layers,
   Repeat,
-  Settings,
   ShieldCheck,
   Sun,
   Moon,
+  UserRound,
   X,
 } from 'lucide-react'
 import type { LucideProps } from 'lucide-react'
@@ -52,7 +52,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'installments', label: 'Parcelamentos', icon: Layers, path: ROUTES.INSTALLMENTS },
   { id: 'recurrences', label: 'Recorrências', icon: Repeat, path: ROUTES.RECURRENCES },
   { sec: 'Sistema' },
-  { id: 'settings', label: 'Configurações', icon: Settings, path: ROUTES.PROFILE },
+  { id: 'profile', label: 'Perfil', icon: UserRound, path: ROUTES.PROFILE },
   {
     id: 'audit',
     label: 'Auditoria',
