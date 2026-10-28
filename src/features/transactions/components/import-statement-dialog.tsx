@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Money } from '@/components/ui/money'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
+import { useCreateAccount } from '@/features/accounts/hooks/use-create-account'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import {
   EditableCategoryCell,
@@ -73,6 +74,14 @@ interface ImportStatementDialogProps {
   onClose: () => void
 }
 
+const NOTE_STYLE = {
+  border: '1px solid var(--border)',
+  background: 'var(--surface-3)',
+  borderRadius: 6,
+  padding: '10px 14px',
+  fontSize: 13,
+} as const
+
 export function ImportStatementDialog({ open, onClose }: ImportStatementDialogProps) {
   const { data: allAccounts = [] } = useAccounts()
   const accounts = useMemo(() => allAccounts.filter((a) => !a.archivedAt), [allAccounts])
@@ -91,9 +100,11 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
    * uma das descrições.
    */
   const [edits, setEdits] = useState<Record<string, RowEdit>>({})
+  const [keepCurrentBalance, setKeepCurrentBalance] = useState(false)
 
   const { mutate: analyze, isPending: isAnalyzing } = useStatementImportPreview()
   const { mutate: commit, isPending: isImporting } = useCommitStatementImport()
+  const { mutate: createAccount, isPending: isCreatingAccount } = useCreateAccount()
 
   function reset() {
     setAccountId('')
@@ -102,6 +113,7 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
     setPreview(null)
     setSelected(new Set())
     setEdits({})
+    setKeepCurrentBalance(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -286,6 +298,7 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
       {
         onSuccess: (result) => {
           setPreview(result)
+          setKeepCurrentBalance(result.keepCurrentBalanceSuggested)
           // Duplicatas já entraram numa importação anterior: vêm desmarcadas para
           // que confirmar sem revisar não seja um caminho para duplicar a base.
           setSelected(
@@ -308,11 +321,19 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
     })
   }
 
+  const importableRows = preview?.rows.filter((row) => !row.duplicate) ?? []
+  const allImportableSelected =
+    importableRows.length > 0 && importableRows.every((row) => selected.has(row.externalRef))
+
   function toggleAll() {
-    if (!preview) return
-    const importable = preview.rows.filter((row) => !row.duplicate)
-    const allSelected = importable.every((row) => selected.has(row.externalRef))
-    setSelected(allSelected ? new Set() : new Set(importable.map((row) => row.externalRef)))
+    setSelected(
+      allImportableSelected ? new Set() : new Set(importableRows.map((row) => row.externalRef)),
+    )
+  }
+
+  /** Aplicações viram transferência só com uma conta de investimento: cria e reanalisa. */
+  function handleCreateInvestmentAccount() {
+    createAccount({ name: 'Investimentos', type: 'INVESTMENT' }, { onSuccess: handleAnalyze })
   }
 
   function handleImport() {
@@ -343,7 +364,7 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
         invoiceId: typeOf(row) === 'INVOICE_PAYMENT' ? invoiceIdOf(row) : null,
       }))
 
-    commit({ accountId, format, rows }, { onSuccess: handleClose })
+    commit({ accountId, format, rows, keepCurrentBalance }, { onSuccess: handleClose })
   }
 
   if (!open) return null
@@ -415,6 +436,51 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
             </div>
           )}
 
+          {preview.investmentAccountMissing && (
+            <div role="note" className="col gap-2" style={NOTE_STYLE}>
+              <span>
+                {preview.rows.filter((row) => row.investment).length} aplicação(ões) ou resgate(s)
+                de investimento no extrato. Sem uma conta de investimento eles entram como
+                despesa/receita.
+              </span>
+              <div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleCreateInvestmentAccount}
+                  disabled={isCreatingAccount || isAnalyzing}
+                >
+                  Criar conta &quot;Investimentos&quot; e lançar como transferência
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {preview.rows.some((row) => row.invoicePaymentUnmatched && !row.duplicate) && (
+            <div role="note" style={NOTE_STYLE}>
+              Há pagamento de fatura sem fatura correspondente no sistema (marcado com &quot;sem
+              fatura&quot;). Importe a fatura do cartão antes, ou ele entra como despesa e as
+              compras dela contam duas vezes.
+            </div>
+          )}
+
+          {preview.keepCurrentBalanceSuggested && (
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13 }}>
+              <input
+                type="checkbox"
+                className="checkbox"
+                checked={keepCurrentBalance}
+                onChange={(e) => setKeepCurrentBalance(e.target.checked)}
+              />
+              <span>
+                Manter o saldo atual da conta. O extrato tem lançamentos de antes da conta existir
+                aqui, que já estão no saldo informado; um ajuste de saldo de abertura compensa o
+                histórico importado.
+              </span>
+            </label>
+          )}
+
           {reviewCount > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <span style={{ color: 'var(--text-dim)' }}>
@@ -450,7 +516,10 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                     <input
                       type="checkbox"
                       aria-label="Selecionar todos"
-                      checked={selectedCount > 0 && selectedCount === preview.importableCount}
+                      checked={allImportableSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = selectedCount > 0 && !allImportableSelected
+                      }}
                       onChange={toggleAll}
                     />
                   </th>
@@ -531,6 +600,16 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                             >
                               <Badge kind="pending" square dot={false}>
                                 revisar
+                              </Badge>
+                            </span>
+                          </>
+                        )}
+                        {row.invoicePaymentUnmatched && !needsInvoiceReview(row) && (
+                          <>
+                            {' '}
+                            <span title="Nenhuma fatura com vencimento perto desta data. Importe a fatura do cartão antes.">
+                              <Badge kind="pending" square dot={false}>
+                                sem fatura
                               </Badge>
                             </span>
                           </>

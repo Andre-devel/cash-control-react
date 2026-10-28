@@ -197,6 +197,8 @@ export const MOCK_IMPORT_PREVIEW: ImportPreviewResponse = {
   importableCount: 2,
   duplicateCount: 1,
   warningCount: 1,
+  investmentAccountMissing: false,
+  keepCurrentBalanceSuggested: false,
   rows: [
     {
       lineNumber: 7,
@@ -226,6 +228,8 @@ export const MOCK_IMPORT_PREVIEW: ImportPreviewResponse = {
       invoiceLabel: null,
       invoiceAmountMismatch: false,
       invoiceOptions: [],
+      investment: false,
+      invoicePaymentUnmatched: false,
     },
     {
       lineNumber: 8,
@@ -253,6 +257,8 @@ export const MOCK_IMPORT_PREVIEW: ImportPreviewResponse = {
       invoiceLabel: null,
       invoiceAmountMismatch: false,
       invoiceOptions: [],
+      investment: false,
+      invoicePaymentUnmatched: false,
     },
     {
       lineNumber: 9,
@@ -279,6 +285,8 @@ export const MOCK_IMPORT_PREVIEW: ImportPreviewResponse = {
       invoiceLabel: null,
       invoiceAmountMismatch: false,
       invoiceOptions: [],
+      investment: false,
+      invoicePaymentUnmatched: false,
     },
   ],
   errors: [{ lineNumber: 24, message: "Data inválida: '32/13/2026'. Esperado dd/mm/aaaa." }],

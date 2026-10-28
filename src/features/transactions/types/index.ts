@@ -223,6 +223,10 @@ export interface ImportPreviewRow {
   invoiceAmountMismatch: boolean
   /** Faturas que esta linha de saída pode pagar, as de vencimento mais próximo primeiro. */
   invoiceOptions: ImportInvoiceOption[]
+  /** Aplicação ou resgate de investimento. */
+  investment: boolean
+  /** Parece pagamento de fatura, mas nenhuma fatura com vencimento próximo existe. */
+  invoicePaymentUnmatched: boolean
 }
 
 export interface ImportInvoiceOption {
@@ -244,6 +248,10 @@ export interface ImportPreviewResponse {
   warningCount: number
   rows: ImportPreviewRow[]
   errors: ImportRowError[]
+  /** Há aplicação/resgate e nenhuma conta de investimento para recebê-los. */
+  investmentAccountMissing: boolean
+  /** Há lançamentos novos anteriores à criação da conta. */
+  keepCurrentBalanceSuggested: boolean
 }
 
 export interface ImportCommitRow {
@@ -269,6 +277,8 @@ export interface ImportCommitRequest {
   accountId: string
   format: StatementFormat
   rows: ImportCommitRow[]
+  /** Compensa o efeito dos lançamentos com um saldo de abertura, sem mudar o saldo atual. */
+  keepCurrentBalance?: boolean
 }
 
 export interface ImportResultResponse {

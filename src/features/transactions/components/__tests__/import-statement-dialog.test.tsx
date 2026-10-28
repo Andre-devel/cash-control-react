@@ -109,6 +109,8 @@ function previewWithRepeatedMerchant(): ImportPreviewResponse {
     invoiceLabel: null,
     invoiceAmountMismatch: false,
     invoiceOptions: [],
+    investment: false,
+    invoicePaymentUnmatched: false,
   })
 
   return {
@@ -277,6 +279,71 @@ describe('ImportStatementDialog', () => {
     await user.click(selectAll)
     expect(screen.getByRole('button', { name: /importar 2 transações/i })).toBeEnabled()
     expect(within(screen.getByTestId('import-row-8')).getByRole('checkbox')).not.toBeChecked()
+  })
+})
+
+describe('ImportStatementDialog — saldo, investimento e fatura', () => {
+  it('header checkbox is mixed when only part of the rows is checked', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    // Marca a duplicata e desmarca uma nova: o total bate, mas nem todas as novas estão marcadas.
+    await user.click(within(screen.getByTestId('import-row-8')).getByRole('checkbox'))
+    await user.click(within(screen.getByTestId('import-row-9')).getByRole('checkbox'))
+
+    const selectAll = screen.getByRole('checkbox', { name: /selecionar todos/i })
+    expect(selectAll).not.toBeChecked()
+    expect((selectAll as HTMLInputElement).indeterminate).toBe(true)
+  })
+
+  it('suggests keeping the current balance and sends the choice on commit', async () => {
+    vi.mocked(previewStatementImport).mockResolvedValueOnce({
+      ...MOCK_IMPORT_PREVIEW,
+      keepCurrentBalanceSuggested: true,
+    })
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    expect(screen.getByRole('checkbox', { name: /manter o saldo atual/i })).toBeChecked()
+    await user.click(screen.getByRole('button', { name: /importar 2 transações/i }))
+
+    await waitFor(() => expect(getLastImportCommit()).not.toBeNull())
+    expect(getLastImportCommit()!.keepCurrentBalance).toBe(true)
+  })
+
+  it('offers to create an investment account when applications have nowhere to go', async () => {
+    vi.mocked(previewStatementImport).mockResolvedValueOnce({
+      ...MOCK_IMPORT_PREVIEW,
+      investmentAccountMissing: true,
+      rows: MOCK_IMPORT_PREVIEW.rows.map((row, i) =>
+        i === 0 ? { ...row, investment: true } : row,
+      ),
+    })
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    expect(screen.getByText(/1 aplicação\(ões\) ou resgate\(s\)/i)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /criar conta "investimentos"/i }))
+    // Criada a conta, a prévia é refeita para as linhas virarem transferência.
+    await waitFor(() => expect(previewStatementImport).toHaveBeenCalledTimes(2))
+  })
+
+  it('flags an invoice payment with no invoice in the system', async () => {
+    vi.mocked(previewStatementImport).mockResolvedValueOnce({
+      ...MOCK_IMPORT_PREVIEW,
+      rows: MOCK_IMPORT_PREVIEW.rows.map((row, i) =>
+        i === 0 ? { ...row, invoicePaymentUnmatched: true } : row,
+      ),
+    })
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+
+    expect(screen.getByText(/sem fatura correspondente/i)).toBeInTheDocument()
+    expect(screen.getByText('sem fatura')).toBeInTheDocument()
   })
 })
 
