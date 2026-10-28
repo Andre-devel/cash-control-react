@@ -13,8 +13,8 @@ import { useDeleteRecurrence } from '@/features/recurrences/hooks/use-delete-rec
 import type { Recurrence } from '@/features/recurrences/types'
 
 const STRATEGY_LABELS: Record<string, string> = {
-  FUTURE_ONLY: 'Somente futuras — manter transações passadas, excluir apenas as futuras',
-  ALL: 'Todas — excluir todas as transações geradas por esta regra',
+  FUTURE_ONLY: 'Somente futuras — cancelar as ocorrências em aberto a partir de hoje',
+  ALL: 'Todas em aberto — cancelar também as pendentes de datas passadas',
 }
 
 interface DeleteRecurrenceDialogProps {
@@ -107,12 +107,17 @@ export function DeleteRecurrenceDialog({ recurrence, open, onClose }: DeleteRecu
         }}
       >
         <p>
-          <span className="font-medium">Somente futuras:</span> As transações já registradas são
-          mantidas. Apenas as transações futuras que ainda não foram geradas serão removidas.
+          <span className="font-medium">Somente futuras:</span> as ocorrências pendentes a partir de
+          hoje ficam canceladas; as anteriores continuam como estão.
         </p>
         <p>
-          <span className="font-medium">Todas:</span> Todas as transações geradas por esta regra —
-          passadas e futuras — serão excluídas permanentemente. Esta ação não pode ser desfeita.
+          <span className="font-medium">Todas em aberto:</span> cancela também as pendentes ou
+          vencidas de datas passadas.
+        </p>
+        <p>
+          Em ambos os casos as ocorrências pagas são mantidas e as canceladas continuam no histórico
+          (opção &quot;Incluir cancelados&quot; em Transações). A regra deixa de gerar novas
+          ocorrências.
         </p>
       </div>
 

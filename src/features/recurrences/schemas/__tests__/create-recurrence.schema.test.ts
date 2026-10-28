@@ -121,4 +121,29 @@ describe('createRecurrenceSchema', () => {
   it('rejects missing required fields', () => {
     expect(createRecurrenceSchema.safeParse({}).success).toBe(false)
   })
+
+  it('rejects an end date before the start date', () => {
+    const result = createRecurrenceSchema.safeParse({ ...VALID_INPUT, endDate: '2025-12-31' })
+    expect(result.success).toBe(false)
+    expect(result.error?.issues[0]?.path).toEqual(['endDate'])
+  })
+
+  it('requires a card when the payment method is CREDIT_CARD', () => {
+    const result = createRecurrenceSchema.safeParse({
+      ...VALID_INPUT,
+      paymentMethod: 'CREDIT_CARD',
+    })
+    expect(result.success).toBe(false)
+    expect(result.error?.issues[0]?.path).toEqual(['creditCardId'])
+  })
+
+  it('rejects income on a credit card', () => {
+    const result = createRecurrenceSchema.safeParse({
+      ...VALID_INPUT,
+      type: 'INCOME',
+      paymentMethod: 'CREDIT_CARD',
+      creditCardId: 'card-1',
+    })
+    expect(result.success).toBe(false)
+  })
 })

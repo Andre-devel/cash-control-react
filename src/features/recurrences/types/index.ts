@@ -18,7 +18,13 @@ export interface Recurrence {
   categoryName?: string | null
   startDate: string
   endDate?: string | null
+  /** Ponteiro interno da geração em lote; não é a próxima ocorrência. */
   nextOccurrenceDate: string | null
+  /** Primeira ocorrência em aberto a partir de hoje. */
+  nextDueDate?: string | null
+  paymentMethod?: string | null
+  creditCardId?: string | null
+  creditCardName?: string | null
   status: RecurrenceStatus
   pausedAt?: string | null
   resumeAt?: string | null
@@ -35,6 +41,8 @@ export interface CreateRecurrenceRequest {
   categoryId?: string
   startDate: string
   endDate?: string
+  paymentMethod?: string
+  creditCardId?: string
 }
 
 export interface UpdateRecurrenceRequest {

@@ -5,12 +5,16 @@ import { Money } from '@/components/ui/money'
 import type { Recurrence } from '@/features/recurrences/types'
 import { formatLocalDate } from '@/lib/format-date'
 
-const FREQUENCY_LABELS: Record<string, string> = {
-  DAILY: 'Daily',
-  WEEKLY: 'Weekly',
-  BIWEEKLY: 'Biweekly',
-  MONTHLY: 'Monthly',
-  YEARLY: 'Yearly',
+import { FREQUENCY_LABELS } from '@/features/recurrences/schemas/create-recurrence.schema'
+
+const STATUS_BADGES: Record<
+  Recurrence['status'],
+  { label: string; kind: 'pending' | 'paid' | 'muted' }
+> = {
+  ACTIVE: { label: 'Ativa', kind: 'paid' },
+  PAUSED: { label: 'Pausada', kind: 'pending' },
+  ENDED: { label: 'Encerrada', kind: 'muted' },
+  DELETED: { label: 'Excluída', kind: 'muted' },
 }
 
 interface RecurrenceCardProps {
@@ -29,6 +33,7 @@ export function RecurrenceCard({
   onResume,
 }: RecurrenceCardProps) {
   const isPaused = recurrence.status === 'PAUSED'
+  const badge = STATUS_BADGES[recurrence.status]
 
   return (
     <div className="card">
@@ -51,8 +56,8 @@ export function RecurrenceCard({
               <span className="text-dim text-xs">
                 {FREQUENCY_LABELS[recurrence.frequency] ?? recurrence.frequency}
               </span>
-              <Badge kind={isPaused ? 'pending' : 'paid'} dot={false} square>
-                {isPaused ? 'Pausada' : 'Ativa'}
+              <Badge kind={badge.kind} dot={false} square>
+                {badge.label}
               </Badge>
             </div>
           </div>
@@ -61,9 +66,21 @@ export function RecurrenceCard({
           </div>
         </div>
 
-        <p className="text-xs text-dim">
-          Próxima execução: {formatLocalDate(recurrence.nextOccurrenceDate)}
-        </p>
+        <div
+          className="text-xs text-dim"
+          style={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+        >
+          {!isPaused && (
+            <span>
+              Próxima ocorrência:{' '}
+              <span className="fw-500">
+                {recurrence.nextDueDate ? formatLocalDate(recurrence.nextDueDate) : '—'}
+              </span>
+            </span>
+          )}
+          {recurrence.creditCardName && <span>Cartão: {recurrence.creditCardName}</span>}
+          {recurrence.endDate && <span>Termina em {formatLocalDate(recurrence.endDate)}</span>}
+        </div>
 
         {isPaused && recurrence.resumeAt && (
           <p className="text-xs text-dim">

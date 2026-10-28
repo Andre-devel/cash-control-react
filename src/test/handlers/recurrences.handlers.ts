@@ -10,7 +10,9 @@ export const MOCK_RECURRENCE_1: Recurrence = {
   accountId: 'account-1',
   categoryId: 'category-1',
   startDate: '2026-01-01',
-  nextOccurrenceDate: '2026-06-01',
+  nextOccurrenceDate: '2027-01-01',
+  nextDueDate: '2026-06-01',
+  paymentMethod: 'OTHER',
   status: 'ACTIVE',
   createdAt: '2026-01-01T00:00:00Z',
 }
@@ -65,6 +67,7 @@ export const recurrencesHandlers = [
       id: `recurrence-${Date.now()}`,
       status: 'ACTIVE',
       nextOccurrenceDate: body.startDate,
+      nextDueDate: body.startDate,
       createdAt: new Date().toISOString(),
       ...body,
       categoryId: body.categoryId ?? null,

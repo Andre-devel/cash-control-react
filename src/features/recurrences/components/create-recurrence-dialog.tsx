@@ -10,6 +10,7 @@ import {
   createRecurrenceSchema,
   RECURRENCE_FREQUENCIES,
   RECURRENCE_TYPES,
+  FREQUENCY_LABELS,
   type CreateRecurrenceFormValues,
 } from '@/features/recurrences/schemas/create-recurrence.schema'
 import { useCreateRecurrence } from '@/features/recurrences/hooks/use-create-recurrence'
@@ -17,14 +18,10 @@ import { CategoryPickerCombobox } from '@/features/categories/components/categor
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { setFormErrors } from '@/lib/form-errors'
-
-const FREQUENCY_LABELS: Record<string, string> = {
-  DAILY: 'Diário',
-  WEEKLY: 'Semanal',
-  BIWEEKLY: 'Quinzenal',
-  MONTHLY: 'Mensal',
-  YEARLY: 'Anual',
-}
+import { localIsoDate } from '@/lib/local-date'
+import { PaymentMethodSelect } from '@/features/transactions/components/payment-method-select'
+import { CreditCardSelect } from '@/features/transactions/components/credit-card-select'
+import { useCards } from '@/features/cards/hooks/use-cards'
 
 const TYPE_LABELS: Record<string, string> = {
   INCOME: 'Receita',
@@ -32,14 +29,19 @@ const TYPE_LABELS: Record<string, string> = {
   REFUND: 'Reembolso',
 }
 
-const DEFAULT_VALUES: CreateRecurrenceFormValues = {
-  description: '',
-  amount: '',
-  frequency: 'MONTHLY',
-  type: 'EXPENSE',
-  accountId: '',
-  categoryId: '',
-  startDate: '',
+function defaultValues(): CreateRecurrenceFormValues {
+  return {
+    description: '',
+    amount: '',
+    frequency: 'MONTHLY',
+    type: 'EXPENSE',
+    accountId: '',
+    categoryId: '',
+    startDate: localIsoDate(),
+    endDate: '',
+    paymentMethod: 'OTHER',
+    creditCardId: '',
+  }
 }
 
 interface CreateRecurrenceDialogProps {
@@ -50,11 +52,14 @@ interface CreateRecurrenceDialogProps {
 export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialogProps) {
   const { data: accounts = [] } = useAccounts()
   const { data: categories = [] } = useCategories()
+  const { data: allCards = [] } = useCards()
+  const cards = allCards.filter((c) => !c.archivedAt)
 
   const form = useForm<CreateRecurrenceFormValues>({
     resolver: zodResolver(createRecurrenceSchema),
-    defaultValues: DEFAULT_VALUES,
+    defaultValues: defaultValues(),
   })
+  const paymentMethod = form.watch('paymentMethod')
   const { mutate: createRecurrence, isPending } = useCreateRecurrence({
     onFieldError: (error) => setFormErrors(error, form.setError),
   })
@@ -63,17 +68,19 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
     const payload = {
       ...data,
       categoryId: data.categoryId || undefined,
+      endDate: data.endDate || undefined,
+      creditCardId: data.creditCardId || undefined,
     }
     createRecurrence(payload, {
       onSuccess: () => {
-        form.reset(DEFAULT_VALUES)
+        form.reset(defaultValues())
         onClose()
       },
     })
   }
 
   function handleClose() {
-    form.reset(DEFAULT_VALUES)
+    form.reset(defaultValues())
     onClose()
   }
 
@@ -184,8 +191,58 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
           )}
         />
 
-        <Field label="Data de início" error={form.formState.errors.startDate?.message}>
-          <Input type="date" {...form.register('startDate')} />
+        <Controller
+          control={form.control}
+          name="paymentMethod"
+          render={({ field, fieldState }) => (
+            <Field label="Forma de pagamento" error={fieldState.error?.message}>
+              <PaymentMethodSelect
+                value={field.value ?? 'OTHER'}
+                onChange={(value) => {
+                  field.onChange(value)
+                  if (value !== 'CREDIT_CARD') form.setValue('creditCardId', '')
+                }}
+                aria-label="Forma de pagamento"
+              />
+            </Field>
+          )}
+        />
+
+        {paymentMethod === 'CREDIT_CARD' && (
+          <Controller
+            control={form.control}
+            name="creditCardId"
+            render={({ field, fieldState }) => (
+              <Field
+                label="Cartão de crédito"
+                hint="As ocorrências entram nas faturas do cartão."
+                error={fieldState.error?.message}
+              >
+                <CreditCardSelect
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  cards={cards}
+                  aria-label="Cartão de crédito"
+                />
+              </Field>
+            )}
+          />
+        )}
+
+        <Field
+          label="Data de início"
+          hint="Ocorrências com data passada entram como pendentes; confirme o pagamento de cada uma."
+          error={form.formState.errors.startDate?.message}
+        >
+          <Input type="date" aria-label="Data de início" {...form.register('startDate')} />
+        </Field>
+
+        <Field
+          label="Data de fim (opcional)"
+          hint="Sem data de fim, a recorrência continua até ser pausada ou excluída."
+          error={form.formState.errors.endDate?.message}
+        >
+          <Input type="date" aria-label="Data de fim" {...form.register('endDate')} />
         </Field>
       </form>
     </Modal>

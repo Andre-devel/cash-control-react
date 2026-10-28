@@ -156,6 +156,14 @@ describe('RecurrencesPage', () => {
   })
 
   describe('status badge', () => {
+    it('shows frequency in pt-BR and the next open occurrence', async () => {
+      renderWithProviders(<RecurrencesPage />)
+      await waitFor(() => screen.getByText(MOCK_RECURRENCE_1.description))
+      expect(screen.getAllByText('Mensal').length).toBeGreaterThan(0)
+      expect(screen.queryByText('Monthly')).toBeNull()
+      expect(screen.getByText('01/06/2026')).toBeTruthy()
+    })
+
     it('renders active status badge for active rules', async () => {
       renderWithProviders(<RecurrencesPage />)
       await waitFor(() => screen.getByText(MOCK_RECURRENCE_1.description))
@@ -228,7 +236,7 @@ describe('RecurrencesPage', () => {
       await waitFor(() => screen.getByRole('dialog'))
 
       expect(screen.getAllByText(/somente futuras/i).length).toBeGreaterThan(0)
-      expect(screen.getAllByText(/todas — excluir todas/i).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(/todas em aberto/i).length).toBeGreaterThan(0)
     })
 
     it('delete dialog explains the difference between strategies', async () => {
@@ -242,8 +250,9 @@ describe('RecurrencesPage', () => {
 
       await waitFor(() => screen.getByRole('dialog'))
 
-      expect(screen.getByText(/as transações já registradas são mantidas/i)).toBeTruthy()
-      expect(screen.getByText(/passadas e futuras/i)).toBeTruthy()
+      // As ocorrências ficam canceladas, não são removidas.
+      expect(screen.getByText(/ocorrências pagas são mantidas/i)).toBeTruthy()
+      expect(screen.queryByText(/removidas|excluídas permanentemente/i)).toBeNull()
     })
 
     it('confirming delete removes the rule from the list', async () => {
