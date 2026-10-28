@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { TypeBadge } from '@/components/ui/type-badge'
 import { Money } from '@/components/ui/money'
 import type { Recurrence } from '@/features/recurrences/types'
+import { formatLocalDate } from '@/lib/format-date'
 
 const FREQUENCY_LABELS: Record<string, string> = {
   DAILY: 'Daily',
@@ -10,11 +11,6 @@ const FREQUENCY_LABELS: Record<string, string> = {
   BIWEEKLY: 'Biweekly',
   MONTHLY: 'Monthly',
   YEARLY: 'Yearly',
-}
-
-function formatDate(dateString: string | null): string {
-  if (!dateString) return '—'
-  return new Date(dateString).toLocaleDateString()
 }
 
 interface RecurrenceCardProps {
@@ -66,13 +62,12 @@ export function RecurrenceCard({
         </div>
 
         <p className="text-xs text-dim">
-          Próxima execução: {formatDate(recurrence.nextOccurrenceDate)}
+          Próxima execução: {formatLocalDate(recurrence.nextOccurrenceDate)}
         </p>
 
         {isPaused && recurrence.resumeAt && (
           <p className="text-xs text-dim">
-            Pausado até:{' '}
-            <span className="fw-500">{new Date(recurrence.resumeAt).toLocaleDateString()}</span>
+            Pausado até: <span className="fw-500">{formatLocalDate(recurrence.resumeAt)}</span>
           </p>
         )}
 

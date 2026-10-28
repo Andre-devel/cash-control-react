@@ -14,10 +14,10 @@ import {
 } from '@/features/cards/schemas/pay-invoice.schema'
 import { usePayInvoice } from '@/features/cards/hooks/use-pay-invoice'
 import type { Invoice } from '@/features/cards/types'
-import { localIsoDate } from '@/lib/local-date'
+import { localIsoDate, parseLocalDate } from '@/lib/local-date'
 
 function fmtDate(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00')
+  const d = parseLocalDate(dateStr)
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 

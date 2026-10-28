@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Money } from '@/components/ui/money'
 import type { InstallmentSeries } from '@/features/installments/types'
+import { formatLocalDate } from '@/lib/format-date'
 
 interface InstallmentSeriesCardProps {
   series: InstallmentSeries
@@ -62,7 +63,7 @@ export function InstallmentSeriesCard({
 
         {series.firstPaymentDate && (
           <p className="text-xs text-dim">
-            Início: <span className="fw-500">{series.firstPaymentDate}</span>
+            Início: <span className="fw-500">{formatLocalDate(series.firstPaymentDate)}</span>
           </p>
         )}
 

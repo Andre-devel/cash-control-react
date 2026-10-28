@@ -8,6 +8,7 @@ import { normalizeMoneyInput } from '@/lib/money'
 import { useAdvanceInstallments } from '@/features/installments/hooks/use-advance-installments'
 import { useInstallmentSeriesDetail } from '@/features/installments/hooks/use-installment-series-detail'
 import type { InstallmentSeries } from '@/features/installments/types'
+import { formatLocalDate } from '@/lib/format-date'
 
 interface AdvanceInstallmentsDialogProps {
   series: InstallmentSeries | null
@@ -170,10 +171,10 @@ export function AdvanceInstallmentsDialog({
                     type="checkbox"
                     checked={selectedIds.includes(t.id)}
                     onChange={() => toggleId(t.id)}
-                    aria-label={`Installment ${t.installmentNumber}: ${t.competenceDate}`}
+                    aria-label={`Parcela ${t.installmentNumber}: ${formatLocalDate(t.competenceDate)}`}
                   />
                   <span className="text-sm">
-                    #{t.installmentNumber} — {t.competenceDate}
+                    #{t.installmentNumber} — {formatLocalDate(t.competenceDate)}
                     <span className="text-dim" style={{ marginLeft: 8 }}>
                       {t.amount}
                     </span>

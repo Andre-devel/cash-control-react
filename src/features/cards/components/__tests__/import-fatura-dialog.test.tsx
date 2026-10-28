@@ -628,7 +628,7 @@ describe('ImportFaturaDialog', () => {
     await reachPreview(user)
 
     expect(screen.getByText(/1 pagamentos ignorados/i)).toBeInTheDocument()
-    expect(screen.getByText('2026-07')).toBeInTheDocument()
+    expect(screen.getByText('Ago 2026')).toBeInTheDocument()
   })
 
   /**

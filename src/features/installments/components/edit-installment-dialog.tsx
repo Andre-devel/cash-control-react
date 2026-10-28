@@ -12,6 +12,7 @@ import { useInstallmentSeriesDetail } from '@/features/installments/hooks/use-in
 import { moneyField, formatMoneyInput } from '@/lib/money'
 import type { InstallmentSeries } from '@/features/installments/types'
 import { localIsoDate } from '@/lib/local-date'
+import { formatLocalDate } from '@/lib/format-date'
 
 const editInstallmentSchema = z.object({
   transactionId: z.string().min(1, 'Selecione a parcela'),
@@ -142,7 +143,7 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
                   ? `Parcela ${installment.installmentNumber}`
                   : installment.description}
                 {' — '}
-                {new Date(installment.competenceDate).toLocaleDateString()}
+                {formatLocalDate(installment.competenceDate)}
               </option>
             ))}
           </Select>

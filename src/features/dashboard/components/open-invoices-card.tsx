@@ -7,35 +7,9 @@ import { Money } from '@/components/ui/money'
 import { IconBubble } from '@/components/ui/icon-bubble'
 import { useUpcomingInvoices } from '@/features/dashboard/hooks/use-upcoming-invoices'
 import { ROUTES } from '@/app/router/routes'
-
-const MONTH_ABBR_PT = [
-  'jan',
-  'fev',
-  'mar',
-  'abr',
-  'mai',
-  'jun',
-  'jul',
-  'ago',
-  'set',
-  'out',
-  'nov',
-  'dez',
-]
-
-function fmtDateShort(iso: string): string {
-  const parts = iso.split('-')
-  const month = parseInt(parts[1] ?? '1', 10) - 1
-  const day = parseInt(parts[2] ?? '1', 10)
-  return `${String(day).padStart(2, '0')} ${MONTH_ABBR_PT[month] ?? ''}`
-}
-
-function daysUntil(iso: string): number {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const d = new Date(iso + 'T00:00:00')
-  return Math.max(0, Math.ceil((d.getTime() - today.getTime()) / 86400000))
-}
+import { formatShortDate } from '@/lib/format-date'
+import { daysUntil } from '@/lib/local-date'
+import { dueMonthLabelWithYear } from '@/features/cards/utils/invoice-month'
 
 const INVOICE_COLORS = ['#60a5fa', '#c084fc', '#34d399', '#fbbf24', '#fb7185']
 
@@ -110,7 +84,7 @@ export function OpenInvoicesCard() {
         >
           {invoices.map((inv, idx) => {
             const color = INVOICE_COLORS[idx % INVOICE_COLORS.length] ?? '#60a5fa'
-            const days = daysUntil(inv.dueDate)
+            const days = Math.max(0, daysUntil(inv.dueDate))
             return (
               <div
                 key={inv.invoiceId ?? `${inv.cardName}-${inv.referenceMonth}`}
@@ -139,11 +113,13 @@ export function OpenInvoicesCard() {
                       >
                         {inv.cardName}
                       </Link>
-                      <div className="text-xs text-dim">{inv.referenceMonth}</div>
+                      <div className="text-xs text-dim">
+                        {inv.referenceMonth && dueMonthLabelWithYear(inv.referenceMonth)}
+                      </div>
                     </div>
                   </div>
                   <Badge kind={days <= 3 ? 'pending' : 'info'}>
-                    Vence {fmtDateShort(inv.dueDate)}
+                    Vence {formatShortDate(inv.dueDate)}
                   </Badge>
                 </div>
                 <div className="num text-2xl mt-2" style={{ fontWeight: 500 }}>

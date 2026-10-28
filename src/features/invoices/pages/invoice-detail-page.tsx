@@ -20,11 +20,7 @@ import {
 } from '@/features/invoices/utils/invoice-status'
 import { ROUTES } from '@/app/router/routes'
 import type { InvoiceItem } from '@/features/invoices/types'
-
-function fmtDate(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
+import { formatLocalDate } from '@/lib/format-date'
 
 function DetailSkeleton() {
   return (
@@ -81,8 +77,8 @@ export default function InvoiceDetailPage() {
               <div>
                 <h3>{dueMonthLabelWithYear(invoice.referenceMonth)}</h3>
                 <div className="sub">
-                  Fecha em {fmtDate(invoice.closingDate ?? invoice.dueDate)} · Vence em{' '}
-                  {fmtDate(invoice.dueDate)}
+                  Fecha em {formatLocalDate(invoice.closingDate ?? invoice.dueDate)} · Vence em{' '}
+                  {formatLocalDate(invoice.dueDate)}
                 </div>
               </div>
               <Badge kind={invoiceStatusBadgeKind(invoice.status)} dot={false} square>
@@ -186,7 +182,7 @@ export default function InvoiceDetailPage() {
                         item.originalDescription !== item.description
                       return (
                         <tr key={item.id}>
-                          <td className="cell-date">{fmtDate(item.competenceDate)}</td>
+                          <td className="cell-date">{formatLocalDate(item.competenceDate)}</td>
                           <td className="cell-desc">
                             <div className="row gap-2" style={{ alignItems: 'center' }}>
                               <span>{item.description}</span>

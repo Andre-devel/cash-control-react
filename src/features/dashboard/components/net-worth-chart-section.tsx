@@ -10,6 +10,7 @@ import {
 } from 'recharts'
 import { Button } from '@/components/ui/button'
 import { useNetWorthChart } from '@/features/dashboard/hooks/use-net-worth-chart'
+import { formatLocalDate } from '@/lib/format-date'
 
 function getDefaultRange() {
   const now = new Date()
@@ -92,7 +93,7 @@ export function NetWorthChartSection() {
               }))}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+              <XAxis dataKey="date" tick={{ fontSize: 12 }} tickFormatter={formatLocalDate} />
               <YAxis
                 tick={{ fontSize: 12 }}
                 tickFormatter={(v: number) =>
@@ -100,6 +101,7 @@ export function NetWorthChartSection() {
                 }
               />
               <Tooltip
+                labelFormatter={(label) => formatLocalDate(String(label))}
                 formatter={(value) => {
                   const n = typeof value === 'number' ? value : parseFloat(String(value))
                   return isNaN(n)

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
 import { useLargestExpenses } from '@/features/dashboard/hooks/use-largest-expenses'
 import { ROUTES } from '@/app/router/routes'
+import { formatLocalDate } from '@/lib/format-date'
 
 function WidgetSkeleton() {
   return (
@@ -55,7 +56,7 @@ export function LargestExpensesWidget() {
                     <p className="truncate fw-500">{expense.description}</p>
                     <p className="text-xs text-dim">
                       {expense.categoryName ?? 'Sem categoria'} ·{' '}
-                      {new Date(expense.paymentDate).toLocaleDateString()}
+                      {formatLocalDate(expense.paymentDate)}
                     </p>
                   </div>
                   <span className="mono fw-600 ml-4" style={{ color: 'var(--expense)' }}>

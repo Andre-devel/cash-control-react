@@ -16,6 +16,7 @@ import {
   shiftMonth,
 } from '@/features/cards/utils/invoice-month'
 import { ROUTES } from '@/app/router/routes'
+import { formatLocalDate } from '@/lib/format-date'
 
 const INVOICE_STATUS_LABELS: Record<string, string> = {
   OPEN: 'Aberta',
@@ -235,7 +236,7 @@ export default function CardDetailPage() {
                     </div>
                     <div>
                       <p className="text-xs text-dim">Vencimento</p>
-                      <p className="fw-500">{new Date(invoice.dueDate).toLocaleDateString()}</p>
+                      <p className="fw-500">{formatLocalDate(invoice.dueDate)}</p>
                     </div>
                   </div>
 
@@ -257,7 +258,7 @@ export default function CardDetailPage() {
                             <div className="min-w-0 flex-1">
                               <p className="truncate">{item.description}</p>
                               <p className="text-xs text-dim">
-                                {new Date(item.competenceDate).toLocaleDateString()}
+                                {formatLocalDate(item.competenceDate)}
                                 {item.installmentNumber && item.totalInstallments
                                   ? ` · Parcela ${item.installmentNumber}/${item.totalInstallments}`
                                   : ''}

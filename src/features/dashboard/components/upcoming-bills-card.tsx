@@ -5,35 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Money } from '@/components/ui/money'
 import { IconBubble } from '@/components/ui/icon-bubble'
 import { useUpcomingBills } from '@/features/dashboard/hooks/use-upcoming-bills'
-
-const MONTH_ABBR_PT = [
-  'jan',
-  'fev',
-  'mar',
-  'abr',
-  'mai',
-  'jun',
-  'jul',
-  'ago',
-  'set',
-  'out',
-  'nov',
-  'dez',
-]
-
-function fmtDateShort(iso: string): string {
-  const parts = iso.split('-')
-  const month = parseInt(parts[1] ?? '1', 10) - 1
-  const day = parseInt(parts[2] ?? '1', 10)
-  return `${String(day).padStart(2, '0')} ${MONTH_ABBR_PT[month] ?? ''}`
-}
-
-function daysUntil(iso: string): number {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const d = new Date(iso + 'T00:00:00')
-  return Math.max(0, Math.ceil((d.getTime() - today.getTime()) / 86400000))
-}
+import { formatShortDate } from '@/lib/format-date'
+import { daysUntil } from '@/lib/local-date'
 
 function CardSkeleton() {
   return (
@@ -116,7 +89,7 @@ export function UpcomingBillsCard() {
         <div className="card-b flush">
           {bills.map((bill) => {
             const overdue = bill.status === 'OVERDUE'
-            const days = daysUntil(bill.paymentDate)
+            const days = Math.max(0, daysUntil(bill.paymentDate))
             return (
               <div className="list-row" key={bill.id}>
                 <IconBubble
@@ -131,7 +104,7 @@ export function UpcomingBillsCard() {
                     {bill.description}
                   </div>
                   <div className="meta">
-                    {bill.accountName ?? 'Conta'} · vence {fmtDateShort(bill.paymentDate)}
+                    {bill.accountName ?? 'Conta'} · vence {formatShortDate(bill.paymentDate)}
                     {overdue && <span style={{ color: 'var(--expense)' }}> · vencida</span>}
                     {!overdue && days <= 3 && (
                       <span style={{ color: 'var(--pending)' }}> · em {days}d</span>

@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import { Button } from '@/components/ui/button'
 import { useComparisonChart } from '@/features/dashboard/hooks/use-comparison-chart'
+import { formatYearMonth } from '@/lib/format-date'
 
 function getCurrentMonth(): string {
   const now = new Date()
@@ -132,8 +133,18 @@ export function MonthComparisonSection() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey={data.month1.month} fill="var(--accent)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey={data.month2.month} fill="var(--info)" radius={[4, 4, 0, 0]} />
+                <Bar
+                  dataKey={data.month1.month}
+                  name={formatYearMonth(data.month1.month)}
+                  fill="var(--accent)"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey={data.month2.month}
+                  name={formatYearMonth(data.month2.month)}
+                  fill="var(--info)"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
 
@@ -144,7 +155,7 @@ export function MonthComparisonSection() {
                   className="space-y-1 rounded"
                   style={{ border: '1px solid var(--border)', padding: 12 }}
                 >
-                  <p className="fw-500 text-xs text-dim">{m.month}</p>
+                  <p className="fw-500 text-xs text-dim">{formatYearMonth(m.month)}</p>
                   <div className="flex justify-between">
                     <span className="text-dim">Receita</span>
                     <span className="mono" style={{ color: 'var(--income)' }}>

@@ -6,6 +6,7 @@ import { useAccount } from '@/features/accounts/hooks/use-account'
 import { EditAccountDialog } from '@/features/accounts/components/edit-account-dialog'
 import { AdjustBalanceDialog } from '@/features/accounts/components/adjust-balance-dialog'
 import { ROUTES } from '@/app/router/routes'
+import { formatInstantDate } from '@/lib/format-date'
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   CHECKING: 'Conta corrente',
@@ -104,7 +105,7 @@ export default function AccountDetailPage() {
                 </div>
                 <div>
                   <p className="text-xs text-dim">Criada em</p>
-                  <p className="fw-500">{new Date(account.createdAt).toLocaleDateString()}</p>
+                  <p className="fw-500">{formatInstantDate(account.createdAt)}</p>
                 </div>
               </div>
             </div>

@@ -24,6 +24,7 @@ import {
   type StatementFormat,
   type TransactionType,
 } from '@/features/transactions/types'
+import { formatLocalDate } from '@/lib/format-date'
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   CASH: 'Dinheiro',
@@ -33,11 +34,6 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   BANK_TRANSFER: 'Transferência',
   BOLETO: 'Boleto',
   OTHER: 'Outros',
-}
-
-function fmtDate(iso: string): string {
-  const [year, month, day] = iso.split('-')
-  return `${day}/${month}/${year}`
 }
 
 interface RowEdit {
@@ -401,7 +397,8 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
               Conta no extrato: <strong>{preview.sourceAccountLabel}</strong>
               {preview.periodStart && preview.periodEnd && (
                 <>
-                  {' · '}Período de {fmtDate(preview.periodStart)} a {fmtDate(preview.periodEnd)}
+                  {' · '}Período de {formatLocalDate(preview.periodStart)} a{' '}
+                  {formatLocalDate(preview.periodEnd)}
                 </>
               )}
             </div>
@@ -483,7 +480,7 @@ export function ImportStatementDialog({ open, onClose }: ImportStatementDialogPr
                           onChange={() => toggleRow(row)}
                         />
                       </td>
-                      <td className="cell-date">{fmtDate(row.date)}</td>
+                      <td className="cell-date">{formatLocalDate(row.date)}</td>
                       <td className="cell-desc">
                         <EditableTextCell
                           value={descriptionOf(row)}

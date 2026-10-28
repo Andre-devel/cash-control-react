@@ -13,11 +13,8 @@ import {
   getCurrentInvoiceMonth,
   shiftMonth,
 } from '@/features/cards/utils/invoice-month'
-
-function fmtDate(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
+import { formatLocalDate } from '@/lib/format-date'
+import { daysUntil } from '@/lib/local-date'
 
 interface InvoiceCardProps {
   card: Card
@@ -57,9 +54,7 @@ export function InvoiceCard({
   const closesAtDay = String(card.closingDay).padStart(2, '0')
   const closesAt = invoice?.closingDate ?? `${referenceMonth}-${closesAtDay}`
 
-  const daysUntilDue = invoice
-    ? Math.max(0, Math.ceil((new Date(invoice.dueDate).getTime() - Date.now()) / 86400000))
-    : 0
+  const daysUntilDue = invoice ? Math.max(0, daysUntil(invoice.dueDate)) : 0
 
   const totalAmount = invoice ? parseFloat(invoice.totalAmount) : 0
   const paidAmount = invoice ? parseFloat(invoice.paidAmount) : 0
@@ -73,7 +68,7 @@ export function InvoiceCard({
           <h3>Fatura — {card.name}</h3>
           {invoice && (
             <div className="sub">
-              Fecha em {fmtDate(closesAt)} · Vence em {fmtDate(invoice.dueDate)}
+              Fecha em {formatLocalDate(closesAt)} · Vence em {formatLocalDate(invoice.dueDate)}
             </div>
           )}
         </div>
@@ -152,7 +147,7 @@ export function InvoiceCard({
                 <Badge kind={daysUntilDue <= 3 ? 'pending' : 'info'} dot={false}>
                   Vence em {daysUntilDue} {daysUntilDue === 1 ? 'dia' : 'dias'}
                 </Badge>
-                <div className="text-xs text-dim mt-2">{fmtDate(invoice.dueDate)}</div>
+                <div className="text-xs text-dim mt-2">{formatLocalDate(invoice.dueDate)}</div>
               </div>
               {canPayInvoice(invoice) && (
                 <Button variant="primary" onClick={onPay} leading={<Check size={14} />}>
@@ -187,7 +182,7 @@ export function InvoiceCard({
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="title">{item.description}</div>
                         <div className="meta">
-                          {cat?.name ?? '—'} · {fmtDate(item.competenceDate)}
+                          {cat?.name ?? '—'} · {formatLocalDate(item.competenceDate)}
                         </div>
                       </div>
                       <div className="amount mono">
