@@ -61,6 +61,10 @@ export const MOCK_SERIES_1: InstallmentSeries = {
   description: 'New laptop',
   totalAmount: '3600.00',
   totalInstallments: 12,
+  paidInstallments: 3,
+  remainingAmount: '2700.00',
+  nextDueDate: '2026-04-01',
+  completed: false,
   accountId: 'account-1',
   categoryId: 'cat-1',
   firstPaymentDate: '2026-01-01',
@@ -73,6 +77,10 @@ export const MOCK_SERIES_2: InstallmentSeries = {
   description: 'Smartphone',
   totalAmount: '1200.00',
   totalInstallments: 6,
+  paidInstallments: 2,
+  remainingAmount: '0.00',
+  nextDueDate: null,
+  completed: false,
   accountId: 'account-1',
   categoryId: null,
   firstPaymentDate: '2025-07-01',
@@ -123,6 +131,10 @@ export const installmentsHandlers = [
       description: body.description,
       totalAmount: body.totalAmount,
       totalInstallments: body.totalInstallments,
+      paidInstallments: 0,
+      remainingAmount: body.totalAmount,
+      nextDueDate: body.firstPaymentDate,
+      completed: false,
       accountId: body.accountId,
       categoryId: body.categoryId ?? null,
       firstPaymentDate: body.firstPaymentDate,
@@ -160,6 +172,11 @@ export const installmentsHandlers = [
     seriesStore = seriesStore.map((s) =>
       s.id === params.seriesId ? { ...s, settled: true, settledAt: new Date().toISOString() } : s,
     )
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.delete('*/installments/series/:seriesId', ({ params }) => {
+    seriesStore = seriesStore.filter((s) => s.id !== params.seriesId)
     return new HttpResponse(null, { status: 204 })
   }),
 

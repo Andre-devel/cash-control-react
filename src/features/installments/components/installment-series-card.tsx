@@ -10,6 +10,13 @@ interface InstallmentSeriesCardProps {
   onEditInstallment: (s: InstallmentSeries) => void
   onSettle: (s: InstallmentSeries) => void
   onAdvance: (s: InstallmentSeries) => void
+  onDelete: (s: InstallmentSeries) => void
+}
+
+function seriesStatus(series: InstallmentSeries): { label: string; kind: 'muted' | 'paid' } {
+  if (series.settled) return { label: 'Liquidada', kind: 'muted' }
+  if (series.completed) return { label: 'Concluída', kind: 'muted' }
+  return { label: 'Ativa', kind: 'paid' }
 }
 
 export function InstallmentSeriesCard({
@@ -18,8 +25,14 @@ export function InstallmentSeriesCard({
   onEditInstallment,
   onSettle,
   onAdvance,
+  onDelete,
 }: InstallmentSeriesCardProps) {
-  const isSettled = series.settled
+  const status = seriesStatus(series)
+  const isOpen = !series.settled && !series.completed
+  const progress = series.settled
+    ? 100
+    : Math.round((series.paidInstallments / series.totalInstallments) * 100)
+  const total = parseFloat(series.totalAmount)
 
   return (
     <div className="card">
@@ -37,37 +50,60 @@ export function InstallmentSeriesCard({
               {series.description}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <Badge kind={isSettled ? 'muted' : 'paid'} dot={false} square>
-                {isSettled ? 'Liquidada' : 'Ativa'}
+              <Badge kind={status.kind} dot={false} square>
+                {status.label}
               </Badge>
             </div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
             <div className="text-lg mono fw-500">
-              <Money value={parseFloat(series.totalAmount)} />
+              <Money value={total} />
             </div>
-            <div className="text-xs text-dim">{series.totalInstallments}x</div>
+            <div className="text-xs text-dim">
+              {series.totalInstallments}x de <Money value={total / series.totalInstallments} />
+            </div>
           </div>
         </div>
 
         <div
           className="bar"
           role="progressbar"
-          aria-valuenow={isSettled ? 100 : 0}
+          aria-valuenow={progress}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`${series.description} — ${isSettled ? 'liquidada' : 'ativa'}`}
+          aria-label={`${series.description} — ${series.paidInstallments} de ${series.totalInstallments} parcelas pagas`}
         >
-          <i style={{ width: isSettled ? '100%' : '0%', background: 'var(--accent)' }} />
+          <i style={{ width: `${progress}%`, background: 'var(--accent)' }} />
         </div>
 
-        {series.firstPaymentDate && (
-          <p className="text-xs text-dim">
-            Início: <span className="fw-500">{formatLocalDate(series.firstPaymentDate)}</span>
-          </p>
-        )}
+        <div
+          className="text-xs text-dim"
+          style={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+        >
+          <span>
+            <span className="fw-500">
+              {series.paidInstallments} de {series.totalInstallments}
+            </span>{' '}
+            pagas
+            {isOpen && (
+              <>
+                {' · '}restam <Money value={parseFloat(series.remainingAmount)} />
+              </>
+            )}
+          </span>
+          {isOpen && series.nextDueDate && (
+            <span>
+              Próxima parcela: <span className="fw-500">{formatLocalDate(series.nextDueDate)}</span>
+            </span>
+          )}
+          {series.firstPaymentDate && (
+            <span>
+              Início: <span className="fw-500">{formatLocalDate(series.firstPaymentDate)}</span>
+            </span>
+          )}
+        </div>
 
-        {!isSettled && (
+        {isOpen && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             <Button
               type="button"
@@ -105,6 +141,17 @@ export function InstallmentSeriesCard({
             >
               Liquidar
             </Button>
+            {series.paidInstallments === 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(series)}
+                aria-label={`Excluir parcelamento: ${series.description}`}
+              >
+                Excluir
+              </Button>
+            )}
           </div>
         )}
       </div>

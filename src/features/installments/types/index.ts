@@ -1,5 +1,5 @@
 export type InstallmentType = 'EXPENSE' | 'INCOME'
-export type InstallmentTransactionStatus = 'PENDING' | 'PAID' | 'OVERDUE'
+export type InstallmentTransactionStatus = 'PENDING' | 'PAID' | 'OVERDUE' | 'CANCELLED'
 
 export interface InstallmentTransaction {
   id: string
@@ -18,8 +18,15 @@ export interface InstallmentTransaction {
 export interface InstallmentSeries {
   id: string
   description: string
+  /** Soma das parcelas não canceladas (mais a quitação): acompanha edições e antecipações. */
   totalAmount: string
   totalInstallments: number
+  paidInstallments: number
+  remainingAmount: string
+  /** Competência da próxima parcela em aberto; nulo quando não resta nenhuma. */
+  nextDueDate?: string | null
+  /** Todas as parcelas pagas, sem quitação antecipada. */
+  completed: boolean
   firstPaymentDate: string
   accountId: string
   accountName?: string | null

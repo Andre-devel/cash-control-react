@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, waitFor, cleanup } from '@testing-library/react'
+import { screen, waitFor, cleanup, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
@@ -56,19 +56,60 @@ describe('InstallmentsPage', () => {
     })
   })
 
-  it('shows total installments count for each series', async () => {
+  it('shows installment count and value per installment', async () => {
     renderWithProviders(<InstallmentsPage />)
     await waitFor(() => {
-      expect(screen.getByText(`${MOCK_SERIES_1.totalInstallments}x`)).toBeTruthy()
+      expect(screen.getByText(/12x de/)).toHaveTextContent('12x de R$300,00')
     })
   })
 
-  it('shows progress bar for paid installments', async () => {
+  it('shows real progress, remaining amount and next due date', async () => {
     renderWithProviders(<InstallmentsPage />)
-    await waitFor(() => {
-      const progressBars = screen.getAllByRole('progressbar')
-      expect(progressBars.length).toBeGreaterThan(0)
-    })
+    const bar = await screen.findByRole('progressbar', { name: /new laptop — 3 de 12/i })
+    expect(bar).toHaveAttribute('aria-valuenow', '25')
+    expect(screen.getByText(/restam/)).toHaveTextContent('R$2.700,00')
+    expect(screen.getByText('01/04/2026')).toBeTruthy()
+  })
+
+  it('marks a fully paid series as completed and hides its actions', async () => {
+    server.use(
+      http.get('*/installments/series', () =>
+        HttpResponse.json([
+          { ...MOCK_SERIES_1, paidInstallments: 12, remainingAmount: '0.00', completed: true },
+        ]),
+      ),
+    )
+    renderWithProviders(<InstallmentsPage />)
+    await waitFor(() => expect(screen.getByText('Concluída')).toBeTruthy())
+    expect(screen.queryByRole('button', { name: /editar série/i })).toBeNull()
+  })
+
+  it('deletes a series without paid installments after confirmation', async () => {
+    const user = userEvent.setup()
+    let deleted = false
+    server.use(
+      http.get('*/installments/series', () =>
+        HttpResponse.json(
+          deleted ? [] : [{ ...MOCK_SERIES_1, paidInstallments: 0, remainingAmount: '3600.00' }],
+        ),
+      ),
+      http.delete('*/installments/series/:seriesId', () => {
+        deleted = true
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    renderWithProviders(<InstallmentsPage />)
+    await user.click(
+      await screen.findByRole('button', { name: /excluir parcelamento: new laptop/i }),
+    )
+    await user.click(await screen.findByRole('button', { name: /^excluir parcelamento$/i }))
+    await waitFor(() => expect(screen.getByText(/nenhuma série/i)).toBeTruthy())
+  })
+
+  it('hides delete when the series already has paid installments', async () => {
+    renderWithProviders(<InstallmentsPage />)
+    await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
+    expect(screen.queryByRole('button', { name: /excluir parcelamento/i })).toBeNull()
   })
 
   it('shows empty state when no series exist', async () => {
@@ -234,7 +275,9 @@ describe('InstallmentsPage', () => {
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /liquidar série antecipadamente/i })).toBeTruthy()
     // MOCK_SERIES_1 tem 3 parcelas de R$ 300,00 em aberto.
-    await waitFor(() => expect(screen.getByText('3 de 12')).toBeTruthy())
+    await waitFor(() =>
+      expect(within(screen.getByRole('dialog')).getByText('3 de 12')).toBeTruthy(),
+    )
     expect(screen.getByLabelText(/valor da quitação/i)).toHaveValue('900,00')
   })
 

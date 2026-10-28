@@ -9,6 +9,7 @@ import { EditSeriesDialog } from '@/features/installments/components/edit-series
 import { EditInstallmentDialog } from '@/features/installments/components/edit-installment-dialog'
 import { SettleSeriesDialog } from '@/features/installments/components/settle-series-dialog'
 import { AdvanceInstallmentsDialog } from '@/features/installments/components/advance-installments-dialog'
+import { DeleteSeriesDialog } from '@/features/installments/components/delete-series-dialog'
 import type { InstallmentSeries } from '@/features/installments/types'
 
 function InstallmentsSkeleton() {
@@ -47,6 +48,7 @@ export default function InstallmentsPage() {
   const [editInstallmentTarget, setEditInstallmentTarget] = useState<InstallmentSeries | null>(null)
   const [settleTarget, setSettleTarget] = useState<InstallmentSeries | null>(null)
   const [advanceTarget, setAdvanceTarget] = useState<InstallmentSeries | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<InstallmentSeries | null>(null)
 
   const seriesList = series ?? []
 
@@ -116,6 +118,7 @@ export default function InstallmentsPage() {
               onEditInstallment={setEditInstallmentTarget}
               onSettle={setSettleTarget}
               onAdvance={setAdvanceTarget}
+              onDelete={setDeleteTarget}
             />
           ))}
         </div>
@@ -145,6 +148,12 @@ export default function InstallmentsPage() {
         series={advanceTarget}
         open={advanceTarget !== null}
         onClose={() => setAdvanceTarget(null)}
+      />
+
+      <DeleteSeriesDialog
+        series={deleteTarget}
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
       />
     </div>
   )

@@ -52,6 +52,10 @@ export async function settleSeries(seriesId: string, data: EarlySettlementReques
   await axiosInstance.post(`/installments/series/${seriesId}/settle`, data)
 }
 
+export async function deleteInstallmentSeries(seriesId: string): Promise<void> {
+  await axiosInstance.delete(`/installments/series/${seriesId}`)
+}
+
 export async function advanceInstallments(data: AdvanceInstallmentsRequest): Promise<void> {
   await axiosInstance.post('/installments/advance', data)
 }

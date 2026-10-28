@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Money } from '@/components/ui/money'
 import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
@@ -176,7 +177,7 @@ export function AdvanceInstallmentsDialog({
                   <span className="text-sm">
                     #{t.installmentNumber} — {formatLocalDate(t.competenceDate)}
                     <span className="text-dim" style={{ marginLeft: 8 }}>
-                      {t.amount}
+                      <Money value={parseFloat(t.amount)} />
                     </span>
                   </span>
                 </label>

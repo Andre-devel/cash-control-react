@@ -50,7 +50,8 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
     defaultValues: DEFAULT_VALUES,
   })
 
-  const installments = detail?.installments ?? []
+  // Canceladas (quitação, exclusão) não aceitam edição na API.
+  const installments = (detail?.installments ?? []).filter((i) => i.status !== 'CANCELLED')
 
   /** Ao escolher a parcela, traz os valores atuais dela para o formulário. */
   function handleSelectInstallment(transactionId: string) {
