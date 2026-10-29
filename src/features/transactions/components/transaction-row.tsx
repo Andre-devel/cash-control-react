@@ -47,7 +47,7 @@ export const TransactionRow = memo(function TransactionRow({
 
   return (
     <tr className={`tx-row${d.isCancelled ? ' opacity-60' : ''}`}>
-      <td className="!pl-4 min-w-[220px] whitespace-normal">
+      <td className="!pl-4 min-w-[200px] !whitespace-normal">
         <div className="flex items-center gap-3">
           <IconBubble color={d.bubbleColor} icon={d.icon} size="sm" aria-hidden />
           <div className="flex min-w-0 flex-col gap-0.5">
@@ -79,7 +79,7 @@ export const TransactionRow = memo(function TransactionRow({
           </div>
         </div>
       </td>
-      <td className="whitespace-normal">
+      <td className="!whitespace-normal">
         {d.category ? (
           <span className="flex items-center gap-1.5 text-body-sm text-fg-muted">
             <span
@@ -105,10 +105,10 @@ export const TransactionRow = memo(function TransactionRow({
           <span className="text-fg-subtle">—</span>
         )}
       </td>
-      <td className="max-w-[140px] truncate">
-        <span className="font-mono text-caption text-fg-muted">
-          {transaction.paymentMethod.name}
-        </span>
+      {/* Forma de pagamento só a partir de 1536 px: com sidebar e painel de filtros a
+          tabela não cabia em 1440 px e o Valor ia parar atrás da rolagem lateral. */}
+      <td className="hidden max-w-[140px] truncate 2xl:table-cell">
+        <span className="text-body-sm text-fg-muted">{transaction.paymentMethod.name}</span>
       </td>
       <td>
         <StatusBadge status={transaction.status} />

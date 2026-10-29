@@ -259,7 +259,7 @@ export default function DashboardPage() {
               deslize →
             </span>
           </div>
-          <div className="-mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:contents">
+          <div className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:contents">
             <BarChartCard
               months={chartMonths}
               onMonthsChange={setChartMonths}

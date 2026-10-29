@@ -256,8 +256,7 @@
   height: var(--topbar-h);
   flex-shrink: 0;
 }
-.sidebar-brand .logo,
-.topbar-logo {
+.sidebar-brand .logo {
   width: 36px; height: 36px;
   border-radius: var(--cc-radius-sm);
   background: rgb(var(--cc-brand));
@@ -366,7 +365,7 @@
   flex-shrink: 0;
   background: var(--bg);
 }
-.topbar-logo { display: none; width: 32px; height: 32px; box-shadow: none; }
+
 .topbar h1, .topbar .breadcrumb b {
   margin: 0;
   font-family: var(--font-display);
@@ -382,6 +381,9 @@
 .topbar-actions { display: flex; align-items: center; gap: var(--s-2); }
 
 .content {
+  /* Bloco de contenção dos absolutos (ex.: tabelas sr-only dos gráficos): sem ele eles
+     escapavam do container de rolagem e faziam a página inteira rolar junto. */
+  position: relative;
   flex: 1;
   overflow-y: auto;
   padding: var(--s-6) var(--s-8) var(--s-12);
@@ -407,19 +409,11 @@
   .app { grid-template-columns: 1fr; }
   .sidebar { display: none; }
 
-  .topbar {
-    position: sticky; top: 0; z-index: 20;
-    height: auto;
-    min-height: var(--mobile-topbar-h);
-    padding: var(--cc-safe-top) var(--s-4) 0;
-    border-bottom: 0;
-  }
-  .topbar-logo { display: grid; }
-  .topbar h1, .topbar .breadcrumb b { font-size: 17px; }
-  .topbar-actions { display: none; }
+  /* Cada página já abre com o próprio título e ações; um header global repetia o título. */
+  .topbar { display: none; }
 
   .content {
-    padding: var(--s-2) var(--s-4) calc(112px + var(--cc-safe-bottom));
+    padding: calc(var(--cc-safe-top) + var(--s-4)) var(--s-4) calc(112px + var(--cc-safe-bottom));
     overscroll-behavior-y: contain;
   }
 

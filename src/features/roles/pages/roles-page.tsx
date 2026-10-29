@@ -75,7 +75,7 @@ export default function RolesPage() {
 
   if (isError) {
     return (
-      <div className="mx-auto max-w-[960px]">
+      <div className="max-w-[960px]">
         {header}
         <div className="empty-state rounded-xl border border-border bg-surface-1" role="alert">
           <div className="icon !bg-overdue-soft !text-overdue">
@@ -92,7 +92,7 @@ export default function RolesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[960px]">
+    <div className="max-w-[960px]">
       {header}
 
       {isEmpty ? (

@@ -47,14 +47,18 @@ export function TransactionActions({
   // Numa linha de série, pagar/editar/excluir valem para a série inteira e vivem
   // na tela de Parcelamentos — a API recusa essas operações parcela a parcela.
   if (isInstallmentGroup(transaction)) {
+    const viewSeries = () => (onViewSeries ? onViewSeries(transaction) : onView(transaction))
+    // No card do celular o botão de texto espremia descrição e valor; vai para o menu.
+    if (payPlacement === 'menu') {
+      return (
+        <ActionMenu
+          items={[{ label: 'Ver parcelas', onSelect: viewSeries }]}
+          label={`Ações de ${transaction.description}`}
+        />
+      )
+    }
     return (
-      <Button
-        type="button"
-        size="sm"
-        variant="ghost"
-        className="min-h-touch"
-        onClick={() => (onViewSeries ? onViewSeries(transaction) : onView(transaction))}
-      >
+      <Button type="button" size="sm" variant="ghost" className="min-h-touch" onClick={viewSeries}>
         Ver parcelas
       </Button>
     )

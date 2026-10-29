@@ -94,7 +94,7 @@ export default function TransactionDetailPage() {
   const canEdit = !isCancelled && !isLockedTransaction(transaction)
 
   return (
-    <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4">
+    <div className="flex w-full max-w-[880px] flex-col gap-4">
       <BackLink />
 
       {/* Resumo: o que é, quanto e em que situação */}

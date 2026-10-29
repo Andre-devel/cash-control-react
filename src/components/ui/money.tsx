@@ -59,8 +59,8 @@ export function Money({
 
   return (
     <span className={`num ${className}`}>
+      {displaySign && <span style={{ marginRight: 2 }}>{displaySign}</span>}
       {symbol}
-      {displaySign}
       {intGrouped}
       <span style={{ color: 'var(--text-dim)' }}>,{dec}</span>
     </span>

@@ -526,7 +526,7 @@ export default function TransactionsPage() {
                   <th className="!pl-4">Descrição</th>
                   <th>Categoria</th>
                   <th>Conta</th>
-                  <th>Forma de pagamento</th>
+                  <th className="hidden 2xl:table-cell">Forma de pagamento</th>
                   <th>Status</th>
                   <th className="num">Valor</th>
                   <th className="w-8">

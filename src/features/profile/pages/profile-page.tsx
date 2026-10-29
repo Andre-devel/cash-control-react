@@ -114,7 +114,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-4">
+    <div className="flex max-w-5xl flex-col gap-4">
       <h1 className="font-display text-h1 text-fg">Perfil</h1>
 
       <div className="grid items-start gap-4 lg:grid-cols-2">

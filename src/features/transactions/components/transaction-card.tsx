@@ -142,7 +142,7 @@ export const TransactionCard = memo(function TransactionCard({
           </span>
           <span className="flex flex-wrap items-center gap-1.5">
             <StatusBadge status={transaction.status} />
-            <span className="font-mono text-overline font-medium normal-case tracking-normal text-fg-muted">
+            <span className="text-caption text-fg-muted">
               {transaction.creditCard?.name ?? transaction.paymentMethod.name}
             </span>
             {d.installments && (
@@ -156,7 +156,7 @@ export const TransactionCard = memo(function TransactionCard({
           </span>
         </div>
 
-        <div className="relative z-10 flex shrink-0 items-center gap-0.5 self-center">
+        <div className="relative z-10 -my-1 flex shrink-0 flex-col items-end">
           <span
             className={`whitespace-nowrap text-body font-semibold ${
               d.isCancelled

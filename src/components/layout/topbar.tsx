@@ -1,5 +1,5 @@
 import React from 'react'
-import { ChevronRight, Wallet } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 
 interface TopbarProps {
   breadcrumb?: string[]
@@ -8,16 +8,12 @@ interface TopbarProps {
 }
 
 /**
- * Topbar do tablet/desktop (breadcrumb + ações) e header compacto do celular, que mostra a
- * marca e o título da página atual. Ações globais ficam só no desktop; no celular elas
- * estão na folha "Mais".
+ * Topbar do tablet/desktop (breadcrumb + ações). No celular some: cada página abre com o
+ * próprio título e as ações globais ficam na folha "Mais".
  */
 export function Topbar({ breadcrumb, title, children }: TopbarProps) {
   return (
     <header className="topbar">
-      <span className="topbar-logo" aria-hidden="true">
-        <Wallet size={16} />
-      </span>
       {breadcrumb && breadcrumb.length > 0 ? (
         <div className="breadcrumb">
           {breadcrumb.map((b, i) => (

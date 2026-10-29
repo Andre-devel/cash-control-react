@@ -124,7 +124,7 @@ export function NetWorthChartSection({ className = '' }: { className?: string })
                   tick={AXIS_TICK}
                   tickLine={false}
                   axisLine={false}
-                  width={hidden ? 8 : 44}
+                  width={hidden ? 8 : 60}
                   tickFormatter={(v: number) => (hidden ? '' : formatCompactNumber(v))}
                 />
                 <Tooltip

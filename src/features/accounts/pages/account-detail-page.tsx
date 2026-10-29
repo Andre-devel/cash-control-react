@@ -66,7 +66,7 @@ export default function AccountDetailPage() {
   const balance = account ? parseFloat(account.balance) : 0
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+    <div className="flex w-full max-w-3xl flex-col gap-4">
       <div className="-ml-2 flex items-center gap-1">
         <Button variant="ghost" size="icon" className="min-h-touch min-w-touch" asChild>
           <Link to={ROUTES.ACCOUNTS} aria-label="Voltar para Contas">

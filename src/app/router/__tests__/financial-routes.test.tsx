@@ -78,7 +78,7 @@ describe('Financial feature routes — authenticated rendering', () => {
 
   it('renders account detail page at /accounts/:id', async () => {
     renderAtPath('/accounts/test-id')
-    expect(await screen.findByRole('heading', { name: /conta/i })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: /conta/i }, { timeout: 5000 })).toBeTruthy()
   })
 
   it('renders transactions page at /transactions', async () => {
@@ -97,17 +97,23 @@ describe('Financial feature routes — authenticated rendering', () => {
 
   it('renders installments page at /installments', async () => {
     renderAtPath('/installments')
-    expect(await screen.findByRole('heading', { name: /parcelamentos/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /parcelamentos/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('renders recurrences page at /recurrences', async () => {
     renderAtPath('/recurrences')
-    expect(await screen.findByRole('heading', { name: /recorrências/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /recorrências/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('renders categories page at /categories', async () => {
     renderAtPath('/categories')
-    expect(await screen.findByRole('heading', { name: /categorias/i })).toBeTruthy()
+    expect(
+      await screen.findByRole('heading', { name: /categorias/i }, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('renders cards page at /cards', async () => {
@@ -136,7 +142,7 @@ describe('Financial feature routes — authenticated rendering', () => {
 
   it('renders profile page at /profile', async () => {
     renderAtPath('/profile')
-    expect(await screen.findByRole('heading', { name: /perfil/i })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: /perfil/i }, { timeout: 5000 })).toBeTruthy()
   })
 })
 

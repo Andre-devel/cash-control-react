@@ -27,7 +27,7 @@ export function MonthPills({ options, value, onChange }: MonthPickerProps) {
       ref={scroller}
       role="group"
       aria-label="Mês do resumo"
-      className="-mx-4 flex snap-x gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]"
+      className="-mx-4 flex snap-x scroll-px-4 gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]"
     >
       {options.map((m) => {
         const on = m === value

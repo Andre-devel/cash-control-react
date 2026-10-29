@@ -57,7 +57,7 @@ export default function RoleDetailPage() {
   if (isLoading) {
     return (
       <div
-        className="mx-auto flex max-w-[1120px] flex-col gap-4"
+        className="flex max-w-[1120px] flex-col gap-4"
         aria-busy="true"
         aria-label="Carregando detalhes do papel"
       >
@@ -75,7 +75,7 @@ export default function RoleDetailPage() {
     const normalizedError = error as unknown as NormalizedError
     if (normalizedError?.status === 404) {
       return (
-        <div className="mx-auto max-w-[1120px]">
+        <div className="max-w-[1120px]">
           <BackLink />
           <div className="empty-state rounded-xl border border-border bg-surface-1">
             <div className="icon !bg-info/15 !text-info">
@@ -91,7 +91,7 @@ export default function RoleDetailPage() {
       )
     }
     return (
-      <div className="mx-auto max-w-[1120px]">
+      <div className="max-w-[1120px]">
         <BackLink />
         <div
           role="alert"
@@ -107,7 +107,7 @@ export default function RoleDetailPage() {
   if (!role) return null
 
   return (
-    <div className="mx-auto max-w-[1120px]">
+    <div className="max-w-[1120px]">
       <BackLink />
 
       <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-start">

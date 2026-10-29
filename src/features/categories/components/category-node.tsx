@@ -76,7 +76,7 @@ export const CategoryNode = memo(function CategoryNode({
         {hasChildren ? (
           <button
             type="button"
-            className="-mr-1 grid h-11 w-6 shrink-0 cursor-pointer place-items-center border-0 bg-transparent p-0 text-fg-muted"
+            className="-mx-2.5 grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-md border-0 bg-transparent p-0 text-fg-muted"
             aria-expanded={expanded}
             aria-controls={childrenId}
             aria-label={`${expanded ? 'Recolher' : 'Expandir'} ${node.name}`}

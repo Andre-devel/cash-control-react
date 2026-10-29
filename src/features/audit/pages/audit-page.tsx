@@ -220,7 +220,7 @@ export default function AuditPage() {
   const lastIndex = page * PAGE_SIZE + entries.length
 
   return (
-    <div className="mx-auto max-w-[1280px]">
+    <div className="max-w-[1280px]">
       <div className="page-h flex-wrap">
         <div className="min-w-0">
           <span className="text-overline uppercase text-fg-subtle">Sistema</span>

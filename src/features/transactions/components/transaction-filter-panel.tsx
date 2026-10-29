@@ -64,7 +64,7 @@ export function TransactionPeriodControl({ period, onPeriodChange }: PeriodContr
           <ChevronLeft size={16} aria-hidden="true" />
         </Button>
         <span
-          className="min-w-[9.5rem] px-1 text-center text-body font-semibold capitalize"
+          className="min-w-[9.5rem] px-1 text-center text-body font-semibold first-letter:uppercase inline-block"
           aria-live="polite"
         >
           {periodLabel(period)}
