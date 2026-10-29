@@ -14,7 +14,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryProvider>
       <RouterProvider router={router} />
-      <Toaster richColors position="top-right" />
+      <Toaster
+        richColors
+        position="bottom-right"
+        mobileOffset={{ bottom: 'calc(96px + env(safe-area-inset-bottom))' }}
+      />
     </QueryProvider>
   </React.StrictMode>,
 )

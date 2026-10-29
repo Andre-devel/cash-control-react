@@ -1,3 +1,4 @@
+import { useHideValuesStore } from '@/lib/hide-values'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -786,9 +787,17 @@ describe('Money', () => {
     expect(container.textContent).toContain('−')
   })
 
-  it('applies mono class', () => {
+  it('uses tabular numerals', () => {
     const { container } = render(<Money value={0} />)
-    expect(container.querySelector('.mono')).toBeTruthy()
+    expect(container.querySelector('.num')).toBeTruthy()
+  })
+
+  it('masks the value while "ocultar valores" is on', () => {
+    useHideValuesStore.setState({ hidden: true })
+    const { container } = render(<Money value={1234.5} />)
+    expect(container.textContent).not.toContain('1.234')
+    expect(container.textContent).toContain('Valor oculto')
+    useHideValuesStore.setState({ hidden: false })
   })
 
   it('renders decimal part', () => {

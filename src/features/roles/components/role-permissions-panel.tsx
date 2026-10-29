@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Check, FolderKey, KeyRound, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Modal } from '@/components/ui/modal'
@@ -10,6 +11,29 @@ import {
   useRolePermissions,
   useRolePermissionsList,
 } from '@/features/roles/hooks'
+
+interface PermissionGroup {
+  key: string
+  items: Permission[]
+}
+
+/** Agrupa pelo recurso antes de ":" (ex.: `role:create` → `role`), em ordem alfabética. */
+function groupPermissions(permissions: Permission[]): PermissionGroup[] {
+  const map = new Map<string, Permission[]>()
+  for (const permission of permissions) {
+    const sep = permission.name.indexOf(':')
+    const key = sep > 0 ? permission.name.slice(0, sep) : 'geral'
+    const list = map.get(key) ?? []
+    list.push(permission)
+    map.set(key, list)
+  }
+  return [...map.entries()]
+    .sort(([a], [b]) => a.localeCompare(b, 'pt-BR'))
+    .map(([key, items]) => ({
+      key,
+      items: [...items].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
+    }))
+}
 
 interface RolePermissionsPanelProps {
   role: Role
@@ -55,73 +79,106 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
   if (isLoadingRolePermissions) {
     return (
       <div
-        className="h-20 rounded bg-surface-3 animate-pulse"
+        className="h-48 animate-pulse rounded-xl bg-surface-3 motion-reduce:animate-none"
         aria-busy="true"
         aria-label="Carregando permissões"
       />
     )
   }
 
+  const groups = groupPermissions(permissions)
+
+  const assignButton = (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="min-h-[44px]"
+      leading={<Plus size={16} aria-hidden="true" />}
+      onClick={() => setIsAssignOpen(true)}
+      aria-label="Atribuir permissão"
+    >
+      Atribuir permissão
+    </Button>
+  )
+
   return (
     <>
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">Permissões</h3>
-          {canGrantPermission && permissions.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="min-h-[44px]"
-              onClick={() => setIsAssignOpen(true)}
-              aria-label="Atribuir permissão"
-            >
-              Atribuir permissão
-            </Button>
-          )}
+      <div className="overflow-hidden rounded-xl border border-border bg-surface-1">
+        <div className="flex min-h-[60px] items-center gap-3 border-b border-border px-4 py-2">
+          <div className="min-w-0 flex-1">
+            <h2 className="m-0 font-display text-h2">Permissões</h2>
+            <p className="m-0 text-caption tabular-nums text-fg-muted">
+              {permissions.length === 1
+                ? '1 permissão atribuída'
+                : `${permissions.length} permissões atribuídas`}
+            </p>
+          </div>
+          {canGrantPermission && permissions.length > 0 && assignButton}
         </div>
 
         {permissions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center">
-            <p className="mb-3 text-sm text-dim">Nenhuma permissão atribuída.</p>
-            {canGrantPermission && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="min-h-[44px]"
-                onClick={() => setIsAssignOpen(true)}
-                aria-label="Atribuir permissão"
-              >
-                Atribuir permissão
-              </Button>
-            )}
+          <div className="empty-state">
+            <div className="icon">
+              <KeyRound size={24} aria-hidden="true" />
+            </div>
+            <p>Nenhuma permissão atribuída.</p>
+            {canGrantPermission && assignButton}
           </div>
         ) : (
-          <ul className="space-y-2" aria-label="Permissões atribuídas">
-            {permissions.map((permission) => (
-              <li
-                key={permission.id}
-                className="flex items-center justify-between rounded-lg border p-3"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{permission.name}</p>
-                  {permission.description && (
-                    <p className="mt-0.5 text-xs text-dim truncate">{permission.description}</p>
-                  )}
-                </div>
-                {canRevokePermission && (
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="ml-2 shrink-0 min-h-[44px]"
-                    aria-label={`Remover permissão ${permission.name}`}
-                    onClick={() => setPermissionToRevoke(permission)}
-                  >
-                    Remover
-                  </Button>
-                )}
-              </li>
+          <div className="flex flex-col gap-4 p-4 md:p-5">
+            {groups.map((group) => (
+              <section key={group.key} aria-labelledby={`perm-group-${group.key}`}>
+                <h3
+                  id={`perm-group-${group.key}`}
+                  className="m-0 mb-2 flex items-center gap-2 text-overline uppercase text-fg-subtle"
+                >
+                  <FolderKey size={14} aria-hidden="true" />
+                  {group.key}
+                  <span className="tabular-nums">· {group.items.length}</span>
+                </h3>
+                <ul
+                  className="m-0 grid list-none !gap-2 p-0 md:grid-cols-2"
+                  aria-label={`Permissões atribuídas — ${group.key}`}
+                >
+                  {group.items.map((permission) => (
+                    <li
+                      key={permission.id}
+                      className="flex min-h-[56px] items-center gap-3 rounded-lg border border-border bg-bg/40 py-2 pl-3 pr-1"
+                    >
+                      <span
+                        className="grid h-6 w-6 flex-none place-items-center rounded-sm bg-brand text-brand-ink"
+                        aria-hidden="true"
+                      >
+                        <Check size={14} strokeWidth={3} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="m-0 truncate font-mono text-body-sm font-medium">
+                          {permission.name}
+                        </p>
+                        {permission.description && (
+                          <p className="m-0 mt-0.5 truncate text-caption text-fg-muted">
+                            {permission.description}
+                          </p>
+                        )}
+                      </div>
+                      {canRevokePermission && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="min-h-[44px] min-w-[44px] flex-none text-fg-muted hover:text-overdue"
+                          aria-label={`Remover permissão ${permission.name}`}
+                          title="Remover"
+                          onClick={() => setPermissionToRevoke(permission)}
+                        >
+                          <X size={16} aria-hidden="true" />
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
         )}
       </div>
 

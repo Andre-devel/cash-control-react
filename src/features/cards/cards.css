@@ -1,0 +1,72 @@
+/*
+ * Cartão físico (Tela 03). Sempre escuro, nos dois temas: ele imita o plástico do
+ * cartão, não a interface — por isso a base e o texto usam cores fixas, e não os tokens
+ * de tema (que invertem no claro). Só o brilho vem de um token de categoria, para
+ * diferenciar os cartões entre si.
+ */
+.cc-card-face {
+  --face-glow: var(--cc-cat-3);
+  --face-fg: 243 245 248;
+  --face-muted: 168 174 187;
+  --face-base: 17 20 27;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 1.586;
+  border-radius: 18px;
+  padding: clamp(14px, 5%, 20px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: rgb(var(--face-fg));
+  border: 1px solid rgb(255 255 255 / 0.08);
+  background:
+    radial-gradient(70% 90% at 100% 0%, rgb(var(--face-glow) / 0.3), rgb(var(--face-glow) / 0) 70%),
+    linear-gradient(
+      140deg,
+      color-mix(in srgb, rgb(var(--face-glow)) 16%, rgb(var(--face-base))),
+      rgb(var(--face-base))
+    );
+  text-align: left;
+}
+.cc-card-face-muted {
+  color: rgb(var(--face-muted));
+}
+.cc-card-face-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 99px;
+  background: rgb(255 255 255 / 0.12);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+.cc-card-face-chip {
+  width: 38px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #d9c58a, #9c8a55);
+}
+.cc-card-face-brand {
+  font-weight: 800;
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+/* Barra do grupo de limite compartilhado: um segmento por cartão. */
+.cc-limit-segments {
+  display: flex;
+  height: 10px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: var(--surface-3);
+}
+.cc-limit-segments > i {
+  display: block;
+  height: 100%;
+}

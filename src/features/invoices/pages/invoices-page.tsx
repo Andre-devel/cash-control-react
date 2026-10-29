@@ -1,74 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ChevronRight } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Money } from '@/components/ui/money'
+import { Receipt } from 'lucide-react'
 import { Select } from '@/components/ui/select'
 import { useCards } from '@/features/cards/hooks/use-cards'
-import { invoiceLabel } from '@/features/cards/utils/invoice-month'
 import { useInvoices } from '@/features/invoices/hooks/use-invoices'
-import {
-  INVOICE_STATUS_LABELS,
-  invoiceStatusBadgeKind,
-} from '@/features/invoices/utils/invoice-status'
-import { useMediaQuery, MOBILE_QUERY } from '@/hooks/use-media-query'
-import { ROUTES } from '@/app/router/routes'
-import type { InvoiceSummary } from '@/features/invoices/types'
+import { InvoiceHistoryList } from '@/features/invoices/components/invoice-history-list'
+import { InvoiceFilterTabs } from '@/features/invoices/components/invoice-filter-tabs'
+import { matchesInvoiceFilter, type InvoiceFilter } from '@/features/invoices/utils/invoice-status'
 
 function InvoicesSkeleton() {
   return (
-    <div className="space-y-2" aria-busy="true" aria-label="Carregando faturas">
+    <div className="flex flex-col gap-2" aria-busy="true" aria-label="Carregando faturas">
       {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="animate-pulse"
-          style={{ height: 56, borderRadius: 8, background: 'var(--surface-2)' }}
-        />
+        <div key={i} className="h-[120px] animate-pulse rounded-2xl bg-surface-2 lg:h-14" />
       ))}
     </div>
-  )
-}
-
-function invoiceHref(invoice: InvoiceSummary) {
-  return ROUTES.INVOICE_DETAIL.replace(':invoiceId', invoice.id)
-}
-
-/** "4 lançamentos", ou "4 lançamentos (3 importados)" quando parte veio do PDF. */
-function itemCountLabel(invoice: InvoiceSummary): string {
-  const count = `${invoice.itemCount} ${invoice.itemCount === 1 ? 'lançamento' : 'lançamentos'}`
-  if (invoice.importedItemCount === 0) return count
-  if (invoice.importedItemCount === invoice.itemCount) return `${count}, importados`
-  return `${count} (${invoice.importedItemCount} importados)`
-}
-
-function InvoiceCard({ invoice }: { invoice: InvoiceSummary }) {
-  return (
-    <Link
-      to={invoiceHref(invoice)}
-      className="list-row"
-      style={{ padding: '12px 0', borderColor: 'var(--border)', display: 'flex' }}
-    >
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="row between">
-          <span className="title">{invoiceLabel(invoice.dueDate)}</span>
-          <Badge kind={invoiceStatusBadgeKind(invoice.status)} dot={false} square>
-            {INVOICE_STATUS_LABELS[invoice.status]}
-          </Badge>
-        </div>
-        <div className="meta">{itemCountLabel(invoice)}</div>
-      </div>
-      <div className="amount mono" style={{ alignSelf: 'center' }}>
-        <Money value={parseFloat(invoice.totalAmount)} />
-      </div>
-    </Link>
   )
 }
 
 export default function InvoicesPage() {
   const { data: cards, isLoading: cardsLoading } = useCards()
   const [cardId, setCardId] = useState<string | null>(null)
-  const isMobile = useMediaQuery(MOBILE_QUERY)
-  const navigate = useNavigate()
+  const [filter, setFilter] = useState<InvoiceFilter>('all')
 
   const activeCards = useMemo(() => cards?.filter((c) => !c.archivedAt) ?? [], [cards])
 
@@ -79,6 +31,8 @@ export default function InvoicesPage() {
   }, [activeCards, cardId])
 
   const { data: invoices, isLoading, isError, refetch } = useInvoices(cardId ?? '')
+  const cardName = activeCards.find((c) => c.id === cardId)?.name
+  const filtered = (invoices?.content ?? []).filter((inv) => matchesInvoiceFilter(inv, filter))
 
   return (
     <div>
@@ -88,7 +42,7 @@ export default function InvoicesPage() {
           <div className="desc">Histórico de faturas por cartão, com correção de lançamentos.</div>
         </div>
         <div className="spacer" />
-        <div className="actions">
+        <div className="actions w-full md:w-auto">
           <Select
             aria-label="Cartão"
             value={cardId ?? ''}
@@ -105,80 +59,41 @@ export default function InvoicesPage() {
         </div>
       </div>
 
+      {cardId && (
+        <InvoiceFilterTabs value={filter} onChange={setFilter} className="mb-4 md:max-w-sm" />
+      )}
+
       {!cardId ? (
-        <p className="text-sm" style={{ color: 'var(--text-dim)' }}>
-          {cardsLoading ? 'Carregando…' : 'Cadastre um cartão para ver o histórico de faturas.'}
-        </p>
+        cardsLoading ? (
+          <p className="m-0 text-body-sm text-fg-muted">Carregando…</p>
+        ) : (
+          <div className="empty-state">
+            <div className="icon">
+              <Receipt size={22} aria-hidden="true" />
+            </div>
+            <h4>Nenhum cartão</h4>
+            <p>Cadastre um cartão para ver o histórico de faturas.</p>
+          </div>
+        )
       ) : isLoading ? (
         <InvoicesSkeleton />
       ) : isError ? (
-        <div role="alert" style={{ marginBottom: 24 }}>
-          <p style={{ color: 'var(--expense)', fontSize: 13, marginBottom: 8 }}>
-            Erro ao carregar faturas.
-          </p>
+        <div role="alert" className="mb-6 flex flex-col items-start gap-2">
+          <p className="m-0 text-body-sm text-expense">Erro ao carregar faturas.</p>
           <button className="btn btn-ghost btn-sm" onClick={() => void refetch()}>
             Tentar novamente
           </button>
         </div>
       ) : !invoices || invoices.content.length === 0 ? (
-        <p className="text-sm" style={{ color: 'var(--text-dim)' }}>
+        <p className="m-0 text-body-sm text-fg-muted">
           Nenhuma fatura encontrada para este cartão.
         </p>
-      ) : isMobile ? (
-        <div style={{ borderTop: '1px solid var(--border)' }}>
-          {invoices.content.map((invoice) => (
-            <InvoiceCard key={invoice.id} invoice={invoice} />
-          ))}
-        </div>
+      ) : filtered.length === 0 ? (
+        <p className="m-0 text-body-sm text-fg-muted">
+          {filter === 'paid' ? 'Nenhuma fatura paga' : 'Nenhuma fatura em aberto'} neste cartão.
+        </p>
       ) : (
-        <div className="card flush">
-          <div className="tbl-wrap">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Mês</th>
-                  <th>Situação</th>
-                  <th className="num">Total</th>
-                  <th className="num">Pago</th>
-                  <th>Lançamentos</th>
-                  <th style={{ width: 32 }} />
-                </tr>
-              </thead>
-              <tbody>
-                {invoices.content.map((invoice) => (
-                  <tr
-                    key={invoice.id}
-                    onClick={() => navigate(invoiceHref(invoice))}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td>{invoiceLabel(invoice.dueDate)}</td>
-                    <td>
-                      <Badge kind={invoiceStatusBadgeKind(invoice.status)} dot={false} square>
-                        {INVOICE_STATUS_LABELS[invoice.status]}
-                      </Badge>
-                    </td>
-                    <td className="num mono">
-                      <Money value={parseFloat(invoice.totalAmount)} />
-                    </td>
-                    <td className="num mono">
-                      <Money value={parseFloat(invoice.paidAmount)} />
-                    </td>
-                    <td>{itemCountLabel(invoice)}</td>
-                    <td>
-                      <Link
-                        to={invoiceHref(invoice)}
-                        aria-label={`Abrir fatura de ${invoiceLabel(invoice.dueDate)}`}
-                        style={{ display: 'flex', color: 'var(--text-dim)' }}
-                      >
-                        <ChevronRight size={16} aria-hidden="true" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <InvoiceHistoryList invoices={filtered} cardName={cardName} />
       )}
     </div>
   )

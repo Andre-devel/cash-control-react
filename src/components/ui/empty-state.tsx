@@ -1,7 +1,8 @@
 import type { ReactNode, ComponentType } from 'react'
+import type { LucideProps } from 'lucide-react'
 
 interface EmptyStateProps {
-  icon?: ComponentType<{ size?: number; stroke?: number }>
+  icon?: ComponentType<LucideProps>
   title: string
   desc?: string
   action?: ReactNode
@@ -12,7 +13,7 @@ export function EmptyState({ icon: Icon, title, desc, action }: EmptyStateProps)
     <div className="empty-state">
       <div className="icon">
         {Icon ? (
-          <Icon size={22} stroke={1.4} />
+          <Icon size={24} strokeWidth={1.75} aria-hidden="true" />
         ) : (
           <svg
             className="ico"

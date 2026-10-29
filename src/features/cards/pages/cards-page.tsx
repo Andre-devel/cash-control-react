@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Upload } from 'lucide-react'
+import { ChevronRight, CreditCard, Plus, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Money } from '@/components/ui/money'
 import { useCards } from '@/features/cards/hooks/use-cards'
 import { useInvoice } from '@/features/cards/hooks/use-invoice'
-import { useLimitUsage } from '@/features/cards/hooks/use-limit-usage'
+import { useCardsLimitUsage } from '@/features/cards/hooks/use-cards-limit-usage'
 import { useSpendingBreakdown } from '@/features/cards/hooks/use-spending-breakdown'
 import { CreditCardVisual } from '@/features/cards/components/credit-card-visual'
 import { AddCardVisual } from '@/features/cards/components/add-card-visual'
@@ -14,6 +15,7 @@ import { CreateCardDialog } from '@/features/cards/components/create-card-dialog
 import { PayInvoiceDialog } from '@/features/cards/components/pay-invoice-dialog'
 import { ImportFaturaDialog } from '@/features/cards/components/import-fatura-dialog'
 import { getCurrentInvoiceMonth } from '@/features/cards/utils/invoice-month'
+import { limitViewFor } from '@/features/cards/utils/limit-view'
 import { ROUTES } from '@/app/router/routes'
 
 function getSpendingRange(referenceMonth: string) {
@@ -28,23 +30,18 @@ function getSpendingRange(referenceMonth: string) {
 function CardsSkeleton() {
   return (
     <div
-      className="row gap-4 mb-6"
-      style={{ overflowX: 'auto', paddingBottom: 4 }}
+      className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
       aria-busy="true"
       aria-label="Carregando cartões"
     >
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="animate-pulse"
-          style={{
-            flexShrink: 0,
-            width: 280,
-            height: 170,
-            borderRadius: 14,
-            background: 'var(--surface-2)',
-          }}
-        />
+          className="flex flex-col gap-3.5 rounded-2xl border border-border bg-surface-1 p-2.5 pb-4"
+        >
+          <div className="aspect-[1.586] animate-pulse rounded-[18px] bg-surface-3" />
+          <div className="mx-1.5 h-2.5 animate-pulse rounded-full bg-surface-3" />
+        </div>
       ))}
     </div>
   )
@@ -58,7 +55,7 @@ export default function CardsPage() {
   const [payOpen, setPayOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
 
-  const activeCards = cards?.filter((c) => !c.archivedAt) ?? []
+  const activeCards = useMemo(() => cards?.filter((c) => !c.archivedAt) ?? [], [cards])
   const archivedCards = cards?.filter((c) => c.archivedAt) ?? []
   const selectedCard = activeCards.find((c) => c.id === selectedCardId) ?? activeCards[0] ?? null
 
@@ -74,8 +71,36 @@ export default function CardsPage() {
     selectedCard?.id ?? '',
     referenceMonth ?? '',
   )
-  const { data: limitUsage } = useLimitUsage(selectedCard?.id ?? '')
+  // Uso de todos os cartões ativos: cada cartão de um grupo compartilhado precisa do uso
+  // dos outros para mostrar a barra somada.
+  const usageByCard = useCardsLimitUsage(activeCards.map((c) => c.id))
   const { data: spending } = useSpendingBreakdown(selectedCard?.id ?? '', spendingRange)
+
+  const selectedLimitView = selectedCard
+    ? limitViewFor(selectedCard, activeCards, usageByCard)
+    : null
+
+  /** Totais da faixa de resumo. Um grupo compartilhado conta o limite uma vez só. */
+  const totals = useMemo(() => {
+    const seenGroups = new Set<string>()
+    let limit = 0
+    let available = 0
+    let complete = activeCards.length > 0
+    for (const card of activeCards) {
+      if (card.sharedLimitGroupId) {
+        if (seenGroups.has(card.sharedLimitGroupId)) continue
+        seenGroups.add(card.sharedLimitGroupId)
+      }
+      const view = limitViewFor(card, activeCards, usageByCard)
+      if (!view) {
+        complete = false
+        continue
+      }
+      limit += view.limit
+      available += view.available
+    }
+    return complete ? { limit, available } : null
+  }, [activeCards, usageByCard])
 
   return (
     <div>
@@ -92,7 +117,7 @@ export default function CardsPage() {
           </div>
         </div>
         <div className="spacer" />
-        <div className="actions">
+        <div className="actions flex-wrap">
           {/* Não depende de selectedCard: um PDF de fatura pode cobrir vários cartões,
               e é a própria leitura que diz quais. */}
           <Button leading={<Upload size={14} />} onClick={() => setImportOpen(true)}>
@@ -111,27 +136,19 @@ export default function CardsPage() {
       {isLoading ? (
         <CardsSkeleton />
       ) : isError ? (
-        <div role="alert" style={{ marginBottom: 24 }}>
-          <p style={{ color: 'var(--expense)', fontSize: 13, marginBottom: 8 }}>
-            Erro ao carregar cartões.
-          </p>
+        <div role="alert" className="mb-6 flex flex-col items-start gap-2">
+          <p className="m-0 text-body-sm text-expense">Erro ao carregar cartões.</p>
           <Button size="sm" variant="ghost" onClick={() => void refetch()}>
             Tentar novamente
           </Button>
         </div>
       ) : activeCards.length === 0 ? (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 16,
-            padding: '64px 0',
-            textAlign: 'center',
-          }}
-        >
-          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Nenhum cartão encontrado.</p>
+        <div className="empty-state">
+          <div className="icon">
+            <CreditCard size={22} aria-hidden="true" />
+          </div>
+          <h4>Nenhum cartão encontrado.</h4>
+          <p>Cadastre um cartão para acompanhar limite, faturas e parcelas.</p>
           <Button
             variant="primary"
             leading={<Plus size={14} />}
@@ -142,56 +159,81 @@ export default function CardsPage() {
         </div>
       ) : (
         <>
-          {/* Card visuals row */}
-          {/* Quebra de linha em vez de rolagem lateral: rolando, o "Adicionar cartão" ficava
-              cortado na borda e parecia não existir. */}
+          {/* Resumo */}
+          {totals && (
+            <div className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border border-border bg-surface-1 px-4 py-3.5 md:max-w-md">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-caption text-fg-muted">Limite total</span>
+                <span className="text-[17px] font-bold leading-none tabular-nums">
+                  <Money value={totals.limit} />
+                </span>
+              </div>
+              <div className="flex flex-col gap-1.5 border-l border-border pl-3">
+                <span className="text-caption text-fg-muted">Limite disponível</span>
+                <span className="text-[17px] font-bold leading-none tabular-nums">
+                  <Money value={totals.available} />
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Cartões */}
           <div
-            className="row gap-4 mb-6"
-            style={{ flexWrap: 'wrap' }}
+            className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
             role="list"
             aria-label="Cartões de crédito"
           >
             {activeCards.map((card) => (
-              <CreditCardVisual
-                key={card.id}
-                card={card}
-                selected={card.id === selectedCard?.id}
-                onSelect={() => setSelectedCardId(card.id)}
-              />
+              <div role="listitem" key={card.id}>
+                <CreditCardVisual
+                  card={card}
+                  selected={card.id === selectedCard?.id}
+                  onSelect={() => setSelectedCardId(card.id)}
+                  limitView={limitViewFor(card, activeCards, usageByCard)}
+                />
+              </div>
             ))}
-            <AddCardVisual onClick={() => setCreateOpen(true)} />
+            <div role="listitem">
+              <AddCardVisual onClick={() => setCreateOpen(true)} />
+            </div>
           </div>
 
           {selectedCard && (
-            <div className="row gap-2 mb-4" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to={ROUTES.CARD_DETAIL.replace(':id', selectedCard.id)}>
-                  Detalhes de {selectedCard.name}
-                </Link>
-              </Button>
-            </div>
-          )}
+            <>
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h2 className="m-0 font-display text-h2 font-bold">{selectedCard.name}</h2>
+                <Button variant="ghost" size="sm" asChild className="min-h-touch">
+                  <Link to={ROUTES.CARD_DETAIL.replace(':id', selectedCard.id)}>
+                    Detalhes de {selectedCard.name}
+                    <ChevronRight size={14} aria-hidden="true" />
+                  </Link>
+                </Button>
+              </div>
 
-          {/* Invoice + sidebar */}
-          {selectedCard && (
-            <div className="grid" style={{ gridTemplateColumns: '1fr 360px' }}>
-              <InvoiceCard
-                card={selectedCard}
-                invoice={invoice}
-                invoiceLoading={invoiceLoading}
-                referenceMonth={referenceMonth ?? ''}
-                onMonthChange={setReferenceMonth}
-                onPay={() => setPayOpen(true)}
-              />
-              <CardSidebar card={selectedCard} limitUsage={limitUsage} spending={spending} />
-            </div>
+              {/* Fatura + painel lateral: empilhados até 1280, lado a lado depois. */}
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+                <InvoiceCard
+                  card={selectedCard}
+                  invoice={invoice}
+                  invoiceLoading={invoiceLoading}
+                  referenceMonth={referenceMonth ?? ''}
+                  onMonthChange={setReferenceMonth}
+                  onPay={() => setPayOpen(true)}
+                />
+                <CardSidebar
+                  card={selectedCard}
+                  limitView={selectedLimitView}
+                  spending={spending}
+                />
+              </div>
+            </>
           )}
         </>
       )}
 
       {archivedCards.length > 0 && (
-        <div className="row gap-2 mt-6" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
-          <span className="text-xs text-dim">Arquivados:</span>
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          <span className="text-caption text-fg-muted">Arquivados:</span>
           {archivedCards.map((card) => (
             <Button key={card.id} variant="ghost" size="sm" asChild>
               <Link to={ROUTES.CARD_DETAIL.replace(':id', card.id)}>{card.name}</Link>

@@ -1,0 +1,204 @@
+/* ============================================================
+   Autenticação — direção "Grafite & Menta".
+   Sobrescreve as classes legadas .auth-* de globals.css (que ainda trazem o
+   gradiente laranja antigo e a grade 1fr/1fr). Seletores com o prefixo
+   `.cc-auth` para ganhar especificidade sem !important.
+   ============================================================ */
+
+.cc-auth.auth-shell {
+  min-height: 100dvh;
+  height: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  background: rgb(var(--cc-bg));
+  color: rgb(var(--cc-text));
+}
+
+.cc-auth .auth-aside {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .cc-auth.auth-shell {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    height: 100dvh;
+  }
+  .cc-auth .auth-aside {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding: 56px;
+    overflow: hidden;
+    /* Neutraliza o gradiente laranja legado: só menta sobre surface-1. */
+    background:
+      radial-gradient(90% 70% at 0% 0%, rgb(var(--cc-brand) / 0.18), rgb(var(--cc-brand) / 0) 60%),
+      rgb(var(--cc-surface-1));
+    border-right: 1px solid rgb(var(--cc-border));
+  }
+  .cc-auth .auth-main {
+    overflow-y: auto;
+  }
+}
+
+.cc-auth .auth-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: calc(40px + var(--cc-safe-top, 0px)) 24px calc(32px + var(--cc-safe-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .cc-auth .auth-main {
+    justify-content: center;
+    padding: 56px;
+  }
+}
+
+.cc-auth .auth-card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Campos maiores, como no design (50px no celular, 48px no desktop). */
+.cc-auth .auth-card .input {
+  height: 50px;
+  border-radius: 14px;
+  border-color: rgb(var(--cc-border-strong));
+  background: rgb(var(--cc-surface-1));
+  font-size: 16px;
+}
+.cc-auth .auth-card .btn-lg {
+  min-height: 52px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+/* Botão neutro (Google) em contorno sobre surface-1. */
+.cc-auth .auth-card .btn:not(.btn-primary):not(.btn-ghost):not(.btn-danger) {
+  background: rgb(var(--cc-surface-1));
+  border-color: rgb(var(--cc-border-strong));
+}
+.cc-auth .auth-card .btn:not(.btn-primary):not(.btn-ghost):not(.btn-danger):hover {
+  background: rgb(var(--cc-surface-2));
+}
+@media (min-width: 1024px) {
+  .cc-auth .auth-card .input {
+    height: 48px;
+    font-size: 15px;
+  }
+  .cc-auth .auth-card .btn-lg {
+    min-height: 50px;
+    border-radius: 14px;
+    font-size: 15px;
+  }
+}
+
+.cc-auth .auth-card .field > label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgb(var(--cc-text));
+}
+
+.cc-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgb(var(--cc-text-subtle));
+  font-size: 12px;
+  font-weight: 500;
+}
+.cc-auth-divider::before,
+.cc-auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgb(var(--cc-border));
+}
+
+.cc-auth-link {
+  color: rgb(var(--cc-brand-text));
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.cc-auth-link:hover {
+  text-decoration: underline;
+}
+.cc-auth-link:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgb(var(--cc-bg)),
+    0 0 0 4px rgb(var(--cc-focus));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-auth .animate-spin {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   Política de privacidade (página pública, leitura longa)
+   ============================================================ */
+.cc-legal {
+  min-height: 100dvh;
+  background: rgb(var(--cc-bg));
+  color: rgb(var(--cc-text));
+}
+.cc-legal-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: calc(8px + var(--cc-safe-top, 0px)) 8px 8px;
+  background: rgb(var(--cc-bg) / 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgb(var(--cc-border));
+}
+.cc-legal article {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px calc(48px + var(--cc-safe-bottom, 0px));
+  font-size: 15px;
+  line-height: 1.6;
+}
+.cc-legal article h2 {
+  margin: 28px 0 8px;
+  font-family: var(--cc-font-display);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: rgb(var(--cc-text));
+}
+.cc-legal article p,
+.cc-legal article li {
+  color: rgb(var(--cc-text-muted));
+}
+.cc-legal article p {
+  margin: 8px 0;
+}
+.cc-legal article ul {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 8px 0;
+}
+.cc-legal article li {
+  margin-bottom: 6px;
+}
+.cc-legal article strong {
+  color: rgb(var(--cc-text));
+  font-weight: 600;
+}
+.cc-legal article a {
+  color: rgb(var(--cc-brand-text));
+  font-weight: 600;
+  text-decoration: none;
+  word-break: break-word;
+}
+.cc-legal article a:hover {
+  text-decoration: underline;
+}

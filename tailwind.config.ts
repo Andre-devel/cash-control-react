@@ -19,6 +19,8 @@ const config: Config = {
       boxShadow,
       screens,
       spacing,
+      minHeight: { touch: '44px' },
+      minWidth: { touch: '44px' },
     },
   },
   plugins: [],

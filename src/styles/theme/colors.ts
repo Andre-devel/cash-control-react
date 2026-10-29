@@ -1,55 +1,50 @@
-// CSS var references for Tailwind — enables bg-accent, text-income, etc.
-export const colors = {
-  accent: 'var(--accent)',
-  'accent-hover': 'var(--accent-hover)',
-  'accent-press': 'var(--accent-press)',
-  'accent-soft': 'var(--accent-soft)',
-  'accent-fg': 'var(--accent-fg)',
-  bg: 'var(--bg)',
-  'surface-1': 'var(--surface-1)',
-  'surface-2': 'var(--surface-2)',
-  'surface-3': 'var(--surface-3)',
-  'surface-hover': 'var(--surface-hover)',
-  border: 'var(--border)',
-  'border-strong': 'var(--border-strong)',
-  text: 'var(--text)',
-  'text-muted': 'var(--text-muted)',
-  'text-dim': 'var(--text-dim)',
-  'text-faint': 'var(--text-faint)',
-  paid: 'var(--paid)',
-  'paid-soft': 'var(--paid-soft)',
-  pending: 'var(--pending)',
-  'pending-soft': 'var(--pending-soft)',
-  cancelled: 'var(--cancelled)',
-  'cancelled-soft': 'var(--cancelled-soft)',
-  income: 'var(--income)',
-  'income-soft': 'var(--income-soft)',
-  expense: 'var(--expense)',
-  'expense-soft': 'var(--expense-soft)',
-  info: 'var(--info)',
-  'info-soft': 'var(--info-soft)',
-} as const
+// Cores ligadas aos tokens --cc-* (canais RGB) de globals.css.
+// `<alpha-value>` habilita modificadores de opacidade do Tailwind (ex.: bg-brand/20).
+const cc = (name: string) => `rgb(var(--cc-${name}) / <alpha-value>)`
 
-// Raw hex palette (dark theme defaults) for TypeScript consumers
-export const palette = {
-  accent: '#ff6b35',
-  accentHover: '#ff8559',
-  accentPress: '#e85a26',
-  accentFg: '#0a0a0b',
-  bg: '#0a0a0b',
-  surface1: '#101012',
-  surface2: '#16161a',
-  surface3: '#1d1d22',
-  border: '#232328',
-  borderStrong: '#2e2e36',
-  text: '#f4f4f5',
-  textMuted: '#a1a1aa',
-  textDim: '#71717a',
-  textFaint: '#52525b',
-  paid: '#34d399',
-  pending: '#fbbf24',
-  cancelled: '#71717a',
-  income: '#34d399',
-  expense: '#fb7185',
-  info: '#60a5fa',
+const semantic = (name: string) => ({
+  DEFAULT: cc(name),
+  soft: cc(`${name}-soft`),
+  solid: cc(`${name}-solid`),
+  on: cc(`${name}-on`),
+})
+
+export const colors = {
+  bg: cc('bg'),
+  surface: { 1: cc('surface-1'), 2: cc('surface-2'), 3: cc('surface-3'), hover: cc('surface-2') },
+  border: { DEFAULT: cc('border'), strong: cc('border-strong') },
+  fg: { DEFAULT: cc('text'), muted: cc('text-muted'), subtle: cc('text-subtle') },
+  brand: {
+    DEFAULT: cc('brand'),
+    ink: cc('brand-ink'),
+    text: cc('brand-text'),
+    soft: cc('brand-soft'),
+  },
+  focus: cc('focus'),
+  overlay: cc('overlay'),
+  income: semantic('income'),
+  expense: semantic('expense'),
+  paid: semantic('paid'),
+  pending: semantic('pending'),
+  overdue: semantic('overdue'),
+  canceled: semantic('canceled'),
+  info: semantic('info'),
+  cat: Object.fromEntries(Array.from({ length: 10 }, (_, i) => [i + 1, cc(`cat-${i + 1}`)])),
+
+  // Nomes anteriores ao redesenho — mantidos até as telas migrarem.
+  accent: {
+    DEFAULT: cc('brand'),
+    hover: 'var(--accent-hover)',
+    press: 'var(--accent-press)',
+    soft: cc('brand-soft'),
+    fg: cc('brand-ink'),
+    text: cc('brand-text'),
+  },
+  text: {
+    DEFAULT: cc('text'),
+    muted: cc('text-muted'),
+    dim: cc('text-muted'),
+    faint: cc('text-subtle'),
+  },
+  cancelled: semantic('canceled'),
 } as const

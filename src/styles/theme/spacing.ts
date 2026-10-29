@@ -10,4 +10,6 @@ export const spacing = {
   '10': '40px',
   '12': '48px',
   '16': '64px',
+  'safe-t': 'var(--cc-safe-top)',
+  'safe-b': 'var(--cc-safe-bottom)',
 }

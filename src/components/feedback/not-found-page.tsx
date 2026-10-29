@@ -1,28 +1,28 @@
 import { Link } from 'react-router-dom'
+import { MapPinOff } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/app/router/routes'
 import { useAuthStore } from '@/features/auth/store/auth.store'
+import { StatusPage } from './status-page'
 
 export default function NotFoundPage() {
   const isLoggedIn = useAuthStore((s) => s.token !== null)
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: 'var(--bg)' }}
-    >
-      <div className="text-center">
-        <h1 className="fw-700" style={{ fontSize: 64 }}>
-          404
-        </h1>
-        <p className="mt-2 text-dim">Página não encontrada.</p>
-        <Link
-          to={isLoggedIn ? ROUTES.DASHBOARD : ROUTES.LOGIN}
-          className="mt-4 inline-block hover:underline"
-          style={{ color: 'var(--accent)' }}
-        >
-          {isLoggedIn ? 'Ir para o dashboard' : 'Ir para o login'}
-        </Link>
-      </div>
-    </div>
+    <StatusPage
+      fullscreen
+      code="404"
+      icon={MapPinOff}
+      tone="info"
+      title="Página não encontrada"
+      description="O endereço pode ter mudado ou o item foi excluído."
+      actions={
+        <Button asChild variant="primary" size="lg" className="w-full">
+          <Link to={isLoggedIn ? ROUTES.DASHBOARD : ROUTES.LOGIN}>
+            {isLoggedIn ? 'Ir para o dashboard' : 'Ir para o login'}
+          </Link>
+        </Button>
+      }
+    />
   )
 }

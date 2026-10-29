@@ -1,36 +1,53 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import {
+  Archive,
+  ArchiveRestore,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  FileUp,
+  Pencil,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Money } from '@/components/ui/money'
 import { useCard } from '@/features/cards/hooks/use-card'
+import { useCards } from '@/features/cards/hooks/use-cards'
 import { useInvoice } from '@/features/cards/hooks/use-invoice'
-import { useLimitUsage } from '@/features/cards/hooks/use-limit-usage'
+import { useCardsLimitUsage } from '@/features/cards/hooks/use-cards-limit-usage'
 import { useSpendingBreakdown } from '@/features/cards/hooks/use-spending-breakdown'
+import { CardFace } from '@/features/cards/components/card-face'
+import { CardSidebar } from '@/features/cards/components/card-sidebar'
 import { EditCardDialog } from '@/features/cards/components/edit-card-dialog'
 import { PayInvoiceDialog } from '@/features/cards/components/pay-invoice-dialog'
 import { ArchiveCardDialog } from '@/features/cards/components/archive-card-dialog'
+import { ImportFaturaDialog } from '@/features/cards/components/import-fatura-dialog'
 import { useUnarchiveCard } from '@/features/cards/hooks/use-unarchive-card'
 import {
   dueMonthLabelWithYear,
   getCurrentInvoiceMonth,
   shiftMonth,
 } from '@/features/cards/utils/invoice-month'
+import { limitViewFor } from '@/features/cards/utils/limit-view'
+import { useInvoices } from '@/features/invoices/hooks/use-invoices'
+import { InvoiceStatusBadge } from '@/features/invoices/components/invoice-status-badge'
+import { InvoiceItemRow } from '@/features/invoices/components/invoice-item-row'
+import { InvoiceHistoryList } from '@/features/invoices/components/invoice-history-list'
+import { InvoiceFilterTabs } from '@/features/invoices/components/invoice-filter-tabs'
+import { matchesInvoiceFilter, type InvoiceFilter } from '@/features/invoices/utils/invoice-status'
 import { ROUTES } from '@/app/router/routes'
 import { formatLocalDate } from '@/lib/format-date'
 
-const INVOICE_STATUS_LABELS: Record<string, string> = {
-  OPEN: 'Aberta',
-  CLOSED: 'Fechada',
-  PAID: 'Paga',
-  PARTIAL: 'Parcial',
-  OVERDUE: 'Vencida',
-}
-
 function CardDetailSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Carregando cartão">
-      <div className="h-6 w-48 rounded" style={{ background: 'var(--surface-3)' }} />
-      <div className="h-32 rounded" style={{ background: 'var(--surface-3)' }} />
+    <div
+      className="grid animate-pulse grid-cols-1 gap-5 xl:grid-cols-[380px_minmax(0,1fr)]"
+      aria-busy="true"
+      aria-label="Carregando cartão"
+    >
+      <div className="aspect-[1.586] rounded-[22px] bg-surface-3" />
+      <div className="h-64 rounded-2xl bg-surface-3" />
     </div>
   )
 }
@@ -41,6 +58,8 @@ export default function CardDetailPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
   const [archiveOpen, setArchiveOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
+  const [historyFilter, setHistoryFilter] = useState<InvoiceFilter>('all')
   const { mutate: unarchiveCard, isPending: unarchivePending } = useUnarchiveCard()
 
   const spendingFrom = referenceMonth ? `${referenceMonth}-01` : ''
@@ -66,256 +85,271 @@ export default function CardDetailPage() {
   }, [card, referenceMonth])
 
   const { data: invoice, isLoading: invoiceLoading } = useInvoice(id ?? '', referenceMonth ?? '')
-  const { data: limitUsage } = useLimitUsage(id ?? '')
   const { data: spending } = useSpendingBreakdown(id ?? '', { from: spendingFrom, to: spendingTo })
+  const { data: invoices, isLoading: invoicesLoading } = useInvoices(id ?? '')
 
-  const limitPercent = limitUsage
-    ? limitUsage.usagePercentage
-      ? Math.round(parseFloat(limitUsage.usagePercentage))
-      : Math.min(
-          100,
-          Math.round((parseFloat(limitUsage.usedLimit) / parseFloat(limitUsage.creditLimit)) * 100),
-        )
-    : 0
+  // Num grupo de limite compartilhado, a barra soma o uso dos outros cartões do grupo.
+  const { data: allCards } = useCards()
+  const groupCards = useMemo(() => {
+    if (!card) return []
+    if (!card.sharedLimitGroupId) return [card]
+    const members = (allCards ?? []).filter(
+      (c) => c.sharedLimitGroupId === card.sharedLimitGroupId && !c.archivedAt,
+    )
+    return members.some((c) => c.id === card.id) ? members : [card, ...members]
+  }, [card, allCards])
+  const usageByCard = useCardsLimitUsage(groupCards.map((c) => c.id))
+  const limitView = card ? limitViewFor(card, groupCards, usageByCard) : null
+
+  const filteredInvoices = (invoices?.content ?? []).filter((inv) =>
+    matchesInvoiceFilter(inv, historyFilter),
+  )
+
+  const totalAmount = invoice ? parseFloat(invoice.totalAmount) : 0
+  const paidAmount = invoice ? parseFloat(invoice.paidAmount) : 0
+  const remainingAmount = totalAmount - paidAmount
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
-          <Link to={ROUTES.CARDS}>&larr; Cartões</Link>
-        </Button>
+    <div className="flex flex-col gap-5">
+      {/* Cabeçalho: trilha + nome + ações */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-end">
+        <div className="min-w-0 flex-1">
+          <nav
+            aria-label="Trilha"
+            className="mb-1 flex items-center gap-1 text-body-sm text-fg-muted"
+          >
+            <Link
+              to={ROUTES.CARDS}
+              className="inline-flex min-h-touch items-center gap-1 text-fg-muted no-underline hover:text-fg"
+            >
+              <ChevronLeft size={16} aria-hidden="true" />
+              Cartões
+            </Link>
+          </nav>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="m-0 font-display text-h1 font-extrabold">{card?.name ?? 'Cartão'}</h1>
+            {card?.archivedAt && (
+              <Badge kind="pending" icon={<Archive aria-hidden="true" />}>
+                Arquivado
+              </Badge>
+            )}
+          </div>
+        </div>
+        {card && (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              className="min-h-touch"
+              leading={<Pencil size={14} />}
+              onClick={() => setEditOpen(true)}
+            >
+              Editar
+            </Button>
+            {card.archivedAt ? (
+              <Button
+                className="min-h-touch"
+                leading={<ArchiveRestore size={14} />}
+                loading={unarchivePending}
+                onClick={() => unarchiveCard(card.id)}
+              >
+                Desarquivar
+              </Button>
+            ) : (
+              <Button
+                className="min-h-touch"
+                leading={<Archive size={14} />}
+                onClick={() => setArchiveOpen(true)}
+              >
+                Arquivar
+              </Button>
+            )}
+            <Button
+              variant="primary"
+              className="min-h-touch"
+              leading={<FileUp size={14} />}
+              onClick={() => setImportOpen(true)}
+            >
+              Importar fatura (PDF)
+            </Button>
+          </div>
+        )}
       </div>
-
-      <h1 className="fw-700" style={{ fontSize: 24, letterSpacing: '-0.01em' }}>
-        {card?.name ?? 'Cartão'}
-      </h1>
 
       {cardLoading ? (
         <CardDetailSkeleton />
       ) : cardError ? (
-        <div className="space-y-2" role="alert">
-          <p className="text-sm" style={{ color: 'var(--expense)' }}>
-            Falha ao carregar cartão.
-          </p>
+        <div className="flex flex-col items-start gap-2" role="alert">
+          <p className="m-0 text-body-sm text-expense">Falha ao carregar cartão.</p>
           <Button variant="ghost" size="sm" onClick={() => void refetchCard()}>
             Tentar novamente
           </Button>
         </div>
       ) : card ? (
         <>
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              {card.archivedAt && (
-                <Badge kind="pending" dot={false} square>
-                  Arquivado
-                </Badge>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="min-h-[44px]"
-                onClick={() => setEditOpen(true)}
-              >
-                Editar
-              </Button>
-              {card.archivedAt ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="min-h-[44px]"
-                  disabled={unarchivePending}
-                  aria-busy={unarchivePending}
-                  onClick={() => unarchiveCard(card.id)}
-                >
-                  Desarquivar
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="min-h-[44px]"
-                  onClick={() => setArchiveOpen(true)}
-                >
-                  Arquivar
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {limitUsage && (
-            <div className="card">
-              <div className="card-h">
-                <h3>Uso do limite</h3>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-[380px_minmax(0,1fr)]">
+            {/* Coluna do cartão */}
+            <div className="flex flex-col gap-3.5">
+              <div className="mx-auto w-full max-w-[420px] md:max-w-none">
+                <CardFace card={card} large />
               </div>
-              <div className="card-b space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-dim">Utilizado</span>
-                  <span className="mono fw-600">{limitUsage.usedLimit}</span>
-                </div>
-                <div
-                  className="bar"
-                  role="progressbar"
-                  aria-valuenow={limitPercent}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label="Uso do limite"
-                >
-                  <i style={{ width: `${limitPercent}%`, background: 'var(--accent)' }} />
-                </div>
-                <div className="flex justify-between text-xs text-dim">
-                  <span>Disponível: {limitUsage.availableLimit}</span>
-                  <span>Limite: {limitUsage.creditLimit}</span>
-                </div>
-              </div>
+              <CardSidebar
+                card={card}
+                limitView={limitView}
+                spending={spending}
+                showDetails={false}
+              />
             </div>
-          )}
 
-          <div className="card">
-            <div className="card-h">
-              <h3>Fatura</h3>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  aria-label="Mês anterior"
-                  onClick={() =>
-                    referenceMonth && setReferenceMonth(shiftMonth(referenceMonth, -1))
-                  }
-                >
-                  ‹
-                </Button>
-                <span className="text-sm fw-500" style={{ width: 80, textAlign: 'center' }}>
-                  {referenceMonth ? dueMonthLabelWithYear(referenceMonth, card) : '—'}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  aria-label="Próximo mês"
-                  onClick={() => referenceMonth && setReferenceMonth(shiftMonth(referenceMonth, 1))}
-                >
-                  ›
-                </Button>
-              </div>
-            </div>
-            <div className="card-b space-y-4">
-              {invoiceLoading ? (
-                <div
-                  className="space-y-2 animate-pulse"
-                  aria-busy="true"
-                  aria-label="Carregando fatura"
-                >
-                  <div className="h-4 w-32 rounded" style={{ background: 'var(--surface-3)' }} />
-                  <div className="h-4 w-24 rounded" style={{ background: 'var(--surface-3)' }} />
-                </div>
-              ) : invoice ? (
-                <>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    <div>
-                      <p className="text-xs text-dim">Situação</p>
-                      <p className="fw-500">
-                        {INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-dim">Total</p>
-                      <p className="mono fw-600">{invoice.totalAmount}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-dim">Pago</p>
-                      <p className="mono fw-600">{invoice.paidAmount}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-dim">Restante</p>
-                      <p className="mono fw-600" style={{ color: 'var(--expense)' }}>
-                        {(parseFloat(invoice.totalAmount) - parseFloat(invoice.paidAmount)).toFixed(
-                          2,
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-dim">Vencimento</p>
-                      <p className="fw-500">{formatLocalDate(invoice.dueDate)}</p>
-                    </div>
-                  </div>
-
-                  {parseFloat(invoice.totalAmount) - parseFloat(invoice.paidAmount) > 0 && (
-                    <Button size="sm" className="min-h-[44px]" onClick={() => setPayOpen(true)}>
-                      Pagar fatura
+            {/* Coluna das faturas */}
+            <div className="flex min-w-0 flex-col gap-5">
+              <section className="flex flex-col gap-4 rounded-2xl border border-border bg-surface-1 p-4 md:p-5">
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="m-0 font-display text-h2 font-bold">Fatura</h2>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="min-h-touch min-w-touch"
+                      aria-label="Mês anterior"
+                      onClick={() =>
+                        referenceMonth && setReferenceMonth(shiftMonth(referenceMonth, -1))
+                      }
+                    >
+                      <ChevronLeft size={16} aria-hidden="true" />
                     </Button>
-                  )}
+                    <span className="min-w-[88px] text-center text-body-sm font-semibold">
+                      {referenceMonth ? dueMonthLabelWithYear(referenceMonth, card) : '—'}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="min-h-touch min-w-touch"
+                      aria-label="Próximo mês"
+                      onClick={() =>
+                        referenceMonth && setReferenceMonth(shiftMonth(referenceMonth, 1))
+                      }
+                    >
+                      <ChevronRight size={16} aria-hidden="true" />
+                    </Button>
+                  </div>
+                </div>
 
-                  {invoice.items.length > 0 ? (
-                    <div className="space-y-2">
-                      <p className="text-sm fw-500">Cobranças</p>
-                      <div className="divide-y">
+                {invoiceLoading ? (
+                  <div
+                    className="flex animate-pulse flex-col gap-2"
+                    aria-busy="true"
+                    aria-label="Carregando fatura"
+                  >
+                    <div className="h-9 w-40 rounded-sm bg-surface-3" />
+                    <div className="h-4 w-24 rounded-sm bg-surface-3" />
+                  </div>
+                ) : invoice ? (
+                  <>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <InvoiceStatusBadge status={invoice.status} />
+                      <span className="text-caption text-fg-muted">
+                        Vence em {formatLocalDate(invoice.dueDate)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-body-sm text-fg-muted">Total</span>
+                      <span className="font-display text-amount-lg font-extrabold tabular-nums">
+                        <Money value={totalAmount} />
+                      </span>
+                    </div>
+                    <dl className="m-0 grid grid-cols-2 gap-3 border-t border-border pt-3 tabular-nums">
+                      <div className="flex flex-col gap-1">
+                        <dt className="text-caption text-fg-muted">Pago</dt>
+                        <dd className="m-0 text-body-sm font-semibold">
+                          <Money value={paidAmount} />
+                        </dd>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <dt className="text-caption text-fg-muted">Restante</dt>
+                        <dd
+                          className={`m-0 text-body-sm font-semibold ${remainingAmount > 0 ? 'text-pending' : 'text-paid'}`}
+                        >
+                          <Money value={remainingAmount} />
+                        </dd>
+                      </div>
+                    </dl>
+
+                    <div className="flex flex-wrap gap-2">
+                      {remainingAmount > 0 && (
+                        <Button
+                          variant="primary"
+                          className="min-h-touch"
+                          leading={<Check size={14} />}
+                          onClick={() => setPayOpen(true)}
+                        >
+                          Pagar fatura
+                        </Button>
+                      )}
+                      <Button variant="ghost" asChild className="min-h-touch">
+                        <Link to={ROUTES.INVOICE_DETAIL.replace(':invoiceId', invoice.id)}>
+                          Ver fatura
+                          <ChevronRight size={14} aria-hidden="true" />
+                        </Link>
+                      </Button>
+                    </div>
+
+                    {invoice.items.length > 0 ? (
+                      <div>
+                        <h3 className="m-0 mb-1 text-body font-semibold">Cobranças</h3>
                         {invoice.items.map((item) => (
-                          <div
+                          <InvoiceItemRow
                             key={item.id}
-                            className="flex items-center justify-between py-2 text-sm"
-                          >
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate">{item.description}</p>
-                              <p className="text-xs text-dim">
-                                {formatLocalDate(item.competenceDate)}
-                                {item.installmentNumber && item.totalInstallments
-                                  ? ` · Parcela ${item.installmentNumber}/${item.totalInstallments}`
-                                  : ''}
-                              </p>
-                            </div>
-                            <span className="mono fw-600 ml-4">{item.amount}</span>
-                          </div>
+                            item={item}
+                            categoryLabel={
+                              item.subcategoryName ?? item.categoryName ?? 'Sem categoria'
+                            }
+                          />
                         ))}
                       </div>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-dim">Nenhuma cobrança neste período.</p>
-                  )}
-                </>
-              ) : (
-                <p className="text-sm text-dim">Nenhuma fatura encontrada para este mês.</p>
-              )}
+                    ) : (
+                      <p className="m-0 text-body-sm text-fg-muted">
+                        Nenhuma cobrança neste período.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="m-0 text-body-sm text-fg-muted">
+                    Nenhuma fatura encontrada para este mês.
+                  </p>
+                )}
+              </section>
+
+              {/* Histórico */}
+              <section className="flex flex-col gap-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="m-0 font-display text-h2 font-bold">Faturas</h2>
+                  <InvoiceFilterTabs value={historyFilter} onChange={setHistoryFilter} />
+                </div>
+                {invoicesLoading ? (
+                  <div
+                    className="h-32 animate-pulse rounded-2xl bg-surface-2"
+                    aria-busy="true"
+                    aria-label="Carregando faturas"
+                  />
+                ) : filteredInvoices.length === 0 ? (
+                  <p className="m-0 text-body-sm text-fg-muted">
+                    Nenhuma fatura{' '}
+                    {historyFilter === 'paid'
+                      ? 'paga'
+                      : historyFilter === 'open'
+                        ? 'em aberto'
+                        : 'encontrada'}{' '}
+                    para este cartão.
+                  </p>
+                ) : (
+                  <InvoiceHistoryList invoices={filteredInvoices} />
+                )}
+              </section>
             </div>
           </div>
-
-          {spending && spending.length > 0 && (
-            <div className="card">
-              <div className="card-h">
-                <h3>Resumo de gastos</h3>
-              </div>
-              <div className="card-b">
-                <div className="space-y-2">
-                  {spending.map((item, i) => (
-                    <div
-                      key={item.categoryId ?? i}
-                      className="flex items-center justify-between text-sm"
-                    >
-                      <span className="text-dim">{item.categoryName ?? 'Sem categoria'}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-dim">{item.percentage}%</span>
-                        <span className="mono fw-600">{item.totalAmount}</span>
-                      </div>
-                    </div>
-                  ))}
-                  <div
-                    className="flex items-center justify-between text-sm"
-                    style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 8 }}
-                  >
-                    <span className="fw-500">Total</span>
-                    <span className="mono fw-600">
-                      {spending
-                        .reduce((sum, item) => sum + parseFloat(item.totalAmount), 0)
-                        .toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           <EditCardDialog card={card} open={editOpen} onClose={() => setEditOpen(false)} />
           <ArchiveCardDialog card={card} open={archiveOpen} onClose={() => setArchiveOpen(false)} />
+          <ImportFaturaDialog open={importOpen} onClose={() => setImportOpen(false)} />
           {invoice && (
             <PayInvoiceDialog
               invoice={invoice}

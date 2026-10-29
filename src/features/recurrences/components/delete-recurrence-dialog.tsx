@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form'
+import { Trash2 } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
@@ -53,6 +54,7 @@ export function DeleteRecurrenceDialog({ recurrence, open, onClose }: DeleteRecu
 
   return (
     <Modal
+      alert
       title="Excluir regra de recorrência"
       onClose={handleClose}
       footer={
@@ -61,58 +63,37 @@ export function DeleteRecurrenceDialog({ recurrence, open, onClose }: DeleteRecu
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="submit"
-            form="delete-recurrence-form"
-            variant="danger"
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Excluindo…
-              </>
-            ) : (
-              'Excluir regra'
-            )}
+          <Button type="submit" form="delete-recurrence-form" variant="danger" loading={isPending}>
+            {isPending ? 'Excluindo…' : 'Excluir regra'}
           </Button>
         </>
       }
     >
-      <p>
-        Você está prestes a excluir a regra <strong>{recurrence?.description}</strong>. Escolha como
-        as transações existentes devem ser tratadas.
-      </p>
+      <div className="flex flex-col gap-3">
+        <span
+          aria-hidden="true"
+          className="grid h-11 w-11 place-items-center rounded-md bg-overdue-soft text-overdue"
+        >
+          <Trash2 size={20} />
+        </span>
+        <p className="text-body-sm text-fg-muted">
+          Você está prestes a excluir a regra{' '}
+          <strong className="text-fg">{recurrence?.description}</strong>. Escolha como as transações
+          existentes devem ser tratadas.
+        </p>
+      </div>
 
       <div
-        className="rounded space-y-2 text-sm"
+        className="mt-3 flex flex-col gap-2 rounded-lg bg-surface-2 px-4 py-3 text-body-sm text-fg-muted"
         role="note"
-        style={{
-          marginTop: 12,
-          border: '1px solid var(--border)',
-          background: 'var(--surface-3)',
-          padding: '12px 16px',
-        }}
       >
         <p>
-          <span className="font-medium">Somente futuras:</span> as ocorrências pendentes a partir de
-          hoje ficam canceladas; as anteriores continuam como estão.
+          <span className="font-semibold text-fg">Somente futuras:</span> as ocorrências pendentes a
+          partir de hoje ficam canceladas; as anteriores continuam como estão.
         </p>
         <p>
-          <span className="font-medium">Todas em aberto:</span> cancela também as pendentes ou
-          vencidas de datas passadas.
+          <span className="font-semibold text-fg">Todas em aberto:</span> cancela também as
+          pendentes ou vencidas de datas passadas.
         </p>
         <p>
           Em ambos os casos as ocorrências pagas são mantidas e as canceladas continuam no histórico
@@ -125,8 +106,7 @@ export function DeleteRecurrenceDialog({ recurrence, open, onClose }: DeleteRecu
         id="delete-recurrence-form"
         onSubmit={form.handleSubmit(onSubmit)}
         noValidate
-        className="col gap-4"
-        style={{ marginTop: 12 }}
+        className="mt-4 flex flex-col gap-4"
       >
         <Field label="Estratégia de exclusão" error={form.formState.errors.strategy?.message}>
           <Select aria-label="Estratégia de exclusão" {...form.register('strategy')}>

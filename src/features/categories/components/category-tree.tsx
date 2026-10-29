@@ -32,7 +32,7 @@ export const CategoryTree = memo(function CategoryTree({
   const tree = useMemo(() => buildTree(categories), [categories])
 
   return (
-    <div role="tree" aria-label="Árvore de categorias">
+    <ul aria-label="Árvore de categorias" className="m-0 p-0">
       {tree.map((node) => (
         <CategoryNode
           key={node.id}
@@ -44,6 +44,6 @@ export const CategoryTree = memo(function CategoryTree({
           onUnarchive={onUnarchive}
         />
       ))}
-    </div>
+    </ul>
   )
 })

@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { ArrowDownLeft, ArrowUpRight, CircleCheck, Clock, RotateCcw } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -25,12 +26,46 @@ import { CreditCardSelect } from './credit-card-select'
 import { useCards } from '@/features/cards/hooks/use-cards'
 import { TRANSACTION_STATUS_LABELS } from '@/features/transactions/utils/transaction-status'
 import { localIsoDate } from '@/lib/local-date'
+import { SegmentedRadio, type SegmentedOption } from './segmented-radio'
+import { submitOnModEnter } from '@/features/transactions/utils/form-shortcuts'
+import '@/features/transactions/transactions.css'
 
-const TRANSACTION_TYPE_LABELS: Record<string, string> = {
+const TRANSACTION_TYPE_LABELS: Record<(typeof TRANSACTION_TYPES)[number], string> = {
   INCOME: 'Receita',
   EXPENSE: 'Despesa',
   REFUND: 'Reembolso',
 }
+
+const TYPE_ICONS = {
+  INCOME: <ArrowDownLeft size={15} aria-hidden="true" />,
+  EXPENSE: <ArrowUpRight size={15} aria-hidden="true" />,
+  REFUND: <RotateCcw size={15} aria-hidden="true" />,
+}
+
+const TYPE_ACTIVE_CLASS = {
+  INCOME: 'peer-checked:text-income',
+  EXPENSE: 'peer-checked:text-expense',
+  REFUND: 'peer-checked:text-info',
+}
+
+const TYPE_OPTIONS: SegmentedOption[] = TRANSACTION_TYPES.map((t) => ({
+  value: t,
+  label: TRANSACTION_TYPE_LABELS[t],
+  icon: TYPE_ICONS[t],
+  activeClass: TYPE_ACTIVE_CLASS[t],
+}))
+
+const STATUS_OPTIONS: SegmentedOption[] = TRANSACTION_STATUSES.map((s) => ({
+  value: s,
+  label: TRANSACTION_STATUS_LABELS[s],
+  icon:
+    s === 'PAID' ? (
+      <CircleCheck size={15} aria-hidden="true" />
+    ) : (
+      <Clock size={15} aria-hidden="true" />
+    ),
+  activeClass: s === 'PAID' ? 'peer-checked:text-paid' : 'peer-checked:text-pending',
+}))
 
 function defaultValues(): CreateTransactionFormValues {
   return {
@@ -76,6 +111,7 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
   const isPending = isPendingTransaction || isPendingInstallment
 
   const description = form.watch('description')
+  const type = form.watch('type')
   const paymentMethod = form.watch('paymentMethod')
   const status = form.watch('status')
   const competenceDate = form.watch('competenceDate')
@@ -141,8 +177,11 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
 
   if (!open) return null
 
+  const isPositiveType = type === 'INCOME' || type === 'REFUND'
+
   return (
     <Modal
+      panel
       title="Nova transação"
       subtitle="Registre uma receita, despesa ou reembolso"
       onClose={handleClose}
@@ -157,28 +196,17 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
             type="submit"
             form="create-transaction-form"
             variant="primary"
-            disabled={isPending}
-            aria-busy={isPending}
+            loading={isPending}
+            trailing={
+              <kbd
+                aria-hidden="true"
+                className="hidden font-mono text-overline opacity-70 xl:inline"
+              >
+                ⌘↵
+              </kbd>
+            }
           >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Criando…
-              </>
-            ) : (
-              'Criar transação'
-            )}
+            {isPending ? 'Criando…' : 'Criar transação'}
           </Button>
         </>
       }
@@ -186,91 +214,41 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
       <form
         id="create-transaction-form"
         onSubmit={form.handleSubmit(onSubmit)}
+        onKeyDown={submitOnModEnter}
         noValidate
-        className="col gap-4"
+        className="flex flex-col gap-4"
       >
         {form.formState.errors.root && (
           <div role="alert" className="err">
             {form.formState.errors.root.message}
           </div>
         )}
-        <Field label="Descrição" required error={form.formState.errors.description?.message}>
-          <Input
-            placeholder="Ex: Supermercado, salário, aluguel…"
-            {...form.register('description')}
-          />
-        </Field>
 
-        <Field label="Valor" required error={form.formState.errors.amount?.message}>
-          <MoneyInput placeholder="Ex: 150,75" {...form.register('amount')} />
-        </Field>
-
-        <Field label="Tipo" error={form.formState.errors.type?.message}>
-          <Select aria-label="Tipo" {...form.register('type')}>
-            {TRANSACTION_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {TRANSACTION_TYPE_LABELS[type]}
-              </option>
-            ))}
-          </Select>
-        </Field>
-
-        <Field label="Conta" required error={form.formState.errors.accountId?.message}>
-          <Select aria-label="Conta" {...form.register('accountId')}>
-            <option value="">Selecionar conta</option>
-            {accounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-
-        <Controller
-          control={form.control}
-          name="categoryId"
-          render={({ field, fieldState }) => (
-            <Field label="Categoria" error={fieldState.error?.message}>
-              <CategoryPickerCombobox
-                value={field.value ?? ''}
-                onChange={field.onChange}
-                categories={categories}
-                description={description}
-                aria-label="Categoria"
-              />
-            </Field>
-          )}
+        <SegmentedRadio
+          legend="Tipo"
+          options={TYPE_OPTIONS}
+          registration={form.register('type')}
+          error={form.formState.errors.type?.message}
         />
 
-        <Field
-          label="Data de competência"
-          required
-          error={form.formState.errors.competenceDate?.message}
-        >
-          <Input type="date" {...form.register('competenceDate')} />
-        </Field>
+        <div className="[display:grid] grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="tx-amount" data-positive={isPositiveType}>
+            <Field label="Valor" required error={form.formState.errors.amount?.message}>
+              <MoneyInput
+                placeholder="0,00"
+                currency={isPositiveType ? '+ R$' : '− R$'}
+                {...form.register('amount')}
+              />
+            </Field>
+          </div>
 
-        {paymentMethod !== 'CREDIT_CARD' && (
-          <Field label="Status" error={form.formState.errors.status?.message}>
-            <Select aria-label="Status" {...form.register('status')}>
-              {TRANSACTION_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {TRANSACTION_STATUS_LABELS[s]}
-                </option>
-              ))}
-            </Select>
+          <Field label="Descrição" required error={form.formState.errors.description?.message}>
+            <Input
+              placeholder="Ex: Supermercado, salário, aluguel…"
+              {...form.register('description')}
+            />
           </Field>
-        )}
-
-        {paymentMethod !== 'CREDIT_CARD' && status === 'PAID' && (
-          <Field
-            label="Data do pagamento"
-            hint="Em branco, usa a data de competência."
-            error={form.formState.errors.paymentDate?.message}
-          >
-            <Input type="date" {...form.register('paymentDate')} />
-          </Field>
-        )}
+        </div>
 
         <Controller
           control={form.control}
@@ -292,8 +270,9 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
           )}
         />
 
-        {paymentMethod === 'CREDIT_CARD' && (
-          <>
+        <div className="[display:grid] grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Cartão só aparece com forma = Crédito; a conta continua obrigatória. */}
+          {paymentMethod === 'CREDIT_CARD' && (
             <Controller
               control={form.control}
               name="creditCardId"
@@ -316,20 +295,83 @@ export function CreateTransactionDialog({ open, onClose }: CreateTransactionDial
                 </Field>
               )}
             />
+          )}
+
+          <Field label="Conta" required error={form.formState.errors.accountId?.message}>
+            <Select aria-label="Conta" {...form.register('accountId')}>
+              <option value="">Selecionar conta</option>
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+
+          {paymentMethod === 'CREDIT_CARD' && (
             <Field label="Número de parcelas" error={form.formState.errors.installments?.message}>
               <Input
                 type="number"
+                inputMode="numeric"
                 min={1}
                 max={360}
                 placeholder="ex: 12"
                 {...form.register('installments', { valueAsNumber: true })}
               />
             </Field>
-          </>
+          )}
+
+          <Controller
+            control={form.control}
+            name="categoryId"
+            render={({ field, fieldState }) => (
+              <Field label="Categoria" error={fieldState.error?.message}>
+                <CategoryPickerCombobox
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  categories={categories}
+                  description={description}
+                  aria-label="Categoria"
+                />
+              </Field>
+            )}
+          />
+
+          <Field
+            label="Data de competência"
+            required
+            error={form.formState.errors.competenceDate?.message}
+          >
+            <Input type="date" {...form.register('competenceDate')} />
+          </Field>
+
+          {paymentMethod !== 'CREDIT_CARD' && status === 'PAID' && (
+            <Field
+              label="Data do pagamento"
+              hint="Em branco, usa a data de competência."
+              error={form.formState.errors.paymentDate?.message}
+            >
+              <Input type="date" {...form.register('paymentDate')} />
+            </Field>
+          )}
+        </div>
+
+        {paymentMethod !== 'CREDIT_CARD' && (
+          <SegmentedRadio
+            legend="Status"
+            className="md:max-w-[320px]"
+            options={STATUS_OPTIONS}
+            registration={form.register('status')}
+            error={form.formState.errors.status?.message}
+          />
         )}
 
-        <Field label="Notas" error={form.formState.errors.notes?.message}>
-          <Textarea rows={2} {...form.register('notes')} />
+        <Field label="Observações" error={form.formState.errors.notes?.message}>
+          <Textarea
+            rows={2}
+            placeholder="Algo para lembrar (opcional)"
+            {...form.register('notes')}
+          />
         </Field>
       </form>
     </Modal>

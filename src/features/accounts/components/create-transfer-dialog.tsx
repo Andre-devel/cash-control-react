@@ -76,32 +76,8 @@ export function CreateTransferDialog({
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="submit"
-            form="create-transfer-form"
-            variant="primary"
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Transferindo…
-              </>
-            ) : (
-              'Transferir'
-            )}
+          <Button type="submit" form="create-transfer-form" variant="primary" loading={isPending}>
+            {isPending ? 'Transferindo…' : 'Transferir'}
           </Button>
         </>
       }

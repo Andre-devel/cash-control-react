@@ -39,6 +39,7 @@ export function DeleteAccountDialog({ account, open, onClose }: DeleteAccountDia
 
   return (
     <Modal
+      alert
       title="Excluir conta"
       onClose={handleClose}
       footer={
@@ -47,32 +48,8 @@ export function DeleteAccountDialog({ account, open, onClose }: DeleteAccountDia
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="button"
-            variant="danger"
-            disabled={isPending}
-            aria-busy={isPending}
-            onClick={handleConfirm}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Excluindo…
-              </>
-            ) : (
-              'Excluir conta'
-            )}
+          <Button type="button" variant="danger" loading={isPending} onClick={handleConfirm}>
+            {isPending ? 'Excluindo…' : 'Excluir conta'}
           </Button>
         </>
       }

@@ -49,7 +49,7 @@ describe('DashboardPage', () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
       expect(screen.getByText('Patrimônio total')).toBeTruthy()
-      expect(screen.getByText('Saldo do mês')).toBeTruthy()
+      expect(screen.getByText(/^Saldo de /)).toBeTruthy()
     })
   })
 
@@ -179,7 +179,7 @@ describe('DashboardPage', () => {
   it('renders KPI section with Saldo calculation (income minus expenses)', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
-      expect(screen.getByText('Saldo do mês')).toBeTruthy()
+      expect(screen.getByText(/^Saldo de /)).toBeTruthy()
     })
     expect(screen.getByText('Receitas − Despesas')).toBeTruthy()
   })

@@ -1,0 +1,28 @@
+/* Estilos próprios da feature de transações que não cabem em utilitários Tailwind:
+   o gesto de deslizar do card e o botão "Pagar" que aparece no hover/foco da linha. */
+
+/* ── Deslizar para marcar como paga ───────────────────────────────── */
+.tx-swipe-fg {
+  touch-action: pan-y;
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tx-swipe-fg[data-dragging='true'] {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tx-swipe-fg {
+    transition: none;
+  }
+}
+
+/* ── Linha da tabela: "Pagar" fica à vista no toque e no teclado; no mouse,
+      aparece no hover ou quando algo da linha recebe foco. ─────────────── */
+@media (hover: hover) {
+  .tx-row .tx-row-pay {
+    opacity: 0;
+  }
+  .tx-row:hover .tx-row-pay,
+  .tx-row:focus-within .tx-row-pay {
+    opacity: 1;
+  }
+}

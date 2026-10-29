@@ -78,7 +78,7 @@ describe('RolesPage', () => {
     renderWithProviders(<RolesPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('System')).toBeTruthy()
+      expect(screen.getByText('Sistema')).toBeTruthy()
     })
   })
 

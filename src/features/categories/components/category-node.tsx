@@ -1,8 +1,7 @@
-import { memo } from 'react'
-import { Button } from '@/components/ui/button'
-import { IconBubble } from '@/components/ui/icon-bubble'
-import { Badge } from '@/components/ui/badge'
-import { resolveCategoryIcon } from '@/features/categories/utils/category-icon'
+import { memo, useState, type ReactNode } from 'react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ActionMenu, type ActionMenuItem } from '@/components/ui/action-menu'
+import { CategoryBubble } from './category-bubble'
 import type { Category } from '@/features/categories/types'
 
 export interface CategoryTreeNode extends Category {
@@ -21,6 +20,17 @@ interface CategoryNodeProps {
   onUnarchive: (category: Category) => void
 }
 
+function Tag({ children, title }: { children: ReactNode; title?: string }) {
+  return (
+    <span
+      title={title}
+      className="inline-flex items-center rounded-xs bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium leading-none text-fg-muted"
+    >
+      {children}
+    </span>
+  )
+}
+
 export const CategoryNode = memo(function CategoryNode({
   node,
   depth = 0,
@@ -31,96 +41,93 @@ export const CategoryNode = memo(function CategoryNode({
   onArchive,
   onUnarchive,
 }: CategoryNodeProps) {
+  const [expanded, setExpanded] = useState(true)
+  const hasChildren = node.children.length > 0
+  const childrenId = `cat-children-${node.id}`
+
+  const items: ActionMenuItem[] = [
+    ...(node.isDefault ? [] : [{ label: 'Editar', onSelect: () => onEdit(node) }]),
+    node.isHidden
+      ? { label: 'Mostrar', onSelect: () => onShow(node) }
+      : { label: 'Ocultar', onSelect: () => onHide(node) },
+    ...(node.isDefault
+      ? []
+      : [
+          node.isArchived
+            ? { label: 'Desarquivar', onSelect: () => onUnarchive(node) }
+            : { label: 'Arquivar', onSelect: () => onArchive(node) },
+        ]),
+  ]
+
+  const meta =
+    depth === 0 && hasChildren
+      ? `${node.children.length} ${node.children.length === 1 ? 'subcategoria' : 'subcategorias'}`
+      : null
+
   return (
-    <div>
-      <div className="list-row category-row">
-        {depth > 0 && (
-          <span style={{ width: depth * 20, flexShrink: 0, display: 'inline-block' }} />
-        )}
-        <IconBubble color={node.color} size="sm" {...resolveCategoryIcon(node.icon)} />
-        <div className="category-row-name">
-          <div className="fw-500 truncate">{node.name}</div>
-        </div>
-        {node.isDefault && (
-          <span title="Categoria do sistema: não pode ser editada nem arquivada, mas pode ser ocultada.">
-            <Badge kind="muted" dot={false} square>
-              Sistema
-            </Badge>
-          </span>
-        )}
-        {node.isHidden ? (
-          <Badge kind="muted" dot={false} square>
-            Oculta
-          </Badge>
-        ) : (
-          parentHidden && (
-            <Badge kind="muted" dot={false} square>
-              Oculta pela categoria pai
-            </Badge>
-          )
-        )}
-        {node.isArchived && (
-          <Badge kind="muted" dot={false} square>
-            Arquivada
-          </Badge>
-        )}
-        <div className="category-row-actions">
-          {!node.isDefault && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(node)}
-              aria-label={`Editar ${node.name}`}
-            >
-              Editar
-            </Button>
-          )}
-
-          {node.isHidden ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onShow(node)}
-              aria-label={`Mostrar ${node.name}`}
-            >
-              Mostrar
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onHide(node)}
-              aria-label={`Ocultar ${node.name}`}
-            >
-              Ocultar
-            </Button>
-          )}
-
-          {!node.isDefault &&
-            (node.isArchived ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onUnarchive(node)}
-                aria-label={`Desarquivar ${node.name}`}
-              >
-                Desarquivar
-              </Button>
+    <li className="list-none">
+      <div
+        className={`flex min-h-[56px] items-center gap-3 rounded-md py-1 pr-1 ${
+          hasChildren ? 'cursor-pointer hover:bg-surface-2' : ''
+        } ${node.isArchived || node.isHidden || parentHidden ? 'opacity-70' : ''}`}
+        style={{ paddingLeft: depth * 28 + 4 }}
+        onClick={hasChildren ? () => setExpanded((v) => !v) : undefined}
+      >
+        {hasChildren ? (
+          <button
+            type="button"
+            className="-mr-1 grid h-11 w-6 shrink-0 cursor-pointer place-items-center border-0 bg-transparent p-0 text-fg-muted"
+            aria-expanded={expanded}
+            aria-controls={childrenId}
+            aria-label={`${expanded ? 'Recolher' : 'Expandir'} ${node.name}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              setExpanded((v) => !v)
+            }}
+          >
+            {expanded ? (
+              <ChevronDown size={16} aria-hidden="true" />
             ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onArchive(node)}
-                aria-label={`Arquivar ${node.name}`}
-              >
-                Arquivar
-              </Button>
-            ))}
+              <ChevronRight size={16} aria-hidden="true" />
+            )}
+          </button>
+        ) : (
+          <span className="-mr-1 w-6 shrink-0" aria-hidden="true" />
+        )}
+
+        <CategoryBubble color={node.color} icon={node.icon} size={depth === 0 ? 'md' : 'sm'} />
+
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span
+            className={`truncate text-fg ${depth === 0 ? 'text-body font-semibold' : 'text-body-sm font-medium'}`}
+          >
+            {node.name}
+          </span>
+          {(meta || node.isDefault || node.isHidden || parentHidden || node.isArchived) && (
+            <span className="flex flex-wrap items-center gap-1.5 text-[11px] leading-none text-fg-muted">
+              {meta && <span>{meta}</span>}
+              {node.isDefault && (
+                <Tag title="Categoria do sistema: não pode ser editada nem arquivada, mas pode ser ocultada.">
+                  Sistema
+                </Tag>
+              )}
+              {node.isHidden ? (
+                <Tag>Oculta</Tag>
+              ) : (
+                parentHidden && <Tag>Oculta pela categoria pai</Tag>
+              )}
+              {node.isArchived && <Tag>Arquivada</Tag>}
+            </span>
+          )}
+        </span>
+
+        <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+          <ActionMenu label={`Ações de ${node.name}`} items={items} />
         </div>
       </div>
 
-      {node.children.length > 0 && (
-        <div>
+      {hasChildren && expanded && (
+        <ul id={childrenId} className="m-0 p-0" aria-label={`Subcategorias de ${node.name}`}>
           {node.children.map((child) => (
             <CategoryNode
               key={child.id}
@@ -134,8 +141,8 @@ export const CategoryNode = memo(function CategoryNode({
               onUnarchive={onUnarchive}
             />
           ))}
-        </div>
+        </ul>
       )}
-    </div>
+    </li>
   )
 })

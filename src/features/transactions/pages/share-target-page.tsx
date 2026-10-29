@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Upload } from 'lucide-react'
-import { FilePicker } from '@/components/ui/file-picker'
+import { Camera, FileUp, ReceiptText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ReceiptReviewDialog } from '@/features/transactions/components/receipt-review-dialog'
 import { takeSharedFile } from '@/app/pwa/shared-file-store'
@@ -33,6 +32,12 @@ export default function ShareTargetPage() {
     }
   }, [])
 
+  function handlePick(e: ChangeEvent<HTMLInputElement>) {
+    const picked = e.target.files?.[0] ?? null
+    e.target.value = ''
+    if (picked) setFile(picked)
+  }
+
   function handleClose() {
     setFile(null)
     navigate(ROUTES.TRANSACTIONS)
@@ -41,33 +46,76 @@ export default function ShareTargetPage() {
   if (!checkedShare) {
     return (
       <div
-        className="flex items-center justify-center min-h-[50vh]"
+        className="flex min-h-[60vh] flex-col items-center justify-center gap-5 px-4 text-center"
         aria-busy="true"
         aria-label="Verificando comprovante compartilhado"
       >
-        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="relative grid h-36 w-28 place-items-center overflow-hidden rounded-lg border border-border bg-surface-2">
+          <ReceiptText size={36} aria-hidden="true" className="text-fg-subtle" />
+          <span
+            aria-hidden="true"
+            className="absolute inset-x-0 top-[45%] h-[3px] bg-brand shadow-brand motion-safe:animate-pulse"
+          />
+        </div>
+        <span
+          aria-hidden="true"
+          className="size-7 rounded-full border-[3px] border-surface-3 border-t-brand motion-safe:animate-spin"
+        />
+        <p className="font-display text-h2">Verificando comprovante compartilhado</p>
+        <p className="max-w-[280px] text-body-sm text-fg-muted">
+          Recebemos a imagem do seu app do banco. Em instantes você revisa os dados.
+        </p>
       </div>
     )
   }
 
+  const pickClass =
+    'flex min-h-[54px] cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-body font-semibold focus-within:ring-2 focus-within:ring-info'
+
   return (
-    <div className="space-y-4 max-w-lg">
-      <h1 className="text-2xl font-bold tracking-tight">Lançar comprovante</h1>
+    <div className="mx-auto flex w-full max-w-[480px] flex-col gap-4">
+      <h1 className="font-display text-h1 font-extrabold">Lançar comprovante</h1>
 
       {!file && (
-        <div className="col gap-4">
-          <p className="text-sm text-dim">
-            Compartilhe um comprovante de PIX do app do seu banco, ou selecione o arquivo aqui.
-          </p>
-          <FilePicker
-            accept="application/pdf,image/*"
-            aria-label="Comprovante"
-            file={file}
-            onFileChange={setFile}
-            placeholder="Selecionar comprovante"
-          />
-          <Button type="button" variant="ghost" onClick={() => navigate(ROUTES.TRANSACTIONS)}>
-            <Upload size={14} aria-hidden="true" style={{ marginRight: 6 }} />
+        <div className="flex flex-col gap-3">
+          <div className="flex aspect-[3/4] max-h-[340px] flex-col items-center justify-center gap-3 rounded-2xl border-[1.5px] border-dashed border-border-strong px-6 text-center text-body-sm text-fg-muted">
+            <ReceiptText size={40} aria-hidden="true" className="text-brand-text" />
+            <p>
+              Compartilhe um comprovante de PIX do app do seu banco, ou fotografe / selecione o
+              arquivo aqui. A leitura preenche os campos para você revisar.
+            </p>
+          </div>
+
+          <label className={`${pickClass} bg-brand text-brand-ink md:hidden`}>
+            <Camera size={18} aria-hidden="true" />
+            Tirar foto
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              onChange={handlePick}
+            />
+          </label>
+          <label
+            className={`${pickClass} border border-border-strong text-fg max-md:bg-transparent md:bg-brand md:text-brand-ink md:border-0`}
+          >
+            <FileUp size={18} aria-hidden="true" />
+            Selecionar comprovante
+            <input
+              type="file"
+              accept="application/pdf,image/*"
+              aria-label="Comprovante"
+              className="sr-only"
+              onChange={handlePick}
+            />
+          </label>
+          <Button
+            type="button"
+            variant="ghost"
+            className="min-h-touch"
+            onClick={() => navigate(ROUTES.TRANSACTIONS)}
+          >
             Cancelar
           </Button>
         </div>

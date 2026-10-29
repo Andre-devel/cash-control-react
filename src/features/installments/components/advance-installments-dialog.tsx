@@ -83,9 +83,17 @@ export function AdvanceInstallmentsDialog({
 
   if (!open) return null
 
+  const selected = pendingTransactions.filter((t) => selectedIds.includes(t.id))
+  const selectedTotal = selected.reduce((sum, t) => sum + parseFloat(t.amount), 0)
+
   return (
     <Modal
       title="Antecipar parcelas"
+      subtitle={
+        series
+          ? `${series.description}${detail ? ` · ${pendingTransactions.length} em aberto` : ''}`
+          : undefined
+      }
       onClose={handleClose}
       footer={
         <>
@@ -97,92 +105,83 @@ export function AdvanceInstallmentsDialog({
             type="submit"
             form="advance-installments-form"
             variant="primary"
-            disabled={isPending || loadingDetail}
-            aria-busy={isPending}
+            disabled={loadingDetail}
+            loading={isPending}
           >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Antecipando…
-              </>
-            ) : (
-              'Antecipar parcelas'
-            )}
+            {isPending ? 'Antecipando…' : 'Antecipar parcelas'}
           </Button>
         </>
       }
     >
-      <p>
-        Mover as parcelas selecionadas de <strong>{series?.description}</strong> para uma nova data
-        de vencimento.
+      <p className="text-body-sm text-fg-muted">
+        Mover as parcelas selecionadas de <strong className="text-fg">{series?.description}</strong>{' '}
+        para uma nova data de vencimento.
       </p>
 
       <form
         id="advance-installments-form"
         onSubmit={handleSubmit}
         noValidate
-        className="col gap-4"
-        style={{ marginTop: 12 }}
+        className="mt-3 flex flex-col gap-4"
       >
         {loadingDetail ? (
-          <div
-            className="animate-pulse"
-            style={{ height: 80, background: 'var(--surface-3)', borderRadius: 4 }}
-            aria-label="Carregando parcelas"
-          />
+          <div className="flex flex-col gap-1.5" aria-label="Carregando parcelas" aria-busy="true">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-[52px] animate-pulse rounded-md bg-surface-3 motion-reduce:animate-none"
+              />
+            ))}
+          </div>
         ) : pendingTransactions.length === 0 ? (
-          <p className="text-sm text-dim">Nenhuma parcela pendente para antecipar.</p>
+          <p className="text-body-sm text-fg-muted">Nenhuma parcela pendente para antecipar.</p>
         ) : (
-          <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-            <legend className="text-sm fw-500" style={{ marginBottom: 8 }}>
+          <fieldset className="m-0 border-0 p-0">
+            <legend className="mb-2 text-body-sm font-semibold text-fg">
               Selecionar parcelas para antecipar
             </legend>
             {selectionError && (
-              <p className="text-xs" style={{ color: 'var(--expense)', marginBottom: 6 }}>
+              <p className="mb-2 text-caption text-overdue" role="alert">
                 {selectionError}
               </p>
             )}
-            <div
-              className="col gap-2"
-              style={{
-                border: '1px solid var(--border)',
-                borderRadius: 6,
-                padding: '8px 12px',
-                maxHeight: 200,
-                overflowY: 'auto',
-              }}
-            >
-              {pendingTransactions.map((t) => (
-                <label
-                  key={t.id}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(t.id)}
-                    onChange={() => toggleId(t.id)}
-                    aria-label={`Parcela ${t.installmentNumber}: ${formatLocalDate(t.competenceDate)}`}
-                  />
-                  <span className="text-sm">
-                    #{t.installmentNumber} — {formatLocalDate(t.competenceDate)}
-                    <span className="text-dim" style={{ marginLeft: 8 }}>
+            <div className="flex max-h-[40dvh] flex-col gap-1.5 overflow-y-auto">
+              {pendingTransactions.map((t) => {
+                const checked = selectedIds.includes(t.id)
+                return (
+                  <label
+                    key={t.id}
+                    className={`flex min-h-[52px] cursor-pointer items-center gap-3 rounded-md border px-3 text-body-sm transition-colors focus-within:ring-2 focus-within:ring-focus ${
+                      checked ? 'border-brand bg-brand/10' : 'border-border hover:bg-surface-2'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="checkbox"
+                      checked={checked}
+                      onChange={() => toggleId(t.id)}
+                      aria-label={`Parcela ${t.installmentNumber}: ${formatLocalDate(t.competenceDate)}`}
+                    />
+                    <span className="w-11 font-mono text-caption font-semibold">
+                      {t.installmentNumber ? `#${t.installmentNumber}` : '—'}
+                    </span>
+                    <span className="flex-1 text-fg-muted">
+                      vence {formatLocalDate(t.competenceDate)}
+                    </span>
+                    <span className="font-semibold tabular-nums text-fg">
                       <Money value={parseFloat(t.amount)} />
                     </span>
-                  </span>
-                </label>
-              ))}
+                  </label>
+                )
+              })}
             </div>
+            {selected.length > 0 && (
+              <p className="mt-2 text-caption text-fg-muted" aria-live="polite">
+                {selected.length}{' '}
+                {selected.length === 1 ? 'parcela selecionada' : 'parcelas selecionadas'} ·{' '}
+                <Money value={selectedTotal} />
+              </p>
+            )}
           </fieldset>
         )}
 
@@ -198,7 +197,10 @@ export function AdvanceInstallmentsDialog({
           />
         </Field>
 
-        <Field label="Novo valor por parcela (opcional)">
+        <Field
+          label="Novo valor por parcela (opcional)"
+          hint="Com desconto pela antecipação, informe o valor de cada parcela."
+        >
           <MoneyInput
             type="text"
             placeholder="ex: 350,00"

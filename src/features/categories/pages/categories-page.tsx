@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { useCallback, useMemo, useState, type KeyboardEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { Archive, EyeOff, Info, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -17,21 +18,30 @@ import type { Category } from '@/features/categories/types'
 
 function CategoriesSkeleton() {
   return (
-    <div className="card" aria-busy="true" aria-label="Carregando categorias">
-      <div className="card-b" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="animate-pulse"
-            style={{ height: 44, borderRadius: 8, background: 'var(--surface-3)' }}
-          />
-        ))}
-      </div>
+    <div
+      className="flex flex-col gap-1 rounded-2xl border border-border bg-surface-1 p-2"
+      aria-busy="true"
+      aria-label="Carregando categorias"
+    >
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="flex min-h-[56px] items-center gap-3 px-2">
+          <div className="h-9 w-9 animate-pulse rounded-sm bg-surface-3 motion-reduce:animate-none" />
+          <div className="h-3 w-32 animate-pulse rounded-xs bg-surface-3 motion-reduce:animate-none" />
+        </div>
+      ))}
     </div>
   )
 }
 
+type CategoriesTab = 'categorias' | 'regras'
+
+const TABS: { id: CategoriesTab; label: string }[] = [
+  { id: 'categorias', label: 'Categorias' },
+  { id: 'regras', label: 'Regras automáticas' },
+]
+
 export default function CategoriesPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [showHidden, setShowHidden] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
 
@@ -69,9 +79,31 @@ export default function CategoriesPage() {
     [unarchiveCategory],
   )
 
+  const tab: CategoriesTab = searchParams.get('aba') === 'regras' ? 'regras' : 'categorias'
+
+  function selectTab(next: CategoriesTab) {
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev)
+        if (next === 'regras') params.set('aba', 'regras')
+        else params.delete('aba')
+        return params
+      },
+      { replace: true },
+    )
+  }
+
+  function handleTabKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return
+    event.preventDefault()
+    const next = tab === 'categorias' ? 'regras' : 'categorias'
+    selectTab(next)
+    document.getElementById(`categories-tab-${next}`)?.focus()
+  }
+
   return (
-    <div>
-      <div className="page-h">
+    <div className="flex flex-col gap-4">
+      <div className="page-h !mb-0">
         <div>
           <h1 className="title">Categorias</h1>
           <div className="desc">
@@ -83,85 +115,136 @@ export default function CategoriesPage() {
           </div>
         </div>
         <div className="spacer" />
-        <div className="actions">
-          <Button
-            size="sm"
-            variant={showHidden ? 'default' : 'ghost'}
-            onClick={() => setShowHidden((v) => !v)}
-            aria-pressed={showHidden}
-          >
-            {showHidden ? '✓ ' : ''}Mostrar ocultas
-          </Button>
-          <Button
-            size="sm"
-            variant={showArchived ? 'default' : 'ghost'}
-            onClick={() => setShowArchived((v) => !v)}
-            aria-pressed={showArchived}
-          >
-            {showArchived ? '✓ ' : ''}Mostrar arquivadas
-          </Button>
-          <Button
-            variant="primary"
-            leading={<Plus size={14} />}
-            onClick={() => setCreateOpen(true)}
-          >
-            Nova categoria
-          </Button>
-        </div>
-      </div>
-
-      <p className="text-sm text-dim" style={{ marginBottom: 16 }}>
-        <strong>Ocultar</strong> tira a categoria (e as subcategorias) dos seletores, mas os
-        lançamentos que já usam ela continuam nos relatórios; vale também para as categorias do
-        sistema. <strong>Arquivar</strong> é para categorias suas que deixaram de existir: leva as
-        subcategorias junto e libera o nome para uma nova.
-      </p>
-
-      {isLoading ? (
-        <CategoriesSkeleton />
-      ) : isError ? (
-        <div className="card">
-          <div
-            className="card-b"
-            role="alert"
-            style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-          >
-            <p style={{ color: 'var(--expense)', fontSize: 14 }}>Falha ao carregar categorias.</p>
-            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              Tentar novamente
-            </Button>
-          </div>
-        </div>
-      ) : allCategories.length === 0 ? (
-        <EmptyState
-          title="Nenhuma categoria encontrada"
-          desc="Crie sua primeira categoria para organizar suas transações."
-          action={
+        {tab === 'categorias' && (
+          <div className="actions">
             <Button
               variant="primary"
-              leading={<Plus size={14} />}
+              className="min-w-touch"
+              leading={<Plus size={16} aria-hidden="true" />}
               onClick={() => setCreateOpen(true)}
+              aria-label="Nova categoria"
             >
-              Criar primeira categoria
+              <span className="hidden md:inline">Nova categoria</span>
             </Button>
-          }
-        />
-      ) : (
-        <div className="card" style={{ marginBottom: 24 }}>
-          <div className="card-b flush">
-            <CategoryTree
-              categories={allCategories}
-              onEdit={handleEdit}
-              onHide={handleHide}
-              onShow={handleShow}
-              onArchive={handleArchive}
-              onUnarchive={handleUnarchive}
-            />
           </div>
+        )}
+      </div>
+
+      <div
+        role="tablist"
+        aria-label="Seções de categorias"
+        className="flex gap-1 border-b border-border"
+        onKeyDown={handleTabKeyDown}
+      >
+        {TABS.map((t) => {
+          const selected = tab === t.id
+          return (
+            <button
+              key={t.id}
+              id={`categories-tab-${t.id}`}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              aria-controls={`categories-panel-${t.id}`}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => selectTab(t.id)}
+              className={`-mb-px min-h-touch cursor-pointer border-0 border-b-2 bg-transparent px-3 text-body-sm font-semibold transition-colors ${
+                selected ? 'border-brand text-fg' : 'border-transparent text-fg-muted hover:text-fg'
+              }`}
+            >
+              {t.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {tab === 'categorias' ? (
+        <div
+          id="categories-panel-categorias"
+          role="tabpanel"
+          aria-labelledby="categories-tab-categorias"
+          className="flex flex-col gap-3"
+        >
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Filtros">
+            <Button
+              size="sm"
+              variant={showHidden ? 'default' : 'ghost'}
+              className="min-h-touch md:min-h-0"
+              leading={<EyeOff size={14} aria-hidden="true" />}
+              onClick={() => setShowHidden((v) => !v)}
+              aria-pressed={showHidden}
+            >
+              Mostrar ocultas
+            </Button>
+            <Button
+              size="sm"
+              variant={showArchived ? 'default' : 'ghost'}
+              className="min-h-touch md:min-h-0"
+              leading={<Archive size={14} aria-hidden="true" />}
+              onClick={() => setShowArchived((v) => !v)}
+              aria-pressed={showArchived}
+            >
+              Mostrar arquivadas
+            </Button>
+          </div>
+
+          <details className="group rounded-lg bg-surface-2 px-3 py-2 text-body-sm text-fg-muted">
+            <summary className="flex min-h-touch cursor-pointer list-none items-center gap-2 font-medium text-fg md:min-h-0 [&::-webkit-details-marker]:hidden">
+              <Info size={15} aria-hidden="true" />
+              Ocultar ou arquivar?
+            </summary>
+            <p className="m-0 pb-1 pt-1">
+              <strong>Ocultar</strong> tira a categoria (e as subcategorias) dos seletores, mas os
+              lançamentos que já usam ela continuam nos relatórios; vale também para as categorias
+              do sistema. <strong>Arquivar</strong> é para categorias suas que deixaram de existir:
+              leva as subcategorias junto e libera o nome para uma nova.
+            </p>
+          </details>
+
+          {isLoading ? (
+            <CategoriesSkeleton />
+          ) : isError ? (
+            <div
+              role="alert"
+              className="flex flex-col items-start gap-2 rounded-xl border border-border bg-surface-1 p-4"
+            >
+              <p className="text-body-sm text-expense">Falha ao carregar categorias.</p>
+              <Button variant="ghost" size="sm" onClick={() => void refetch()}>
+                Tentar novamente
+              </Button>
+            </div>
+          ) : allCategories.length === 0 ? (
+            <EmptyState
+              title="Nenhuma categoria encontrada"
+              desc="Crie sua primeira categoria para organizar suas transações."
+              action={
+                <Button
+                  variant="primary"
+                  leading={<Plus size={14} />}
+                  onClick={() => setCreateOpen(true)}
+                >
+                  Criar primeira categoria
+                </Button>
+              }
+            />
+          ) : (
+            <div className="rounded-2xl border border-border bg-surface-1 px-1.5 py-1 md:px-2">
+              <CategoryTree
+                categories={allCategories}
+                onEdit={handleEdit}
+                onHide={handleHide}
+                onShow={handleShow}
+                onArchive={handleArchive}
+                onUnarchive={handleUnarchive}
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div id="categories-panel-regras" role="tabpanel" aria-labelledby="categories-tab-regras">
+          <CategorizationRulesSection categories={allCategories} accounts={activeAccounts} />
         </div>
       )}
-
-      <CategorizationRulesSection categories={allCategories} accounts={activeAccounts} />
 
       <CreateCategoryDialog open={createOpen} onClose={() => setCreateOpen(false)} />
 
@@ -184,8 +267,7 @@ export default function CategoriesPage() {
               <Button
                 type="button"
                 variant="primary"
-                disabled={isArchiving}
-                aria-busy={isArchiving}
+                loading={isArchiving}
                 onClick={confirmArchive}
               >
                 {isArchiving ? 'Arquivando…' : 'Arquivar categoria'}

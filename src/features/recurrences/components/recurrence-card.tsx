@@ -1,6 +1,19 @@
-import { Button } from '@/components/ui/button'
+import type { ReactNode } from 'react'
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  CheckCircle2,
+  CircleSlash,
+  PauseCircle,
+  Pencil,
+  Play,
+  Pause,
+  Repeat,
+  RotateCcw,
+  Trash2,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { TypeBadge } from '@/components/ui/type-badge'
+import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
 import type { Recurrence } from '@/features/recurrences/types'
 import { formatLocalDate } from '@/lib/format-date'
@@ -9,12 +22,39 @@ import { FREQUENCY_LABELS } from '@/features/recurrences/schemas/create-recurren
 
 const STATUS_BADGES: Record<
   Recurrence['status'],
-  { label: string; kind: 'pending' | 'paid' | 'muted' }
+  { label: string; kind: 'pending' | 'paid' | 'muted'; icon: ReactNode }
 > = {
-  ACTIVE: { label: 'Ativa', kind: 'paid' },
-  PAUSED: { label: 'Pausada', kind: 'pending' },
-  ENDED: { label: 'Encerrada', kind: 'muted' },
-  DELETED: { label: 'Excluída', kind: 'muted' },
+  ACTIVE: { label: 'Ativa', kind: 'paid', icon: <CheckCircle2 size={12} /> },
+  PAUSED: { label: 'Pausada', kind: 'pending', icon: <PauseCircle size={12} /> },
+  ENDED: { label: 'Encerrada', kind: 'muted', icon: <CircleSlash size={12} /> },
+  DELETED: { label: 'Excluída', kind: 'muted', icon: <CircleSlash size={12} /> },
+}
+
+const TYPE_DISPLAY: Record<
+  Recurrence['type'],
+  { label: string; icon: ReactNode; bubble: string; amount: string; sign: 1 | -1 }
+> = {
+  EXPENSE: {
+    label: 'Despesa',
+    icon: <ArrowUpRight size={18} />,
+    bubble: 'bg-expense-soft text-expense',
+    amount: 'text-fg',
+    sign: -1,
+  },
+  INCOME: {
+    label: 'Receita',
+    icon: <ArrowDownLeft size={18} />,
+    bubble: 'bg-income-soft text-income',
+    amount: 'text-income',
+    sign: 1,
+  },
+  REFUND: {
+    label: 'Estorno',
+    icon: <RotateCcw size={18} />,
+    bubble: 'bg-info-soft text-info',
+    amount: 'text-income',
+    sign: 1,
+  },
 }
 
 interface RecurrenceCardProps {
@@ -34,98 +74,120 @@ export function RecurrenceCard({
 }: RecurrenceCardProps) {
   const isPaused = recurrence.status === 'PAUSED'
   const badge = STATUS_BADGES[recurrence.status]
+  const type = TYPE_DISPLAY[recurrence.type] ?? TYPE_DISPLAY.EXPENSE
+  const titleId = `recurrence-${recurrence.id}-title`
+  const origin = [recurrence.categoryName, recurrence.creditCardName ?? recurrence.accountName]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
-    <div className="card">
-      <div className="card-b" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            gap: 8,
-            alignItems: 'flex-start',
-          }}
+    <article
+      aria-labelledby={titleId}
+      className="flex flex-col gap-3 rounded-xl border border-border bg-surface-1 p-4 shadow-1"
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className={`grid h-10 w-10 shrink-0 place-items-center rounded-md ${type.bubble}`}
+          role="img"
+          aria-label={type.label}
         >
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <p className="fw-500 truncate" style={{ marginBottom: 6 }}>
-              {recurrence.description}
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
-              <TypeBadge type={recurrence.type} />
-              <span className="text-dim text-xs">·</span>
-              <span className="text-dim text-xs">
-                {FREQUENCY_LABELS[recurrence.frequency] ?? recurrence.frequency}
-              </span>
-              <Badge kind={badge.kind} dot={false} square>
-                {badge.label}
-              </Badge>
-            </div>
-          </div>
-          <div className="mono fw-600 text-sm" style={{ flexShrink: 0 }}>
-            <Money value={parseFloat(recurrence.amount)} />
-          </div>
+          {type.icon}
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <h3 id={titleId} className="truncate text-body font-semibold text-fg">
+            {recurrence.description}
+          </h3>
+          {origin && <span className="truncate text-caption text-fg-muted">{origin}</span>}
+          <span className="mt-1">
+            <Badge kind={badge.kind} icon={badge.icon} square>
+              {badge.label}
+            </Badge>
+          </span>
         </div>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className={`text-body font-bold tabular-nums ${type.amount}`}>
+            <Money value={type.sign * parseFloat(recurrence.amount)} signed />
+          </span>
+          <span className="inline-flex items-center gap-1 font-mono text-caption text-fg-muted">
+            <Repeat size={12} aria-hidden="true" />
+            <span>{FREQUENCY_LABELS[recurrence.frequency] ?? recurrence.frequency}</span>
+          </span>
+        </div>
+      </div>
 
-        <div
-          className="text-xs text-dim"
-          style={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-        >
-          {!isPaused && (
-            <span>
-              Próxima ocorrência:{' '}
-              <span className="fw-500">
-                {recurrence.nextDueDate ? formatLocalDate(recurrence.nextDueDate) : '—'}
-              </span>
-            </span>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border pt-2.5 text-caption text-fg-muted">
+        <span>
+          {recurrence.endDate ? (
+            <>
+              até <span>{formatLocalDate(recurrence.endDate)}</span>
+            </>
+          ) : (
+            <>desde {formatLocalDate(recurrence.startDate)} · sem fim</>
           )}
-          {recurrence.creditCardName && <span>Cartão: {recurrence.creditCardName}</span>}
-          {recurrence.endDate && <span>Termina em {formatLocalDate(recurrence.endDate)}</span>}
-        </div>
-
-        {isPaused && recurrence.resumeAt && (
-          <p className="text-xs text-dim">
-            Pausado até: <span className="fw-500">{formatLocalDate(recurrence.resumeAt)}</span>
-          </p>
+        </span>
+        {isPaused ? (
+          recurrence.resumeAt && (
+            <span>
+              Pausado até:{' '}
+              <span className="font-semibold text-fg">{formatLocalDate(recurrence.resumeAt)}</span>
+            </span>
+          )
+        ) : (
+          <span>
+            Próxima:{' '}
+            <span className="font-semibold text-fg">
+              {recurrence.nextDueDate ? formatLocalDate(recurrence.nextDueDate) : '—'}
+            </span>
+          </span>
         )}
+      </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+      <div className="flex flex-wrap gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="min-h-touch"
+          leading={<Pencil size={14} />}
+          onClick={() => onEdit(recurrence)}
+          aria-label={`Editar ${recurrence.description}`}
+        >
+          Editar
+        </Button>
+        {isPaused ? (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onEdit(recurrence)}
-            aria-label={`Edit ${recurrence.description}`}
+            className="min-h-touch"
+            leading={<Play size={14} />}
+            onClick={() => onResume(recurrence)}
+            aria-label={`Retomar ${recurrence.description}`}
           >
-            Editar
+            Retomar
           </Button>
-          {isPaused ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onResume(recurrence)}
-              aria-label={`Resume ${recurrence.description}`}
-            >
-              Retomar
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onPause(recurrence)}
-              aria-label={`Pause ${recurrence.description}`}
-            >
-              Pausar
-            </Button>
-          )}
+        ) : (
           <Button
-            variant="danger"
+            variant="ghost"
             size="sm"
-            onClick={() => onDelete(recurrence)}
-            aria-label={`Delete ${recurrence.description}`}
+            className="min-h-touch"
+            leading={<Pause size={14} />}
+            onClick={() => onPause(recurrence)}
+            aria-label={`Pausar ${recurrence.description}`}
           >
-            Excluir
+            Pausar
           </Button>
-        </div>
+        )}
+        <div className="flex-1" />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="min-h-touch text-overdue"
+          leading={<Trash2 size={14} />}
+          onClick={() => onDelete(recurrence)}
+          aria-label={`Excluir ${recurrence.description}`}
+        >
+          Excluir
+        </Button>
       </div>
-    </div>
+    </article>
   )
 }

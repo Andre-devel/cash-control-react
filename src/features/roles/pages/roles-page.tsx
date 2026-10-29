@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChevronLeft, ChevronRight, Plus, ShieldCheck, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { useRoles, useCreateRole, useRolePermissions } from '@/features/roles/hooks'
@@ -49,41 +50,65 @@ export default function RolesPage() {
     setCreateNameError(undefined)
   }
 
+  const header = (
+    <div className="page-h flex-wrap">
+      <div className="min-w-0">
+        <span className="text-overline uppercase text-fg-subtle">Sistema</span>
+        <h1 className="title">Papéis</h1>
+        <div className="desc">Funções de acesso e as permissões de cada uma.</div>
+      </div>
+      <div className="spacer" />
+      {canCreateRole && !isError && (
+        <div className="actions">
+          <Button
+            variant="primary"
+            className="min-h-[44px]"
+            leading={<Plus size={16} aria-hidden="true" />}
+            onClick={() => setIsCreateOpen(true)}
+          >
+            Novo papel
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+
   if (isError) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight">Papéis</h1>
-        <div
-          className="rounded-lg p-4"
-          style={{ border: '1px solid var(--expense-soft)', background: 'var(--expense-soft)' }}
-        >
-          <p className="text-sm" style={{ color: 'var(--expense)' }}>
-            Falha ao carregar papéis.
-          </p>
+      <div className="mx-auto max-w-[960px]">
+        {header}
+        <div className="empty-state rounded-xl border border-border bg-surface-1" role="alert">
+          <div className="icon !bg-overdue-soft !text-overdue">
+            <TriangleAlert size={24} aria-hidden="true" />
+          </div>
+          <h4>Falha ao carregar papéis.</h4>
+          <p>Verifique sua conexão e tente de novo.</p>
+          <Button variant="ghost" className="min-h-[44px]" onClick={() => refetch()}>
+            Tentar novamente
+          </Button>
         </div>
-        <Button variant="ghost" className="min-h-[44px]" onClick={() => refetch()}>
-          Tentar novamente
-        </Button>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Papéis</h1>
-        {canCreateRole && (
-          <Button size="sm" className="min-h-[44px]" onClick={() => setIsCreateOpen(true)}>
-            Novo papel
-          </Button>
-        )}
-      </div>
+    <div className="mx-auto max-w-[960px]">
+      {header}
 
       {isEmpty ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="mb-4 text-dim">Nenhum papel encontrado.</p>
+        <div className="empty-state rounded-xl border border-border bg-surface-1">
+          <div className="icon">
+            <ShieldCheck size={24} aria-hidden="true" />
+          </div>
+          <h4>Nenhum papel encontrado.</h4>
+          <p>Crie papéis para agrupar permissões e atribuí-los aos usuários.</p>
           {canCreateRole && (
-            <Button size="sm" className="min-h-[44px]" onClick={() => setIsCreateOpen(true)}>
+            <Button
+              variant="primary"
+              className="min-h-[44px]"
+              leading={<Plus size={16} aria-hidden="true" />}
+              onClick={() => setIsCreateOpen(true)}
+            >
               Novo papel
             </Button>
           )}
@@ -93,31 +118,31 @@ export default function RolesPage() {
       )}
 
       {!isLoading && !isEmpty && totalPages > 1 && (
-        <div className="flex items-center justify-between pt-2">
+        <nav className="mt-4 flex items-center justify-between gap-3" aria-label="Paginação">
           <Button
             variant="ghost"
-            size="sm"
             className="min-h-[44px]"
+            leading={<ChevronLeft size={16} aria-hidden="true" />}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0 || isFetching}
             aria-label="Página anterior"
           >
             Anterior
           </Button>
-          <span className="text-sm text-dim" aria-live="polite">
+          <span className="text-body-sm tabular-nums text-fg-muted" aria-live="polite">
             Página {page + 1} de {totalPages}
           </span>
           <Button
             variant="ghost"
-            size="sm"
             className="min-h-[44px]"
+            trailing={<ChevronRight size={16} aria-hidden="true" />}
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1 || isFetching}
             aria-label="Próxima página"
           >
             Próxima
           </Button>
-        </div>
+        </nav>
       )}
 
       {isCreateOpen && (

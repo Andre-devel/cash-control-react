@@ -28,6 +28,7 @@ export function ArchiveAccountDialog({ account, open, onClose }: ArchiveAccountD
 
   return (
     <Modal
+      alert
       title="Arquivar conta"
       onClose={onClose}
       footer={
@@ -39,29 +40,11 @@ export function ArchiveAccountDialog({ account, open, onClose }: ArchiveAccountD
           <Button
             type="button"
             variant="primary"
-            disabled={isPending || hasBalance}
-            aria-busy={isPending}
+            loading={isPending}
+            disabled={hasBalance}
             onClick={handleConfirm}
           >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Arquivando…
-              </>
-            ) : (
-              'Arquivar conta'
-            )}
+            {isPending ? 'Arquivando…' : 'Arquivar conta'}
           </Button>
         </>
       }

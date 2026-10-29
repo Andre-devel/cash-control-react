@@ -1,0 +1,110 @@
+/* ============================================================
+   Seletor de categoria — ajustes do redesenho (feature categories)
+   ============================================================ */
+
+/* No celular o seletor abre como sheet de altura cheia (não como popover) */
+.cat-combo-sheet-back {
+  position: fixed;
+  inset: 0;
+  z-index: 94; /* logo abaixo do sheet (95), acima do modal (80) */
+  background: rgb(var(--cc-overlay) / 0.62);
+}
+
+.cat-combo-pop.cat-combo-pop--sheet {
+  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100dvh;
+  border: 0;
+  border-radius: 0;
+  background: rgb(var(--cc-surface-1));
+  padding-top: var(--cc-safe-top, 0px);
+  animation: none;
+}
+
+.cat-combo-sheet-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 16px;
+  flex-shrink: 0;
+}
+.cat-combo-sheet-h h2 {
+  flex: 1;
+  margin: 0;
+  font: 700 1.0625rem/1.2 var(--cc-font-sans);
+  color: rgb(var(--cc-text));
+}
+.cat-combo-sheet-close {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--cc-radius-sm);
+  background: transparent;
+  color: rgb(var(--cc-text));
+  cursor: pointer;
+}
+
+.cat-combo-pop--sheet .cat-combo-search {
+  height: 52px;
+  margin: 0 16px 8px;
+  padding: 0 14px;
+  border: 1px solid rgb(var(--cc-border));
+  border-radius: var(--cc-radius-md);
+  background: rgb(var(--cc-surface-2));
+}
+.cat-combo-pop--sheet .cat-combo-search input {
+  font-size: 16px;
+}
+
+.cat-combo-pop--sheet .cat-combo-list {
+  flex: 1;
+  max-height: none !important;
+  padding: 4px 10px;
+}
+.cat-combo-pop--sheet .cat-combo-opt {
+  min-height: 48px;
+  font-size: 15px;
+  border-radius: var(--cc-radius-sm);
+}
+.cat-combo-pop--sheet .cat-combo-children .cat-combo-opt {
+  font-size: 14px;
+}
+/* Sem hover no toque: o "+" da subcategoria fica sempre visível */
+.cat-combo-pop--sheet .cat-combo-group-add {
+  opacity: 1;
+  width: 44px;
+  height: 44px;
+}
+.cat-combo-pop--sheet .cat-combo-create {
+  min-height: 52px;
+  padding: 0 16px calc(var(--cc-safe-bottom, 0px));
+  font-size: 15px;
+}
+
+@media (max-width: 767px) {
+  /* Mesma altura e fonte dos demais campos no celular (evita zoom no iOS) */
+  .cat-combo-trigger--field {
+    height: 44px;
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cat-combo-pop.cat-combo-pop--sheet {
+    animation: cat-combo-sheet-in 180ms ease-out;
+  }
+}
+@keyframes cat-combo-sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}

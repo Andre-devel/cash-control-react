@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { Field } from '@/components/ui/field'
-import { AuthAside } from '@/features/auth/components/auth-aside'
+import { AuthHeading, AuthLayout } from '@/features/auth/components/auth-layout'
 import { GoogleSignInButton } from '@/features/auth/components/google-sign-in-button'
+import { PasswordStrength } from '@/features/auth/components/password-strength'
 import { registerSchema } from '@/features/auth/schemas/register.schema'
 import { useRegister } from '@/features/auth/hooks/use-register'
 import { useAuthStore } from '@/features/auth/store/auth.store'
@@ -30,6 +31,8 @@ export default function RegisterPage() {
     },
   })
 
+  const password = form.watch('password')
+
   if (isAuthenticated) {
     return <Navigate to={ROUTES.DASHBOARD} replace />
   }
@@ -49,142 +52,99 @@ export default function RegisterPage() {
     })
   }
 
+  const consentError = form.formState.errors.consentAccepted?.message
+
   return (
-    <div className="auth-shell">
-      <AuthAside />
+    <AuthLayout>
+      <AuthHeading title="Crie sua conta" description="Comece a organizar suas finanças hoje." />
 
-      <main className="auth-main">
-        <div className="auth-card">
-          <div className="auth-tabs">
-            <Link to={ROUTES.LOGIN}>Entrar</Link>
-            <Link to={ROUTES.REGISTER} className="on">
-              Criar conta
-            </Link>
-          </div>
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
+        <Field label="Nome" error={form.formState.errors.name?.message}>
+          <Input
+            type="text"
+            placeholder="Seu nome"
+            autoComplete="name"
+            error={!!form.formState.errors.name}
+            {...form.register('name')}
+          />
+        </Field>
 
-          <h1>Crie sua conta</h1>
-          <div className="sub">Comece a organizar suas finanças hoje.</div>
+        <Field label="E-mail" error={form.formState.errors.email?.message}>
+          <Input
+            type="email"
+            placeholder="voce@email.com"
+            autoComplete="email"
+            error={!!form.formState.errors.email}
+            {...form.register('email')}
+          />
+        </Field>
 
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            noValidate
-            className="col"
-            style={{ gap: 14 }}
-          >
-            <Field label="Nome" error={form.formState.errors.name?.message}>
-              <Input
-                type="text"
-                placeholder="Seu nome"
-                autoComplete="name"
-                error={!!form.formState.errors.name}
-                {...form.register('name')}
-              />
-            </Field>
-
-            <Field label="E-mail" error={form.formState.errors.email?.message}>
-              <Input
-                type="email"
-                placeholder="voce@email.com"
-                autoComplete="email"
-                error={!!form.formState.errors.email}
-                {...form.register('email')}
-              />
-            </Field>
-
-            <Field
-              label="Senha"
-              hint="Mínimo 8 caracteres."
-              error={form.formState.errors.password?.message}
-            >
-              <PasswordInput
-                placeholder="Crie uma senha forte"
-                autoComplete="new-password"
-                error={!!form.formState.errors.password}
-                {...form.register('password')}
-              />
-            </Field>
-
-            <Field label="Confirmar senha" error={form.formState.errors.confirmPassword?.message}>
-              <PasswordInput
-                placeholder="••••••••"
-                autoComplete="new-password"
-                error={!!form.formState.errors.confirmPassword}
-                {...form.register('confirmPassword')}
-              />
-            </Field>
-
-            <Field error={form.formState.errors.consentAccepted?.message}>
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 8,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  style={{ marginTop: 2, flexShrink: 0 }}
-                  aria-invalid={!!form.formState.errors.consentAccepted}
-                  {...form.register('consentAccepted')}
-                />
-                <span>
-                  Li e aceito a{' '}
-                  {/* Nova aba: navegar aqui descartaria o que já foi preenchido no formulário. */}
-                  <Link to={ROUTES.PRIVACY_POLICY} target="_blank" rel="noopener" className="link">
-                    Política de Privacidade
-                  </Link>
-                </span>
-              </label>
-            </Field>
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              disabled={isPending}
-              aria-busy={isPending}
-            >
-              {isPending ? (
-                <>
-                  <span
-                    style={{
-                      width: 14,
-                      height: 14,
-                      border: '2px solid currentColor',
-                      borderTopColor: 'transparent',
-                      borderRadius: '50%',
-                      display: 'inline-block',
-                      animation: 'spin 0.6s linear infinite',
-                    }}
-                    aria-hidden="true"
-                  />
-                  Criando conta…
-                </>
-              ) : (
-                'Criar conta'
-              )}
-            </Button>
-
-            <div className="auth-divider">ou</div>
-
-            <GoogleSignInButton label="Continuar com Google" />
-          </form>
-
-          <div className="auth-foot">
-            Já tem uma conta?{' '}
-            <Link to={ROUTES.LOGIN} className="link">
-              Entrar
-            </Link>
-          </div>
-          <div className="auth-foot">
-            <Link to={ROUTES.PRIVACY_POLICY} className="link">
-              Política de Privacidade
-            </Link>
-          </div>
+        <div className="flex flex-col gap-2">
+          <Field label="Senha" error={form.formState.errors.password?.message}>
+            <PasswordInput
+              placeholder="Mínimo de 8 caracteres"
+              autoComplete="new-password"
+              error={!!form.formState.errors.password}
+              {...form.register('password')}
+            />
+          </Field>
+          <PasswordStrength password={password ?? ''} />
         </div>
-      </main>
-    </div>
+
+        <Field label="Confirmar senha" error={form.formState.errors.confirmPassword?.message}>
+          <PasswordInput
+            placeholder="••••••••"
+            autoComplete="new-password"
+            error={!!form.formState.errors.confirmPassword}
+            {...form.register('confirmPassword')}
+          />
+        </Field>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="flex min-h-touch cursor-pointer items-start gap-3 py-1 text-body-sm leading-[1.45] text-fg-muted">
+            <input
+              type="checkbox"
+              className="checkbox mt-0.5"
+              aria-invalid={!!consentError}
+              {...form.register('consentAccepted')}
+            />
+            <span>
+              Li e aceito a{' '}
+              {/* Nova aba: navegar aqui descartaria o que já foi preenchido no formulário. */}
+              <Link
+                to={ROUTES.PRIVACY_POLICY}
+                target="_blank"
+                rel="noopener"
+                className="cc-auth-link"
+              >
+                Política de Privacidade
+              </Link>
+            </span>
+          </label>
+          {consentError && (
+            <div className="field">
+              <div className="err" role="alert">
+                {consentError}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <Button type="submit" variant="primary" size="lg" className="w-full" loading={isPending}>
+          {isPending ? 'Criando conta…' : 'Criar conta'}
+        </Button>
+
+        <div className="cc-auth-divider">ou</div>
+
+        <GoogleSignInButton label="Continuar com Google" />
+      </form>
+
+      <p className="m-0 text-center text-[0.875rem] leading-[1.4] text-fg-muted">
+        Já tem conta?{' '}
+        <Link to={ROUTES.LOGIN} className="cc-auth-link">
+          Entrar
+        </Link>
+      </p>
+    </AuthLayout>
   )
 }

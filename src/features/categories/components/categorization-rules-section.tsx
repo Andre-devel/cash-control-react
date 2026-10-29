@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { ArrowRight, Landmark, Plus, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ import { useCategorizationRules } from '@/features/categories/hooks/use-categori
 import { useCreateCategorizationRule } from '@/features/categories/hooks/use-create-categorization-rule'
 import { useDeleteCategorizationRule } from '@/features/categories/hooks/use-delete-categorization-rule'
 import { flattenCategories } from '@/features/categories/utils/flatten-categories'
+import { CategoryBubble } from '@/features/categories/components/category-bubble'
 import type { Account } from '@/features/accounts/types'
 import type { Category, CategorizationRule } from '@/features/categories/types'
 
@@ -36,6 +37,7 @@ function DeleteRuleDialog({ rule, open, onClose }: DeleteRuleDialogProps) {
 
   return (
     <Modal
+      alert
       title="Excluir regra"
       onClose={onClose}
       footer={
@@ -44,32 +46,8 @@ function DeleteRuleDialog({ rule, open, onClose }: DeleteRuleDialogProps) {
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="button"
-            variant="danger"
-            disabled={isPending}
-            aria-busy={isPending}
-            onClick={handleConfirm}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Excluindo…
-              </>
-            ) : (
-              'Excluir regra'
-            )}
+          <Button type="button" variant="danger" loading={isPending} onClick={handleConfirm}>
+            {isPending ? 'Excluindo…' : 'Excluir regra'}
           </Button>
         </>
       }
@@ -132,32 +110,8 @@ function CreateRuleDialog({ open, onClose, categories, accounts }: CreateRuleDia
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="submit"
-            form="create-rule-form"
-            variant="primary"
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Criando…
-              </>
-            ) : (
-              'Criar regra'
-            )}
+          <Button type="submit" form="create-rule-form" variant="primary" loading={isPending}>
+            {isPending ? 'Criando…' : 'Criar regra'}
           </Button>
         </>
       }
@@ -224,6 +178,19 @@ interface CategorizationRulesSectionProps {
   accounts: Account[]
 }
 
+function RulesSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Carregando regras" className="flex flex-col gap-2">
+      {[1, 2].map((i) => (
+        <div
+          key={i}
+          className="h-[68px] animate-pulse rounded-lg border border-border bg-surface-1 motion-reduce:animate-none"
+        />
+      ))}
+    </div>
+  )
+}
+
 export function CategorizationRulesSection({
   categories,
   accounts,
@@ -233,85 +200,89 @@ export function CategorizationRulesSection({
   const [deleteTarget, setDeleteTarget] = useState<CategorizationRule | null>(null)
 
   const sortedRules = rules ? [...rules].sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0)) : []
+  const byId = new Map(flattenCategories(categories).map((c) => [c.id, c]))
+  const accountName = new Map(accounts.map((a) => [a.id, a.name]))
 
   return (
-    <div className="card">
-      <div className="card-h">
-        <div>
-          <h3>Regras de Categorização Automática</h3>
-          <div className="sub">Padrões de texto para categorizar transações automaticamente</div>
+    <section className="flex flex-col gap-3" aria-labelledby="rules-title">
+      <div className="flex flex-wrap items-start gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <h2 id="rules-title" className="font-display text-h2 text-fg">
+            Regras de categorização automática
+          </h2>
+          <p className="m-0 text-body-sm text-fg-muted">
+            Quando a descrição de um lançamento contém o padrão, a categoria é sugerida
+            automaticamente. Aplicadas de cima para baixo; a primeira que casar vence.
+          </p>
         </div>
-        <div className="right">
-          <Button
-            variant="primary"
-            size="sm"
-            leading={<Plus size={14} />}
-            onClick={() => setCreateOpen(true)}
-            aria-label="New Rule"
-          >
-            Nova regra
-          </Button>
-        </div>
+        <Button
+          variant="primary"
+          leading={<Plus size={16} aria-hidden="true" />}
+          onClick={() => setCreateOpen(true)}
+        >
+          Nova regra
+        </Button>
       </div>
 
       {isLoading ? (
-        <div
-          className="card-b"
-          aria-busy="true"
-          aria-label="Loading rules"
-          style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-        >
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="animate-pulse"
-              style={{ height: 36, borderRadius: 6, background: 'var(--surface-3)' }}
-            />
-          ))}
-        </div>
+        <RulesSkeleton />
       ) : !sortedRules.length ? (
-        <div className="card-b">
-          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
-            Nenhuma regra de categorização automática definida.
-          </p>
+        <div className="rounded-lg border border-dashed border-border-strong p-6 text-center text-body-sm text-fg-muted">
+          Nenhuma regra de categorização automática definida.
         </div>
       ) : (
-        <div className="card-b flush">
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th>Padrão</th>
-                <th>Categoria</th>
-                <th>Prioridade</th>
-                <th style={{ width: 80 }} />
-              </tr>
-            </thead>
-            <tbody>
-              {sortedRules.map((rule) => (
-                <tr key={rule.id}>
-                  <td className="mono">{rule.pattern}</td>
-                  <td style={{ color: 'var(--text-muted)' }}>
-                    {rule.category?.name ?? rule.categoryId}
-                  </td>
-                  <td style={{ color: 'var(--text-muted)' }}>
-                    {rule.priority != null ? rule.priority : '—'}
-                  </td>
-                  <td>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteTarget(rule)}
-                      aria-label={`Delete rule for ${rule.pattern}`}
-                      style={{ color: 'var(--expense)' }}
-                    >
-                      Excluir
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ol className="m-0 flex list-none flex-col gap-2 p-0">
+          {sortedRules.map((rule, index) => {
+            const category = byId.get(rule.categoryId) ?? rule.category
+            const sub = rule.subcategoryId ? byId.get(rule.subcategoryId) : undefined
+            const target = sub ?? category
+            const restrictedTo = rule.accountId
+              ? (accountName.get(rule.accountId) ?? 'uma conta')
+              : null
+            return (
+              <li
+                key={rule.id}
+                className="flex items-center gap-3 rounded-lg border border-border bg-surface-1 py-3 pl-3 pr-1.5"
+              >
+                <span
+                  className="w-5 shrink-0 text-center font-mono text-caption font-semibold text-fg-muted"
+                  aria-label={`Prioridade ${index + 1}`}
+                >
+                  {index + 1}
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <span className="break-words font-mono text-body-sm font-medium text-fg">
+                    contém “{rule.pattern}”
+                  </span>
+                  <span className="flex min-w-0 items-center gap-1.5 text-body-sm font-medium text-fg">
+                    <ArrowRight size={14} className="shrink-0 text-fg-muted" aria-hidden="true" />
+                    <CategoryBubble color={target?.color} icon={target?.icon} size="xs" />
+                    <span className="truncate">
+                      {sub && category
+                        ? `${category.name} › ${sub.name}`
+                        : (category?.name ?? rule.categoryId)}
+                    </span>
+                  </span>
+                  {restrictedTo && (
+                    <span className="inline-flex w-fit items-center gap-1 rounded-xs bg-surface-2 px-2 py-1 text-[11px] font-medium leading-none text-fg-muted">
+                      <Landmark size={12} aria-hidden="true" />
+                      só {restrictedTo}
+                    </span>
+                  )}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="min-h-touch min-w-touch shrink-0 text-fg-muted"
+                  onClick={() => setDeleteTarget(rule)}
+                  aria-label={`Excluir regra ${rule.pattern}`}
+                >
+                  <Trash2 size={16} aria-hidden="true" />
+                </Button>
+              </li>
+            )
+          })}
+        </ol>
       )}
 
       <CreateRuleDialog
@@ -326,6 +297,6 @@ export function CategorizationRulesSection({
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
       />
-    </div>
+    </section>
   )
 }

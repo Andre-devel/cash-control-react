@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, FileText } from 'lucide-react'
+import { AlertTriangle, ArrowDownLeft, ArrowUpRight, FileText, ScanText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
 import { Select } from '@/components/ui/select'
+import { SegmentedRadio, type SegmentedOption } from './segmented-radio'
+import { submitOnModEnter } from '@/features/transactions/utils/form-shortcuts'
+import '@/features/transactions/transactions.css'
 import { Badge } from '@/components/ui/badge'
 import { CategoryPickerCombobox } from '@/features/categories/components/category-picker-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
@@ -28,6 +31,37 @@ import { localIsoDate } from '@/lib/local-date'
 const RECEIPT_TYPE_LABELS: Record<string, string> = {
   EXPENSE: 'PIX enviado',
   INCOME: 'PIX recebido',
+}
+
+const RECEIPT_TYPE_OPTIONS: SegmentedOption[] = RECEIPT_TYPES.map((type) => ({
+  value: type,
+  label: RECEIPT_TYPE_LABELS[type] ?? type,
+  icon:
+    type === 'INCOME' ? (
+      <ArrowDownLeft size={15} aria-hidden="true" />
+    ) : (
+      <ArrowUpRight size={15} aria-hidden="true" />
+    ),
+  activeClass: type === 'INCOME' ? 'peer-checked:text-income' : 'peer-checked:text-expense',
+}))
+
+/** Envolve um campo preenchido pela leitura: borda `info` até o usuário editá-lo. */
+function AutoFilled({ active, children }: { active: boolean; children: ReactNode }) {
+  return <div className={active ? 'tx-autofilled' : undefined}>{children}</div>
+}
+
+/** Miniatura da foto enviada (só imagens; PDF mostra o ícone). */
+function useImagePreview(file: File | null): string | null {
+  const url = useMemo(
+    () => (file && file.type.startsWith('image/') ? URL.createObjectURL(file) : null),
+    [file],
+  )
+  useEffect(() => {
+    return () => {
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [url])
+  return url
 }
 
 const UNREAD_FIELD_LABELS: Record<string, string> = {
@@ -84,6 +118,8 @@ export function ReceiptReviewDialog({ open, file, onClose }: ReceiptReviewDialog
   })
 
   const description = form.watch('description')
+  const receiptType = form.watch('type')
+  const imageUrl = useImagePreview(open ? file : null)
 
   useEffect(() => {
     if (!open || !file) return
@@ -146,9 +182,20 @@ export function ReceiptReviewDialog({ open, file, onClose }: ReceiptReviewDialog
 
   const unreadFields = preview?.unreadFields ?? []
   const isPending = isCommitting
+  const dirty = form.formState.dirtyFields
+  // Preenchido pela leitura e ainda não tocado pelo usuário.
+  const auto = {
+    amount: Boolean(preview?.amount) && !dirty.amount,
+    description:
+      Boolean(preview?.suggestedDescription ?? preview?.recipientName) && !dirty.description,
+    competenceDate: Boolean(preview?.date) && !dirty.competenceDate,
+    categoryId: Boolean(preview?.suggestedCategoryId) && !dirty.categoryId,
+  }
+  const anyAuto = Object.values(auto).some(Boolean)
 
   return (
     <Modal
+      panel
       title="Revisar comprovante"
       subtitle={file.name}
       onClose={handleClose}
@@ -163,8 +210,8 @@ export function ReceiptReviewDialog({ open, file, onClose }: ReceiptReviewDialog
             type="submit"
             form="receipt-review-form"
             variant="primary"
-            disabled={isAnalyzing || isPending}
-            aria-busy={isPending}
+            disabled={isAnalyzing}
+            loading={isPending}
           >
             {isPending ? 'Lançando…' : 'Confirmar lançamento'}
           </Button>
@@ -172,17 +219,42 @@ export function ReceiptReviewDialog({ open, file, onClose }: ReceiptReviewDialog
       }
     >
       {isAnalyzing ? (
-        <div className="col gap-2" aria-busy="true" aria-label="Lendo comprovante">
-          <div className="h-9 rounded animate-pulse" style={{ background: 'var(--surface-3)' }} />
-          <div className="h-9 rounded animate-pulse" style={{ background: 'var(--surface-3)' }} />
-          <p className="text-sm text-dim">Lendo o comprovante…</p>
+        <div
+          className="flex flex-col items-center gap-4 py-8 text-center"
+          aria-busy="true"
+          aria-label="Lendo comprovante"
+        >
+          <div className="relative h-36 w-28 overflow-hidden rounded-lg border border-border bg-surface-2">
+            {imageUrl ? (
+              <img src={imageUrl} alt="" className="size-full object-cover opacity-70" />
+            ) : (
+              <FileText
+                size={36}
+                aria-hidden="true"
+                className="absolute inset-0 m-auto text-fg-subtle"
+              />
+            )}
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-0 top-1/2 h-[3px] bg-brand shadow-brand motion-safe:animate-pulse"
+            />
+          </div>
+          <span
+            aria-hidden="true"
+            className="size-7 rounded-full border-[3px] border-surface-3 border-t-brand motion-safe:animate-spin"
+          />
+          <p className="font-display text-h2">Lendo o comprovante…</p>
+          <p className="max-w-[260px] text-body-sm text-fg-muted">
+            Identificando valor, data e destinatário.
+          </p>
         </div>
       ) : (
         <form
           id="receipt-review-form"
           onSubmit={form.handleSubmit(onSubmit)}
+          onKeyDown={submitOnModEnter}
           noValidate
-          className="col gap-4"
+          className="flex flex-col gap-4"
         >
           {form.formState.errors.root && (
             <div role="alert" className="err">
@@ -190,16 +262,40 @@ export function ReceiptReviewDialog({ open, file, onClose }: ReceiptReviewDialog
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-            <FileText size={14} aria-hidden="true" />
-            <span className="text-dim">{file.name}</span>
+          {/* Cabeçalho da revisão: foto + o que veio da leitura */}
+          <div className="flex items-center gap-3 rounded-xl bg-info-soft p-3">
+            <div className="grid h-[72px] w-14 shrink-0 place-items-center overflow-hidden rounded-md bg-surface-2">
+              {imageUrl ? (
+                <img src={imageUrl} alt="Foto do comprovante" className="size-full object-cover" />
+              ) : (
+                <FileText size={22} aria-hidden="true" className="text-fg-muted" />
+              )}
+            </div>
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="flex items-center gap-1.5 text-body font-semibold text-info">
+                <ScanText size={16} aria-hidden="true" />
+                Lido do comprovante
+              </span>
+              <span className="text-body-sm text-fg-muted">
+                Confira os campos antes de salvar.
+                {anyAuto && ' Campos em destaque foram preenchidos automaticamente.'}
+              </span>
+              <span className="truncate font-mono text-caption text-fg-subtle">{file.name}</span>
+            </div>
           </div>
 
           {preview?.duplicate && (
-            <div role="alert" className="err">
-              Este comprovante já parece ter sido lançado.{' '}
+            <div
+              role="alert"
+              className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-overdue-soft px-3 py-2.5 text-body-sm text-overdue"
+            >
+              <AlertTriangle size={16} aria-hidden="true" className="shrink-0" />
+              Este comprovante já parece ter sido lançado.
               {preview.duplicateTransactionId && (
-                <Link to={ROUTES.TRANSACTION_DETAIL.replace(':id', preview.duplicateTransactionId)}>
+                <Link
+                  className="font-semibold underline"
+                  to={ROUTES.TRANSACTION_DETAIL.replace(':id', preview.duplicateTransactionId)}
+                >
                   Ver transação existente
                 </Link>
               )}
@@ -207,16 +303,8 @@ export function ReceiptReviewDialog({ open, file, onClose }: ReceiptReviewDialog
           )}
 
           {unreadFields.length > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                gap: 8,
-                fontSize: 12,
-                color: 'var(--text-dim)',
-                alignItems: 'flex-start',
-              }}
-            >
-              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+            <div className="flex items-start gap-2 rounded-lg bg-pending-soft px-3 py-2.5 text-body-sm text-pending">
+              <AlertTriangle size={16} className="mt-px shrink-0" aria-hidden="true" />
               <span>
                 Não foi possível ler{' '}
                 {unreadFields.map((f) => UNREAD_FIELD_LABELS[f] ?? f).join(', ')} do comprovante.
@@ -225,75 +313,88 @@ export function ReceiptReviewDialog({ open, file, onClose }: ReceiptReviewDialog
             </div>
           )}
 
-          <Field label="Tipo" error={form.formState.errors.type?.message}>
-            <Select aria-label="Tipo" {...form.register('type')}>
-              {RECEIPT_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {RECEIPT_TYPE_LABELS[type]}
-                </option>
-              ))}
-            </Select>
-          </Field>
-
-          <Field label="Conta" required error={form.formState.errors.accountId?.message}>
-            <Select aria-label="Conta" {...form.register('accountId')}>
-              <option value="">Selecionar conta</option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
-
-          <Field
-            label="Valor"
-            required
-            error={form.formState.errors.amount?.message}
-            hint={!preview?.amount ? 'Não lido do comprovante' : undefined}
-          >
-            <MoneyInput placeholder="Ex: 150,75" {...form.register('amount')} />
-          </Field>
-
-          <Field
-            label="Descrição"
-            required
-            error={form.formState.errors.description?.message}
-            hint={
-              preview?.suggestedDescription
-                ? 'Apelido lembrado deste destinatário'
-                : !preview?.recipientName
-                  ? 'Não lido do comprovante'
-                  : undefined
-            }
-          >
-            <Input placeholder="Ex: Padaria São João" {...form.register('description')} />
-          </Field>
-
-          <Field
-            label="Data"
-            required
-            error={form.formState.errors.competenceDate?.message}
-            hint={!preview?.date ? 'Não lida do comprovante' : undefined}
-          >
-            <Input type="date" {...form.register('competenceDate')} />
-          </Field>
-
-          <Controller
-            control={form.control}
-            name="categoryId"
-            render={({ field, fieldState }) => (
-              <Field label="Categoria" error={fieldState.error?.message}>
-                <CategoryPickerCombobox
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  categories={categories}
-                  description={description}
-                  aria-label="Categoria"
-                />
-              </Field>
-            )}
+          <SegmentedRadio
+            legend="Tipo"
+            options={RECEIPT_TYPE_OPTIONS}
+            registration={form.register('type')}
+            error={form.formState.errors.type?.message}
           />
+
+          <div className="[display:grid] grid-cols-1 gap-4 md:grid-cols-2">
+            <AutoFilled active={auto.amount}>
+              <div className="tx-amount" data-positive={receiptType === 'INCOME'}>
+                <Field
+                  label="Valor"
+                  required
+                  error={form.formState.errors.amount?.message}
+                  hint={!preview?.amount ? 'Não lido do comprovante' : undefined}
+                >
+                  <MoneyInput
+                    placeholder="0,00"
+                    currency={receiptType === 'INCOME' ? '+ R$' : '− R$'}
+                    {...form.register('amount')}
+                  />
+                </Field>
+              </div>
+            </AutoFilled>
+
+            <AutoFilled active={auto.description}>
+              <Field
+                label="Descrição"
+                required
+                error={form.formState.errors.description?.message}
+                hint={
+                  preview?.suggestedDescription
+                    ? 'Apelido lembrado deste destinatário'
+                    : !preview?.recipientName
+                      ? 'Não lido do comprovante'
+                      : undefined
+                }
+              >
+                <Input placeholder="Ex: Padaria São João" {...form.register('description')} />
+              </Field>
+            </AutoFilled>
+
+            <Field label="Conta" required error={form.formState.errors.accountId?.message}>
+              <Select aria-label="Conta" {...form.register('accountId')}>
+                <option value="">Selecionar conta</option>
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <AutoFilled active={auto.competenceDate}>
+              <Field
+                label="Data"
+                required
+                error={form.formState.errors.competenceDate?.message}
+                hint={!preview?.date ? 'Não lida do comprovante' : undefined}
+              >
+                <Input type="date" {...form.register('competenceDate')} />
+              </Field>
+            </AutoFilled>
+          </div>
+
+          <AutoFilled active={auto.categoryId}>
+            <Controller
+              control={form.control}
+              name="categoryId"
+              render={({ field, fieldState }) => (
+                <Field label="Categoria" error={fieldState.error?.message}>
+                  <CategoryPickerCombobox
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    categories={categories}
+                    description={description}
+                    aria-label="Categoria"
+                  />
+                </Field>
+              )}
+            />
+          </AutoFilled>
 
           {preview?.suggestionSource && preview.suggestionSource !== 'NONE' && (
             <Badge kind="muted" square dot={false}>

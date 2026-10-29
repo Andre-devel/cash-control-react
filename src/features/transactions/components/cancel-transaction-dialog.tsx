@@ -29,6 +29,7 @@ export function CancelTransactionDialog({
 
   return (
     <Modal
+      alert
       title="Cancelar transação"
       onClose={onClose}
       footer={

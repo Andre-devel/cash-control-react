@@ -2,46 +2,20 @@ import { memo } from 'react'
 import { Money } from '@/components/ui/money'
 import { IconBubble } from '@/components/ui/icon-bubble'
 import { StatusBadge } from '@/components/ui/status-badge'
-import { TypeBadge } from '@/components/ui/type-badge'
-import {
-  TRANSACTION_TYPE_DISPLAY,
-  isPositiveTransaction,
-  transactionTypeColor,
-} from '@/features/transactions/utils/transaction-type'
-import {
-  effectiveAmount,
-  installmentLabel,
-  isInstallmentGroup,
-} from '@/features/transactions/utils/installment'
 import {
   TransactionActions,
   type TransactionActionHandlers,
 } from '@/features/transactions/components/transaction-actions'
+import {
+  describeTransaction,
+  fmtDateMedium,
+  fmtDateShort,
+} from '@/features/transactions/utils/transaction-display'
 import type { Transaction } from '@/features/transactions/types'
 import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
-
-const MONTH_ABBR_PT = [
-  'jan',
-  'fev',
-  'mar',
-  'abr',
-  'mai',
-  'jun',
-  'jul',
-  'ago',
-  'set',
-  'out',
-  'nov',
-  'dez',
-]
-
-function fmtDateShort(iso: string): string {
-  const parts = iso.split('-')
-  const month = parseInt(parts[1] ?? '1', 10) - 1
-  const day = parseInt(parts[2] ?? '1', 10)
-  return `${String(day).padStart(2, '0')} ${MONTH_ABBR_PT[month] ?? ''}`
-}
+import '@/features/transactions/transactions.css'
+import { categoryColorCss } from '@/features/categories/utils/category-colors'
 
 interface TransactionRowProps extends TransactionActionHandlers {
   transaction: Transaction
@@ -50,6 +24,7 @@ interface TransactionRowProps extends TransactionActionHandlers {
   categories: Category[]
 }
 
+/** Linha da tabela densa (≥ 1024 px). O card equivalente fica em `TransactionCard`. */
 export const TransactionRow = memo(function TransactionRow({
   transaction,
   accounts,
@@ -62,130 +37,91 @@ export const TransactionRow = memo(function TransactionRow({
   onView,
   onViewSeries,
 }: TransactionRowProps) {
-  const category = transaction.categoryId
-    ? categories.find((c) => c.id === transaction.categoryId)
-    : null
-  const account = accounts.find((a) => a.id === transaction.accountId)
-  const isSeries = isInstallmentGroup(transaction)
-  const amountValue = effectiveAmount(transaction)
-  const installments = installmentLabel(transaction)
-  const { icon } = TRANSACTION_TYPE_DISPLAY[transaction.type]
-  const bubbleColor = category?.color ?? transactionTypeColor(transaction.type, amountValue)
-  const isCancelled = transaction.status === 'CANCELLED'
-  const isIncome = isPositiveTransaction(transaction.type, amountValue)
-  const amountColor = isIncome ? 'var(--income)' : 'var(--text)'
+  const d = describeTransaction(transaction, accounts, categories)
+  const paidOn =
+    transaction.paymentDate &&
+    !d.isCancelled &&
+    transaction.paymentDate !== transaction.competenceDate
+      ? ` · pago ${fmtDateShort(transaction.paymentDate)}`
+      : ''
 
   return (
-    <tr style={{ opacity: isCancelled ? 0.6 : 1 }}>
-      <td style={{ paddingLeft: 16, whiteSpace: 'normal', minWidth: 200 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <IconBubble color={bubbleColor} icon={icon} size="sm" />
-          <button
-            type="button"
-            style={{
-              fontWeight: 500,
-              background: 'none',
-              border: 0,
-              color: 'inherit',
-              cursor: 'pointer',
-              textAlign: 'left',
-              padding: 0,
-            }}
-            onClick={() =>
-              isSeries && onViewSeries ? onViewSeries(transaction) : onView(transaction)
-            }
-          >
-            {transaction.description}
-          </button>
-          {installments && (
-            <span
-              className="mono"
-              title={
-                isSeries
-                  ? `Compra parcelada em ${transaction.totalInstallments}x` +
-                    (transaction.paidInstallments != null
-                      ? ` · ${transaction.paidInstallments} de ${transaction.totalInstallments} pagas`
-                      : '')
-                  : `Parcela ${transaction.installmentNumber} de ${transaction.totalInstallments}`
-              }
-              style={{
-                flexShrink: 0,
-                fontSize: 11,
-                fontWeight: 500,
-                padding: '1px 6px',
-                borderRadius: 4,
-                color: 'var(--text-dim)',
-                background: 'var(--surface-3)',
-              }}
-            >
-              {installments}
+    <tr className={`tx-row${d.isCancelled ? ' opacity-60' : ''}`}>
+      <td className="!pl-4 min-w-[220px] whitespace-normal">
+        <div className="flex items-center gap-3">
+          <IconBubble color={d.bubbleColor} icon={d.icon} size="sm" aria-hidden />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className={`rounded-xs text-left text-body text-fg hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info${
+                  d.isCancelled ? ' line-through' : ''
+                }`}
+                onClick={() =>
+                  d.isSeries && onViewSeries ? onViewSeries(transaction) : onView(transaction)
+                }
+              >
+                {transaction.description}
+              </button>
+              {d.installments && (
+                <span
+                  className="rounded-xs bg-surface-3 px-1.5 py-px font-mono text-overline text-fg-muted"
+                  title={d.installmentsTitle}
+                >
+                  {d.installments}
+                </span>
+              )}
             </span>
-          )}
+            <span className="text-caption text-fg-muted">
+              {d.typeLabel} · {fmtDateMedium(transaction.competenceDate)}
+              {paidOn}
+            </span>
+          </div>
         </div>
       </td>
-      <td>
-        {category ? (
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5 }}>
+      <td className="whitespace-normal">
+        {d.category ? (
+          <span className="flex items-center gap-1.5 text-body-sm text-fg-muted">
             <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 2,
-                background: category.color,
-                display: 'inline-block',
-                flexShrink: 0,
-              }}
+              aria-hidden="true"
+              className="inline-block size-2 shrink-0 rounded-[2px]"
+              style={{ background: categoryColorCss(d.category.color) }}
             />
-            {category.name}
+            {d.category.name}
           </span>
         ) : (
-          <span style={{ color: 'var(--text-faint)' }}>—</span>
+          <span className="text-fg-subtle">—</span>
         )}
       </td>
       <td>
-        {account ? (
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5 }}>
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 99,
-                background: 'var(--accent)',
-                display: 'inline-block',
-                flexShrink: 0,
-              }}
-            />
-            {account.name}
+        {d.accountLabel ? (
+          <span className="flex flex-col gap-0.5 text-body-sm">
+            <span>{d.accountLabel}</span>
+            {transaction.creditCard && (
+              <span className="text-caption text-fg-muted">{transaction.creditCard.name}</span>
+            )}
           </span>
         ) : (
-          <span style={{ color: 'var(--text-faint)' }}>—</span>
+          <span className="text-fg-subtle">—</span>
         )}
       </td>
-      <td
-        style={{
-          whiteSpace: 'nowrap',
-          maxWidth: 140,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-      >
-        <span style={{ fontSize: 12.5 }}>{transaction.paymentMethod.name}</span>
-      </td>
-      <td>
-        <TypeBadge type={transaction.type} amount={amountValue} />
+      <td className="max-w-[140px] truncate">
+        <span className="font-mono text-caption text-fg-muted">
+          {transaction.paymentMethod.name}
+        </span>
       </td>
       <td>
         <StatusBadge status={transaction.status} />
       </td>
-      <td className="text-xs text-dim">{fmtDateShort(transaction.competenceDate)}</td>
-      <td className="text-xs text-dim">
-        {transaction.paymentDate && !isCancelled ? fmtDateShort(transaction.paymentDate) : '—'}
+      <td
+        className={`num whitespace-nowrap ${
+          d.isCancelled ? 'text-fg-muted line-through' : d.isPositive ? 'text-income' : 'text-fg'
+        }`}
+      >
+        <Money value={d.signedAmount} signed />
       </td>
-      <td className="num" style={{ paddingRight: 8, color: amountColor, fontWeight: 500 }}>
-        <Money value={amountValue} signed={isIncome} />
-      </td>
-      <td style={{ paddingRight: 8 }}>
-        <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+      <td className="!pr-2">
+        <div className="flex items-center justify-end gap-1">
           <TransactionActions
             transaction={transaction}
             onEdit={onEdit}

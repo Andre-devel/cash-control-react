@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
-import { ColorPicker } from '@/components/ui/color-picker'
+import { CategoryColorPicker } from '@/features/categories/components/category-color-picker'
+import { CategoryPreview } from '@/features/categories/components/category-preview'
+import { DEFAULT_CATEGORY_COLOR } from '@/features/categories/utils/category-colors'
 import { IconPicker } from '@/features/categories/components/icon-picker'
 import {
   createCategorySchema,
@@ -18,7 +20,7 @@ import type { Category } from '@/features/categories/types'
 
 const DEFAULT_VALUES: CreateCategoryFormValues = {
   name: '',
-  color: '#4CAF50',
+  color: DEFAULT_CATEGORY_COLOR,
   icon: 'tag',
   parentId: undefined,
 }
@@ -100,32 +102,8 @@ export function CreateCategoryDialog({
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="submit"
-            form="create-category-form"
-            variant="primary"
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Criando…
-              </>
-            ) : (
-              'Criar categoria'
-            )}
+          <Button type="submit" form="create-category-form" variant="primary" loading={isPending}>
+            {isPending ? 'Criando…' : 'Criar categoria'}
           </Button>
         </>
       }
@@ -141,13 +119,19 @@ export function CreateCategoryDialog({
             {form.formState.errors.root.message}
           </div>
         )}
+        <CategoryPreview
+          name={form.watch('name') ?? ''}
+          color={form.watch('color') || DEFAULT_CATEGORY_COLOR}
+          icon={form.watch('icon') ?? ''}
+        />
+
         <Field label="Nome" error={form.formState.errors.name?.message}>
           <Input placeholder="ex: Alimentação" {...form.register('name')} />
         </Field>
 
         <Field label="Cor" error={form.formState.errors.color?.message}>
-          <ColorPicker
-            value={form.watch('color') ?? '#4CAF50'}
+          <CategoryColorPicker
+            value={form.watch('color') || DEFAULT_CATEGORY_COLOR}
             onChange={(v) => form.setValue('color', v, { shouldValidate: true })}
           />
         </Field>
@@ -156,7 +140,6 @@ export function CreateCategoryDialog({
           <IconPicker
             value={form.watch('icon') ?? ''}
             onChange={(v) => form.setValue('icon', v, { shouldValidate: true })}
-            color={form.watch('color') ?? '#4CAF50'}
           />
         </Field>
 

@@ -32,6 +32,7 @@ export function DeleteTransactionDialog({
 
   return (
     <Modal
+      alert
       title={isRefund ? 'Estornar pagamento de fatura' : 'Excluir transação'}
       onClose={onClose}
       footer={

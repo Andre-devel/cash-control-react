@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
+import { Loader2 } from 'lucide-react'
 
 export type ButtonVariant =
   | 'default'
@@ -18,6 +19,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   asChild?: boolean
   leading?: React.ReactNode
   trailing?: React.ReactNode
+  /** Mantém a largura, mostra spinner, marca `aria-busy` e bloqueia o clique. */
+  loading?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -29,7 +32,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       asChild = false,
       leading,
       trailing,
+      loading = false,
       children,
+      disabled,
       ...props
     },
     ref,
@@ -46,12 +51,18 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     if (className) cls.push(className)
 
     return (
-      <Comp className={cls.join(' ')} ref={ref} {...props}>
+      <Comp
+        className={cls.join(' ')}
+        ref={ref}
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
+        {...props}
+      >
         {asChild ? (
           children
         ) : (
           <>
-            {leading}
+            {loading ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : leading}
             {children}
             {trailing}
           </>

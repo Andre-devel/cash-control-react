@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
+import { Money } from '@/components/ui/money'
 import { useInstallmentSeries } from '@/features/installments/hooks/use-installment-series'
 import { InstallmentSeriesCard } from '@/features/installments/components/installment-series-card'
 import { CreateInstallmentDialog } from '@/features/installments/components/create-installment-dialog'
@@ -14,28 +15,51 @@ import type { InstallmentSeries } from '@/features/installments/types'
 
 function InstallmentsSkeleton() {
   return (
-    <div className="grid grid-3" aria-busy="true" aria-label="Carregando parcelamentos">
+    <div
+      className="grid gap-3 md:grid-cols-2 xl:grid-cols-3"
+      aria-busy="true"
+      aria-label="Carregando parcelamentos"
+    >
       {[1, 2, 3].map((i) => (
-        <div key={i} className="card">
-          <div
-            className="card-b animate-pulse"
-            style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
-          >
-            <div
-              style={{ height: 16, width: '60%', background: 'var(--surface-3)', borderRadius: 4 }}
-            />
-            <div
-              style={{ height: 12, width: '40%', background: 'var(--surface-3)', borderRadius: 4 }}
-            />
-            <div
-              style={{ height: 8, width: '100%', background: 'var(--surface-3)', borderRadius: 4 }}
-            />
-            <div
-              style={{ height: 12, width: '30%', background: 'var(--surface-3)', borderRadius: 4 }}
-            />
+        <div
+          key={i}
+          className="flex animate-pulse flex-col gap-3 rounded-xl border border-border bg-surface-1 p-4 motion-reduce:animate-none"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-md bg-surface-3" />
+            <div className="flex flex-1 flex-col gap-2">
+              <div className="h-4 w-3/5 rounded-xs bg-surface-3" />
+              <div className="h-3 w-2/5 rounded-xs bg-surface-3" />
+            </div>
           </div>
+          <div className="h-2 w-full rounded-xs bg-surface-3" />
+          <div className="grid grid-cols-3 gap-2">
+            {[1, 2, 3].map((j) => (
+              <div key={j} className="h-8 rounded-xs bg-surface-3" />
+            ))}
+          </div>
+          <div className="h-11 w-full rounded-md bg-surface-3" />
         </div>
       ))}
+    </div>
+  )
+}
+
+function SeriesSummary({ series }: { series: InstallmentSeries[] }) {
+  const open = series.filter((s) => !s.settled && !s.completed)
+  const outstanding = open.reduce((sum, s) => sum + parseFloat(s.remainingAmount), 0)
+  return (
+    <div className="mb-4 grid grid-cols-2 gap-3 rounded-xl border border-border bg-surface-1 px-4 py-3.5 shadow-1 md:max-w-md">
+      <div className="flex flex-col gap-1">
+        <span className="text-caption text-fg-muted">Saldo devedor</span>
+        <span className="text-amount-lg text-fg tabular-nums">
+          <Money value={outstanding} />
+        </span>
+      </div>
+      <div className="flex flex-col gap-1 border-l border-border pl-3">
+        <span className="text-caption text-fg-muted">Séries em aberto</span>
+        <span className="text-amount-lg text-fg tabular-nums">{open.length}</span>
+      </div>
     </div>
   )
 }
@@ -80,19 +104,14 @@ export default function InstallmentsPage() {
       {isLoading ? (
         <InstallmentsSkeleton />
       ) : isError ? (
-        <div className="card">
-          <div
-            className="card-b"
-            role="alert"
-            style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-          >
-            <p style={{ color: 'var(--expense)', fontSize: 14 }}>
-              Falha ao carregar parcelamentos.
-            </p>
-            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              Tentar novamente
-            </Button>
-          </div>
+        <div
+          role="alert"
+          className="flex flex-col items-start gap-3 rounded-xl border border-border bg-surface-1 p-4"
+        >
+          <p className="text-body-sm text-overdue">Falha ao carregar parcelamentos.</p>
+          <Button variant="ghost" size="sm" onClick={() => void refetch()}>
+            Tentar novamente
+          </Button>
         </div>
       ) : !series || series.length === 0 ? (
         <EmptyState
@@ -109,19 +128,22 @@ export default function InstallmentsPage() {
           }
         />
       ) : (
-        <div className="grid grid-3">
-          {series.map((s) => (
-            <InstallmentSeriesCard
-              key={s.id}
-              series={s}
-              onEditSeries={setEditSeriesTarget}
-              onEditInstallment={setEditInstallmentTarget}
-              onSettle={setSettleTarget}
-              onAdvance={setAdvanceTarget}
-              onDelete={setDeleteTarget}
-            />
-          ))}
-        </div>
+        <>
+          <SeriesSummary series={series} />
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {series.map((s) => (
+              <InstallmentSeriesCard
+                key={s.id}
+                series={s}
+                onEditSeries={setEditSeriesTarget}
+                onEditInstallment={setEditInstallmentTarget}
+                onSettle={setSettleTarget}
+                onAdvance={setAdvanceTarget}
+                onDelete={setDeleteTarget}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       <CreateInstallmentDialog open={createOpen} onClose={() => setCreateOpen(false)} />

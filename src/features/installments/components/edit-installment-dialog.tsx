@@ -94,32 +94,8 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="submit"
-            form="edit-installment-form"
-            variant="primary"
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Salvando…
-              </>
-            ) : (
-              'Salvar parcela'
-            )}
+          <Button type="submit" form="edit-installment-form" variant="primary" loading={isPending}>
+            {isPending ? 'Salvando…' : 'Salvar parcela'}
           </Button>
         </>
       }

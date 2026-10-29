@@ -8,9 +8,9 @@ import {
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronDown, Plus, Search } from 'lucide-react'
-import { IconBubble } from '@/components/ui/icon-bubble'
-import { resolveCategoryIcon } from '@/features/categories/utils/category-icon'
+import { Check, ChevronDown, Plus, Search, X } from 'lucide-react'
+import { CategoryBubble } from '@/features/categories/components/category-bubble'
+import '@/features/categories/categories.css'
 import {
   buildCategoryGroups,
   filterCategoryGroups,
@@ -22,6 +22,14 @@ import type { Category } from '@/features/categories/types'
 /** Altura máxima do popover; abaixo disso ele abre para cima. */
 const POPOVER_MAX_HEIGHT = 340
 const POPOVER_MIN_WIDTH = 280
+/** Abaixo disto o seletor vira sheet de altura cheia, com a busca fixa no topo. */
+const SHEET_QUERY = '(max-width: 767px)'
+
+function prefersSheet(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia(SHEET_QUERY).matches
+    : false
+}
 
 interface PopoverPosition {
   top: number
@@ -74,6 +82,7 @@ export function CategoryCombobox({
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
   const [position, setPosition] = useState<PopoverPosition | null>(null)
+  const [sheet, setSheet] = useState(false)
   /** Guarda o pai sugerido do cadastro rápido; `null` = fechado. */
   const [creatingUnder, setCreatingUnder] = useState<{ parentId?: string; name: string } | null>(
     null,
@@ -115,7 +124,7 @@ export function CategoryCombobox({
   }, [visibleGroups])
 
   useLayoutEffect(() => {
-    if (!open) return
+    if (!open || sheet) return
 
     function update() {
       const trigger = triggerRef.current
@@ -145,7 +154,7 @@ export function CategoryCombobox({
       window.removeEventListener('resize', update)
       window.removeEventListener('scroll', update, true)
     }
-  }, [open])
+  }, [open, sheet])
 
   useEffect(() => {
     if (!open) return
@@ -173,6 +182,7 @@ export function CategoryCombobox({
     setQuery('')
     const index = options.indexOf(value ?? null)
     setActiveIndex(index >= 0 ? index : 0)
+    setSheet(prefersSheet())
     setOpen(true)
   }
 
@@ -244,12 +254,7 @@ export function CategoryCombobox({
         onMouseEnter={() => setActiveIndex(index)}
         onClick={() => select(category.id)}
       >
-        <IconBubble
-          aria-hidden
-          color={category.color}
-          size="sm"
-          {...resolveCategoryIcon(category.icon)}
-        />
+        <CategoryBubble color={category.color} icon={category.icon} size="sm" />
         <span className="cat-combo-opt-name">{category.name}</span>
         {isSelected && <Check size={14} className="cat-combo-opt-check" aria-hidden="true" />}
       </button>
@@ -283,12 +288,7 @@ export function CategoryCombobox({
         className={`cat-combo-trigger cat-combo-trigger--${variant}${displayName ? '' : ' empty'}`}
       >
         {selected ? (
-          <IconBubble
-            aria-hidden
-            color={selected.color}
-            size="sm"
-            {...resolveCategoryIcon(selected.icon)}
-          />
+          <CategoryBubble color={selected.color} icon={selected.icon} size="sm" />
         ) : (
           variant === 'field' && <span className="cat-combo-dot" aria-hidden="true" />
         )}
@@ -302,101 +302,124 @@ export function CategoryCombobox({
       {hint && <div className="cat-combo-hint">{hint}</div>}
 
       {open &&
-        position &&
+        (sheet || position) &&
         createPortal(
-          <div
-            ref={popoverRef}
-            className="cat-combo-pop"
-            style={{ top: position.top, left: position.left, width: position.width }}
-          >
-            <div className="cat-combo-search">
-              <Search size={14} aria-hidden="true" />
-              <input
-                autoFocus
-                type="text"
-                value={query}
-                aria-label="Buscar categoria"
-                aria-controls={listboxId.current}
-                placeholder="Buscar categoria…"
-                onChange={(event) => {
-                  const next = event.target.value
-                  setQuery(next)
-                  setActiveIndex(firstMatchIndex(next))
-                }}
-                onKeyDown={handleSearchKeyDown}
-              />
-            </div>
-
+          <>
+            {sheet && <div className="cat-combo-sheet-back" aria-hidden="true" />}
             <div
-              ref={listRef}
-              id={listboxId.current}
-              role="listbox"
-              aria-label={ariaLabel}
-              className="cat-combo-list"
-              style={{ maxHeight: position.maxHeight - 92 }}
+              ref={popoverRef}
+              className={`cat-combo-pop${sheet ? ' cat-combo-pop--sheet' : ''}`}
+              role={sheet ? 'dialog' : undefined}
+              aria-modal={sheet ? true : undefined}
+              aria-label={sheet ? ariaLabel : undefined}
+              style={
+                sheet || !position
+                  ? undefined
+                  : { top: position.top, left: position.left, width: position.width }
+              }
             >
-              <button
-                type="button"
-                role="option"
-                aria-selected={value === null}
-                data-index={0}
-                className={`cat-combo-opt none${activeIndex === 0 ? ' active' : ''}${
-                  value === null ? ' on' : ''
-                }`}
-                onMouseEnter={() => setActiveIndex(0)}
-                onClick={() => select(null)}
-              >
-                <span className="cat-combo-dot" aria-hidden="true" />
-                <span className="cat-combo-opt-name">{emptyLabel}</span>
-                {value === null && (
-                  <Check size={14} className="cat-combo-opt-check" aria-hidden="true" />
-                )}
-              </button>
-
-              {visibleGroups.map((group) => {
-                const rootIndex = ++optionIndex
-                return (
-                  <div
-                    key={group.root.id}
-                    className="cat-combo-group"
-                    role="group"
-                    aria-label={group.root.name}
+              {sheet && (
+                <div className="cat-combo-sheet-h">
+                  <h2>{ariaLabel}</h2>
+                  <button
+                    type="button"
+                    className="cat-combo-sheet-close"
+                    aria-label="Fechar"
+                    onClick={() => closePopover()}
                   >
-                    <div className="cat-combo-group-h">
-                      {renderOption(group.root, rootIndex, false)}
-                      {allowCreate && (
-                        <button
-                          type="button"
-                          className="cat-combo-group-add"
-                          title={`Nova subcategoria em ${group.root.name}`}
-                          aria-label={`Nova subcategoria em ${group.root.name}`}
-                          onClick={() => startCreating(group.root.id)}
-                        >
-                          <Plus size={13} aria-hidden="true" />
-                        </button>
+                    <X size={20} aria-hidden="true" />
+                  </button>
+                </div>
+              )}
+              <div className="cat-combo-search">
+                <Search size={14} aria-hidden="true" />
+                <input
+                  autoFocus
+                  type="text"
+                  value={query}
+                  aria-label="Buscar categoria"
+                  aria-controls={listboxId.current}
+                  placeholder="Buscar categoria…"
+                  onChange={(event) => {
+                    const next = event.target.value
+                    setQuery(next)
+                    setActiveIndex(firstMatchIndex(next))
+                  }}
+                  onKeyDown={handleSearchKeyDown}
+                />
+              </div>
+
+              <div
+                ref={listRef}
+                id={listboxId.current}
+                role="listbox"
+                aria-label={ariaLabel}
+                className="cat-combo-list"
+                style={sheet || !position ? undefined : { maxHeight: position.maxHeight - 92 }}
+              >
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={value === null}
+                  data-index={0}
+                  className={`cat-combo-opt none${activeIndex === 0 ? ' active' : ''}${
+                    value === null ? ' on' : ''
+                  }`}
+                  onMouseEnter={() => setActiveIndex(0)}
+                  onClick={() => select(null)}
+                >
+                  <span className="cat-combo-dot" aria-hidden="true" />
+                  <span className="cat-combo-opt-name">{emptyLabel}</span>
+                  {value === null && (
+                    <Check size={14} className="cat-combo-opt-check" aria-hidden="true" />
+                  )}
+                </button>
+
+                {visibleGroups.map((group) => {
+                  const rootIndex = ++optionIndex
+                  return (
+                    <div
+                      key={group.root.id}
+                      className="cat-combo-group"
+                      role="group"
+                      aria-label={group.root.name}
+                    >
+                      <div className="cat-combo-group-h">
+                        {renderOption(group.root, rootIndex, false)}
+                        {allowCreate && (
+                          <button
+                            type="button"
+                            className="cat-combo-group-add"
+                            title={`Nova subcategoria em ${group.root.name}`}
+                            aria-label={`Nova subcategoria em ${group.root.name}`}
+                            onClick={() => startCreating(group.root.id)}
+                          >
+                            <Plus size={13} aria-hidden="true" />
+                          </button>
+                        )}
+                      </div>
+                      {group.children.length > 0 && (
+                        <div className="cat-combo-children">
+                          {group.children.map((child) => renderOption(child, ++optionIndex, true))}
+                        </div>
                       )}
                     </div>
-                    {group.children.length > 0 && (
-                      <div className="cat-combo-children">
-                        {group.children.map((child) => renderOption(child, ++optionIndex, true))}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+                  )
+                })}
 
-              {visibleGroups.length === 0 && (
-                <div className="cat-combo-none">Nenhuma categoria encontrada</div>
+                {visibleGroups.length === 0 && (
+                  <div className="cat-combo-none">Nenhuma categoria encontrada</div>
+                )}
+              </div>
+
+              {allowCreate && (
+                <button type="button" className="cat-combo-create" onClick={() => startCreating()}>
+                  <Plus size={14} aria-hidden="true" />
+                  {query.trim() ? `Criar categoria “${query.trim()}”` : 'Nova categoria'}
+                </button>
               )}
             </div>
-
-            {allowCreate && (
-              <button type="button" className="cat-combo-create" onClick={() => startCreating()}>
-                <Plus size={14} aria-hidden="true" />
-                {query.trim() ? `Criar categoria “${query.trim()}”` : 'Nova categoria'}
-              </button>
-            )}
-          </div>,
+          </>,
           document.body,
         )}
 

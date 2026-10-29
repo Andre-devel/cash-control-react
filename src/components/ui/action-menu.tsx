@@ -18,6 +18,8 @@ interface ActionMenuProps {
 /**
  * Botão "…" que abre uma lista de ações. A lista é `position: fixed` num portal para não ser
  * cortada por tabelas com rolagem própria; fecha com Esc, clique fora, rolagem ou resize.
+ * No celular (< 768) o CSS transforma a lista em sheet de ações preso ao rodapé, com fundo
+ * escurecido (`.action-menu-scrim`).
  */
 export function ActionMenu({ items, label = 'Mais ações' }: ActionMenuProps) {
   const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(null)
@@ -66,39 +68,42 @@ export function ActionMenu({ items, label = 'Mais ações' }: ActionMenuProps) {
       <Button
         ref={triggerRef}
         type="button"
-        size="sm"
+        size="icon"
         variant="ghost"
         aria-label={label}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={toggle}
       >
-        <MoreHorizontal size={14} />
+        <MoreHorizontal size={18} aria-hidden="true" />
       </Button>
       {anchor &&
         createPortal(
-          <div
-            ref={menuRef}
-            role="menu"
-            aria-label={label}
-            className="action-menu"
-            style={{ top: anchor.top, right: anchor.right }}
-          >
-            {items.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                role="menuitem"
-                className={item.danger ? 'action-menu-item danger' : 'action-menu-item'}
-                onClick={() => {
-                  setAnchor(null)
-                  item.onSelect()
-                }}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>,
+          <>
+            <div className="action-menu-scrim" aria-hidden="true" />
+            <div
+              ref={menuRef}
+              role="menu"
+              aria-label={label}
+              className="action-menu"
+              style={{ top: anchor.top, right: anchor.right }}
+            >
+              {items.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  role="menuitem"
+                  className={item.danger ? 'action-menu-item danger' : 'action-menu-item'}
+                  onClick={() => {
+                    setAnchor(null)
+                    item.onSelect()
+                  }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </>,
           document.body,
         )}
     </>

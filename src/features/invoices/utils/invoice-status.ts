@@ -10,15 +10,21 @@ export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
   OVERDUE: 'Vencida',
 }
 
+/**
+ * Tom do selo de cada situação (design 2a): aberta = info, fechada/parcial = pending,
+ * paga = paid, vencida = overdue. Fechada e parcial dividem a cor; o ícone de
+ * {@link InvoiceStatusBadge} é que as separa — status nunca só por cor.
+ */
 export function invoiceStatusBadgeKind(status: InvoiceStatus): BadgeKind {
   switch (status) {
     case 'PAID':
       return 'paid'
     case 'OVERDUE':
-      return 'cancelled'
+      return 'overdue'
     case 'PARTIAL':
-      return 'pending'
     case 'CLOSED':
+      return 'pending'
+    case 'OPEN':
       return 'info'
     default:
       return 'muted'
@@ -64,11 +70,29 @@ export function dueBadge(
   const days = daysUntil(invoice.dueDate, today)
   if (days < 0) {
     const late = -days
-    return { kind: 'cancelled', label: `Venceu há ${late} ${late === 1 ? 'dia' : 'dias'}` }
+    return { kind: 'overdue', label: `Venceu há ${late} ${late === 1 ? 'dia' : 'dias'}` }
   }
   if (days === 0) return { kind: 'pending', label: 'Vence hoje' }
   return {
     kind: days <= 3 ? 'pending' : 'info',
     label: `Vence em ${days} ${days === 1 ? 'dia' : 'dias'}`,
   }
+}
+
+/** Filtro da lista de faturas: todas, em aberto (qualquer uma não paga) ou pagas. */
+export type InvoiceFilter = 'all' | 'open' | 'paid'
+
+export const INVOICE_FILTER_LABELS: Record<InvoiceFilter, string> = {
+  all: 'Todas',
+  open: 'Em aberto',
+  paid: 'Pagas',
+}
+
+export function matchesInvoiceFilter(
+  invoice: Pick<Invoice, 'status'>,
+  filter: InvoiceFilter,
+): boolean {
+  if (filter === 'open') return invoice.status !== 'PAID'
+  if (filter === 'paid') return invoice.status === 'PAID'
+  return true
 }

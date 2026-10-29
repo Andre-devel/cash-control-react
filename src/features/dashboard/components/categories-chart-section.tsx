@@ -1,55 +1,43 @@
 import { useState } from 'react'
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { Button } from '@/components/ui/button'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { useCategoriesChart } from '@/features/dashboard/hooks/use-categories-chart'
-import { formatChartMoney } from '@/lib/money'
+import { useHideValues } from '@/features/dashboard/hooks/use-hide-values'
+import { HIDDEN_MONEY, monthRange, toYearMonth } from '@/features/dashboard/utils'
+import { formatChartMoney, formatCompactNumber } from '@/lib/money'
+import { Panel, PanelHeader, RangeDetails, SkeletonBlock, WidgetEmpty, WidgetError } from './panel'
 
-const CAT_COLORS = [
-  'var(--cat-1)',
-  'var(--cat-2)',
-  'var(--cat-3)',
-  'var(--cat-4)',
-  'var(--cat-5)',
-  'var(--cat-6)',
-  'var(--cat-7)',
-  'var(--cat-8)',
-]
+const CAT_COLORS = Array.from({ length: 10 }, (_, i) => `var(--cat-${i + 1})`)
 
-function getDefaultRange() {
-  const now = new Date()
-  const from = new Date(now.getFullYear(), now.getMonth(), 1)
-  const to = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-  return { from: fmt(from), to: fmt(to) }
+interface CategoriesChartSectionProps {
+  /** Mês inicial (`aaaa-mm`); o período pode ser personalizado depois. */
+  month?: string
+  className?: string
 }
 
-function ChartSkeleton() {
-  return (
-    <div
-      className="h-64 rounded animate-pulse"
-      style={{ background: 'var(--surface-3)' }}
-      aria-busy="true"
-      aria-label="Carregando gráfico de categorias"
-    />
-  )
-}
-
-export function CategoriesChartSection() {
-  const defaults = getDefaultRange()
+export function CategoriesChartSection({ month, className = '' }: CategoriesChartSectionProps) {
+  const defaults = monthRange(month ?? toYearMonth(new Date()))
   const [from, setFrom] = useState(defaults.from)
   const [to, setTo] = useState(defaults.to)
+  const { hidden } = useHideValues()
 
   const { data, isLoading, isError, refetch } = useCategoriesChart({ from, to })
 
+  const entries = (data?.entries ?? []).map((item, index) => ({
+    name: item.categoryName ?? 'Sem categoria',
+    value: parseFloat(item.totalAmount),
+    pct: parseFloat(item.percentage),
+    color: CAT_COLORS[index % CAT_COLORS.length] ?? 'var(--cat-10)',
+  }))
+  const total = data?.totalAmount
+    ? parseFloat(data.totalAmount)
+    : entries.reduce((sum, e) => sum + e.value, 0)
+
   return (
-    <div className="card">
-      <div className="card-h">
-        <h3>Gastos por categoria</h3>
-        <div className="card-h-controls flex flex-wrap items-center gap-2 text-sm">
-          <label className="sr-only" htmlFor="cat-from">
-            De
-          </label>
+    <Panel className={className} label="Gastos por categoria">
+      <PanelHeader title="Gastos por categoria" />
+      <RangeDetails>
+        <label className="flex items-center gap-2">
+          <span className="text-fg-muted">De</span>
           <input
             id="cat-from"
             type="date"
@@ -58,10 +46,9 @@ export function CategoriesChartSection() {
             className="input input-compact"
             aria-label="Data de início"
           />
-          <span className="text-dim">–</span>
-          <label className="sr-only" htmlFor="cat-to">
-            Até
-          </label>
+        </label>
+        <label className="flex items-center gap-2">
+          <span className="text-fg-muted">até</span>
           <input
             id="cat-to"
             type="date"
@@ -70,59 +57,86 @@ export function CategoriesChartSection() {
             className="input input-compact"
             aria-label="Data de fim"
           />
-        </div>
-      </div>
-      <div className="card-b">
-        {isLoading ? (
-          <ChartSkeleton />
-        ) : isError ? (
-          <div role="alert" className="space-y-2">
-            <p className="text-sm" style={{ color: 'var(--expense)' }}>
-              Falha ao carregar gráfico de categorias.
-            </p>
-            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              Tentar novamente
-            </Button>
+        </label>
+      </RangeDetails>
+
+      {isLoading ? (
+        <div
+          className="flex items-center gap-4"
+          aria-busy="true"
+          aria-label="Carregando gráfico de categorias"
+        >
+          <SkeletonBlock className="h-[120px] w-[120px] flex-none !rounded-full" />
+          <div className="flex flex-1 flex-col gap-2">
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonBlock key={i} className="h-3" />
+            ))}
           </div>
-        ) : !data || data.entries.length === 0 ? (
-          <p className="text-sm text-dim" style={{ padding: '32px 0', textAlign: 'center' }}>
-            Nenhum dado de despesas para o período selecionado.
-          </p>
-        ) : (
-          <ResponsiveContainer width="100%" height={280}>
-            <PieChart>
-              <Pie
-                data={data.entries.map((item) => ({
-                  name: item.categoryName ?? 'Sem categoria',
-                  value: parseFloat(item.totalAmount),
-                }))}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                // Raio relativo e rótulo só com o percentual: com raio fixo de 100 px e
-                // o nome no rótulo, o texto saía pela borda do card no celular. Os nomes
-                // ficam na legenda abaixo.
-                outerRadius="60%"
-                label={({ percent }: { percent?: number }) =>
-                  `${((percent ?? 0) * 100).toFixed(0)}%`
-                }
-              >
-                {data.entries.map((_, index) => (
-                  <Cell
-                    key={index}
-                    fill={CAT_COLORS[index % CAT_COLORS.length]}
-                    // A borda separa as fatias; com uma só ela vira um risco do centro à borda.
-                    stroke={data.entries.length > 1 ? 'var(--surface)' : 'none'}
-                  />
-                ))}
-              </Pie>
-              <Tooltip formatter={formatChartMoney} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-    </div>
+        </div>
+      ) : isError ? (
+        <WidgetError
+          message="Falha ao carregar gráfico de categorias."
+          onRetry={() => void refetch()}
+        />
+      ) : entries.length === 0 ? (
+        <WidgetEmpty>Nenhum dado de despesas para o período selecionado.</WidgetEmpty>
+      ) : (
+        <div className="flex flex-wrap items-center gap-4 xl:flex-col xl:items-stretch">
+          <div className="relative h-[120px] w-[120px] flex-none xl:h-[150px] xl:w-[150px] xl:self-center">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={entries}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius="72%"
+                  outerRadius="100%"
+                  paddingAngle={entries.length > 1 ? 1.5 : 0}
+                  stroke="none"
+                  isAnimationActive={false}
+                >
+                  {entries.map((e) => (
+                    <Cell key={e.name} fill={e.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(v) => (hidden ? HIDDEN_MONEY : formatChartMoney(v))}
+                  contentStyle={{
+                    background: 'var(--surface-1)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 10,
+                    color: 'var(--text)',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+              <span className="text-overline uppercase text-fg-muted">Total</span>
+              <span className="text-body-sm font-bold tabular-nums">
+                {hidden ? '••••' : `R$ ${formatCompactNumber(total)}`}
+              </span>
+            </div>
+          </div>
+          <ul className="flex min-w-[150px] flex-1 flex-col gap-2" aria-label="Categorias">
+            {entries.map((e) => (
+              <li key={e.name} className="flex items-center gap-2 text-caption">
+                <span
+                  className="h-2 w-2 flex-none rounded-full"
+                  style={{ background: e.color }}
+                  aria-hidden="true"
+                />
+                <span className="min-w-0 flex-1 truncate">{e.name}</span>
+                <span className="hidden tabular-nums text-fg-muted xl:inline">
+                  {hidden ? '••••' : `R$ ${formatCompactNumber(e.value)}`}
+                </span>
+                <span className="w-10 text-right font-semibold tabular-nums">
+                  {e.pct.toFixed(0)}%
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Panel>
   )
 }

@@ -141,9 +141,8 @@ describe('CreateTransactionDialog — padrões e validação', () => {
   it('começa como Pago, com valor vazio e campo de data do pagamento', async () => {
     renderDialog()
     await waitForPaymentMethodsLoaded()
-    expect((screen.getByRole('combobox', { name: /status/i }) as HTMLSelectElement).value).toBe(
-      'PAID',
-    )
+    // Status virou controle segmentado (rádios).
+    expect((screen.getByRole('radio', { name: /pago/i }) as HTMLInputElement).checked).toBe(true)
     expect((screen.getByRole('textbox', { name: /valor/i }) as HTMLInputElement).value).toBe('')
     expect(screen.getByLabelText(/data do pagamento/i)).toBeTruthy()
     expect(screen.queryByRole('option', { name: /cancelado/i })).toBeNull()
@@ -157,8 +156,8 @@ describe('CreateTransactionDialog — padrões e validação', () => {
     await user.clear(date)
     await user.type(date, '2099-01-10')
     await waitFor(() =>
-      expect((screen.getByRole('combobox', { name: /status/i }) as HTMLSelectElement).value).toBe(
-        'PENDING',
+      expect((screen.getByRole('radio', { name: /pendente/i }) as HTMLInputElement).checked).toBe(
+        true,
       ),
     )
     expect(screen.queryByLabelText(/data do pagamento/i)).toBeNull()

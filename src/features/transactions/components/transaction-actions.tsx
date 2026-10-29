@@ -1,3 +1,4 @@
+import { CircleCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ActionMenu, type ActionMenuItem } from '@/components/ui/action-menu'
 import {
@@ -21,11 +22,16 @@ export interface TransactionActionHandlers {
 
 interface TransactionActionsProps extends TransactionActionHandlers {
   transaction: Transaction
+  /**
+   * Onde fica "marcar como paga". Na tabela (`inline`) é um botão na própria linha; no
+   * card (`menu`) vai para o menu "…", já que o atalho no toque é deslizar o card.
+   */
+  payPlacement?: 'inline' | 'menu'
 }
 
 /**
- * Ações de uma transação na lista: "Pagar" fica à vista (é a ação do dia a dia); editar,
- * cancelar/reativar e excluir ficam no menu "…" para a linha não ocupar meia tabela.
+ * Ações de uma transação na lista: "Pagar" fica à vista na tabela (é a ação do dia a dia);
+ * editar, cancelar/reativar e excluir ficam no menu "…" para a linha não ocupar meia tabela.
  */
 export function TransactionActions({
   transaction,
@@ -36,6 +42,7 @@ export function TransactionActions({
   onReactivate,
   onView,
   onViewSeries,
+  payPlacement = 'inline',
 }: TransactionActionsProps) {
   // Numa linha de série, pagar/editar/excluir valem para a série inteira e vivem
   // na tela de Parcelamentos — a API recusa essas operações parcela a parcela.
@@ -45,6 +52,7 @@ export function TransactionActions({
         type="button"
         size="sm"
         variant="ghost"
+        className="min-h-touch"
         onClick={() => (onViewSeries ? onViewSeries(transaction) : onView(transaction))}
       >
         Ver parcelas
@@ -54,7 +62,11 @@ export function TransactionActions({
 
   const isCancelled = transaction.status === 'CANCELLED'
   const isLocked = isLockedTransaction(transaction)
+  const canPay = canPayTransaction(transaction)
   const items: ActionMenuItem[] = []
+  if (canPay && payPlacement === 'menu') {
+    items.push({ label: 'Marcar como paga', onSelect: () => onPay(transaction) })
+  }
   if (!isCancelled && !isLocked) {
     items.push({ label: 'Editar', onSelect: () => onEdit(transaction) })
     items.push({ label: 'Cancelar transação', onSelect: () => onCancel(transaction) })
@@ -66,8 +78,15 @@ export function TransactionActions({
 
   return (
     <>
-      {canPayTransaction(transaction) && (
-        <Button type="button" size="sm" variant="ghost" onClick={() => onPay(transaction)}>
+      {canPay && payPlacement === 'inline' && (
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="tx-row-pay text-paid"
+          leading={<CircleCheck size={14} aria-hidden="true" />}
+          onClick={() => onPay(transaction)}
+        >
           Pagar
         </Button>
       )}

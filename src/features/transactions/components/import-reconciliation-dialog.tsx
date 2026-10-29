@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { CircleCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Money } from '@/components/ui/money'
@@ -89,8 +90,8 @@ export function ImportReconciliationDialog({ open, onClose }: ImportReconciliati
             type="button"
             variant="primary"
             onClick={handleApply}
-            disabled={isPending || selected.size === 0}
-            aria-busy={isPending}
+            disabled={selected.size === 0}
+            loading={isPending}
           >
             {isPending ? 'Aplicando…' : `Aplicar ${selected.size} correções`}
           </Button>
@@ -98,18 +99,36 @@ export function ImportReconciliationDialog({ open, onClose }: ImportReconciliati
       }
     >
       {isLoading ? (
-        <p className="text-sm text-dim">Analisando seus lançamentos…</p>
+        <div
+          className="flex flex-col gap-2"
+          aria-busy="true"
+          aria-label="Analisando seus lançamentos"
+        >
+          <p className="text-body-sm text-fg-muted">Analisando seus lançamentos…</p>
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-14 animate-pulse rounded-lg bg-surface-3 motion-reduce:animate-none"
+            />
+          ))}
+        </div>
       ) : isError ? (
-        <div role="alert" className="err">
-          Não foi possível analisar.{' '}
+        <div
+          role="alert"
+          className="flex flex-wrap items-center gap-2 rounded-lg bg-overdue-soft px-3.5 py-2.5 text-body-sm text-overdue"
+        >
+          Não foi possível analisar.
           <Button type="button" size="sm" variant="ghost" onClick={() => void refetch()}>
             Tentar novamente
           </Button>
         </div>
       ) : (
-        <div className="col gap-4">
+        <div className="flex flex-col gap-5">
           {data?.investmentAccountMissing && (
-            <div role="note" className="col gap-2 text-sm">
+            <div
+              role="note"
+              className="flex flex-col gap-2 rounded-lg bg-pending-soft px-3.5 py-2.5 text-body-sm"
+            >
               <span>
                 Há aplicações ou resgates lançados como despesa/receita, mas nenhuma conta de
                 investimento para recebê-los.
@@ -118,8 +137,7 @@ export function ImportReconciliationDialog({ open, onClose }: ImportReconciliati
                 <Button
                   type="button"
                   size="sm"
-                  variant="ghost"
-                  disabled={isCreatingAccount}
+                  loading={isCreatingAccount}
                   onClick={() =>
                     createAccount(
                       { name: 'Investimentos', type: 'INVESTMENT' },
@@ -134,49 +152,68 @@ export function ImportReconciliationDialog({ open, onClose }: ImportReconciliati
           )}
 
           {proposals.length === 0 && !data?.investmentAccountMissing && (
-            <p className="text-sm text-dim">
-              Nada a corrigir: os lançamentos importados estão em dia.
-            </p>
+            <div className="flex flex-col items-center gap-2 py-8 text-center">
+              <span className="grid size-12 place-items-center rounded-lg bg-paid-soft text-paid">
+                <CircleCheck size={22} aria-hidden="true" />
+              </span>
+              <p className="text-body text-fg-muted">
+                Nada a corrigir: os lançamentos importados estão em dia.
+              </p>
+            </div>
           )}
 
           {SECTIONS.map((section) => {
             const rows = proposals.filter((proposal) => proposal.kind === section.kind)
             if (rows.length === 0) return null
             return (
-              <section key={section.kind} className="col gap-2" aria-label={section.title}>
+              <section
+                key={section.kind}
+                className="flex flex-col gap-2"
+                aria-label={section.title}
+              >
                 <div>
-                  <h3 className="fw-500" style={{ fontSize: 14 }}>
-                    {section.title} ({rows.length})
+                  <h3 className="text-body font-semibold">
+                    {section.title} <span className="text-fg-muted">({rows.length})</span>
                   </h3>
-                  <p className="text-xs text-dim">{section.hint}</p>
+                  <p className="text-caption text-fg-muted">{section.hint}</p>
                 </div>
-                <div className="tbl-wrap">
-                  <table className="tbl">
-                    <tbody>
-                      {rows.map((proposal) => (
-                        <tr key={keyOf(proposal)}>
-                          <td style={{ width: 36 }}>
-                            <input
-                              type="checkbox"
-                              aria-label={`Corrigir ${proposal.description} de ${formatLocalDate(proposal.date)}`}
-                              checked={selected.has(keyOf(proposal))}
-                              onChange={() => toggle(proposal)}
-                            />
-                          </td>
-                          <td>{formatLocalDate(proposal.date)}</td>
-                          <td style={{ whiteSpace: 'normal' }}>
-                            {proposal.description}
-                            <div className="text-xs text-dim">{proposal.detail}</div>
-                          </td>
-                          <td className="text-dim">{proposal.accountName}</td>
-                          <td className="num">
-                            <Money value={Number(proposal.amount)} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ul className="flex flex-col overflow-hidden rounded-lg border border-border">
+                  {rows.map((proposal) => {
+                    const isOn = selected.has(keyOf(proposal))
+                    return (
+                      <li key={keyOf(proposal)} className="border-t border-border first:border-t-0">
+                        <label
+                          className={`flex min-h-touch cursor-pointer items-start gap-3 px-3.5 py-3 hover:bg-surface-2 ${
+                            isOn ? '' : 'opacity-70'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="checkbox mt-0.5 shrink-0"
+                            aria-label={`Corrigir ${proposal.description} de ${formatLocalDate(proposal.date)}`}
+                            checked={isOn}
+                            onChange={() => toggle(proposal)}
+                          />
+                          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                            <span className="flex items-baseline justify-between gap-3">
+                              <span className="text-body font-medium">{proposal.description}</span>
+                              <span className="whitespace-nowrap text-body font-semibold">
+                                <Money value={Number(proposal.amount)} />
+                              </span>
+                            </span>
+                            <span className="text-caption text-fg-muted">
+                              {formatLocalDate(proposal.date)}
+                              {proposal.accountName ? ` · ${proposal.accountName}` : ''}
+                            </span>
+                            {proposal.detail && (
+                              <span className="text-caption text-fg-subtle">{proposal.detail}</span>
+                            )}
+                          </span>
+                        </label>
+                      </li>
+                    )
+                  })}
+                </ul>
               </section>
             )
           })}

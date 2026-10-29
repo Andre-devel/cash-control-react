@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
+import { ChevronLeft } from 'lucide-react'
 import { ROUTES } from '@/app/router/routes'
+import '../auth.css'
 
 const CONTROLLER = 'Dimension Lab'
 const CONTACT_EMAIL = 'dimensionlab.financeiro@gmail.com'
@@ -11,14 +13,27 @@ const LAST_UPDATED = '26 de outubro de 2026'
  */
 export default function PrivacyPolicyPage() {
   return (
-    <main className="legal-page">
+    <main className="cc-legal">
+      <div className="cc-legal-bar">
+        <div className="mx-auto flex max-w-[720px] items-center gap-1">
+          <Link
+            to={ROUTES.LOGIN}
+            aria-label="Voltar para o Cash Control"
+            title="Voltar para o Cash Control"
+            className="grid h-11 w-11 flex-none place-items-center rounded-md text-fg hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            <ChevronLeft size={22} aria-hidden="true" />
+          </Link>
+          <span className="truncate font-display text-[1.0625rem] font-bold" aria-hidden="true">
+            Cash Control
+          </span>
+        </div>
+      </div>
       <article>
-        <Link to={ROUTES.LOGIN} className="link">
-          ← Voltar para o Cash Control
-        </Link>
-
-        <h1>Política de Privacidade</h1>
-        <p className="legal-meta">Última atualização: {LAST_UPDATED}</p>
+        <h1 className="m-0 font-display text-h1">Política de Privacidade</h1>
+        <p className="!mt-2 !mb-6 font-mono text-caption !text-fg-subtle">
+          Última atualização: {LAST_UPDATED}
+        </p>
 
         <p>
           Esta política explica como o Cash Control, aplicativo de controle financeiro pessoal
@@ -127,11 +142,8 @@ export default function PrivacyPolicyPage() {
         </p>
         <p>
           Para exercer esses direitos, escreva para{' '}
-          <a className="link" href={`mailto:${CONTACT_EMAIL}`}>
-            {CONTACT_EMAIL}
-          </a>
-          . Responderemos em até 15 dias. Você também pode reclamar à Autoridade Nacional de
-          Proteção de Dados (ANPD).
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Responderemos em até 15 dias.
+          Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).
         </p>
 
         <h2>8. Crianças e adolescentes</h2>
@@ -145,10 +157,7 @@ export default function PrivacyPolicyPage() {
 
         <h2>10. Contato</h2>
         <p>
-          {CONTROLLER} —{' '}
-          <a className="link" href={`mailto:${CONTACT_EMAIL}`}>
-            {CONTACT_EMAIL}
-          </a>
+          {CONTROLLER} — <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         </p>
       </article>
     </main>

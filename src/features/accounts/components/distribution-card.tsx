@@ -1,24 +1,7 @@
-import { Money } from '@/components/ui/money'
+import { formatMoney } from '@/lib/money'
 import { DonutChart } from './donut-chart'
+import { accountTypeColor, accountTypeLabel } from '@/features/accounts/utils/account-visual'
 import type { Account } from '@/features/accounts/types'
-
-const ACCOUNT_TYPE_LABELS_PT: Record<string, string> = {
-  CHECKING: 'Conta corrente',
-  SAVINGS: 'Poupança',
-  CASH: 'Carteira',
-  INVESTMENT: 'Investimento',
-  CREDIT: 'Crédito',
-  OTHER: 'Outros',
-}
-
-const ACCOUNT_TYPE_COLORS: Record<string, string> = {
-  CHECKING: '#2196F3',
-  SAVINGS: '#4CAF50',
-  CASH: '#FF9800',
-  INVESTMENT: '#9C27B0',
-  CREDIT: '#F44336',
-  OTHER: '#607D8B',
-}
 
 interface DistributionCardProps {
   accounts: Account[]
@@ -26,80 +9,59 @@ interface DistributionCardProps {
 }
 
 export function DistributionCard({ accounts, totalBalance }: DistributionCardProps) {
-  const totalByType = accounts.reduce<Record<string, { value: number; color: string }>>(
-    (acc, a) => {
-      const balance = parseFloat(a.balance)
-      if (balance <= 0) return acc
-      if (!acc[a.type]) {
-        acc[a.type] = { value: 0, color: ACCOUNT_TYPE_COLORS[a.type] ?? 'var(--accent)' }
-      }
-      acc[a.type].value += balance
-      return acc
-    },
-    {},
-  )
+  // Só saldo positivo entra no gráfico: conta negativa não "ocupa" fatia do patrimônio.
+  const totalByType = accounts.reduce<Record<string, number>>((acc, a) => {
+    const balance = parseFloat(a.balance)
+    if (balance <= 0) return acc
+    acc[a.type] = (acc[a.type] ?? 0) + balance
+    return acc
+  }, {})
 
-  const segments = accounts
-    .map((a) => ({
-      value: parseFloat(a.balance),
-      color: ACCOUNT_TYPE_COLORS[a.type] ?? 'var(--accent)',
-      label: a.name,
-    }))
-    .filter((s) => s.value > 0)
+  const entries = Object.entries(totalByType)
+  const segments = entries.map(([type, value]) => ({
+    value,
+    color: accountTypeColor(type),
+    label: accountTypeLabel(type),
+  }))
 
   return (
-    <div className="card">
-      <div className="card-h">
-        <div>
-          <h3>Distribuição por tipo</h3>
-          <div className="sub">Como seu patrimônio está alocado</div>
-        </div>
+    <section
+      className="flex min-w-0 flex-col gap-4 rounded-2xl border border-border bg-surface-1 p-4 md:p-5"
+      aria-labelledby="accounts-distribution-title"
+    >
+      <div className="flex flex-col gap-0.5">
+        <h2 id="accounts-distribution-title" className="font-display text-h2 text-fg">
+          Distribuição por tipo
+        </h2>
+        <p className="text-body-sm text-fg-muted">Como seu patrimônio está alocado</p>
       </div>
-      <div
-        className="card-b"
-        style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'center' }}
-      >
-        <DonutChart segments={segments} total={totalBalance} />
-        <div
-          style={{
-            flex: '1 1 220px',
-            minWidth: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-          }}
-        >
-          {Object.entries(totalByType).map(([type, d]) => {
-            const pct = totalBalance > 0 ? (d.value / totalBalance) * 100 : 0
+      <div className="flex flex-wrap items-center gap-5">
+        <DonutChart segments={segments} total={totalBalance} size={128} />
+        <ul className="m-0 flex min-w-[200px] flex-1 list-none flex-col gap-2.5 p-0">
+          {entries.map(([type, value]) => {
+            const pct = totalBalance > 0 ? (value / totalBalance) * 100 : 0
             return (
-              <div key={type} className="row gap-2" style={{ alignItems: 'center' }}>
+              <li key={type} className="flex items-center gap-2 text-body-sm">
                 <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 2,
-                    background: d.color,
-                    display: 'inline-block',
-                    flexShrink: 0,
-                  }}
+                  aria-hidden="true"
+                  className="h-2 w-2 shrink-0 rounded-full"
+                  style={{ background: accountTypeColor(type) }}
                 />
-                <span style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0 }}>
-                  {ACCOUNT_TYPE_LABELS_PT[type] ?? type}
+                <span className="min-w-0 flex-1 truncate text-fg">{accountTypeLabel(type)}</span>
+                <span className="shrink-0 tabular-nums text-fg-muted">
+                  {pct.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%
                 </span>
-                <span className="mono text-sm text-dim" style={{ flexShrink: 0 }}>
-                  {pct.toFixed(1)}%
+                <span className="shrink-0 whitespace-nowrap text-right font-semibold tabular-nums text-fg">
+                  {formatMoney(value)}
                 </span>
-                <span
-                  className="mono text-sm fw-500"
-                  style={{ flexShrink: 0, textAlign: 'right', whiteSpace: 'nowrap' }}
-                >
-                  <Money value={d.value} />
-                </span>
-              </div>
+              </li>
             )
           })}
-        </div>
+          {entries.length === 0 && (
+            <li className="text-body-sm text-fg-muted">Nenhuma conta com saldo positivo.</li>
+          )}
+        </ul>
       </div>
-    </div>
+    </section>
   )
 }

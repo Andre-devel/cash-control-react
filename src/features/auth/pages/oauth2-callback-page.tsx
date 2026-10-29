@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { AuthAside } from '@/features/auth/components/auth-aside'
+import { LoaderCircle, ShieldAlert } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { AuthLayout } from '@/features/auth/components/auth-layout'
+import { AuthStatus, AuthStatusText } from '@/features/auth/components/auth-status'
+import { GoogleSignInButton } from '@/features/auth/components/google-sign-in-button'
 import { getMeApi } from '@/features/auth/api/auth.api'
 import { useAuthStore } from '@/features/auth/store/auth.store'
 import { refreshAccessToken } from '@/services/http'
@@ -47,35 +51,38 @@ export default function OAuth2CallbackPage() {
     void completeSignIn()
   }, [failed, navigate, setUser, clearSession])
 
+  const errorCode = searchParams.get('error')
+
   return (
-    <div className="auth-shell">
-      <AuthAside />
-
-      <main className="auth-main">
-        <div className="auth-card">
-          {failed ? (
-            <>
-              <h1>Não foi possível entrar com Google</h1>
-              <div className="sub">
-                {searchParams.get('error') === 'account_unavailable'
-                  ? 'Sua conta está bloqueada ou indisponível. Fale com o suporte se acha que isso é um engano.'
-                  : 'O login com Google não foi concluído. Tente novamente ou entre com e-mail e senha.'}
-              </div>
-            </>
-          ) : (
-            <>
-              <h1>Entrando…</h1>
-              <div className="sub">Aguarde enquanto concluímos seu login com Google.</div>
-            </>
-          )}
-
-          <div className="auth-foot">
-            <Link to={ROUTES.LOGIN} className="link">
-              Voltar para login
-            </Link>
+    <AuthLayout>
+      {failed ? (
+        <>
+          <AuthStatus icon={ShieldAlert} tone="overdue" title="Não foi possível entrar com Google">
+            <AuthStatusText>
+              {errorCode === 'account_unavailable'
+                ? 'Sua conta está bloqueada ou indisponível. Fale com o suporte se acha que isso é um engano.'
+                : 'O login com Google não foi concluído. Tente novamente ou entre com e-mail e senha.'}
+            </AuthStatusText>
+            {errorCode && (
+              <span className="rounded-sm bg-surface-2 px-2 py-1 font-mono text-caption text-fg-muted">
+                código: {errorCode}
+              </span>
+            )}
+          </AuthStatus>
+          <div className="flex flex-col gap-3">
+            {errorCode !== 'account_unavailable' && (
+              <GoogleSignInButton label="Tentar novamente com Google" />
+            )}
+            <Button asChild variant="ghost" size="lg" className="w-full">
+              <Link to={ROUTES.LOGIN}>Voltar para login</Link>
+            </Button>
           </div>
-        </div>
-      </main>
-    </div>
+        </>
+      ) : (
+        <AuthStatus icon={LoaderCircle} tone="brand" title="Entrando…" busy>
+          <AuthStatusText>Conectando com o Google. Isso leva só alguns segundos.</AuthStatusText>
+        </AuthStatus>
+      )}
+    </AuthLayout>
   )
 }

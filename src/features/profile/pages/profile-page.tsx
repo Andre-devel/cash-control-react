@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useId, useState, type ReactNode } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { ChevronDown, Info, KeyRound, Monitor, Moon, Smartphone, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field } from '@/components/ui/field'
@@ -9,15 +10,82 @@ import { useProfile } from '@/features/profile/hooks/use-profile'
 import { useUpdateProfile } from '@/features/profile/hooks/use-update-profile'
 import { ConsentHistorySection } from '@/features/profile/components/consent-history-section'
 import { ChangePasswordSection } from '@/features/profile/components/change-password-section'
+import { useAuthStore } from '@/features/auth/store/auth.store'
+import { getFrontendVersion } from '@/features/version/utils'
 import { useInstallPrompt } from '@/app/pwa/use-install-prompt'
+import type { Theme } from '@/styles/theme/dark-mode'
 import type { UpdateProfileFormValues } from '@/features/profile/schemas/update-profile.schema'
+
+const CARD = 'rounded-xl border border-border bg-surface-1 shadow-1'
+
+const THEME_OPTIONS: { value: Theme; label: string; icon: ReactNode }[] = [
+  { value: 'light', label: 'Claro', icon: <Sun size={16} aria-hidden="true" /> },
+  { value: 'dark', label: 'Escuro', icon: <Moon size={16} aria-hidden="true" /> },
+  { value: 'system', label: 'Sistema', icon: <Monitor size={16} aria-hidden="true" /> },
+]
+
+function initials(name: string | undefined): string {
+  const parts = (name ?? '').trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  const first = parts[0][0] ?? ''
+  const last = parts.length > 1 ? (parts[parts.length - 1][0] ?? '') : ''
+  return (first + last).toUpperCase()
+}
 
 function ProfileSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="Carregando perfil">
-      <div className="h-6 w-32 rounded bg-surface-3" />
-      <div className="h-10 w-full rounded bg-surface-3" />
-      <div className="h-10 w-24 rounded bg-surface-3" />
+    <div
+      className="flex animate-pulse flex-col gap-4 motion-reduce:animate-none"
+      aria-busy="true"
+      aria-label="Carregando perfil"
+    >
+      <div className="flex items-center gap-3.5">
+        <div className="h-14 w-14 rounded-full bg-surface-3" />
+        <div className="flex flex-1 flex-col gap-2">
+          <div className="h-4 w-2/5 rounded-xs bg-surface-3" />
+          <div className="h-3 w-3/5 rounded-xs bg-surface-3" />
+        </div>
+      </div>
+      <div className="h-12 w-full rounded-md bg-surface-3" />
+    </div>
+  )
+}
+
+function ThemePreference() {
+  const theme = useAuthStore((s) => s.theme)
+  const setTheme = useAuthStore((s) => s.setTheme)
+  const labelId = useId()
+
+  return (
+    <section className={`${CARD} flex flex-col gap-2.5 p-4`} aria-labelledby={labelId}>
+      <h2 id={labelId} className="text-body font-semibold text-fg">
+        Tema
+      </h2>
+      <div className="segmented" role="group" aria-labelledby={labelId}>
+        {THEME_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className={theme === option.value ? 'on' : undefined}
+            aria-pressed={theme === option.value}
+            onClick={() => setTheme(option.value)}
+          >
+            {option.icon}
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function SettingsRow({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <div className="flex min-h-14 items-center gap-3 text-body text-fg">
+      <span aria-hidden="true" className="text-fg-muted">
+        {icon}
+      </span>
+      {children}
     </div>
   )
 }
@@ -26,6 +94,9 @@ export default function ProfilePage() {
   const { data: profile, isLoading, isError, refetch } = useProfile()
   const { mutate: updateProfile, isPending } = useUpdateProfile()
   const { canInstall, promptInstall } = useInstallPrompt()
+  const [passwordOpen, setPasswordOpen] = useState(false)
+  const passwordPanelId = useId()
+  const version = getFrontendVersion()
 
   const form = useForm<UpdateProfileFormValues>({
     resolver: zodResolver(updateProfileSchema),
@@ -43,107 +114,135 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6 max-w-lg">
-      <h1 className="text-2xl font-bold tracking-tight">Perfil</h1>
+    <div className="mx-auto flex max-w-5xl flex-col gap-4">
+      <h1 className="font-display text-h1 text-fg">Perfil</h1>
 
-      <div className="card">
-        <div className="card-h">
-          <h3>Informações da conta</h3>
-        </div>
-        <div className="card-b">
-          {isLoading ? (
-            <ProfileSkeleton />
-          ) : isError ? (
-            <div className="space-y-2" role="alert">
-              <p className="text-sm" style={{ color: 'var(--expense)' }}>
-                Falha ao carregar perfil.
-              </p>
-              <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-                Tentar novamente
-              </Button>
-            </div>
-          ) : (
-            <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="col gap-4">
-              {profile?.maskedEmail && (
-                <div className="space-y-1">
-                  <p className="text-sm fw-500">E-mail</p>
-                  <p className="text-sm text-dim">{profile.maskedEmail}</p>
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <div className="flex flex-col gap-3">
+          <section className={`${CARD} p-4 md:p-5`} aria-label="Informações da conta">
+            {isLoading ? (
+              <ProfileSkeleton />
+            ) : isError ? (
+              <div className="flex flex-col items-start gap-2" role="alert">
+                <p className="text-body-sm text-overdue">Falha ao carregar perfil.</p>
+                <Button variant="ghost" size="sm" onClick={() => void refetch()}>
+                  Tentar novamente
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3.5">
+                  <span
+                    aria-hidden="true"
+                    className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-surface-3 text-h2 text-brand-text"
+                  >
+                    {initials(profile?.displayName)}
+                  </span>
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <span className="truncate text-body font-semibold text-fg">
+                      {profile?.displayName}
+                    </span>
+                    {profile?.maskedEmail && (
+                      <span className="truncate text-body-sm text-fg-muted">
+                        {profile.maskedEmail}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  noValidate
+                  className="flex flex-col gap-3"
+                >
+                  <Field
+                    label="Nome de exibição"
+                    error={form.formState.errors.displayName?.message}
+                  >
+                    <Input
+                      placeholder="Seu nome"
+                      autoComplete="name"
+                      {...form.register('displayName')}
+                    />
+                  </Field>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    className="min-h-touch self-start"
+                    loading={isPending}
+                  >
+                    {isPending ? 'Salvando…' : 'Salvar alterações'}
+                  </Button>
+                </form>
+              </div>
+            )}
+          </section>
+
+          <ThemePreference />
+
+          <section className={`${CARD} px-4`} aria-label="Conta e aplicativo">
+            <div className="border-b border-border">
+              <button
+                type="button"
+                className="flex min-h-14 w-full items-center gap-3 bg-transparent text-left text-body font-medium text-fg"
+                aria-expanded={passwordOpen}
+                aria-controls={passwordPanelId}
+                onClick={() => setPasswordOpen((v) => !v)}
+              >
+                <KeyRound size={19} aria-hidden="true" className="text-fg-muted" />
+                <span className="flex-1">Alterar senha</span>
+                <ChevronDown
+                  size={18}
+                  aria-hidden="true"
+                  className={`text-fg-muted transition-transform motion-reduce:transition-none ${
+                    passwordOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+              {passwordOpen && (
+                <div id={passwordPanelId} className="pb-4">
+                  <ChangePasswordSection />
                 </div>
               )}
+            </div>
 
-              <Field label="Nome de exibição" error={form.formState.errors.displayName?.message}>
-                <Input
-                  placeholder="Seu nome"
-                  autoComplete="name"
-                  {...form.register('displayName')}
-                />
-              </Field>
+            {canInstall && (
+              <div className="border-b border-border">
+                <SettingsRow icon={<Smartphone size={19} />}>
+                  <span className="flex flex-1 flex-col gap-0.5 py-2">
+                    <span className="font-medium">Instalar app</span>
+                    <span className="text-caption text-fg-muted">
+                      Instale o Cash Control para lançar um comprovante de PIX direto do botão
+                      compartilhar do app do seu banco.
+                    </span>
+                  </span>
+                  <Button variant="ghost" size="sm" onClick={() => void promptInstall()}>
+                    Instalar
+                  </Button>
+                </SettingsRow>
+              </div>
+            )}
 
-              <Button
-                type="submit"
-                variant="primary"
-                className="self-start"
-                disabled={isPending}
-                aria-busy={isPending}
+            <SettingsRow icon={<Info size={19} />}>
+              <span className="flex-1 font-medium">Versão do app</span>
+              <span
+                className="font-mono text-caption text-fg-muted"
+                title={`build ${version.buildTime}`}
               >
-                {isPending ? (
-                  <>
-                    <span
-                      className="animate-spin"
-                      style={{
-                        width: 14,
-                        height: 14,
-                        border: '2px solid currentColor',
-                        borderTopColor: 'transparent',
-                        borderRadius: '50%',
-                        display: 'inline-block',
-                      }}
-                      aria-hidden="true"
-                    />
-                    Salvando…
-                  </>
-                ) : (
-                  'Salvar alterações'
-                )}
-              </Button>
-            </form>
-          )}
+                web {version.commit}
+              </span>
+            </SettingsRow>
+          </section>
         </div>
-      </div>
 
-      {canInstall && (
-        <div className="card">
-          <div className="card-h">
-            <h3>Instalar app</h3>
+        <section className="flex flex-col gap-2.5" aria-labelledby="consent-history-title">
+          <h2 id="consent-history-title" className="font-display text-h2 text-fg">
+            Histórico de consentimento · LGPD
+          </h2>
+          <div className={`${CARD} px-3.5`}>
+            <ConsentHistorySection />
           </div>
-          <div className="card-b space-y-2">
-            <p className="text-sm text-dim">
-              Instale o Cash Control para lançar um comprovante de PIX direto do botão compartilhar
-              do app do seu banco.
-            </p>
-            <Button variant="ghost" size="sm" onClick={() => void promptInstall()}>
-              Instalar
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div className="card">
-        <div className="card-h">
-          <h3>Alterar senha</h3>
-        </div>
-        <div className="card-b">
-          <ChangePasswordSection />
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="card-h">
-          <h3>Histórico de consentimento</h3>
-        </div>
-        <div className="card-b">
-          <ConsentHistorySection />
-        </div>
+        </section>
       </div>
     </div>
   )

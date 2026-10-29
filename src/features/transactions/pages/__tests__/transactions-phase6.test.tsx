@@ -101,8 +101,9 @@ describe('Phase 6 — Transaction list payment method display', () => {
     await waitFor(() => expect(screen.getByText(MOCK_TRANSACTION_1.description)).toBeTruthy())
 
     const cells = document.querySelectorAll('td')
-    const paymentMethodCells = Array.from(cells).filter(
-      (cell) => (cell as HTMLElement).style.overflow === 'hidden',
+    // Célula com `truncate` (overflow: hidden + text-overflow: ellipsis do Tailwind).
+    const paymentMethodCells = Array.from(cells).filter((cell) =>
+      cell.classList.contains('truncate'),
     )
     expect(paymentMethodCells.length).toBeGreaterThan(0)
   })

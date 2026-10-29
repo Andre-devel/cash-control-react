@@ -77,49 +77,41 @@ export function SettleSeriesDialog({ series, open, onClose }: SettleSeriesDialog
             type="submit"
             form="settle-series-form"
             variant="danger"
-            disabled={isPending || !detail}
-            aria-busy={isPending}
+            disabled={!detail}
+            loading={isPending}
           >
             {isPending ? 'Liquidando…' : 'Liquidar antecipadamente'}
           </Button>
         </>
       }
     >
-      <p>
-        Você está prestes a liquidar <strong>{series?.description}</strong> antecipadamente.
+      <p className="text-body-sm text-fg-muted">
+        Você está prestes a liquidar <strong className="text-fg">{series?.description}</strong>{' '}
+        antecipadamente.
       </p>
 
       {series && (
-        <div
-          className="rounded space-y-1 text-sm"
-          style={{
-            border: '1px solid var(--border)',
-            background: 'var(--surface-3)',
-            padding: '12px 16px',
-            marginTop: 12,
-          }}
-        >
-          <div className="flex justify-between">
-            <span className="text-dim">Parcelas em aberto</span>
-            <span className="font-medium">
+        <dl className="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-surface-2 px-4 py-3">
+          <div className="flex flex-col gap-1">
+            <dt className="text-caption text-fg-muted">Parcelas em aberto</dt>
+            <dd className="m-0 text-body font-semibold tabular-nums">
               {detail ? `${openInstallments.length} de ${series.totalInstallments}` : '…'}
-            </span>
+            </dd>
           </div>
-          <div className="flex justify-between">
-            <span className="text-dim">Saldo devedor</span>
-            <span className="font-semibold tabular-nums">
+          <div className="flex flex-col gap-1 border-l border-border pl-3">
+            <dt className="text-caption text-fg-muted">Saldo devedor</dt>
+            <dd className="m-0 text-body font-semibold tabular-nums">
               {detail ? <Money value={outstanding} /> : '…'}
-            </span>
+            </dd>
           </div>
-        </div>
+        </dl>
       )}
 
       <form
         id="settle-series-form"
         onSubmit={form.handleSubmit(onSubmit)}
         noValidate
-        className="col gap-3"
-        style={{ marginTop: 12 }}
+        className="mt-4 flex flex-col gap-3"
       >
         <Field
           label="Valor da quitação"
@@ -132,13 +124,13 @@ export function SettleSeriesDialog({ series, open, onClose }: SettleSeriesDialog
           <Input type="date" {...form.register('settlementDate')} />
         </Field>
         {form.formState.errors.root && (
-          <p className="text-sm" role="alert" style={{ color: 'var(--expense)' }}>
+          <p className="text-body-sm text-overdue" role="alert">
             {form.formState.errors.root.message}
           </p>
         )}
       </form>
 
-      <p className="text-sm text-dim" style={{ marginTop: 12 }}>
+      <p className="mt-3 text-caption text-fg-muted">
         As parcelas em aberto serão canceladas e uma única transação de quitação será registrada.
         Esta ação não pode ser desfeita.
       </p>

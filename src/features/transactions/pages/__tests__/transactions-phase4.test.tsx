@@ -318,8 +318,11 @@ describe('Create transaction dialog — Phase 4.2', () => {
     await user.click(screen.getByRole('button', { name: /nova transação/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
-    const typeSelect = screen.getByRole('combobox', { name: /tipo/i })
-    const optionValues = Array.from(typeSelect.querySelectorAll('option')).map((o) => o.value)
+    // Tipo virou controle segmentado (rádios) no formulário redesenhado.
+    const typeGroup = screen.getByRole('group', { name: /tipo/i })
+    const optionValues = Array.from(typeGroup.querySelectorAll('input[type="radio"]')).map(
+      (o) => (o as HTMLInputElement).value,
+    )
     expect(optionValues).not.toContain('ADJUSTMENT')
     expect(optionValues).not.toContain('TRANSFER')
     expect(optionValues).toContain('INCOME')

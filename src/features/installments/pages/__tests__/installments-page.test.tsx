@@ -67,7 +67,8 @@ describe('InstallmentsPage', () => {
     renderWithProviders(<InstallmentsPage />)
     const bar = await screen.findByRole('progressbar', { name: /new laptop — 3 de 12/i })
     expect(bar).toHaveAttribute('aria-valuenow', '25')
-    expect(screen.getByText(/restam/)).toHaveTextContent('R$2.700,00')
+    const card = screen.getByRole('article', { name: /new laptop/i })
+    expect(within(card).getByText('Saldo devedor').parentElement).toHaveTextContent('R$2.700,00')
     expect(screen.getByText('01/04/2026')).toBeTruthy()
   })
 
@@ -81,7 +82,7 @@ describe('InstallmentsPage', () => {
     )
     renderWithProviders(<InstallmentsPage />)
     await waitFor(() => expect(screen.getByText('Concluída')).toBeTruthy())
-    expect(screen.queryByRole('button', { name: /editar série/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /ações da série/i })).toBeNull()
   })
 
   it('deletes a series without paid installments after confirmation', async () => {
@@ -99,9 +100,8 @@ describe('InstallmentsPage', () => {
       }),
     )
     renderWithProviders(<InstallmentsPage />)
-    await user.click(
-      await screen.findByRole('button', { name: /excluir parcelamento: new laptop/i }),
-    )
+    await user.click(await screen.findByRole('button', { name: /ações da série: new laptop/i }))
+    await user.click(screen.getByRole('menuitem', { name: /excluir parcelamento/i }))
     await user.click(await screen.findByRole('button', { name: /^excluir parcelamento$/i }))
     await waitFor(() => expect(screen.getByText(/nenhuma série/i)).toBeTruthy())
   })
@@ -109,7 +109,11 @@ describe('InstallmentsPage', () => {
   it('hides delete when the series already has paid installments', async () => {
     renderWithProviders(<InstallmentsPage />)
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
-    expect(screen.queryByRole('button', { name: /excluir parcelamento/i })).toBeNull()
+    await userEvent
+      .setup()
+      .click(screen.getByRole('button', { name: /ações da série: new laptop/i }))
+    expect(screen.getByRole('menuitem', { name: /editar série/i })).toBeTruthy()
+    expect(screen.queryByRole('menuitem', { name: /excluir parcelamento/i })).toBeNull()
   })
 
   it('shows empty state when no series exist', async () => {
@@ -230,8 +234,8 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const editButtons = screen.getAllByRole('button', { name: /editar série/i })
-    await user.click(editButtons[0])
+    await user.click(screen.getByRole('button', { name: /ações da série: new laptop/i }))
+    await user.click(screen.getByRole('menuitem', { name: /editar série/i }))
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /editar série/i })).toBeTruthy()
@@ -243,8 +247,8 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const editInstButtons = screen.getAllByRole('button', { name: /editar parcela/i })
-    await user.click(editInstButtons[0])
+    await user.click(screen.getByRole('button', { name: /ações da série: new laptop/i }))
+    await user.click(screen.getByRole('menuitem', { name: /editar parcela/i }))
 
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /editar parcela individual/i })).toBeTruthy()
@@ -256,8 +260,8 @@ describe('InstallmentsPage', () => {
 
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
 
-    const editInstButtons = screen.getAllByRole('button', { name: /editar parcela/i })
-    await user.click(editInstButtons[0])
+    await user.click(screen.getByRole('button', { name: /ações da série: new laptop/i }))
+    await user.click(screen.getByRole('menuitem', { name: /editar parcela/i }))
 
     await waitFor(() => screen.getByRole('dialog'))
     expect(screen.getByText(/substituição individual/i)).toBeTruthy()
@@ -398,6 +402,7 @@ describe('InstallmentsPage', () => {
   it('series with ACTIVE status shows action buttons', async () => {
     renderWithProviders(<InstallmentsPage />)
     await waitFor(() => screen.getByText(MOCK_SERIES_1.description))
-    expect(screen.getAllByRole('button', { name: /editar série/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: /ações da série/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: /antecipar parcelas/i }).length).toBeGreaterThan(0)
   })
 })

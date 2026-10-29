@@ -226,4 +226,32 @@ describe('CategoryCombobox', () => {
       document.removeEventListener('keydown', onDocumentEscape)
     }
   })
+
+  it('no celular abre em sheet de altura cheia, com busca e botão de fechar', async () => {
+    const original = window.matchMedia
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query.includes('max-width'),
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })) as unknown as typeof window.matchMedia
+    const user = userEvent.setup()
+
+    try {
+      const { onChange } = renderCombobox()
+      await open(user)
+
+      const sheet = screen.getByRole('dialog', { name: 'Categoria' })
+      expect(within(sheet).getByRole('textbox', { name: /buscar categoria/i })).toBeInTheDocument()
+      await user.click(within(sheet).getByRole('option', { name: 'Mercado' }))
+      expect(onChange).toHaveBeenCalledWith('cat-12')
+      expect(screen.queryByRole('dialog')).toBeNull()
+
+      await open(user)
+      await user.click(screen.getByRole('button', { name: 'Fechar' }))
+      expect(screen.queryByRole('dialog')).toBeNull()
+    } finally {
+      window.matchMedia = original
+    }
+  })
 })

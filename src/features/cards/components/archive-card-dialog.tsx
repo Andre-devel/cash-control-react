@@ -21,6 +21,7 @@ export function ArchiveCardDialog({ card, open, onClose }: ArchiveCardDialogProp
 
   return (
     <Modal
+      alert
       title="Arquivar cartão"
       onClose={onClose}
       footer={

@@ -1,7 +1,10 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
+import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
+import { IconBubble } from '@/components/ui/icon-bubble'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { formatInstantDate, formatLocalDate } from '@/lib/format-date'
 import { useTransaction } from '@/features/transactions/hooks/use-transaction'
 import { AttachmentSection } from '@/features/transactions/components/attachment-section'
@@ -10,20 +13,49 @@ import { DeleteTransactionDialog } from '@/features/transactions/components/dele
 import { CancelTransactionDialog } from '@/features/transactions/components/cancel-transaction-dialog'
 import { PayTransactionButton } from '@/features/transactions/components/pay-transaction-button'
 import { useReactivateTransaction } from '@/features/transactions/hooks/use-reactivate-transaction'
-import { TRANSACTION_TYPE_DISPLAY } from '@/features/transactions/utils/transaction-type'
 import {
-  TRANSACTION_STATUS_LABELS,
+  TRANSACTION_TYPE_DISPLAY,
+  isPositiveTransaction,
+  transactionTypeColor,
+} from '@/features/transactions/utils/transaction-type'
+import {
   canReactivateTransaction,
   isLockedTransaction,
 } from '@/features/transactions/utils/transaction-status'
 import { ROUTES } from '@/app/router/routes'
 
 function DetailSkeleton() {
+  const bar = 'rounded-md bg-surface-3 animate-pulse motion-reduce:animate-none'
   return (
-    <div className="space-y-4" aria-busy="true" aria-label="Carregando transação">
-      <div className="h-8 w-48 rounded animate-pulse" style={{ background: 'var(--surface-3)' }} />
-      <div className="h-32 rounded animate-pulse" style={{ background: 'var(--surface-3)' }} />
+    <div className="flex flex-col gap-4" aria-busy="true" aria-label="Carregando transação">
+      <div className={`h-5 w-24 ${bar}`} />
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface-1 p-5">
+        <div className={`h-6 w-56 ${bar}`} />
+        <div className={`h-9 w-40 ${bar}`} />
+      </div>
+      <div className={`h-48 !rounded-xl ${bar}`} />
     </div>
+  )
+}
+
+function DetailItem({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1 border-b border-border py-3 md:border-b-0 md:py-0">
+      <dt className="text-caption text-fg-muted">{label}</dt>
+      <dd className="text-body">{children}</dd>
+    </div>
+  )
+}
+
+function BackLink() {
+  return (
+    <Link
+      to={ROUTES.TRANSACTIONS}
+      className="inline-flex min-h-touch items-center gap-1 self-start rounded-md pr-2 text-body-sm font-medium text-fg-muted hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info"
+    >
+      <ChevronLeft size={16} aria-hidden="true" />
+      Transações
+    </Link>
   )
 }
 
@@ -41,18 +73,12 @@ export default function TransactionDetailPage() {
 
   if (isError || !transaction) {
     return (
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Transação</h1>
-        <div role="alert">
-          <p className="text-sm" style={{ color: 'var(--expense)' }}>
-            Falha ao carregar transação.
-          </p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => void navigate(ROUTES.TRANSACTIONS)}
-            className="mt-2"
-          >
+      <div className="flex flex-col gap-3">
+        <BackLink />
+        <h1 className="font-display text-h1 font-extrabold">Transação</h1>
+        <div role="alert" className="rounded-xl border border-border bg-surface-1 p-5">
+          <p className="text-body text-expense">Falha ao carregar transação.</p>
+          <Button className="mt-3" onClick={() => void navigate(ROUTES.TRANSACTIONS)}>
             Voltar para transações
           </Button>
         </div>
@@ -61,161 +87,139 @@ export default function TransactionDetailPage() {
   }
 
   const isInvoicePayment = transaction.type === 'INVOICE_PAYMENT'
+  const isCancelled = transaction.status === 'CANCELLED'
+  const amount = Number(transaction.amount)
+  const isPositive = isPositiveTransaction(transaction.type, amount)
+  const display = TRANSACTION_TYPE_DISPLAY[transaction.type]
+  const canEdit = !isCancelled && !isLockedTransaction(transaction)
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => void navigate(ROUTES.TRANSACTIONS)}
-            className="mb-2"
-          >
-            ← Voltar
-          </Button>
-          <h1 className="text-2xl font-bold tracking-tight">{transaction.description}</h1>
+    <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4">
+      <BackLink />
+
+      {/* Resumo: o que é, quanto e em que situação */}
+      <section className="flex flex-col gap-5 rounded-xl border border-border bg-surface-1 p-5 md:p-6">
+        <div className="flex items-start gap-4">
+          <IconBubble
+            color={transactionTypeColor(transaction.type, amount)}
+            icon={display.icon}
+            size="lg"
+            aria-hidden
+          />
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <h1
+              className={`break-words font-display text-h2 font-bold md:text-h1${
+                isCancelled ? ' line-through' : ''
+              }`}
+            >
+              {transaction.description}
+            </h1>
+            <div className="flex flex-wrap items-center gap-2 text-body-sm text-fg-muted">
+              <StatusBadge status={transaction.status} />
+              <span>{display.label}</span>
+              {transaction.installmentSeriesId && transaction.installmentNumber != null && (
+                <span className="rounded-xs bg-surface-3 px-1.5 py-px font-mono text-caption">
+                  {transaction.installmentNumber}/{transaction.totalInstallments ?? '?'}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <PayTransactionButton transaction={transaction} />
-          {transaction.status !== 'CANCELLED' && !isLockedTransaction(transaction) && (
+        <p
+          className={`font-display text-[2rem] font-extrabold leading-none md:text-display ${
+            isCancelled ? 'text-fg-muted line-through' : isPositive ? 'text-income' : 'text-fg'
+          }`}
+        >
+          <Money value={isPositive ? Math.abs(amount) : -Math.abs(amount)} signed />
+        </p>
+
+        {/* Ações: "marcar como paga" em destaque; o resto ao lado. No celular quebram linha. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <PayTransactionButton transaction={transaction} className="max-md:w-full" />
+          {canEdit && (
             <>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="min-h-[44px]"
-                onClick={() => setEditOpen(true)}
-              >
+              <Button className="min-h-touch" onClick={() => setEditOpen(true)}>
                 Editar
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="min-h-[44px]"
-                onClick={() => setCancelOpen(true)}
-              >
+              <Button variant="ghost" className="min-h-touch" onClick={() => setCancelOpen(true)}>
                 Cancelar transação
               </Button>
             </>
           )}
           {canReactivateTransaction(transaction) && (
             <Button
-              variant="ghost"
-              size="sm"
-              className="min-h-[44px]"
-              disabled={reactivating}
+              className="min-h-touch"
+              loading={reactivating}
               onClick={() => reactivate(transaction.id)}
             >
               Reativar
             </Button>
           )}
-          <Button
-            variant="destructive"
-            size="sm"
-            className="min-h-[44px]"
-            onClick={() => setDeleteOpen(true)}
-          >
+          <Button variant="danger" className="min-h-touch" onClick={() => setDeleteOpen(true)}>
             {isInvoicePayment ? 'Estornar pagamento' : 'Excluir'}
           </Button>
         </div>
-      </div>
+      </section>
 
-      <div className="card">
-        <div className="card-b space-y-3">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <div>
-              <p className="text-xs text-dim">Valor</p>
-              <p className="text-sm font-semibold">
-                <Money value={Number(transaction.amount)} />
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-dim">Tipo</p>
-              <p className="text-sm">{TRANSACTION_TYPE_DISPLAY[transaction.type].label}</p>
-            </div>
-            <div>
-              <p className="text-xs text-dim">Situação</p>
-              <p className="text-sm">{TRANSACTION_STATUS_LABELS[transaction.status]}</p>
-            </div>
-            <div>
-              <p className="text-xs text-dim">Competência</p>
-              <p className="text-sm">{formatLocalDate(transaction.competenceDate)}</p>
-            </div>
-            {/* Cancelada não foi paga: a data antiga só confundiria. */}
-            {transaction.paymentDate && transaction.status !== 'CANCELLED' && (
-              <div>
-                <p className="text-xs text-dim">
-                  {transaction.status === 'PAID' ? 'Data do pagamento' : 'Vencimento'}
-                </p>
-                <p className="text-sm">{formatLocalDate(transaction.paymentDate)}</p>
-              </div>
-            )}
-            {transaction.status === 'CANCELLED' && transaction.cancelledAt && (
-              <div>
-                <p className="text-xs text-dim">Cancelada em</p>
-                <p className="text-sm">{formatInstantDate(transaction.cancelledAt)}</p>
-              </div>
-            )}
-            <div>
-              <p className="text-xs text-dim">Forma de pagamento</p>
-              <p className="text-sm">
-                {transaction.paymentMethod.name}
-                {transaction.creditCard ? ` · ${transaction.creditCard.name}` : ''}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-dim">Criado em</p>
-              <p className="text-sm">{formatInstantDate(transaction.createdAt)}</p>
-            </div>
-            {isInvoicePayment && transaction.paidInvoiceId && (
-              <div>
-                <p className="text-xs text-dim">Fatura</p>
-                <p className="text-sm">
-                  <Link
-                    to={ROUTES.INVOICE_DETAIL.replace(':invoiceId', transaction.paidInvoiceId)}
-                    className="link"
-                  >
-                    Ver fatura paga
-                  </Link>
-                </p>
-              </div>
-            )}
-            {transaction.accountName && (
-              <div>
-                <p className="text-xs text-dim">Conta</p>
-                <p className="text-sm">{transaction.accountName}</p>
-              </div>
-            )}
-            <div>
-              <p className="text-xs text-dim">Categoria</p>
-              <p className="text-sm">
-                {transaction.categoryName
-                  ? transaction.subcategoryName
-                    ? `${transaction.categoryName} › ${transaction.subcategoryName}`
-                    : transaction.categoryName
-                  : 'Sem categoria'}
-              </p>
-            </div>
-            {transaction.installmentSeriesId && transaction.installmentNumber != null && (
-              <div>
-                <p className="text-xs text-dim">Parcela</p>
-                <p className="text-sm">
-                  {transaction.installmentNumber}/{transaction.totalInstallments ?? '?'}
-                </p>
-              </div>
-            )}
-          </div>
-          {transaction.notes && (
-            <div style={{ marginTop: 8 }}>
-              <p className="text-xs text-dim">Notas</p>
-              <p className="text-sm" style={{ whiteSpace: 'pre-wrap' }}>
-                {transaction.notes}
-              </p>
-            </div>
+      {/* Detalhes */}
+      <section
+        aria-labelledby="tx-detail-h"
+        className="rounded-xl border border-border bg-surface-1 p-5 md:p-6"
+      >
+        <h2 id="tx-detail-h" className="mb-2 font-display text-h2 md:mb-4">
+          Detalhes
+        </h2>
+        <dl className="[display:grid] grid-cols-1 md:grid-cols-3 md:gap-x-6 md:gap-y-5">
+          <DetailItem label="Competência">{formatLocalDate(transaction.competenceDate)}</DetailItem>
+          {/* Cancelada não foi paga: a data antiga só confundiria. */}
+          {transaction.paymentDate && !isCancelled && (
+            <DetailItem label={transaction.status === 'PAID' ? 'Data do pagamento' : 'Vencimento'}>
+              {formatLocalDate(transaction.paymentDate)}
+            </DetailItem>
           )}
-        </div>
-      </div>
+          {isCancelled && transaction.cancelledAt && (
+            <DetailItem label="Cancelada em">
+              {formatInstantDate(transaction.cancelledAt)}
+            </DetailItem>
+          )}
+          <DetailItem label="Forma de pagamento">
+            {transaction.paymentMethod.name}
+            {transaction.creditCard ? ` · ${transaction.creditCard.name}` : ''}
+          </DetailItem>
+          {transaction.accountName && (
+            <DetailItem label="Conta">{transaction.accountName}</DetailItem>
+          )}
+          <DetailItem label="Categoria">
+            {transaction.categoryName ? (
+              transaction.subcategoryName ? (
+                `${transaction.categoryName} › ${transaction.subcategoryName}`
+              ) : (
+                transaction.categoryName
+              )
+            ) : (
+              <span className="text-fg-muted">Sem categoria</span>
+            )}
+          </DetailItem>
+          {isInvoicePayment && transaction.paidInvoiceId && (
+            <DetailItem label="Fatura">
+              <Link
+                to={ROUTES.INVOICE_DETAIL.replace(':invoiceId', transaction.paidInvoiceId)}
+                className="link"
+              >
+                Ver fatura paga
+              </Link>
+            </DetailItem>
+          )}
+          <DetailItem label="Criado em">{formatInstantDate(transaction.createdAt)}</DetailItem>
+        </dl>
+        {transaction.notes && (
+          <div className="mt-4 border-t border-border pt-4">
+            <p className="text-caption text-fg-muted">Observações</p>
+            <p className="mt-1 whitespace-pre-wrap text-body">{transaction.notes}</p>
+          </div>
+        )}
+      </section>
 
       <AttachmentSection transactionId={transaction.id} />
 

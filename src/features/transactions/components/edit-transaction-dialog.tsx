@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { CircleAlert, CircleCheck, Clock } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -6,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { MoneyInput } from '@/components/ui/money-input'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
-import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { TRANSACTION_STATUS_LABELS } from '@/features/transactions/utils/transaction-status'
 import {
@@ -23,6 +23,10 @@ import { useCards } from '@/features/cards/hooks/use-cards'
 import { localIsoDate } from '@/lib/local-date'
 import { setFormErrors } from '@/lib/form-errors'
 import { formatMoneyInput } from '@/lib/money'
+import { TRANSACTION_TYPE_DISPLAY } from '@/features/transactions/utils/transaction-type'
+import { submitOnModEnter } from '@/features/transactions/utils/form-shortcuts'
+import { SegmentedRadio, type SegmentedOption } from './segmented-radio'
+import '@/features/transactions/transactions.css'
 
 const DEFAULT_VALUES: UpdateTransactionFormValues = {
   description: '',
@@ -105,9 +109,34 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
 
   if (!open) return null
 
+  const isPositiveType = transaction?.type === 'INCOME' || transaction?.type === 'REFUND'
+  const statusOptions: SegmentedOption[] = [
+    transaction?.status === 'OVERDUE' ? 'OVERDUE' : 'PENDING',
+    'PAID',
+  ].map((s) => ({
+    value: s,
+    label: TRANSACTION_STATUS_LABELS[s as 'PENDING' | 'OVERDUE' | 'PAID'],
+    icon:
+      s === 'PAID' ? (
+        <CircleCheck size={15} aria-hidden="true" />
+      ) : s === 'OVERDUE' ? (
+        <CircleAlert size={15} aria-hidden="true" />
+      ) : (
+        <Clock size={15} aria-hidden="true" />
+      ),
+    activeClass:
+      s === 'PAID'
+        ? 'peer-checked:text-paid'
+        : s === 'OVERDUE'
+          ? 'peer-checked:text-overdue'
+          : 'peer-checked:text-pending',
+  }))
+
   return (
     <Modal
+      panel
       title="Editar transação"
+      subtitle={transaction ? TRANSACTION_TYPE_DISPLAY[transaction.type].label : undefined}
       onClose={handleClose}
       wide
       footer={
@@ -120,28 +149,17 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
             type="submit"
             form="edit-transaction-form"
             variant="primary"
-            disabled={isPending}
-            aria-busy={isPending}
+            loading={isPending}
+            trailing={
+              <kbd
+                aria-hidden="true"
+                className="hidden font-mono text-overline opacity-70 xl:inline"
+              >
+                ⌘↵
+              </kbd>
+            }
           >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Salvando…
-              </>
-            ) : (
-              'Salvar alterações'
-            )}
+            {isPending ? 'Salvando…' : 'Salvar alterações'}
           </Button>
         </>
       }
@@ -149,72 +167,31 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
       <form
         id="edit-transaction-form"
         onSubmit={form.handleSubmit(onSubmit)}
+        onKeyDown={submitOnModEnter}
         noValidate
-        className="col gap-4"
+        className="flex flex-col gap-4"
       >
         {form.formState.errors.root && (
           <div role="alert" className="err">
             {form.formState.errors.root.message}
           </div>
         )}
-        <Field label="Descrição" required error={form.formState.errors.description?.message}>
-          <Input placeholder="Ex: Supermercado" {...form.register('description')} />
-        </Field>
 
-        <Field label="Valor" required error={form.formState.errors.amount?.message}>
-          <MoneyInput placeholder="Ex: 150,75" {...form.register('amount')} />
-        </Field>
-
-        <Controller
-          control={form.control}
-          name="categoryId"
-          render={({ field, fieldState }) => (
-            <Field label="Categoria" error={fieldState.error?.message}>
-              <CategoryPickerCombobox
-                value={field.value ?? ''}
-                onChange={field.onChange}
-                categories={categories}
-                description={description}
-                aria-label="Categoria"
+        <div className="[display:grid] grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="tx-amount" data-positive={isPositiveType}>
+            <Field label="Valor" required error={form.formState.errors.amount?.message}>
+              <MoneyInput
+                placeholder="0,00"
+                currency={isPositiveType ? '+ R$' : '− R$'}
+                {...form.register('amount')}
               />
             </Field>
-          )}
-        />
+          </div>
 
-        <Field
-          label="Data de competência"
-          required
-          error={form.formState.errors.competenceDate?.message}
-        >
-          <Input type="date" {...form.register('competenceDate')} />
-        </Field>
-
-        {/* Pago não volta a pendente (a API recusa); para desfazer, cancele a transação. */}
-        {editableStatus && status && transaction?.status !== 'PAID' && (
-          <Field label="Status" error={form.formState.errors.status?.message}>
-            <Select {...form.register('status')}>
-              {[transaction?.status === 'OVERDUE' ? 'OVERDUE' : 'PENDING', 'PAID'].map((s) => (
-                <option key={s} value={s}>
-                  {TRANSACTION_STATUS_LABELS[s as 'PENDING' | 'OVERDUE' | 'PAID']}
-                </option>
-              ))}
-            </Select>
+          <Field label="Descrição" required error={form.formState.errors.description?.message}>
+            <Input placeholder="Ex: Supermercado" {...form.register('description')} />
           </Field>
-        )}
-
-        {editableStatus && status === 'PAID' && (
-          <Field
-            label="Data do pagamento"
-            hint="Em branco, usa a data de hoje."
-            error={form.formState.errors.paymentDate?.message}
-          >
-            <Input type="date" {...form.register('paymentDate')} />
-          </Field>
-        )}
-
-        <Field label="Notas" error={form.formState.errors.notes?.message}>
-          <Textarea rows={2} placeholder="Observações opcionais…" {...form.register('notes')} />
-        </Field>
+        </div>
 
         <Controller
           control={form.control}
@@ -235,22 +212,77 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
           )}
         />
 
-        {paymentMethod === 'CREDIT_CARD' && (
+        <div className="[display:grid] grid-cols-1 gap-4 md:grid-cols-2">
+          {paymentMethod === 'CREDIT_CARD' && (
+            <Controller
+              control={form.control}
+              name="creditCardId"
+              render={({ field, fieldState }) => (
+                <Field label="Cartão de crédito" error={fieldState.error?.message}>
+                  <CreditCardSelect
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    cards={cards}
+                    aria-label="Cartão de crédito"
+                  />
+                </Field>
+              )}
+            />
+          )}
+
           <Controller
             control={form.control}
-            name="creditCardId"
+            name="categoryId"
             render={({ field, fieldState }) => (
-              <Field label="Cartão de crédito" error={fieldState.error?.message}>
-                <CreditCardSelect
+              <Field label="Categoria" error={fieldState.error?.message}>
+                <CategoryPickerCombobox
                   value={field.value ?? ''}
                   onChange={field.onChange}
-                  cards={cards}
-                  aria-label="Cartão de crédito"
+                  categories={categories}
+                  description={description}
+                  aria-label="Categoria"
                 />
               </Field>
             )}
           />
+
+          <Field
+            label="Data de competência"
+            required
+            error={form.formState.errors.competenceDate?.message}
+          >
+            <Input type="date" {...form.register('competenceDate')} />
+          </Field>
+
+          {editableStatus && status === 'PAID' && (
+            <Field
+              label="Data do pagamento"
+              hint="Em branco, usa a data de hoje."
+              error={form.formState.errors.paymentDate?.message}
+            >
+              <Input type="date" {...form.register('paymentDate')} />
+            </Field>
+          )}
+        </div>
+
+        {/* Pago não volta a pendente (a API recusa); para desfazer, cancele a transação. */}
+        {editableStatus && status && transaction?.status !== 'PAID' && (
+          <SegmentedRadio
+            legend="Status"
+            className="md:max-w-[320px]"
+            options={statusOptions}
+            registration={form.register('status')}
+            error={form.formState.errors.status?.message}
+          />
         )}
+
+        <Field label="Observações" error={form.formState.errors.notes?.message}>
+          <Textarea
+            rows={2}
+            placeholder="Algo para lembrar (opcional)"
+            {...form.register('notes')}
+          />
+        </Field>
       </form>
     </Modal>
   )

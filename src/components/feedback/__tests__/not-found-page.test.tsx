@@ -19,7 +19,7 @@ beforeEach(() => {
 describe('NotFoundPage', () => {
   it('links to login when signed out', () => {
     renderPage()
-    expect(screen.getByText('Página não encontrada.')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Página não encontrada' })).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Ir para o login' }).getAttribute('href')).toBe(
       '/login',
     )

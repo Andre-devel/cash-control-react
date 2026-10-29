@@ -1,3 +1,5 @@
+import { CheckCircle2, CircleSlash } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { useConsentHistory } from '@/features/profile/hooks/use-consent-history'
 
 function formatDate(instant: string): string {
@@ -14,15 +16,14 @@ export function ConsentHistorySection() {
   if (isLoading) {
     return (
       <div
-        className="space-y-2"
+        className="flex flex-col gap-2 py-3"
         aria-busy="true"
         aria-label="Carregando histórico de consentimento"
       >
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-10 rounded animate-pulse"
-            style={{ background: 'var(--surface-3)' }}
+            className="h-11 animate-pulse rounded-md bg-surface-3 motion-reduce:animate-none"
           />
         ))}
       </div>
@@ -31,38 +32,45 @@ export function ConsentHistorySection() {
 
   if (isError) {
     return (
-      <div className="text-sm" role="alert" style={{ color: 'var(--expense)' }}>
-        Falha ao carregar histórico de consentimento.{' '}
-        <button
-          type="button"
-          className="underline underline-offset-2"
-          onClick={() => void refetch()}
-        >
+      <div className="flex flex-col items-start gap-2 py-3" role="alert">
+        <p className="text-body-sm text-overdue">Falha ao carregar histórico de consentimento.</p>
+        <Button variant="ghost" size="sm" onClick={() => void refetch()}>
           Tentar novamente
-        </button>
+        </Button>
       </div>
     )
   }
 
   if (!consents || consents.length === 0) {
-    return <p className="text-sm text-dim">Nenhum registro de consentimento encontrado.</p>
+    return (
+      <p className="py-4 text-body-sm text-fg-muted">
+        Nenhum registro de consentimento encontrado.
+      </p>
+    )
   }
 
   return (
-    <ul className="space-y-2" role="list" aria-label="Histórico de consentimento">
+    <ul className="m-0 list-none p-0" role="list" aria-label="Histórico de consentimento">
       {consents.map((record) => (
         <li
           key={record.id}
-          className="flex items-center justify-between rounded px-3 py-2 text-sm"
-          style={{ border: '1px solid var(--border)' }}
+          className="flex min-h-[60px] items-center gap-3 border-b border-border py-2 last:border-b-0"
         >
-          <span className="fw-500">Termos e privacidade · versão {record.consentVersion}</span>
-          <span className="text-dim">
-            {record.revokedAt
-              ? `${formatDate(record.acceptedAt)} – ${formatDate(record.revokedAt)}`
-              : formatDate(record.acceptedAt)}
+          <span aria-hidden="true" className={record.active ? 'text-paid' : 'text-canceled'}>
+            {record.active ? <CheckCircle2 size={18} /> : <CircleSlash size={18} />}
           </span>
-          <span style={{ color: record.active ? 'var(--income)' : 'var(--expense)' }}>
+          <span className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="text-body-sm font-medium text-fg">
+              Termos e privacidade · versão {record.consentVersion}
+            </span>
+            <span className="text-caption text-fg-muted">
+              aceito em {formatDate(record.acceptedAt)}
+              {record.revokedAt && <> · revogado em {formatDate(record.revokedAt)}</>}
+            </span>
+          </span>
+          <span
+            className={`text-caption font-semibold ${record.active ? 'text-paid' : 'text-canceled'}`}
+          >
             {record.active ? 'Aceito' : 'Revogado'}
           </span>
         </li>

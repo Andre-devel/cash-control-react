@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, waitFor, cleanup } from '@testing-library/react'
+import { screen, waitFor, cleanup, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
@@ -357,7 +357,9 @@ describe('CardsPage — Phase 7 acceptance criteria', () => {
   it('renders issuer in card details when present', async () => {
     renderWithProviders(<CardsPage />)
     await waitFor(() => expect(screen.getByText('Emissor')).toBeTruthy())
-    expect(screen.getByText(MOCK_CARD_1.issuer!)).toBeTruthy()
+    // O emissor também aparece impresso no cartão; aqui vale a linha de "Detalhes do cartão".
+    const details = screen.getByText('Emissor').closest('dl') as HTMLElement
+    expect(within(details).getByText(MOCK_CARD_1.issuer!)).toBeTruthy()
   })
 
   it('does not render issuer row when issuer is absent', async () => {

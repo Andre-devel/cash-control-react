@@ -193,7 +193,7 @@ describe('TransactionsPage', () => {
     )
     await user.click(screen.getByRole('menuitem', { name: /cancelar transação/i }))
 
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('alertdialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /cancelar transação/i })).toBeTruthy()
   })
 
@@ -208,7 +208,7 @@ describe('TransactionsPage', () => {
     )
     await user.click(screen.getByRole('menuitem', { name: /^excluir$/i }))
 
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+    await waitFor(() => expect(screen.getByRole('alertdialog')).toBeTruthy())
     expect(screen.getByRole('heading', { name: /excluir transação/i })).toBeTruthy()
   })
 
@@ -230,8 +230,9 @@ describe('TransactionsPage', () => {
   it('renders summary strip with income, expense, and net KPIs', async () => {
     renderWithProviders(<TransactionsPage />)
     await waitFor(() => {
-      expect(screen.getByText('Receitas (período)')).toBeTruthy()
-      expect(screen.getByText('Despesas (período)')).toBeTruthy()
+      expect(screen.getByText('Receitas')).toBeTruthy()
+      expect(screen.getByText('Despesas')).toBeTruthy()
+      expect(screen.getByText('Pag. de fatura')).toBeTruthy()
       expect(screen.getByText('Resultado líquido')).toBeTruthy()
     })
   })
@@ -272,7 +273,10 @@ describe('TransactionsPage', () => {
     const { container } = renderWithProviders(<TransactionsPage />)
     await waitFor(() => expect(container.textContent).toContain('14.923,11'))
     expect(container.textContent).toContain('25.136,62')
-    expect(container.textContent).toMatch(/pagamentos de fatura: r\$\s?3\.235,79/i)
+    // Pagamento de fatura ganhou cartão próprio nos totais, fora do resultado.
+    const invoiceCard = screen.getByText('Pag. de fatura').parentElement!
+    expect(invoiceCard.textContent).toMatch(/3\.235,79/)
+    expect(invoiceCard.textContent).toMatch(/fora do resultado/i)
   })
 
   it('manda o mês atual como período e navega para o mês anterior', async () => {

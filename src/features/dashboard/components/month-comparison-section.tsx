@@ -1,172 +1,168 @@
 import { useState } from 'react'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
-import { Button } from '@/components/ui/button'
 import { useComparisonChart } from '@/features/dashboard/hooks/use-comparison-chart'
+import { useHideValues } from '@/features/dashboard/hooks/use-hide-values'
+import { HIDDEN_MONEY, shiftYearMonth, toYearMonth } from '@/features/dashboard/utils'
 import { formatYearMonth } from '@/lib/format-date'
-import { formatChartMoney, formatCompactNumber, formatMoneyInput } from '@/lib/money'
+import { formatMoney } from '@/lib/money'
+import { Panel, PanelHeader, SkeletonBlock, WidgetEmpty, WidgetError } from './panel'
 
-function getCurrentMonth(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+interface MonthComparisonSectionProps {
+  /** Mês comparado (`aaaa-mm`) — o outro é o anterior a ele. */
+  month?: string
+  className?: string
 }
 
-function getPreviousMonth(): string {
-  const now = new Date()
-  const d = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+interface Row {
+  name: string
+  a: number
+  b: number
+  /** Cor da barra do segundo mês. */
+  barClass: string
+  /** Para despesas, subir é ruim. */
+  higherIsBetter: boolean
 }
 
-const fmt = formatMoneyInput
-
-function ChartSkeleton() {
-  return (
-    <div
-      className="h-64 rounded animate-pulse"
-      style={{ background: 'var(--surface-3)' }}
-      aria-busy="true"
-      aria-label="Carregando gráfico de comparação"
-    />
-  )
+function deltaOf(a: number, b: number) {
+  if (a === 0) return null
+  return ((b - a) / Math.abs(a)) * 100
 }
 
-export function MonthComparisonSection() {
-  const [month1, setMonth1] = useState(getPreviousMonth())
-  const [month2, setMonth2] = useState(getCurrentMonth())
+export function MonthComparisonSection({ month, className = '' }: MonthComparisonSectionProps) {
+  const base = month ?? toYearMonth(new Date())
+  const [month1, setMonth1] = useState(shiftYearMonth(base, -1))
+  const [month2, setMonth2] = useState(base)
+  const { hidden } = useHideValues()
 
   const { data, isLoading, isError, refetch } = useComparisonChart({ month1, month2 })
 
-  const chartData = data
+  const rows: Row[] = data
     ? [
         {
-          label: 'Receita',
-          [data.month1.month]: parseFloat(data.month1.income),
-          [data.month2.month]: parseFloat(data.month2.income),
+          name: 'Receitas',
+          a: parseFloat(data.month1.income),
+          b: parseFloat(data.month2.income),
+          barClass: 'bg-income',
+          higherIsBetter: true,
         },
         {
-          label: 'Despesas',
-          [data.month1.month]: parseFloat(data.month1.expenses),
-          [data.month2.month]: parseFloat(data.month2.expenses),
+          name: 'Despesas',
+          a: parseFloat(data.month1.expenses),
+          b: parseFloat(data.month2.expenses),
+          barClass: 'bg-expense',
+          higherIsBetter: false,
         },
         {
-          label: 'Saldo',
-          [data.month1.month]: parseFloat(data.month1.savings),
-          [data.month2.month]: parseFloat(data.month2.savings),
+          name: 'Saldo',
+          a: parseFloat(data.month1.savings),
+          b: parseFloat(data.month2.savings),
+          barClass: 'bg-brand',
+          higherIsBetter: true,
         },
       ]
     : []
+  const max = Math.max(1, ...rows.flatMap((r) => [Math.abs(r.a), Math.abs(r.b)]))
+  const money = (v: number) => (hidden ? HIDDEN_MONEY : formatMoney(v))
 
   return (
-    <div className="card">
-      <div className="card-h">
-        <h3>Comparação mensal</h3>
-        <div className="card-h-controls flex flex-wrap items-center gap-2">
-          <label className="sr-only" htmlFor="cmp-month1">
-            Mês 1
-          </label>
-          <input
-            id="cmp-month1"
-            type="month"
-            value={month1}
-            onChange={(e) => setMonth1(e.target.value)}
-            className="input input-compact"
-            aria-label="Mês 1"
-          />
-          <span className="text-dim text-xs">vs</span>
-          <label className="sr-only" htmlFor="cmp-month2">
-            Mês 2
-          </label>
-          <input
-            id="cmp-month2"
-            type="month"
-            value={month2}
-            onChange={(e) => setMonth2(e.target.value)}
-            className="input input-compact"
-            aria-label="Mês 2"
-          />
-        </div>
-      </div>
-      <div className="card-b">
-        {isLoading ? (
-          <ChartSkeleton />
-        ) : isError ? (
-          <div role="alert" className="space-y-2">
-            <p className="text-sm" style={{ color: 'var(--expense)' }}>
-              Falha ao carregar gráfico de comparação.
-            </p>
-            <Button variant="ghost" size="sm" onClick={() => void refetch()}>
-              Tentar novamente
-            </Button>
+    <Panel className={className} label="Comparação mensal">
+      <PanelHeader
+        title="Comparação mensal"
+        right={
+          <div className="flex flex-wrap items-center gap-1.5 text-body-sm">
+            <label className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-xs bg-fg-subtle" aria-hidden="true" />
+              <span className="sr-only">Mês 1</span>
+              <input
+                id="cmp-month1"
+                type="month"
+                value={month1}
+                onChange={(e) => setMonth1(e.target.value)}
+                className="input input-compact"
+                aria-label="Mês 1"
+              />
+            </label>
+            <span className="text-fg-muted" aria-hidden="true">
+              ×
+            </span>
+            <label className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-xs bg-brand" aria-hidden="true" />
+              <span className="sr-only">Mês 2</span>
+              <input
+                id="cmp-month2"
+                type="month"
+                value={month2}
+                onChange={(e) => setMonth2(e.target.value)}
+                className="input input-compact"
+                aria-label="Mês 2"
+              />
+            </label>
           </div>
-        ) : !data ? (
-          <p className="text-sm text-dim" style={{ padding: '32px 0', textAlign: 'center' }}>
-            Nenhum dado de comparação.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} tickFormatter={formatCompactNumber} />
-                <Tooltip formatter={formatChartMoney} />
-                <Legend />
-                <Bar
-                  dataKey={data.month1.month}
-                  name={formatYearMonth(data.month1.month)}
-                  fill="var(--accent)"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey={data.month2.month}
-                  name={formatYearMonth(data.month2.month)}
-                  fill="var(--info)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+        }
+      />
 
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              {[data.month1, data.month2].map((m) => (
-                <div
-                  key={m.month}
-                  className="space-y-1 rounded"
-                  style={{ border: '1px solid var(--border)', padding: 12 }}
-                >
-                  <p className="fw-500 text-xs text-dim">{formatYearMonth(m.month)}</p>
-                  <div className="flex justify-between">
-                    <span className="text-dim">Receita</span>
-                    <span className="mono" style={{ color: 'var(--income)' }}>
-                      {fmt(parseFloat(m.income))}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-dim">Despesas</span>
-                    <span className="mono" style={{ color: 'var(--expense)' }}>
-                      {fmt(parseFloat(m.expenses))}
-                    </span>
-                  </div>
-                  <div
-                    className="flex justify-between"
-                    style={{ borderTop: '1px solid var(--border)', paddingTop: 4 }}
-                  >
-                    <span className="fw-500">Saldo</span>
-                    <span className="mono fw-600">{fmt(parseFloat(m.savings))}</span>
-                  </div>
+      {isLoading ? (
+        <div
+          className="flex flex-col gap-4"
+          aria-busy="true"
+          aria-label="Carregando gráfico de comparação"
+        >
+          {[1, 2, 3].map((i) => (
+            <SkeletonBlock key={i} className="h-10" />
+          ))}
+        </div>
+      ) : isError ? (
+        <WidgetError
+          message="Falha ao carregar gráfico de comparação."
+          onRetry={() => void refetch()}
+        />
+      ) : !data ? (
+        <WidgetEmpty>Nenhum dado de comparação.</WidgetEmpty>
+      ) : (
+        <ul className="flex flex-col gap-4">
+          {rows.map((r) => {
+            const d = deltaOf(r.a, r.b)
+            const good = d !== null && (r.higherIsBetter ? d > 0 : d < 0)
+            const deltaClass =
+              d === null || Math.round(d) === 0
+                ? 'text-fg-muted'
+                : good
+                  ? 'text-income'
+                  : 'text-expense'
+            return (
+              <li key={r.name} className="flex flex-col gap-1.5">
+                <div className="flex items-baseline justify-between gap-2 text-body-sm">
+                  <span className="font-medium">{r.name}</span>
+                  <span className={`text-caption font-semibold tabular-nums ${deltaClass}`}>
+                    {d === null
+                      ? '—'
+                      : `${d > 0 ? '+' : d < 0 ? '−' : ''}${Math.abs(d).toFixed(0)}%`}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+                <div className="[display:grid] grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
+                  <span
+                    className="h-[7px] rounded-xs bg-fg-subtle"
+                    style={{ width: `${(Math.abs(r.a) / max) * 100}%` }}
+                    aria-hidden="true"
+                  />
+                  <span className="text-caption tabular-nums text-fg-muted">
+                    <span className="sr-only">{formatYearMonth(data.month1.month)}: </span>
+                    {money(r.a)}
+                  </span>
+                  <span
+                    className={`h-[7px] rounded-xs ${r.b < 0 ? 'bg-expense' : r.barClass}`}
+                    style={{ width: `${(Math.abs(r.b) / max) * 100}%` }}
+                    aria-hidden="true"
+                  />
+                  <span className="text-caption font-semibold tabular-nums">
+                    <span className="sr-only">{formatYearMonth(data.month2.month)}: </span>
+                    {money(r.b)}
+                  </span>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </Panel>
   )
 }

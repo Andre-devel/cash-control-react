@@ -34,12 +34,12 @@ describe('RoleCard', () => {
 
   it('renders System badge for system roles', () => {
     renderCard(MOCK_SYSTEM_ROLE)
-    expect(screen.getByText('System')).toBeTruthy()
+    expect(screen.getByText('Sistema')).toBeTruthy()
   })
 
   it('does not render System badge for non-system roles', () => {
     renderCard(MOCK_ROLE)
-    expect(screen.queryByText('System')).toBeNull()
+    expect(screen.queryByText('Sistema')).toBeNull()
   })
 
   it('links to the correct role detail URL', () => {

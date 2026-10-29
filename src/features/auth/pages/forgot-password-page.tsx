@@ -1,10 +1,11 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link } from 'react-router-dom'
+import { MailCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Field } from '@/components/ui/field'
-import { AuthAside } from '@/features/auth/components/auth-aside'
+import { AuthHeading, AuthLayout } from '@/features/auth/components/auth-layout'
 import { forgotPasswordSchema } from '@/features/auth/schemas/forgot-password.schema'
 import { useForgotPassword } from '@/features/auth/hooks/use-forgot-password'
 import { ROUTES } from '@/app/router/routes'
@@ -23,64 +24,49 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="auth-shell">
-      <AuthAside />
+    <AuthLayout>
+      <AuthHeading
+        title="Recuperar acesso"
+        description="Informe seu e-mail e enviaremos um link para criar uma nova senha."
+      />
 
-      <main className="auth-main">
-        <div className="auth-card">
-          <h1>Recuperar acesso</h1>
-          <div className="sub">Enviaremos um link para redefinir sua senha.</div>
+      {isSuccess ? (
+        <>
+          <div
+            role="status"
+            className="flex items-start gap-3 rounded-lg border border-paid/30 bg-paid-soft p-4 text-body-sm leading-[1.5] text-fg"
+          >
+            <MailCheck size={20} className="mt-0.5 flex-none text-paid" aria-hidden="true" />
+            <span>
+              Se esse e-mail estiver cadastrado, você receberá o link em breve. Verifique também a
+              pasta de spam.
+            </span>
+          </div>
+          <Button asChild variant="ghost" size="lg" className="w-full">
+            <Link to={ROUTES.LOGIN}>Voltar para login</Link>
+          </Button>
+        </>
+      ) : (
+        <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
+          <Field label="E-mail" error={form.formState.errors.email?.message}>
+            <Input
+              type="email"
+              placeholder="voce@email.com"
+              autoComplete="email"
+              error={!!form.formState.errors.email}
+              {...form.register('email')}
+            />
+          </Field>
 
-          {isSuccess ? (
-            <>
-              <div className="card" style={{ padding: '12px 16px', fontSize: 14, marginTop: 8 }}>
-                Se esse e-mail estiver cadastrado, você receberá o link em breve. Verifique também a
-                pasta de spam.
-              </div>
-              <div className="auth-foot">
-                <Link to={ROUTES.LOGIN} className="link">
-                  Voltar para login
-                </Link>
-              </div>
-            </>
-          ) : (
-            <>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                noValidate
-                className="col"
-                style={{ gap: 14 }}
-              >
-                <Field label="E-mail" error={form.formState.errors.email?.message}>
-                  <Input
-                    type="email"
-                    placeholder="voce@email.com"
-                    autoComplete="email"
-                    error={!!form.formState.errors.email}
-                    {...form.register('email')}
-                  />
-                </Field>
+          <Button type="submit" variant="primary" size="lg" className="w-full" loading={isPending}>
+            {isPending ? 'Enviando…' : 'Enviar link'}
+          </Button>
 
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  disabled={isPending}
-                  aria-busy={isPending}
-                >
-                  {isPending ? 'Enviando…' : 'Enviar link'}
-                </Button>
-
-                <Link to={ROUTES.LOGIN}>
-                  <Button type="button" variant="ghost" size="lg" style={{ width: '100%' }}>
-                    Voltar para login
-                  </Button>
-                </Link>
-              </form>
-            </>
-          )}
-        </div>
-      </main>
-    </div>
+          <Button asChild variant="ghost" size="lg" className="w-full">
+            <Link to={ROUTES.LOGIN}>Voltar para login</Link>
+          </Button>
+        </form>
+      )}
+    </AuthLayout>
   )
 }

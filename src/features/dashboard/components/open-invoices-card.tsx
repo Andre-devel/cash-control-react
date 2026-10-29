@@ -1,135 +1,116 @@
-import type { ComponentType } from 'react'
-import { CreditCard } from 'lucide-react'
+import { CircleAlert, Clock, Info } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Money } from '@/components/ui/money'
-import { IconBubble } from '@/components/ui/icon-bubble'
 import { useUpcomingInvoices } from '@/features/dashboard/hooks/use-upcoming-invoices'
+import type { UpcomingInvoiceItem } from '@/features/dashboard/types'
 import { ROUTES } from '@/app/router/routes'
 import { formatShortDate } from '@/lib/format-date'
 import { daysUntil } from '@/lib/local-date'
 import { invoiceLabel } from '@/features/cards/utils/invoice-month'
+import { Amount } from './amount'
+import { Panel, PanelHeader, SkeletonBlock, WidgetEmpty, WidgetError } from './panel'
 
-const INVOICE_COLORS = ['#60a5fa', '#c084fc', '#34d399', '#fbbf24', '#fb7185']
+/** A mesma janela de "Próximas contas"; vencidas entram sempre. */
+const UPCOMING_DAYS = 14
 
-function CardSkeleton() {
+/** Tokens de categoria usados como "cor do cartão" — só para diferenciar visualmente. */
+const CHIP_TOKENS = [5, 7, 2, 4, 9]
+
+const STATUS_LABEL: Record<UpcomingInvoiceItem['status'], string> = {
+  CLOSED: 'Fechada',
+  PARTIAL: 'Paga em parte',
+  OVERDUE: 'Vencida',
+}
+
+function statusTone(inv: UpcomingInvoiceItem, days: number) {
+  if (inv.status === 'OVERDUE' || days < 0)
+    return { cls: 'text-overdue', Icon: CircleAlert, label: 'Vencida' }
+  if (days <= 3) return { cls: 'text-pending', Icon: Clock, label: STATUS_LABEL[inv.status] }
+  return { cls: 'text-info', Icon: Info, label: STATUS_LABEL[inv.status] }
+}
+
+function InvoicesSkeleton() {
   return (
-    <div
-      className="card-b animate-pulse"
-      style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
-      aria-busy="true"
-      aria-label="Carregando faturas em aberto"
-    >
+    <div className="flex flex-col gap-2" aria-busy="true" aria-label="Carregando faturas em aberto">
       {[1, 2].map((i) => (
-        <div key={i} style={{ height: 100, background: 'var(--surface-2)', borderRadius: 10 }} />
+        <SkeletonBlock key={i} className="h-[76px] !rounded-xl" />
       ))}
     </div>
   )
 }
 
-/** A mesma janela de "Próximas contas"; vencidas entram sempre. */
-const UPCOMING_DAYS = 14
-
-export function OpenInvoicesCard() {
+export function OpenInvoicesCard({ className = '' }: { className?: string }) {
   const { data, isLoading, isError, refetch } = useUpcomingInvoices(UPCOMING_DAYS)
   const invoices = data ?? []
 
   return (
-    <div className="card">
-      <div className="card-h">
-        <div>
-          <h3>Faturas a pagar</h3>
-          <div className="sub">
-            {invoices.length} {invoices.length === 1 ? 'fatura' : 'faturas'} · vencidas e próximos{' '}
-            {UPCOMING_DAYS} dias
-          </div>
-        </div>
-        <div className="right">
-          <Button size="sm" variant="ghost" asChild>
-            <Link to={ROUTES.CARDS}>Ver cartões</Link>
-          </Button>
-        </div>
-      </div>
-      {isLoading ? (
-        <CardSkeleton />
-      ) : isError ? (
-        <div className="card-b" role="alert">
-          <p style={{ color: 'var(--expense)', fontSize: 13 }}>Erro ao carregar faturas a pagar.</p>
-          <button
-            type="button"
-            onClick={() => void refetch()}
-            style={{
-              color: 'var(--accent)',
-              textDecoration: 'underline',
-              background: 'none',
-              border: 0,
-              cursor: 'pointer',
-              fontSize: 13,
-              marginTop: 4,
-            }}
+    <Panel className={className} label="Faturas a pagar">
+      <PanelHeader
+        title="Faturas a pagar"
+        sub={`${invoices.length} ${invoices.length === 1 ? 'fatura' : 'faturas'} · vencidas e próximos ${UPCOMING_DAYS} dias`}
+        right={
+          <Link
+            to={ROUTES.CARDS}
+            className="inline-flex min-h-touch items-center px-1 text-body-sm font-semibold text-brand-text no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
           >
-            Tentar novamente
-          </button>
-        </div>
+            Ver cartões
+          </Link>
+        }
+      />
+      {isLoading ? (
+        <InvoicesSkeleton />
+      ) : isError ? (
+        <WidgetError message="Erro ao carregar faturas a pagar." onRetry={() => void refetch()} />
       ) : invoices.length === 0 ? (
-        <div
-          className="card-b"
-          style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: 13 }}
-        >
-          Nenhuma fatura fechada a pagar.
-        </div>
+        <WidgetEmpty>Nenhuma fatura fechada a pagar.</WidgetEmpty>
       ) : (
-        <div
-          className="card-b"
-          style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}
-        >
+        <ul className="flex flex-col gap-2">
           {invoices.map((inv, idx) => {
-            const color = INVOICE_COLORS[idx % INVOICE_COLORS.length] ?? '#60a5fa'
             const days = daysUntil(inv.dueDate)
+            const tone = statusTone(inv, days)
+            const token = CHIP_TOKENS[idx % CHIP_TOKENS.length] ?? 5
             return (
-              <div
+              <li
                 key={inv.invoiceId}
-                style={{
-                  padding: 14,
-                  borderRadius: 10,
-                  background: `linear-gradient(135deg, ${color}26, transparent 60%), var(--surface-2)`,
-                  border: '1px solid var(--border)',
-                }}
+                className="flex items-center gap-3 rounded-xl bg-surface-2 p-3"
               >
-                <div className="row between" style={{ alignItems: 'flex-start' }}>
-                  <div className="row gap-2">
-                    <IconBubble
-                      color={color}
-                      icon={CreditCard as ComponentType<{ size?: number; stroke?: number }>}
-                    />
-                    <div>
-                      <Link
-                        to={ROUTES.CARDS}
-                        style={{
-                          fontWeight: 500,
-                          fontSize: 13,
-                          color: 'inherit',
-                          textDecoration: 'none',
-                        }}
-                      >
-                        {inv.cardName}
-                      </Link>
-                      <div className="text-xs text-dim">{invoiceLabel(inv.dueDate)}</div>
-                    </div>
-                  </div>
-                  <Badge kind={days < 0 ? 'cancelled' : days <= 3 ? 'pending' : 'info'}>
-                    {days < 0 ? 'Venceu' : 'Vence'} {formatShortDate(inv.dueDate)}
-                  </Badge>
-                </div>
-                <div className="num text-2xl mt-2" style={{ fontWeight: 500 }}>
-                  <Money value={parseFloat(inv.remainingAmount)} />
-                </div>
-              </div>
+                <span
+                  className="h-[30px] w-[46px] flex-none rounded-[6px]"
+                  style={{
+                    background: `linear-gradient(135deg, rgb(var(--cc-cat-${token})), rgb(var(--cc-cat-${token}) / .45))`,
+                  }}
+                  aria-hidden="true"
+                />
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                  <Amount
+                    value={parseFloat(inv.remainingAmount)}
+                    className="text-amount-lg font-bold"
+                  />
+                  <span className="text-caption text-fg-muted">
+                    <Link
+                      to={ROUTES.CARDS}
+                      className="font-medium text-fg no-underline hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
+                    >
+                      {inv.cardName}
+                    </Link>{' '}
+                    · {invoiceLabel(inv.dueDate)} · vence {formatShortDate(inv.dueDate)} ·{' '}
+                    <span className={`inline-flex items-center gap-1 font-semibold ${tone.cls}`}>
+                      <tone.Icon size={12} aria-hidden="true" />
+                      {tone.label}
+                    </span>
+                  </span>
+                </span>
+                <Link
+                  to={ROUTES.INVOICE_DETAIL.replace(':invoiceId', inv.invoiceId)}
+                  className="btn btn-primary btn-sm min-h-touch flex-none"
+                  aria-label={`Pagar fatura de ${invoiceLabel(inv.dueDate)}`}
+                >
+                  Pagar
+                </Link>
+              </li>
             )
           })}
-        </div>
+        </ul>
       )}
-    </div>
+    </Panel>
   )
 }

@@ -1,45 +1,14 @@
-import { useState } from 'react'
-import type { ComponentType } from 'react'
-import { Wallet, MoreHorizontal } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { IconBubble } from '@/components/ui/icon-bubble'
-import { Money } from '@/components/ui/money'
+import type { MouseEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Archive } from 'lucide-react'
+import { ActionMenu, type ActionMenuItem } from '@/components/ui/action-menu'
+import { ROUTES } from '@/app/router/routes'
+import {
+  AccountTypeBubble,
+  accountTypeLabel,
+  formatBalance,
+} from '@/features/accounts/utils/account-visual'
 import type { Account } from '@/features/accounts/types'
-
-const ACCOUNT_TYPE_LABELS_PT: Record<string, string> = {
-  CHECKING: 'Conta corrente',
-  SAVINGS: 'Poupança',
-  CASH: 'Carteira',
-  INVESTMENT: 'Investimento',
-  CREDIT: 'Crédito',
-  OTHER: 'Outros',
-}
-
-type BubbleIcon = ComponentType<{ size?: number; stroke?: number }>
-
-function asIcon(i: unknown): BubbleIcon {
-  return i as BubbleIcon
-}
-
-function fmtCreatedAt(iso: string): string {
-  const d = new Date(iso)
-  const months = [
-    'jan',
-    'fev',
-    'mar',
-    'abr',
-    'mai',
-    'jun',
-    'jul',
-    'ago',
-    'set',
-    'out',
-    'nov',
-    'dez',
-  ]
-  return `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()] ?? ''}`
-}
 
 interface AccountCardProps {
   account: Account
@@ -51,6 +20,10 @@ interface AccountCardProps {
   onTransfer: (account: Account) => void
 }
 
+export function accountDetailPath(id: string): string {
+  return ROUTES.ACCOUNT_DETAIL.replace(':id', encodeURIComponent(id))
+}
+
 export function AccountCard({
   account,
   onEdit,
@@ -60,132 +33,69 @@ export function AccountCard({
   onAdjust,
   onTransfer,
 }: AccountCardProps) {
-  const [menuOpen, setMenuOpen] = useState(false)
+  const navigate = useNavigate()
   const balance = parseFloat(account.balance)
+  const archived = Boolean(account.archivedAt)
+  const detailPath = accountDetailPath(account.id)
 
-  function closeMenu() {
-    setMenuOpen(false)
+  const items: ActionMenuItem[] = [
+    { label: 'Editar', onSelect: () => onEdit(account) },
+    { label: 'Ajustar', onSelect: () => onAdjust(account) },
+    ...(archived ? [] : [{ label: 'Transferir', onSelect: () => onTransfer(account) }]),
+    archived
+      ? { label: 'Restaurar', onSelect: () => onUnarchive(account) }
+      : { label: 'Arquivar', onSelect: () => onArchive(account) },
+    { label: 'Excluir', onSelect: () => onDelete(account), danger: true },
+  ]
+
+  // O card inteiro leva ao detalhe; o link do nome é o caminho por teclado/leitor de tela.
+  function handleCardClick(event: MouseEvent<HTMLDivElement>) {
+    if (event.defaultPrevented) return
+    if ((event.target as HTMLElement).closest('a')) return
+    navigate(detailPath)
   }
 
   return (
     <div
-      className="card"
-      style={{ position: 'relative', overflow: 'hidden', opacity: account.archivedAt ? 0.6 : 1 }}
+      onClick={handleCardClick}
+      className={`group relative flex min-w-0 cursor-pointer flex-col gap-3 rounded-xl border border-border bg-surface-1 p-3.5 transition-colors hover:border-border-strong focus-within:border-border-strong md:p-4${
+        archived ? ' opacity-60' : ''
+      }`}
     >
-      <div className="card-b" style={{ position: 'relative' }}>
-        <div className="row between" style={{ marginBottom: 14 }}>
-          <IconBubble color="var(--accent)" icon={asIcon(Wallet)} size="lg" />
-          <Button
-            size="icon"
-            variant="ghost"
-            aria-label={`Mais opções para ${account.name}`}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            <MoreHorizontal size={14} />
-          </Button>
+      <div className="flex items-start justify-between gap-2">
+        <AccountTypeBubble type={account.type} />
+        {/* Menu ⋯: o clique (inclusive nos itens, que vivem num portal) não pode abrir o detalhe. */}
+        <div className="-mr-1.5 -mt-1.5" onClick={(e) => e.stopPropagation()}>
+          <ActionMenu label={`Mais opções para ${account.name}`} items={items} />
         </div>
-
-        <div className="text-xs text-dim fw-500" style={{ marginBottom: 2 }}>
-          {account.name}
-        </div>
-        <div className="row gap-2" style={{ marginBottom: 10 }}>
-          <Badge kind="muted" square dot={false} style={{ fontSize: 10 }}>
-            {ACCOUNT_TYPE_LABELS_PT[account.type] ?? account.type}
-          </Badge>
-          <span className="text-xs text-faint">{account.currencyCode}</span>
-          {account.archivedAt && (
-            <Badge kind="muted" square dot={false} style={{ fontSize: 10 }}>
-              Arquivada
-            </Badge>
-          )}
-        </div>
-        <div className="text-xl mono fw-500">
-          <Money value={balance} currency={account.currencyCode} />
-        </div>
-        <div className="row gap-2 mt-2 text-xs text-dim" style={{ alignItems: 'center' }}>
-          <span>Criado {fmtCreatedAt(account.createdAt)}</span>
-        </div>
-
-        {menuOpen && (
-          <div
-            style={{
-              marginTop: 12,
-              borderTop: '1px solid var(--border)',
-              paddingTop: 10,
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 4,
-            }}
-          >
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                onEdit(account)
-                closeMenu()
-              }}
-            >
-              Editar
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                onAdjust(account)
-                closeMenu()
-              }}
-            >
-              Ajustar
-            </Button>
-            {!account.archivedAt && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  onTransfer(account)
-                  closeMenu()
-                }}
-              >
-                Transferir
-              </Button>
-            )}
-            {account.archivedAt ? (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  onUnarchive(account)
-                  closeMenu()
-                }}
-              >
-                Restaurar
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  onArchive(account)
-                  closeMenu()
-                }}
-              >
-                Arquivar
-              </Button>
-            )}
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={() => {
-                onDelete(account)
-                closeMenu()
-              }}
-            >
-              Excluir
-            </Button>
-          </div>
-        )}
       </div>
+
+      <div className="flex min-w-0 flex-col gap-1">
+        <Link
+          to={detailPath}
+          className="truncate text-body font-semibold text-fg no-underline outline-none focus-visible:underline"
+        >
+          {account.name}
+        </Link>
+        <span className="flex flex-wrap items-center gap-1.5 text-caption text-fg-muted">
+          {accountTypeLabel(account.type)}
+          {account.currencyCode !== 'BRL' && <span>· {account.currencyCode}</span>}
+          {archived && (
+            <span className="inline-flex items-center gap-1">
+              · <Archive size={12} aria-hidden="true" />
+              Arquivada
+            </span>
+          )}
+        </span>
+      </div>
+
+      <span
+        className={`mt-auto font-sans text-amount-lg font-bold tabular-nums ${
+          balance < 0 ? 'text-expense' : 'text-fg'
+        }`}
+      >
+        {formatBalance(balance, account.currencyCode)}
+      </span>
     </div>
   )
 }

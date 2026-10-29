@@ -36,18 +36,22 @@ interface MiniStatProps {
   tone?: 'pending' | 'paid' | ''
 }
 
-function MiniStat({ label, value, tone }: MiniStatProps) {
-  const color =
-    tone === 'pending' ? 'var(--pending)' : tone === 'paid' ? 'var(--paid)' : 'var(--text)'
+const TONE_CLASS = { pending: 'text-pending', paid: 'text-paid', '': 'text-fg' } as const
+
+function MiniStat({ label, value, tone = '' }: MiniStatProps) {
   return (
-    <div className="mini-stat">
-      <div className="mini-stat-label">{label}</div>
-      <div className="mini-stat-value mono" style={{ color }}>
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <span className="text-[11px] text-fg-muted">{label}</span>
+      <span className={`truncate text-body-sm font-semibold tabular-nums ${TONE_CLASS[tone]}`}>
         <Money value={value} />
-      </div>
+      </span>
     </div>
   )
 }
+
+/** Atalhos de valor: mesmo comportamento de antes, com cara de segmentado. */
+const PRESET_CLASS =
+  'min-h-touch flex-1 rounded-sm border-0 bg-transparent px-2 text-body-sm font-semibold text-fg-muted transition-colors hover:bg-surface-1 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand'
 
 interface PayInvoiceDialogProps {
   invoice: Invoice
@@ -113,32 +117,8 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="submit"
-            form="pay-invoice-form"
-            variant="primary"
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Processando…
-              </>
-            ) : (
-              'Confirmar pagamento'
-            )}
+          <Button type="submit" form="pay-invoice-form" variant="primary" loading={isPending}>
+            {isPending ? 'Processando…' : 'Confirmar pagamento'}
           </Button>
         </>
       }
@@ -149,12 +129,13 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
         noValidate
         className="col gap-4"
       >
-        {/* Mini stats — fora de `.grid grid-3` de propósito: no mobile aquela regra
-            empilha em 1 coluna e três cards full-width consumiam metade do sheet. */}
-        <div className="mini-stats" style={{ marginBottom: 8 }}>
-          <MiniStat label="Total da fatura" value={totalAmount} tone="" />
-          <MiniStat label="Já pago" value={paidAmount} tone="paid" />
-          <MiniStat label="Restante" value={remainingAmount} tone="pending" />
+        {/* Resumo: o restante em destaque, total e já pago ao lado. */}
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface-2 p-4">
+          <div className="grid grid-cols-3 gap-2">
+            <MiniStat label="Total da fatura" value={totalAmount} />
+            <MiniStat label="Já pago" value={paidAmount} tone="paid" />
+            <MiniStat label="Restante" value={remainingAmount} tone="pending" />
+          </div>
         </div>
 
         <Field
@@ -163,21 +144,29 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
           hint="Pagamento parcial ou total"
           error={form.formState.errors.amount?.message}
         >
-          <MoneyInput placeholder="0,00" {...form.register('amount')} />
+          <MoneyInput
+            placeholder="0,00"
+            style={{ fontSize: 22, fontWeight: 700 }}
+            {...form.register('amount')}
+          />
         </Field>
 
-        {/* Quick preset buttons */}
-        <div className="row gap-2">
-          <Button
-            size="sm"
+        {/* Atalhos de valor */}
+        <div
+          className="-mt-1 flex gap-1 rounded-md bg-surface-2 p-1"
+          role="group"
+          aria-label="Atalhos de valor"
+        >
+          <button
             type="button"
+            className={PRESET_CLASS}
             onClick={() => form.setValue('amount', remainingAmountStr, { shouldValidate: true })}
           >
             Pagar tudo
-          </Button>
-          <Button
-            size="sm"
+          </button>
+          <button
             type="button"
+            className={PRESET_CLASS}
             onClick={() =>
               form.setValue('amount', toDecimalString(remainingAmount / 2), {
                 shouldValidate: true,
@@ -185,10 +174,10 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
             }
           >
             50%
-          </Button>
-          <Button
-            size="sm"
+          </button>
+          <button
             type="button"
+            className={PRESET_CLASS}
             onClick={() =>
               form.setValue('amount', toDecimalString(totalAmount * 0.15), {
                 shouldValidate: true,
@@ -196,7 +185,7 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
             }
           >
             Mínimo (15%)
-          </Button>
+          </button>
         </div>
 
         <Field

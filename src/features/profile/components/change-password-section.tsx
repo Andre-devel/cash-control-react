@@ -33,7 +33,7 @@ export function ChangePasswordSection() {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="col gap-4">
+    <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
       <Field label="Senha atual" error={form.formState.errors.currentPassword?.message}>
         <PasswordInput
           placeholder="Senha atual"
@@ -65,32 +65,8 @@ export function ChangePasswordSection() {
         />
       </Field>
 
-      <Button
-        type="submit"
-        variant="primary"
-        className="self-start"
-        disabled={isPending}
-        aria-busy={isPending}
-      >
-        {isPending ? (
-          <>
-            <span
-              style={{
-                width: 14,
-                height: 14,
-                border: '2px solid currentColor',
-                borderTopColor: 'transparent',
-                borderRadius: '50%',
-                display: 'inline-block',
-                animation: 'spin 0.6s linear infinite',
-              }}
-              aria-hidden="true"
-            />
-            Salvando…
-          </>
-        ) : (
-          'Alterar senha'
-        )}
+      <Button type="submit" variant="primary" className="self-start" loading={isPending}>
+        {isPending ? 'Salvando…' : 'Alterar senha'}
       </Button>
     </form>
   )

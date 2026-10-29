@@ -1,58 +1,116 @@
 import { useState } from 'react'
-import { ShieldAlert, Lock, AlertTriangle, RefreshCcw } from 'lucide-react'
+import {
+  AlertTriangle,
+  Ban,
+  ChevronLeft,
+  ChevronRight,
+  CircleCheck,
+  CircleX,
+  KeyRound,
+  Lock,
+  LogIn,
+  RefreshCcw,
+  ScrollText,
+  Shield,
+  ShieldAlert,
+  UserRound,
+  type LucideIcon,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { BadgeKind } from '@/components/ui/badge'
 import { useAuditLogs } from '@/features/audit/hooks/use-audit-logs'
 import { useSecuritySummary } from '@/features/audit/hooks/use-security-summary'
+import type { AuditLogEntry } from '@/features/audit/types/audit.types'
+
+const PAGE_SIZE = 20
+
+const pulse = 'animate-pulse rounded-sm bg-surface-3 motion-reduce:animate-none'
 
 function SummarySkeleton() {
   return (
-    <div className="grid grid-4 mb-6 animate-pulse" aria-busy="true">
+    <div className="mb-6 flex flex-col gap-3 md:flex-row" aria-busy="true">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="kpi">
-          <div
-            style={{ height: 12, width: 120, background: 'var(--surface-3)', borderRadius: 4 }}
-          />
-          <div
-            style={{
-              height: 32,
-              width: 80,
-              background: 'var(--surface-3)',
-              borderRadius: 4,
-              marginTop: 8,
-            }}
-          />
+        <div key={i} className="flex-1 rounded-xl border border-border bg-surface-1 p-4">
+          <div className={`h-3 w-32 ${pulse}`} />
+          <div className={`mt-3 h-7 w-16 ${pulse}`} />
         </div>
       ))}
     </div>
   )
 }
 
-function TableSkeleton() {
+function LogSkeleton() {
   return (
-    <div className="animate-pulse" aria-busy="true">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div
-          key={i}
-          style={{ height: 40, background: 'var(--surface-2)', borderRadius: 6, marginBottom: 6 }}
-        />
+    <div className="flex flex-col" aria-busy="true" aria-label="Carregando eventos">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div key={i} className="flex items-center gap-3 border-b border-border px-4 py-3">
+          <div className={`h-9 w-9 flex-none ${pulse}`} />
+          <div className="flex flex-1 flex-col gap-2">
+            <div className={`h-3.5 w-40 ${pulse}`} />
+            <div className={`h-3 w-28 ${pulse}`} />
+          </div>
+          <div className={`h-6 w-16 ${pulse}`} />
+        </div>
       ))}
     </div>
   )
 }
 
-function outcomeBadgeKind(outcome: string): BadgeKind {
-  if (outcome === 'SUCCESS') return 'paid'
-  if (outcome === 'FAILURE') return 'expense'
-  if (outcome === 'BLOCKED') return 'cancelled'
-  return 'muted'
+const OUTCOME: Record<string, { label: string; kind: BadgeKind; icon: LucideIcon }> = {
+  SUCCESS: { label: 'Sucesso', kind: 'paid', icon: CircleCheck },
+  FAILURE: { label: 'Falha', kind: 'overdue', icon: CircleX },
+  BLOCKED: { label: 'Bloqueado', kind: 'cancelled', icon: Ban },
 }
 
-function severityBadgeKind(severity: string): BadgeKind {
-  if (severity === 'HIGH' || severity === 'CRITICAL') return 'expense'
-  if (severity === 'MEDIUM') return 'pending'
-  return 'muted'
+const SEVERITY: Record<string, { label: string; kind: BadgeKind }> = {
+  CRITICAL: { label: 'Crítica', kind: 'overdue' },
+  HIGH: { label: 'Alta', kind: 'overdue' },
+  MEDIUM: { label: 'Média', kind: 'pending' },
+  LOW: { label: 'Baixa', kind: 'muted' },
+  INFO: { label: 'Info', kind: 'muted' },
+}
+
+function OutcomeBadge({ outcome }: { outcome: string }) {
+  const meta = OUTCOME[outcome]
+  if (!meta) return <Badge kind="muted">{outcome}</Badge>
+  const Icon = meta.icon
+  return (
+    <Badge kind={meta.kind} icon={<Icon aria-hidden="true" />}>
+      {meta.label}
+    </Badge>
+  )
+}
+
+function SeverityBadge({ severity }: { severity: string }) {
+  const meta = SEVERITY[severity] ?? { label: severity, kind: 'muted' as BadgeKind }
+  return (
+    <Badge kind={meta.kind} square>
+      {meta.label}
+    </Badge>
+  )
+}
+
+function eventIcon(eventType: string): LucideIcon {
+  const t = eventType.toUpperCase()
+  if (t.includes('PASSWORD')) return KeyRound
+  if (t.includes('LOCK')) return Lock
+  if (t.includes('ROLE') || t.includes('PERMISSION')) return Shield
+  if (t.includes('TOKEN') || t.includes('REFRESH') || t.includes('REAUTH')) return RefreshCcw
+  if (t.includes('LOGIN') || t.includes('LOGOUT') || t.includes('OAUTH')) return LogIn
+  return ScrollText
+}
+
+function EventIcon({ eventType }: { eventType: string }) {
+  const Icon = eventIcon(eventType)
+  return (
+    <span
+      className="grid h-8 w-8 flex-none place-items-center rounded-md bg-surface-3 text-fg-muted"
+      aria-hidden="true"
+    >
+      <Icon size={16} />
+    </span>
+  )
 }
 
 function fmtInstant(iso: string): string {
@@ -65,7 +123,75 @@ function fmtInstant(iso: string): string {
   })
 }
 
-const PAGE_SIZE = 20
+function shortId(id: string | null): string {
+  return id ? id.slice(0, 8) + '…' : '—'
+}
+
+function KpiCard({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: LucideIcon
+  label: string
+  value: number
+  tone?: 'overdue' | 'pending'
+}) {
+  const valueTone = value > 0 && tone ? (tone === 'overdue' ? 'text-overdue' : 'text-pending') : ''
+  return (
+    <div className="flex flex-1 items-center gap-3 rounded-xl border border-border bg-surface-1 p-4">
+      <span
+        className={`grid h-10 w-10 flex-none place-items-center rounded-md ${
+          value > 0 && tone === 'overdue'
+            ? 'bg-overdue-soft text-overdue'
+            : value > 0 && tone === 'pending'
+              ? 'bg-pending-soft text-pending'
+              : 'bg-surface-3 text-fg-muted'
+        }`}
+        aria-hidden="true"
+      >
+        <Icon size={18} />
+      </span>
+      <div className="min-w-0">
+        <div className="text-caption text-fg-muted">{label}</div>
+        <div className={`font-display text-h2 tabular-nums ${valueTone}`}>{value}</div>
+      </div>
+    </div>
+  )
+}
+
+/** Celular/tablet: cada evento vira um card empilhado. */
+function AuditCard({ entry }: { entry: AuditLogEntry }) {
+  return (
+    <li className="flex gap-3 border-b border-border px-4 py-3 last:border-b-0">
+      <EventIcon eventType={entry.eventType} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <span className="min-w-0 break-all font-mono text-body-sm font-semibold">
+            {entry.eventType}
+          </span>
+          <OutcomeBadge outcome={entry.outcome} />
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-fg-muted">
+          <span className="tabular-nums">{fmtInstant(entry.createdAt)}</span>
+          <SeverityBadge severity={entry.severity} />
+        </div>
+        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-caption text-fg-subtle">
+          <span>
+            <span className="sr-only">IP: </span>
+            {entry.ipAddressMasked ?? '—'}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <UserRound size={12} aria-hidden="true" />
+            <span className="sr-only">Ator: </span>
+            {shortId(entry.actorUserId)}
+          </span>
+        </div>
+      </div>
+    </li>
+  )
+}
 
 export default function AuditPage() {
   const [page, setPage] = useState(0)
@@ -78,6 +204,7 @@ export default function AuditPage() {
     data: logs,
     isLoading: logsLoading,
     isError: logsError,
+    isFetching,
     refetch,
   } = useAuditLogs({
     page,
@@ -88,11 +215,15 @@ export default function AuditPage() {
 
   const entries = logs?.content ?? []
   const totalPages = logs?.totalPages ?? 0
+  const total = logs?.totalElements ?? 0
+  const firstIndex = page * PAGE_SIZE + 1
+  const lastIndex = page * PAGE_SIZE + entries.length
 
   return (
-    <div>
-      <div className="page-h">
-        <div>
+    <div className="mx-auto max-w-[1280px]">
+      <div className="page-h flex-wrap">
+        <div className="min-w-0">
+          <span className="text-overline uppercase text-fg-subtle">Sistema</span>
           <h1 className="title">Auditoria</h1>
           <div className="desc">Log de eventos de segurança do sistema</div>
         </div>
@@ -100,66 +231,54 @@ export default function AuditPage() {
         <div className="actions">
           <Button
             variant="ghost"
-            size="icon"
+            className="min-h-touch"
             onClick={() => void refetch()}
-            aria-label="Atualizar"
-            title="Atualizar"
+            loading={isFetching && !logsLoading}
+            leading={<RefreshCcw size={16} aria-hidden="true" />}
           >
-            <RefreshCcw size={16} />
+            Atualizar
           </Button>
         </div>
       </div>
 
-      {/* Security summary */}
+      {/* Resumo de segurança */}
       {summaryLoading ? (
         <SummarySkeleton />
       ) : summary ? (
-        <div className="grid mb-6" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-          <div className="kpi">
-            <div className="kpi-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Lock size={14} aria-hidden="true" />
-              Contas bloqueadas
-            </div>
-            <div
-              className="kpi-value"
-              style={{ color: summary.lockedAccountsCount > 0 ? 'var(--expense)' : undefined }}
-            >
-              {summary.lockedAccountsCount}
-            </div>
-          </div>
-          <div className="kpi">
-            <div className="kpi-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <AlertTriangle size={14} aria-hidden="true" />
-              Falhas nas últimas 24h
-            </div>
-            <div
-              className="kpi-value"
-              style={{ color: summary.failedAttemptsLast24h > 0 ? 'var(--pending)' : undefined }}
-            >
-              {summary.failedAttemptsLast24h}
-            </div>
-          </div>
-          <div className="kpi">
-            <div className="kpi-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <ShieldAlert size={14} aria-hidden="true" />
-              Re-autenticações forçadas 24h
-            </div>
-            <div className="kpi-value">{summary.forcedReAuthsLast24h}</div>
-          </div>
+        <div className="mb-6 flex flex-col gap-3 md:flex-row">
+          <KpiCard
+            icon={Lock}
+            label="Contas bloqueadas"
+            value={summary.lockedAccountsCount}
+            tone="overdue"
+          />
+          <KpiCard
+            icon={AlertTriangle}
+            label="Falhas nas últimas 24h"
+            value={summary.failedAttemptsLast24h}
+            tone="pending"
+          />
+          <KpiCard
+            icon={ShieldAlert}
+            label="Re-autenticações forçadas 24h"
+            value={summary.forcedReAuthsLast24h}
+          />
         </div>
       ) : null}
 
-      {/* Filters */}
-      <div className="card mb-4">
-        <div className="card-b" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label htmlFor="filter-outcome" style={{ fontSize: 12, color: 'var(--text-dim)' }}>
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
+        {/* Filtros: barra no celular/tablet, painel lateral no desktop largo */}
+        <section
+          aria-label="Filtros"
+          className="flex flex-col gap-3 rounded-xl border border-border bg-surface-1 p-4 md:flex-row md:items-end xl:sticky xl:top-4 xl:w-[260px] xl:flex-none xl:flex-col xl:items-stretch"
+        >
+          <div className="flex flex-col gap-1.5 md:w-[200px] xl:w-auto">
+            <label htmlFor="filter-outcome" className="text-caption font-medium text-fg-muted">
               Resultado
             </label>
             <select
               id="filter-outcome"
-              className="input"
-              style={{ fontSize: 13, minWidth: 140 }}
+              className="select"
               value={outcomeSlug}
               onChange={(e) => {
                 setOutcomeSlug(e.target.value)
@@ -172,15 +291,16 @@ export default function AuditPage() {
               <option value="BLOCKED">Bloqueado</option>
             </select>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label htmlFor="filter-event" style={{ fontSize: 12, color: 'var(--text-dim)' }}>
+          <div className="flex flex-1 flex-col gap-1.5">
+            <label htmlFor="filter-event" className="text-caption font-medium text-fg-muted">
               Tipo de evento
             </label>
             <input
               id="filter-event"
-              className="input"
-              style={{ fontSize: 13, minWidth: 200 }}
+              className="input font-mono"
               placeholder="Ex: LOGIN, PASSWORD_CHANGE…"
+              autoComplete="off"
+              spellCheck={false}
               value={eventTypeSlug}
               onChange={(e) => {
                 setEventTypeSlug(e.target.value)
@@ -188,155 +308,162 @@ export default function AuditPage() {
               }}
             />
           </div>
-        </div>
-      </div>
-
-      {/* Log table */}
-      <div className="card">
-        <div className="card-h">
-          <h3>Eventos</h3>
-          {logs && (
-            <div className="sub" style={{ marginLeft: 'auto' }}>
-              {logs.totalElements} evento{logs.totalElements !== 1 ? 's' : ''}
-            </div>
+          {(outcomeSlug || eventTypeSlug) && (
+            <Button
+              variant="ghost"
+              className="min-h-touch"
+              onClick={() => {
+                setOutcomeSlug('')
+                setEventTypeSlug('')
+                setPage(0)
+              }}
+            >
+              Limpar filtros
+            </Button>
           )}
-        </div>
-        <div className="card-b" style={{ padding: 0, overflowX: 'auto' }}>
+        </section>
+
+        {/* Log */}
+        <section
+          aria-labelledby="audit-events-title"
+          className="min-w-0 flex-1 overflow-hidden rounded-xl border border-border bg-surface-1"
+        >
+          <div className="flex min-h-[52px] items-center gap-3 border-b border-border px-4">
+            <h2 id="audit-events-title" className="m-0 text-body font-semibold">
+              Eventos
+            </h2>
+            {logs && (
+              <span className="ml-auto text-caption tabular-nums text-fg-muted">
+                {total} evento{total !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
           {logsLoading ? (
-            <div style={{ padding: 16 }}>
-              <TableSkeleton />
-            </div>
+            <LogSkeleton />
           ) : logsError ? (
-            <div role="alert" style={{ padding: 16, color: 'var(--expense)', fontSize: 13 }}>
-              Erro ao carregar log de auditoria.{' '}
-              <button
-                type="button"
-                onClick={() => void refetch()}
-                style={{
-                  color: 'var(--accent)',
-                  textDecoration: 'underline',
-                  background: 'none',
-                  border: 0,
-                  cursor: 'pointer',
-                  fontSize: 13,
-                }}
-              >
+            <div role="alert" className="empty-state">
+              <div className="icon !bg-overdue-soft !text-overdue">
+                <AlertTriangle size={24} aria-hidden="true" />
+              </div>
+              <h4>Erro ao carregar log de auditoria.</h4>
+              <p>Verifique sua conexão e tente de novo.</p>
+              <Button variant="ghost" className="min-h-touch" onClick={() => void refetch()}>
                 Tentar novamente
-              </button>
+              </Button>
             </div>
           ) : entries.length === 0 ? (
-            <div
-              style={{ padding: 32, textAlign: 'center', color: 'var(--text-dim)', fontSize: 13 }}
-            >
-              Nenhum evento encontrado.
+            <div className="empty-state">
+              <div className="icon">
+                <ScrollText size={24} aria-hidden="true" />
+              </div>
+              <h4>Nenhum evento encontrado.</h4>
+              {(outcomeSlug || eventTypeSlug) && <p>Ajuste ou limpe os filtros para ver mais.</p>}
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  {['Data', 'Evento', 'Resultado', 'Severidade', 'IP', 'Ator'].map((h) => (
-                    <th
-                      key={h}
-                      style={{
-                        padding: '10px 16px',
-                        textAlign: 'left',
-                        fontWeight: 500,
-                        color: 'var(--text-dim)',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
+            <>
+              {/* < 1024: lista de cards */}
+              <ul className="m-0 list-none p-0 lg:hidden" aria-label="Eventos de auditoria">
                 {entries.map((entry) => (
-                  <tr key={entry.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td
-                      style={{
-                        padding: '10px 16px',
-                        whiteSpace: 'nowrap',
-                        color: 'var(--text-dim)',
-                      }}
-                    >
-                      {fmtInstant(entry.createdAt)}
-                    </td>
-                    <td
-                      style={{
-                        padding: '10px 16px',
-                        fontWeight: 500,
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: 12,
-                      }}
-                    >
-                      {entry.eventType}
-                    </td>
-                    <td style={{ padding: '10px 16px' }}>
-                      <Badge kind={outcomeBadgeKind(entry.outcome)}>{entry.outcome}</Badge>
-                    </td>
-                    <td style={{ padding: '10px 16px' }}>
-                      <Badge kind={severityBadgeKind(entry.severity)}>{entry.severity}</Badge>
-                    </td>
-                    <td
-                      style={{
-                        padding: '10px 16px',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: 12,
-                        color: 'var(--text-dim)',
-                      }}
-                    >
-                      {entry.ipAddressMasked ?? '—'}
-                    </td>
-                    <td
-                      style={{
-                        padding: '10px 16px',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: 12,
-                        color: 'var(--text-dim)',
-                      }}
-                    >
-                      {entry.actorUserId ? entry.actorUserId.slice(0, 8) + '…' : '—'}
-                    </td>
-                  </tr>
+                  <AuditCard key={entry.id} entry={entry} />
                 ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+              </ul>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div
-            className="card-b"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              borderTop: '1px solid var(--border)',
-            }}
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={page === 0}
-              onClick={() => setPage((p) => p - 1)}
+              {/* ≥ 1024: tabela densa */}
+              <div className="hidden overflow-x-auto lg:block">
+                <table className="w-full border-collapse text-body-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-surface-2/60">
+                      {['Data · hora', 'Evento', 'Resultado', 'Severidade', 'IP', 'Ator'].map(
+                        (h) => (
+                          <th
+                            key={h}
+                            scope="col"
+                            className="whitespace-nowrap px-4 py-2.5 text-left text-overline uppercase text-fg-subtle"
+                          >
+                            {h}
+                          </th>
+                        ),
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {entries.map((entry) => (
+                      <tr
+                        key={entry.id}
+                        className="border-b border-border last:border-b-0 hover:bg-surface-2/50"
+                      >
+                        <td className="whitespace-nowrap px-4 py-2 tabular-nums text-fg-muted">
+                          {fmtInstant(entry.createdAt)}
+                        </td>
+                        <td className="px-4 py-2">
+                          <span className="flex items-center gap-2.5">
+                            <EventIcon eventType={entry.eventType} />
+                            <span className="break-all font-mono text-caption font-semibold">
+                              {entry.eventType}
+                            </span>
+                          </span>
+                        </td>
+                        <td className="px-4 py-2">
+                          <OutcomeBadge outcome={entry.outcome} />
+                        </td>
+                        <td className="px-4 py-2">
+                          <SeverityBadge severity={entry.severity} />
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2 font-mono text-caption text-fg-muted">
+                          {entry.ipAddressMasked ?? '—'}
+                        </td>
+                        <td
+                          className="whitespace-nowrap px-4 py-2 font-mono text-caption text-fg-muted"
+                          title={entry.actorUserId ?? undefined}
+                        >
+                          {shortId(entry.actorUserId)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {/* Paginação */}
+          {totalPages > 1 && (
+            <nav
+              aria-label="Paginação"
+              className="flex items-center justify-between gap-3 border-t border-border px-2 py-2"
             >
-              Anterior
-            </Button>
-            <span style={{ fontSize: 13, color: 'var(--text-dim)' }}>
-              Página {page + 1} de {totalPages}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              disabled={page >= totalPages - 1}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Próxima
-            </Button>
-          </div>
-        )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="min-h-touch"
+                disabled={page === 0}
+                onClick={() => setPage((p) => p - 1)}
+                leading={<ChevronLeft size={16} aria-hidden="true" />}
+                aria-label="Página anterior"
+              >
+                Anterior
+              </Button>
+              <span className="text-caption tabular-nums text-fg-muted" aria-live="polite">
+                <span className="hidden md:inline">
+                  {firstIndex}–{lastIndex} de {total} ·{' '}
+                </span>
+                Página {page + 1} de {totalPages}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="min-h-touch"
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((p) => p + 1)}
+                trailing={<ChevronRight size={16} aria-hidden="true" />}
+                aria-label="Próxima página"
+              >
+                Próxima
+              </Button>
+            </nav>
+          )}
+        </section>
       </div>
     </div>
   )

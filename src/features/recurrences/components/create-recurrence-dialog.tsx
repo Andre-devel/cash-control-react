@@ -96,32 +96,8 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="submit"
-            form="create-recurrence-form"
-            variant="primary"
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Criando…
-              </>
-            ) : (
-              'Criar regra'
-            )}
+          <Button type="submit" form="create-recurrence-form" variant="primary" loading={isPending}>
+            {isPending ? 'Criando…' : 'Criar regra'}
           </Button>
         </>
       }

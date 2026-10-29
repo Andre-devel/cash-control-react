@@ -224,7 +224,8 @@ describe('CategoriesPage', () => {
 
       await waitFor(() => screen.getAllByText(MOCK_CATEGORY_FOOD.name).length > 0)
 
-      const hideButton = screen.getByRole('button', { name: /^ocultar food$/i })
+      await user.click(screen.getByRole('button', { name: /^ações de food$/i }))
+      const hideButton = screen.getByRole('menuitem', { name: /^ocultar$/i })
       expect(hideButton).toBeTruthy()
       await user.click(hideButton)
     })
@@ -247,24 +248,26 @@ describe('CategoriesPage', () => {
     })
 
     it('system categories can be hidden but not edited or archived', async () => {
+      const user = userEvent.setup()
       renderWithProviders(<CategoriesPage />)
       await waitFor(() => expect(screen.getByText(MOCK_CATEGORY_SYSTEM.name)).toBeTruthy())
       const name = MOCK_CATEGORY_SYSTEM.name
-      expect(
-        screen.getByRole('button', { name: new RegExp(`^Ocultar ${name}$`, 'i') }),
-      ).not.toBeDisabled()
-      expect(screen.queryByRole('button', { name: new RegExp(`^Editar ${name}$`, 'i') })).toBeNull()
-      expect(
-        screen.queryByRole('button', { name: new RegExp(`^Arquivar ${name}$`, 'i') }),
-      ).toBeNull()
+      await user.click(screen.getByRole('button', { name: new RegExp(`^Ações de ${name}$`, 'i') }))
+      expect(screen.getByRole('menuitem', { name: /^ocultar$/i })).not.toBeDisabled()
+      expect(screen.queryByRole('menuitem', { name: /^editar$/i })).toBeNull()
+      expect(screen.queryByRole('menuitem', { name: /^arquivar$/i })).toBeNull()
     })
 
     it('Edit button is enabled for non-system categories', async () => {
+      const user = userEvent.setup()
       renderWithProviders(<CategoriesPage />)
       await waitFor(() => screen.getAllByText(MOCK_CATEGORY_FOOD.name).length > 0)
-      const editBtn = screen.getByRole('button', {
-        name: new RegExp(`^Editar ${MOCK_CATEGORY_FOOD.name}$`, 'i'),
-      })
+      await user.click(
+        screen.getByRole('button', {
+          name: new RegExp(`^Ações de ${MOCK_CATEGORY_FOOD.name}$`, 'i'),
+        }),
+      )
+      const editBtn = screen.getByRole('menuitem', { name: /^editar$/i })
       expect(editBtn).not.toBeDisabled()
     })
 
@@ -282,9 +285,10 @@ describe('CategoriesPage', () => {
 
       await user.click(
         screen.getByRole('button', {
-          name: new RegExp(`^Arquivar ${MOCK_CATEGORY_FOOD.name}$`, 'i'),
+          name: new RegExp(`^Ações de ${MOCK_CATEGORY_FOOD.name}$`, 'i'),
         }),
       )
+      await user.click(screen.getByRole('menuitem', { name: /^arquivar$/i }))
       await waitFor(() => screen.getByRole('dialog'))
       expect(archived).toBe(false)
 
@@ -298,6 +302,27 @@ describe('CategoriesPage', () => {
     it('renders subcategory under parent in tree', async () => {
       renderWithProviders(<CategoriesPage />)
       await waitFor(() => expect(screen.getByText('Restaurant')).toBeTruthy())
+    })
+  })
+
+  describe('tabs', () => {
+    it('subcategories collapse and expand from the chevron', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<CategoriesPage />)
+      await waitFor(() => expect(screen.getByText('Restaurant')).toBeTruthy())
+      await user.click(screen.getByRole('button', { name: /^recolher food$/i }))
+      expect(screen.queryByText('Restaurant')).toBeNull()
+      await user.click(screen.getByRole('button', { name: /^expandir food$/i }))
+      expect(screen.getByText('Restaurant')).toBeTruthy()
+    })
+
+    it('"Regras automáticas" tab shows the rules section', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<CategoriesPage />)
+      await waitFor(() => screen.getAllByText(MOCK_CATEGORY_FOOD.name).length > 0)
+      await user.click(screen.getByRole('tab', { name: /regras automáticas/i }))
+      expect(screen.getByRole('heading', { name: /regras de categorização/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /nova regra/i })).toBeTruthy()
     })
   })
 })

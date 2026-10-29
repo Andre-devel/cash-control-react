@@ -34,8 +34,34 @@ describe('ErrorBoundary', () => {
     )
 
     expect(screen.getByRole('alert')).toBeTruthy()
-    expect(screen.getByText('Something went wrong.')).toBeTruthy()
-    expect(screen.getByRole('button', { name: /reload page/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Algo deu errado' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /tentar novamente/i })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /ir para o dashboard/i }).getAttribute('href')).toBe(
+      '/dashboard',
+    )
+  })
+
+  it('shows the correlation id carried by the thrown error', () => {
+    function ThrowingApiError(): never {
+      throw Object.assign(new Error('boom'), { correlationId: 'corr-9b2f-41ce' })
+    }
+    render(
+      <ErrorBoundary>
+        <ThrowingApiError />
+      </ErrorBoundary>,
+    )
+
+    expect(screen.getByText(/corr-9b2f-41ce/)).toBeTruthy()
+  })
+
+  it('generates a reference code when the error has none', () => {
+    render(
+      <ErrorBoundary>
+        <ThrowingComponent />
+      </ErrorBoundary>,
+    )
+
+    expect(screen.getByRole('button', { name: /copiar código de correlação/i })).toBeTruthy()
   })
 
   it('renders a custom fallback when provided and a child throws', () => {
@@ -46,7 +72,7 @@ describe('ErrorBoundary', () => {
     )
 
     expect(screen.getByText('Custom error UI')).toBeTruthy()
-    expect(screen.queryByText('Something went wrong.')).toBeNull()
+    expect(screen.queryByText('Algo deu errado')).toBeNull()
   })
 
   it('calls console.error via componentDidCatch when a child throws', () => {

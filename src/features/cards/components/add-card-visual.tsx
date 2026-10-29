@@ -10,25 +10,10 @@ export function AddCardVisual({ onClick }: AddCardVisualProps) {
       type="button"
       onClick={onClick}
       aria-label="Adicionar cartão"
-      style={{
-        flexShrink: 0,
-        width: 280,
-        height: 170,
-        borderRadius: 14,
-        border: '1.5px dashed var(--border-strong)',
-        background: 'transparent',
-        cursor: 'pointer',
-        display: 'grid',
-        placeItems: 'center',
-        color: 'var(--text-muted)',
-      }}
+      className="flex min-h-[72px] w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed border-border-strong bg-transparent text-body font-semibold text-brand-text transition-colors hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand md:h-full md:min-h-[200px] md:flex-col"
     >
-      <div className="col" style={{ alignItems: 'center', gap: 6 }}>
-        <div className="icon-bubble lg" style={{ background: 'var(--surface-2)' }}>
-          <Plus size={18} aria-hidden="true" />
-        </div>
-        <div className="text-sm fw-500">Adicionar cartão</div>
-      </div>
+      <Plus size={18} aria-hidden="true" />
+      Adicionar cartão
     </button>
   )
 }

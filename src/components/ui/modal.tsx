@@ -19,6 +19,11 @@ interface ModalProps {
   /** Ainda mais largo que `wide`. Para diálogos com tabela/grade, que sufocam em 680px. */
   xwide?: boolean
   alert?: boolean
+  /**
+   * Formulário longo: tela cheia no celular, modal de 600px no tablet e painel lateral de
+   * 560px encostado à direita no desktop (≥ 1280).
+   */
+  panel?: boolean
 }
 
 export function Modal({
@@ -30,9 +35,11 @@ export function Modal({
   wide,
   xwide,
   alert = false,
+  panel = false,
 }: ModalProps) {
   const idRef = useRef(`modal-title-${Math.random().toString(36).slice(2)}`)
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const dialogRef = useRef<HTMLDivElement | null>(null)
 
   if (!containerRef.current) {
     containerRef.current = document.createElement('div')
@@ -66,6 +73,25 @@ export function Modal({
     }
   }, [])
 
+  // Foco inicial dentro do diálogo e devolução ao fechar. Em confirmação destrutiva
+  // (`alert`) o foco vai para o botão seguro — o primeiro do rodapé que não é a ação
+  // destrutiva — para que Enter por reflexo não exclua nada.
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    const dialog = dialogRef.current
+    if (dialog && !dialog.contains(document.activeElement)) {
+      const safe = alert
+        ? dialog.querySelector<HTMLElement>('.modal-f button:not(.btn-danger):not(:disabled)')
+        : null
+      ;(safe ?? dialog).focus()
+    }
+    return () => {
+      if (previous && document.body.contains(previous)) previous.focus()
+    }
+    // Só na montagem: refocar a cada render roubaria o foco dos campos.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       // Só o modal do topo da pilha reage: com dois abertos, Esc deve fechar o de cima.
@@ -76,9 +102,15 @@ export function Modal({
   }, [onClose])
 
   return createPortal(
-    <div className="modal-back" onClick={onClose} data-testid="modal-backdrop">
+    <div
+      className={`modal-back${panel ? ' modal-back-panel' : ''}`}
+      onClick={onClose}
+      data-testid="modal-backdrop"
+    >
       <div
-        className={`modal${xwide ? ' xwide' : wide ? ' wide' : ''}`}
+        className={`modal${xwide ? ' xwide' : wide ? ' wide' : ''}${alert ? ' modal-alert' : ''}${panel ? ' modal-panel' : ''}`}
+        ref={dialogRef}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         role={alert ? 'alertdialog' : 'dialog'}
         aria-modal="true"

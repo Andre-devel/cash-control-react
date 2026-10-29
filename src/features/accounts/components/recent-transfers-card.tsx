@@ -1,61 +1,29 @@
-import type { ComponentType } from 'react'
 import { ArrowLeftRight } from 'lucide-react'
-import { IconBubble } from '@/components/ui/icon-bubble'
-import { Money } from '@/components/ui/money'
+import { Button } from '@/components/ui/button'
+import { formatMoney } from '@/lib/money'
 import { useRecentTransfers } from '@/features/accounts/hooks/use-recent-transfers'
 
-type BubbleIcon = ComponentType<{ size?: number; stroke?: number }>
-
-function asIcon(i: unknown): BubbleIcon {
-  return i as BubbleIcon
-}
-
-const MONTH_ABBR_PT = [
-  'jan',
-  'fev',
-  'mar',
-  'abr',
-  'mai',
-  'jun',
-  'jul',
-  'ago',
-  'set',
-  'out',
-  'nov',
-  'dez',
-]
-
+/** `2026-10-26` → `26/10/2026`, sem passar por `Date` (evita deslocar o dia pelo fuso). */
 function fmtDate(iso: string): string {
-  const parts = iso.split('-')
-  const day = parseInt(parts[2] ?? '1', 10)
-  const month = parseInt(parts[1] ?? '1', 10) - 1
-  const year = parts[0]
-  return `${String(day).padStart(2, '0')} de ${MONTH_ABBR_PT[month] ?? ''} de ${year}`
+  const [year, month, day] = iso.split('-')
+  if (!year || !month || !day) return iso
+  return `${day.slice(0, 2)}/${month}/${year}`
 }
 
 function TransferSkeleton() {
   return (
-    <div className="animate-pulse">
+    <div className="animate-pulse motion-reduce:animate-none" aria-hidden="true">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="list-row">
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: 'var(--surface-3)',
-              flexShrink: 0,
-            }}
-          />
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div
-              style={{ height: 12, width: 140, background: 'var(--surface-3)', borderRadius: 4 }}
-            />
-            <div
-              style={{ height: 10, width: 80, background: 'var(--surface-3)', borderRadius: 4 }}
-            />
+        <div
+          key={i}
+          className="flex min-h-[62px] items-center gap-3 border-b border-border last:border-b-0"
+        >
+          <div className="h-9 w-9 shrink-0 rounded-sm bg-surface-3" />
+          <div className="flex flex-1 flex-col gap-1.5">
+            <div className="h-3 w-36 rounded-xs bg-surface-3" />
+            <div className="h-2.5 w-20 rounded-xs bg-surface-3" />
           </div>
-          <div style={{ height: 16, width: 70, background: 'var(--surface-3)', borderRadius: 4 }} />
+          <div className="h-3.5 w-16 rounded-xs bg-surface-3" />
         </div>
       ))}
     </div>
@@ -66,56 +34,52 @@ export function RecentTransfersCard() {
   const { data: transfers = [], isLoading, isError, refetch } = useRecentTransfers(4)
 
   return (
-    <div className="card">
-      <div className="card-h">
-        <div>
-          <h3>Transferências recentes</h3>
-          <div className="sub">Entre suas contas</div>
-        </div>
+    <section className="flex min-w-0 flex-col gap-3" aria-labelledby="recent-transfers-title">
+      <div className="flex flex-col gap-0.5 px-1">
+        <h2 id="recent-transfers-title" className="font-display text-h2 text-fg">
+          Transferências recentes
+        </h2>
+        <p className="text-body-sm text-fg-muted">Entre suas contas</p>
       </div>
-      <div className="card-b flush">
+      <div className="rounded-2xl border border-border bg-surface-1 px-3.5">
         {isLoading ? (
           <TransferSkeleton />
         ) : isError ? (
-          <div style={{ padding: 16 }} role="alert">
-            <p style={{ color: 'var(--expense)', fontSize: 13 }}>
-              Erro ao carregar transferências.
-            </p>
-            <button
-              type="button"
-              onClick={() => void refetch()}
-              style={{
-                color: 'var(--accent)',
-                textDecoration: 'underline',
-                background: 'none',
-                border: 0,
-                cursor: 'pointer',
-                fontSize: 13,
-                marginTop: 4,
-              }}
-            >
+          <div className="flex flex-col items-start gap-2 py-4" role="alert">
+            <p className="text-body-sm text-expense">Erro ao carregar transferências.</p>
+            <Button size="sm" variant="ghost" onClick={() => void refetch()}>
               Tentar novamente
-            </button>
+            </Button>
           </div>
         ) : transfers.length === 0 ? (
-          <p style={{ textAlign: 'center', padding: 32, color: 'var(--text-dim)', fontSize: 13 }}>
+          <p className="py-8 text-center text-body-sm text-fg-muted">
             Nenhuma transferência recente.
           </p>
         ) : (
-          transfers.map((t) => (
-            <div key={t.id} className="list-row">
-              <IconBubble color="var(--info)" icon={asIcon(ArrowLeftRight)} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="title">{t.description}</div>
-                <div className="meta">{fmtDate(t.competenceDate)}</div>
-              </div>
-              <div className="amount mono">
-                <Money value={parseFloat(t.amount)} />
-              </div>
-            </div>
-          ))
+          <ul className="m-0 list-none p-0">
+            {transfers.map((t) => (
+              <li
+                key={t.id}
+                className="flex min-h-[62px] items-center gap-3 border-b border-border py-2 last:border-b-0"
+              >
+                <span
+                  aria-hidden="true"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-info-soft text-info"
+                >
+                  <ArrowLeftRight size={16} />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="truncate text-body-sm font-medium text-fg">{t.description}</span>
+                  <span className="text-caption text-fg-muted">{fmtDate(t.competenceDate)}</span>
+                </span>
+                <span className="shrink-0 whitespace-nowrap text-body-sm font-semibold tabular-nums text-fg">
+                  {formatMoney(t.amount)}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
-    </div>
+    </section>
   )
 }

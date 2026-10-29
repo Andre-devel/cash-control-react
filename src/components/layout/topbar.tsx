@@ -1,23 +1,23 @@
 import React from 'react'
-import { ChevronRight, Menu } from 'lucide-react'
+import { ChevronRight, Wallet } from 'lucide-react'
 
 interface TopbarProps {
   breadcrumb?: string[]
   title?: string
   children?: React.ReactNode
-  onMenuClick?: () => void
 }
 
-export function Topbar({ breadcrumb, title, children, onMenuClick }: TopbarProps) {
+/**
+ * Topbar do tablet/desktop (breadcrumb + ações) e header compacto do celular, que mostra a
+ * marca e o título da página atual. Ações globais ficam só no desktop; no celular elas
+ * estão na folha "Mais".
+ */
+export function Topbar({ breadcrumb, title, children }: TopbarProps) {
   return (
     <header className="topbar">
-      <button
-        className="topbar-menu-btn btn btn-ghost btn-icon btn-sm"
-        aria-label="Abrir menu"
-        onClick={onMenuClick}
-      >
-        <Menu size={18} aria-hidden="true" />
-      </button>
+      <span className="topbar-logo" aria-hidden="true">
+        <Wallet size={16} />
+      </span>
       {breadcrumb && breadcrumb.length > 0 ? (
         <div className="breadcrumb">
           {breadcrumb.map((b, i) => (
@@ -31,7 +31,7 @@ export function Topbar({ breadcrumb, title, children, onMenuClick }: TopbarProps
         <h1>{title}</h1>
       ) : null}
       <div className="spacer" />
-      {children}
+      {children && <div className="topbar-actions">{children}</div>}
     </header>
   )
 }

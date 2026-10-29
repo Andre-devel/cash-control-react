@@ -1,4 +1,5 @@
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useState, type ChangeEvent, type DragEvent } from 'react'
+import { Download, FileImage, FileText, Paperclip, Trash2, UploadCloud } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { saveBlob, toast } from '@/lib'
@@ -43,6 +44,7 @@ function DeleteAttachmentDialog({
 
   return (
     <Modal
+      alert
       title="Excluir anexo"
       onClose={onClose}
       footer={
@@ -51,13 +53,7 @@ function DeleteAttachmentDialog({
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="button"
-            variant="danger"
-            disabled={isPending}
-            aria-busy={isPending}
-            onClick={handleConfirm}
-          >
+          <Button type="button" variant="danger" loading={isPending} onClick={handleConfirm}>
             {isPending ? 'Excluindo…' : 'Excluir'}
           </Button>
         </>
@@ -77,9 +73,9 @@ interface AttachmentSectionProps {
 export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
   const { data: attachments = [], isLoading } = useAttachments(transactionId)
   const { mutate: upload, isPending: uploading, progress } = useUploadAttachment(transactionId)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [clientError, setClientError] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Attachment | null>(null)
+  const [dragOver, setDragOver] = useState(false)
 
   function handleDownload(att: Attachment) {
     downloadAttachment(transactionId, att.id)
@@ -87,118 +83,159 @@ export function AttachmentSection({ transactionId }: AttachmentSectionProps) {
       .catch(() => toast.error('Não foi possível baixar o anexo.'))
   }
 
-  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
+  /** Valida e envia; `reset` limpa o input para permitir reenviar o mesmo arquivo. */
+  function handleFile(file: File | undefined, reset: () => void) {
     if (!file) return
 
     setClientError(null)
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
       setClientError('Tipo de arquivo não suportado. Aceitos: JPEG, PNG e PDF.')
-      e.target.value = ''
+      reset()
       return
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
       setClientError(`Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB} MB.`)
-      e.target.value = ''
+      reset()
       return
     }
 
-    upload(file, {
-      onSuccess: () => {
-        e.target.value = ''
-      },
+    upload(file, { onSuccess: reset })
+  }
+
+  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const input = e.target
+    handleFile(input.files?.[0], () => {
+      input.value = ''
     })
   }
 
+  function handleDrop(e: DragEvent<HTMLLabelElement>) {
+    e.preventDefault()
+    setDragOver(false)
+    if (uploading) return
+    handleFile(e.dataTransfer.files?.[0], () => {})
+  }
+
   return (
-    <section aria-label="Anexos" className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Anexos</h3>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="min-h-[44px]"
-          disabled={uploading}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          Enviar
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={ACCEPTED_TYPES.join(',')}
-          className="hidden"
-          aria-label="Enviar anexo"
-          onChange={handleFileChange}
-        />
+    <section
+      aria-labelledby="attachments-h"
+      className="flex flex-col gap-3 rounded-xl border border-border bg-surface-1 p-5 md:p-6"
+    >
+      <div className="flex items-center gap-2">
+        <Paperclip size={16} aria-hidden="true" className="text-fg-muted" />
+        <h2 id="attachments-h" className="font-display text-h2">
+          Anexos
+        </h2>
+        {attachments.length > 0 && (
+          <span className="text-body-sm text-fg-muted">· {attachments.length}</span>
+        )}
       </div>
 
+      {/* A zona inteira é o <label> do input: clique, toque, teclado (foco no input) e arrastar. */}
+      <label
+        onDragOver={(e) => {
+          e.preventDefault()
+          setDragOver(true)
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border border-dashed px-4 py-5 text-center transition-colors focus-within:ring-2 focus-within:ring-info motion-reduce:transition-none ${
+          dragOver ? 'border-brand bg-brand/10' : 'border-border-strong hover:bg-surface-2'
+        }${uploading ? ' pointer-events-none opacity-60' : ''}`}
+      >
+        <UploadCloud size={22} aria-hidden="true" className="text-brand-text" />
+        <span className="text-body font-semibold">
+          <span className="hidden md:inline">Arraste ou escolha um arquivo</span>
+          <span className="md:hidden">Toque para escolher um arquivo</span>
+        </span>
+        <span className="text-caption text-fg-muted">
+          PDF, JPG ou PNG · até {MAX_FILE_SIZE_MB} MB
+        </span>
+        <input
+          type="file"
+          accept={ACCEPTED_TYPES.join(',')}
+          className="sr-only"
+          aria-label="Enviar anexo"
+          disabled={uploading}
+          onChange={handleFileChange}
+        />
+      </label>
+
       {clientError && (
-        <p className="text-sm" role="alert" style={{ color: 'var(--expense)' }}>
+        <p className="text-body-sm text-expense" role="alert">
           {clientError}
         </p>
       )}
 
       {uploading && (
-        <div className="space-y-1" aria-live="polite" aria-label="Progresso do envio">
-          <div className="bar" style={{ borderRadius: 9999 }}>
-            <i
-              style={{
-                width: `${progress}%`,
-                background: 'var(--accent)',
-                transition: 'width 200ms',
-              }}
+        <div className="flex flex-col gap-1" aria-live="polite">
+          <div
+            role="progressbar"
+            aria-label="Progresso do envio"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+            className="h-2 overflow-hidden rounded-full bg-surface-3"
+          >
+            <div
+              className="h-full rounded-full bg-brand transition-[width] duration-200 motion-reduce:transition-none"
+              style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-dim">{progress}% enviado</p>
+          <p className="text-caption text-fg-muted">{progress}% enviado</p>
         </div>
       )}
 
       {isLoading ? (
-        <div className="space-y-2" aria-busy="true" aria-label="Carregando anexos">
+        <div className="flex flex-col gap-2" aria-busy="true" aria-label="Carregando anexos">
           {[1, 2].map((i) => (
             <div
               key={i}
-              className="h-9 rounded animate-pulse"
-              style={{ background: 'var(--surface-3)' }}
+              className="h-14 animate-pulse rounded-lg bg-surface-3 motion-reduce:animate-none"
             />
           ))}
         </div>
       ) : attachments.length === 0 ? (
-        <p className="text-sm text-dim">Nenhum anexo ainda.</p>
+        <p className="text-body-sm text-fg-muted">Nenhum anexo ainda.</p>
       ) : (
-        <ul className="space-y-2" aria-label="Lista de anexos">
-          {attachments.map((att) => (
-            <li
-              key={att.id}
-              className="flex items-center justify-between gap-2 rounded px-3 py-2"
-              style={{ border: '1px solid var(--border)' }}
-            >
-              <button
-                type="button"
-                className="text-sm truncate hover:underline"
-                style={{ textAlign: 'left', minWidth: 0 }}
-                title={`Baixar ${att.originalFilename}`}
-                onClick={() => handleDownload(att)}
+        <ul className="flex flex-col gap-2" aria-label="Lista de anexos">
+          {attachments.map((att) => {
+            const Icon = att.mimeType.startsWith('image/') ? FileImage : FileText
+            return (
+              <li
+                key={att.id}
+                className="flex items-center gap-3 rounded-lg border border-border px-3 py-2"
               >
-                {att.originalFilename}
-                <span className="text-dim"> · {formatFileSize(att.fileSizeBytes)}</span>
-              </button>
-              <Button
-                type="button"
-                variant="danger"
-                size="sm"
-                className="shrink-0"
-                aria-label={`Excluir ${att.originalFilename}`}
-                onClick={() => setDeleteTarget(att)}
-              >
-                Excluir
-              </Button>
-            </li>
-          ))}
+                <span className="grid size-9 shrink-0 place-items-center rounded-md bg-info-soft text-info">
+                  <Icon size={18} aria-hidden="true" />
+                </span>
+                <button
+                  type="button"
+                  className="flex min-h-touch min-w-0 flex-1 flex-col justify-center rounded-xs text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info"
+                  title={`Baixar ${att.originalFilename}`}
+                  onClick={() => handleDownload(att)}
+                >
+                  <span className="truncate text-body hover:underline">{att.originalFilename}</span>
+                  <span className="flex items-center gap-1 text-caption text-fg-muted">
+                    <Download size={12} aria-hidden="true" />
+                    {formatFileSize(att.fileSizeBytes)} · baixar
+                  </span>
+                </button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="min-h-touch min-w-touch shrink-0 text-expense"
+                  aria-label={`Excluir ${att.originalFilename}`}
+                  onClick={() => setDeleteTarget(att)}
+                >
+                  <Trash2 size={16} aria-hidden="true" />
+                </Button>
+              </li>
+            )
+          })}
         </ul>
       )}
 

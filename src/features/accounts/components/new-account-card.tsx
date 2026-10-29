@@ -4,37 +4,19 @@ interface NewAccountCardProps {
   onClick: () => void
 }
 
+/** Card tracejado ao fim da grade. */
 export function NewAccountCard({ onClick }: NewAccountCardProps) {
   return (
     <button
       type="button"
-      className="card"
       onClick={onClick}
-      aria-label="Adicionar conta"
-      style={{
-        borderStyle: 'dashed',
-        background: 'transparent',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 184,
-        cursor: 'pointer',
-        width: '100%',
-        textAlign: 'left',
-      }}
+      className="flex min-h-[150px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-[1.5px] border-dashed border-border-strong bg-transparent p-4 text-center text-brand-text transition-colors hover:bg-brand/5 focus-visible:bg-brand/5"
     >
-      <div className="col" style={{ alignItems: 'center', gap: 6 }}>
-        <div
-          className="icon-bubble lg"
-          style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}
-        >
-          <Plus size={18} />
-        </div>
-        <div className="text-sm fw-500">Adicionar conta</div>
-        <div className="text-xs text-dim" style={{ maxWidth: 180, textAlign: 'center' }}>
-          Corrente, poupança, carteira ou investimento
-        </div>
-      </div>
+      <Plus size={20} aria-hidden="true" />
+      <span className="text-body font-semibold">Adicionar conta</span>
+      <span className="hidden max-w-[180px] text-caption text-fg-muted md:block">
+        Corrente, poupança, carteira ou investimento
+      </span>
     </button>
   )
 }

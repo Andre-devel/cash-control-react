@@ -10,7 +10,14 @@ import {
   MOCK_ARCHIVED_ACCOUNT,
   resetAccountsStore,
 } from '@/test/handlers/accounts.handlers'
+import type * as ReactRouterDom from 'react-router-dom'
 import AccountsPage from '../accounts-page'
+
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async (importOriginal) => ({
+  ...(await importOriginal<typeof ReactRouterDom>()),
+  useNavigate: () => mockNavigate,
+}))
 
 vi.mock('@/lib/toast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn() },
@@ -184,10 +191,10 @@ describe('AccountsPage', () => {
 
       const moreButtons = screen.getAllByRole('button', { name: /mais opções para/i })
       await user.click(moreButtons[0])
-      await waitFor(() => screen.getByRole('button', { name: /^arquivar$/i }))
-      await user.click(screen.getByRole('button', { name: /^arquivar$/i }))
+      await waitFor(() => screen.getByRole('menuitem', { name: /^arquivar$/i }))
+      await user.click(screen.getByRole('menuitem', { name: /^arquivar$/i }))
 
-      await waitFor(() => screen.getByRole('dialog'))
+      await waitFor(() => screen.getByRole('alertdialog'))
       expect(screen.getByText(/zere o saldo antes/i)).toBeTruthy()
       expect(
         (screen.getByRole('button', { name: /arquivar conta/i }) as HTMLButtonElement).disabled,
@@ -208,13 +215,13 @@ describe('AccountsPage', () => {
       const moreButtons = screen.getAllByRole('button', { name: /mais opções para/i })
       await user.click(moreButtons[0])
 
-      await waitFor(() => screen.getByRole('button', { name: /^arquivar$/i }))
-      await user.click(screen.getByRole('button', { name: /^arquivar$/i }))
+      await waitFor(() => screen.getByRole('menuitem', { name: /^arquivar$/i }))
+      await user.click(screen.getByRole('menuitem', { name: /^arquivar$/i }))
 
-      await waitFor(() => screen.getByRole('dialog'))
+      await waitFor(() => screen.getByRole('alertdialog'))
       await user.click(screen.getByRole('button', { name: /arquivar conta/i }))
 
-      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
       await waitFor(() => expect(screen.queryByText(MOCK_ACCOUNT_1.name)).toBeNull())
     })
   })
@@ -229,10 +236,10 @@ describe('AccountsPage', () => {
       const moreButtons = screen.getAllByRole('button', { name: /mais opções para/i })
       await user.click(moreButtons[0])
 
-      await waitFor(() => screen.getByRole('button', { name: /^excluir$/i }))
-      await user.click(screen.getByRole('button', { name: /^excluir$/i }))
+      await waitFor(() => screen.getByRole('menuitem', { name: /^excluir$/i }))
+      await user.click(screen.getByRole('menuitem', { name: /^excluir$/i }))
 
-      await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+      await waitFor(() => expect(screen.getByRole('alertdialog')).toBeTruthy())
     })
 
     it('business rule error shows the API message in the dialog', async () => {
@@ -258,10 +265,10 @@ describe('AccountsPage', () => {
       const moreButtons = screen.getAllByRole('button', { name: /mais opções para/i })
       await user.click(moreButtons[0])
 
-      await waitFor(() => screen.getByRole('button', { name: /^excluir$/i }))
-      await user.click(screen.getByRole('button', { name: /^excluir$/i }))
+      await waitFor(() => screen.getByRole('menuitem', { name: /^excluir$/i }))
+      await user.click(screen.getByRole('menuitem', { name: /^excluir$/i }))
 
-      await waitFor(() => screen.getByRole('dialog'))
+      await waitFor(() => screen.getByRole('alertdialog'))
 
       await user.click(screen.getByRole('button', { name: /excluir conta/i }))
 
@@ -294,5 +301,35 @@ describe('AccountsPage', () => {
     await waitFor(() => screen.getByRole('button', { name: /^transferir$/i }))
     await user.click(screen.getByRole('button', { name: /^transferir$/i }))
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+  })
+})
+
+describe('AccountCard', () => {
+  it('clicking the card opens the account detail', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<AccountsPage />)
+    await waitFor(() => screen.getByText(MOCK_ACCOUNT_1.name))
+    await user.click(screen.getAllByText(/^R\$\s1\.500,00$/)[0])
+    expect(mockNavigate).toHaveBeenCalledWith('/accounts/account-1')
+  })
+
+  it('the ⋯ menu does not navigate to the detail', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<AccountsPage />)
+    await waitFor(() => screen.getByText(MOCK_ACCOUNT_1.name))
+    await user.click(screen.getAllByRole('button', { name: /mais opções para/i })[0])
+    await user.click(screen.getByRole('menuitem', { name: /^editar$/i }))
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+    expect(mockNavigate).not.toHaveBeenCalled()
+  })
+
+  it('negative balance is shown with the − sign', async () => {
+    server.use(
+      http.get('*/accounts', () =>
+        HttpResponse.json([{ ...MOCK_ACCOUNT_1, balance: '-250.00' }, MOCK_ACCOUNT_2]),
+      ),
+    )
+    renderWithProviders(<AccountsPage />)
+    await waitFor(() => expect(screen.getAllByText(/−R\$\s250,00/).length).toBeGreaterThan(0))
   })
 })

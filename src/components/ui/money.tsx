@@ -1,3 +1,5 @@
+import { useHideValues } from '@/lib/hide-values'
+
 const CURRENCY_SYMBOLS: Record<string, string> = {
   BRL: 'R$',
   USD: 'US$',
@@ -19,6 +21,7 @@ export function Money({
   muted = false,
   className = '',
 }: MoneyProps) {
+  const { hidden } = useHideValues()
   const isNegative = value < 0
   const abs = Math.abs(value)
   const [int, dec] = abs.toFixed(2).split('.')
@@ -32,17 +35,31 @@ export function Money({
     displaySign = '-'
   }
 
-  return (
-    <span className={`mono ${className}`}>
-      <span
-        style={{
-          color: muted ? 'var(--text-faint)' : 'inherit',
-          marginRight: 4,
-          fontSize: '0.78em',
-        }}
-      >
-        {sym}
+  const symbol = (
+    <span
+      style={{
+        color: muted ? 'var(--text-faint)' : 'inherit',
+        marginRight: 4,
+        fontSize: '0.78em',
+      }}
+    >
+      {sym}
+    </span>
+  )
+
+  if (hidden) {
+    return (
+      <span className={`num ${className}`}>
+        {symbol}
+        <span aria-hidden="true">••••</span>
+        <span className="sr-only">Valor oculto</span>
       </span>
+    )
+  }
+
+  return (
+    <span className={`num ${className}`}>
+      {symbol}
       {displaySign}
       {intGrouped}
       <span style={{ color: 'var(--text-dim)' }}>,{dec}</span>

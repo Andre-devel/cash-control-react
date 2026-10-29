@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Copy, CreditCard, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
@@ -28,6 +28,41 @@ import {
 } from '@/features/cards/types'
 import { invoiceLabel } from '@/features/cards/utils/invoice-month'
 import { formatLocalDate } from '@/lib/format-date'
+
+/** "1 de 2 · Conta e arquivo" — o mesmo indicador de passo da importação de extrato. */
+function StepLabel({ step, title }: { step: 1 | 2; title: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="rounded-full bg-brand-soft px-2 py-1 font-mono text-[11px] font-semibold leading-none text-brand-text">
+        {step} de 2
+      </span>
+      <span className="text-body-sm font-semibold">{title}</span>
+    </div>
+  )
+}
+
+const TILE_TONE = { default: 'text-fg', muted: 'text-fg-muted', brand: 'text-brand-text' } as const
+
+function SummaryTile({
+  value,
+  label,
+  tone = 'default',
+}: {
+  value: number
+  label: string
+  tone?: keyof typeof TILE_TONE
+}) {
+  return (
+    <div className="flex flex-col-reverse gap-1 rounded-xl border border-border bg-surface-2 px-3 py-2.5">
+      <dt className="text-caption text-fg-muted">{label}</dt>
+      <dd
+        className={`m-0 font-display text-h2 font-bold leading-none tabular-nums ${TILE_TONE[tone]}`}
+      >
+        {value}
+      </dd>
+    </div>
+  )
+}
 
 interface ImportFaturaDialogProps {
   open: boolean
@@ -422,9 +457,11 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
     >
       {preview ? (
         <div className="col gap-4">
-          <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>
-            Fatura de <strong>{invoiceLabel(preview.dueDate)}</strong> · vence em{' '}
-            {formatLocalDate(preview.dueDate)}
+          <StepLabel step={2} title="Revisar importação" />
+
+          <div className="text-body-sm text-fg-muted">
+            Fatura de <strong className="text-fg">{invoiceLabel(preview.dueDate)}</strong> · vence
+            em {formatLocalDate(preview.dueDate)}
             {preview.totalAmount && (
               <>
                 {' · '}total no PDF: <Money value={Number(preview.totalAmount)} />
@@ -432,29 +469,22 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
             )}
           </div>
 
-          <label
-            style={{
-              display: 'flex',
-              gap: 10,
-              alignItems: 'flex-start',
-              padding: '10px 12px',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--r-3)',
-              background: 'var(--surface-2)',
-              cursor: 'pointer',
-            }}
-          >
+          <dl className="m-0 grid grid-cols-3 gap-2">
+            <SummaryTile value={preview.totalRows} label="linhas" />
+            <SummaryTile value={duplicateCount} label="duplicadas" tone="muted" />
+            <SummaryTile value={selectedCount} label="a importar" tone="brand" />
+          </dl>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface-2 p-3">
             <input
               type="checkbox"
+              className="checkbox mt-0.5"
               checked={alreadyPaid}
               onChange={(e) => setAlreadyPaid(e.target.checked)}
-              style={{ marginTop: 2, flexShrink: 0 }}
             />
-            <span style={{ fontSize: 13 }}>
+            <span className="text-body-sm">
               <strong>Esta fatura já está paga</strong>
-              <span
-                style={{ display: 'block', fontSize: 12, color: 'var(--text-dim)', marginTop: 2 }}
-              >
+              <span className="mt-0.5 block text-caption text-fg-muted">
                 Para importar um extrato antigo já quitado. A fatura entra como paga; as compras
                 ficam pendentes e o saldo da conta não é alterado. As parcelas dos próximos meses
                 continuam em aberto.
@@ -482,15 +512,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
               <button
                 type="button"
                 onClick={() => focusCardSelect(groupsMissingCard[0]!.cardLast4)}
-                style={{
-                  background: 'none',
-                  border: 0,
-                  padding: 0,
-                  color: 'inherit',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  font: 'inherit',
-                }}
+                className="cursor-pointer border-0 bg-transparent p-0 font-semibold text-current underline"
               >
                 Ir para a seção
               </button>
@@ -498,7 +520,10 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
           )}
 
           {pdfDifference !== null && Math.abs(pdfDifference) >= 0.01 && (
-            <div role="note" style={{ fontSize: 13, color: 'var(--text-dim)' }}>
+            <div
+              role="note"
+              className="rounded-xl border border-info/30 bg-info-soft p-3 text-body-sm text-fg"
+            >
               A soma dos lançamentos lidos (<Money value={readTotal} />) difere do total do PDF em{' '}
               <Money value={pdfDifference} />. Costuma ser saldo anterior, juros, IOF ou encargos,
               que não viram lançamento; se não for o caso, confira as linhas não lidas.
@@ -506,21 +531,12 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
           )}
 
           {reviewCount > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              <span style={{ color: 'var(--text-dim)' }}>
-                {reviewCount} sem categoria confirmada
-              </span>
+            <div className="flex items-center gap-2 text-body-sm">
+              <span className="text-fg-muted">{reviewCount} sem categoria confirmada</span>
               <button
                 type="button"
                 onClick={jumpToReview}
-                style={{
-                  background: 'none',
-                  border: 0,
-                  padding: 0,
-                  color: 'var(--accent)',
-                  cursor: 'pointer',
-                  font: 'inherit',
-                }}
+                className="min-h-touch cursor-pointer border-0 bg-transparent px-1 font-semibold text-brand-text underline"
               >
                 revisar
               </button>
@@ -528,7 +544,17 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
           )}
 
           {preview.groups.map((group) => (
-            <div key={group.cardLast4} className="col gap-2">
+            <section
+              key={group.cardLast4}
+              className="flex flex-col gap-2 rounded-2xl border border-border bg-surface-1 p-3"
+            >
+              <div className="flex items-center gap-2 text-body-sm font-semibold">
+                <CreditCard size={16} className="text-fg-muted" aria-hidden="true" />
+                Seção ****{group.cardLast4}
+                <span className="font-normal text-fg-muted">
+                  · {group.rows.length} {group.rows.length === 1 ? 'linha' : 'linhas'}
+                </span>
+              </div>
               <Field label={`Cartão da seção ****${group.cardLast4}`} required>
                 <Select
                   aria-label={`Cartão da seção ${group.cardLast4}`}
@@ -551,7 +577,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
               </Field>
 
               {fetchingByGroup[group.cardLast4] && (
-                <div style={{ fontSize: 12, color: 'var(--text-dim)' }} aria-live="polite">
+                <div className="text-caption text-fg-muted" aria-live="polite">
                   Verificando o que já foi importado neste cartão…
                 </div>
               )}
@@ -566,6 +592,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                       <th style={{ width: 36, paddingLeft: 16 }}>
                         <input
                           type="checkbox"
+                          className="checkbox"
                           aria-label={`Selecionar todos do cartão ${group.cardLast4}`}
                           checked={
                             group.rows.filter((row) => !isDuplicate(group, row)).length > 0 &&
@@ -593,6 +620,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                         <td className="cell-check" style={{ paddingLeft: 16 }}>
                           <input
                             type="checkbox"
+                            className="checkbox"
                             aria-label={`Importar ${row.description}`}
                             checked={selected.has(row.externalRef)}
                             onChange={() => toggleRow(row)}
@@ -628,16 +656,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                                 type="button"
                                 onClick={() => applyDescriptionToMerchant(row)}
                                 title={`Aplicar esta descrição às ${merchantRowsOf(row).length} outras linhas deste estabelecimento`}
-                                style={{
-                                  display: 'block',
-                                  background: 'none',
-                                  border: 0,
-                                  padding: 0,
-                                  marginTop: 2,
-                                  color: 'var(--accent)',
-                                  fontSize: 11,
-                                  cursor: 'pointer',
-                                }}
+                                className="mt-0.5 block cursor-pointer border-0 bg-transparent p-0 text-[11px] font-semibold text-brand-text"
                               >
                                 aplicar nome a +{merchantRowsOf(row).length} do estabelecimento
                               </button>
@@ -645,7 +664,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                           {row.refund && (
                             <>
                               {' '}
-                              <Badge kind="income" square dot={false}>
+                              <Badge kind="income" icon={<Undo2 aria-hidden="true" />}>
                                 estorno
                               </Badge>
                             </>
@@ -653,16 +672,20 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                           {isDuplicate(group, row) && (
                             <>
                               {' '}
-                              <Badge kind="muted" square dot={false}>
+                              <Badge kind="muted" icon={<Copy aria-hidden="true" />}>
                                 já importada
                               </Badge>
                             </>
                           )}
                         </td>
-                        <td className="cell-meta" style={{ color: 'var(--text-dim)' }}>
-                          {!row.refund && row.installmentNumber && row.totalInstallments
-                            ? `${row.installmentNumber}/${row.totalInstallments}`
-                            : '—'}
+                        <td className="cell-meta text-fg-muted">
+                          {!row.refund && row.installmentNumber && row.totalInstallments ? (
+                            <span className="rounded-[6px] bg-surface-3 px-1.5 py-[3px] font-mono text-[11px] text-fg">
+                              {`${row.installmentNumber}/${row.totalInstallments}`}
+                            </span>
+                          ) : (
+                            '—'
+                          )}
                         </td>
                         <td className="cell-cat">
                           <EditableCategoryCell
@@ -685,16 +708,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                               type="button"
                               onClick={() => applyCategoryToMerchant(row)}
                               title={`Aplicar esta categoria às ${merchantRowsOf(row).length} outras linhas deste estabelecimento`}
-                              style={{
-                                display: 'block',
-                                background: 'none',
-                                border: 0,
-                                padding: 0,
-                                marginTop: 2,
-                                color: 'var(--accent)',
-                                fontSize: 11,
-                                cursor: 'pointer',
-                              }}
+                              className="mt-0.5 block cursor-pointer border-0 bg-transparent p-0 text-[11px] font-semibold text-brand-text"
                             >
                               aplicar a +{merchantRowsOf(row).length} do estabelecimento
                             </button>
@@ -702,7 +716,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                         </td>
                         <td
                           className="num cell-amount"
-                          style={row.refund ? { color: 'var(--income)' } : undefined}
+                          style={row.refund ? { color: 'rgb(var(--cc-income))' } : undefined}
                         >
                           {/* Estorno abate a fatura: aparece com sinal, em verde. */}
                           <Money value={row.refund ? -Number(row.amount) : Number(row.amount)} />
@@ -712,11 +726,13 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                   </tbody>
                 </table>
               </div>
-            </div>
+            </section>
           ))}
         </div>
       ) : (
         <div className="col gap-4">
+          <StepLabel step={1} title="Conta e arquivo" />
+
           <Field
             label="Conta dos lançamentos"
             required
@@ -765,16 +781,8 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
             />
           </Field>
 
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              fontSize: 12,
-              color: 'var(--text-dim)',
-              alignItems: 'flex-start',
-            }}
-          >
-            <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+          <div className="flex items-start gap-2 rounded-xl bg-surface-2 p-3 text-caption text-fg-muted">
+            <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
             <span>
               Nada é gravado nesta etapa. Você vai conferir os lançamentos de cada cartão antes de
               confirmar, os pagamentos da fatura são descartados e os que já tiverem sido importados

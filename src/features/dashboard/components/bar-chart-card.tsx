@@ -1,219 +1,169 @@
+import { useState } from 'react'
 import { useMonthlyChart } from '@/features/dashboard/hooks/use-monthly-chart'
-import { formatCompactNumber } from '@/lib/money'
+import { useHideValues } from '@/features/dashboard/hooks/use-hide-values'
+import { HIDDEN_MONEY, monthAbbr } from '@/features/dashboard/utils'
+import { formatMoney } from '@/lib/money'
+import { Panel, PanelHeader, SkeletonBlock, WidgetEmpty, WidgetError } from './panel'
 
-/** Janelas do gráfico. Os cards de resumo são sempre do mês corrente. */
+/** Janelas do gráfico. Os cards de resumo seguem o mês escolhido no topo. */
 const MONTH_OPTIONS = [3, 6, 12] as const
-
-const MONTH_ABBR_PT: Record<string, string> = {
-  '01': 'jan',
-  '02': 'fev',
-  '03': 'mar',
-  '04': 'abr',
-  '05': 'mai',
-  '06': 'jun',
-  '07': 'jul',
-  '08': 'ago',
-  '09': 'set',
-  '10': 'out',
-  '11': 'nov',
-  '12': 'dez',
-}
-
-function ChartSkeleton() {
-  return (
-    <div
-      className="animate-pulse"
-      style={{ height: 280, background: 'var(--surface-2)', borderRadius: 8 }}
-      aria-busy="true"
-      aria-label="Carregando gráfico"
-    />
-  )
-}
 
 interface BarChartCardProps {
   months?: number
   onMonthsChange?: (months: number) => void
+  className?: string
 }
 
-function signedCompactMoney(value: number): string {
-  const sign = value > 0 ? '+' : value < 0 ? '−' : ''
-  return `${sign}R$ ${formatCompactNumber(Math.abs(value))}`
-}
+export function BarChartCard({ months = 6, onMonthsChange, className = '' }: BarChartCardProps) {
+  const { data, isLoading, isError, refetch } = useMonthlyChart(months)
+  const { hidden } = useHideValues()
+  const [picked, setPicked] = useState<number | null>(null)
 
-export function BarChartCard({ months = 6, onMonthsChange }: BarChartCardProps) {
-  const { data, isLoading, isError } = useMonthlyChart(months)
-
-  const W = 620,
-    H = 280,
-    PAD_L = 56,
-    PAD_R = 12,
-    PAD_T = 20,
-    PAD_B = 32
-  const chartW = W - PAD_L - PAD_R
-  const chartH = H - PAD_T - PAD_B
-
-  const entries = data?.months ?? []
-  const parsed = entries.map((e) => ({
-    m: MONTH_ABBR_PT[e.month.slice(5, 7)] ?? e.month.slice(5, 7),
+  const parsed = (data?.months ?? []).map((e) => ({
+    key: e.month,
+    label: monthAbbr(e.month),
     income: parseFloat(e.income),
     expense: parseFloat(e.expenses),
   }))
-
-  const allValues = parsed.flatMap((d) => [d.income, d.expense])
-  const maxValue = allValues.length > 0 ? Math.max(...allValues) : 0
-  const max = Math.max(maxValue * 1.12, 1)
-
-  const groupW = parsed.length > 0 ? chartW / parsed.length : chartW
-  const barW = groupW * 0.3
-  const gap = 4
-  const gridYs = [0, 0.25, 0.5, 0.75, 1].map((p) => max * p)
+  const max = Math.max(1, ...parsed.flatMap((d) => [d.income, d.expense]))
+  const lastIndex = parsed.length - 1
+  const selected = picked !== null && picked <= lastIndex ? picked : lastIndex
+  const current = parsed[selected]
+  const money = (v: number) => (hidden ? HIDDEN_MONEY : formatMoney(v))
 
   return (
-    <div className="card">
-      <div className="card-h">
-        <div>
-          <h3>Receitas vs Despesas</h3>
-          <div className="sub">Últimos {months} meses · saldo do mês atual em destaque</div>
-        </div>
-        <div className="right">
-          <span className="legend">
-            <span className="sw" style={{ background: 'var(--income)' }} />
-            Receitas
-          </span>
-          <span className="legend">
-            <span className="sw" style={{ background: 'var(--expense)' }} />
-            Despesas
-          </span>
-          {onMonthsChange && (
-            <div className="tabs" role="tablist" aria-label="Período do gráfico">
-              {MONTH_OPTIONS.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  role="tab"
-                  aria-selected={months === option}
-                  className={months === option ? 'on' : ''}
-                  onClick={() => onMonthsChange(option)}
-                >
-                  {option}m
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="card-b" style={{ padding: 12 }}>
-        {isLoading ? (
-          <ChartSkeleton />
-        ) : isError ? (
-          <div role="alert" style={{ padding: 16, color: 'var(--expense)', fontSize: 13 }}>
-            Erro ao carregar gráfico.
-          </div>
-        ) : parsed.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-dim)', fontSize: 13 }}>
-            Sem dados disponíveis.
-          </div>
-        ) : (
-          /* O SVG tem proporção fixa (620 × 280): sem o wrapper rolável ele encolhia
-             junto com a largura no celular, chegando a ~120 px de altura e rótulos de
-             eixo ilegíveis. Ver `.chart-scroll` em globals.css. */
-          <div className="chart-scroll">
-            <svg
-              className="bar-chart"
-              viewBox={`0 0 ${W} ${H}`}
-              width="100%"
-              preserveAspectRatio="xMidYMid meet"
-              aria-label="Gráfico de receitas vs despesas"
+    <Panel className={className} label="Receitas vs Despesas">
+      <PanelHeader
+        title="Receitas vs Despesas"
+        sub={`Últimos ${months} meses · toque numa barra para ver os valores`}
+        right={
+          onMonthsChange && (
+            <div
+              className="flex rounded-lg bg-surface-2 p-[3px]"
+              role="tablist"
+              aria-label="Período do gráfico"
             >
-              {gridYs.map((v, i) => {
-                const y = PAD_T + chartH - (v / max) * chartH
+              {MONTH_OPTIONS.map((option) => {
+                const on = months === option
                 return (
-                  <g key={i}>
-                    <line className="gridline" x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} />
-                    <text className="axis" x={PAD_L - 8} y={y + 3} textAnchor="end">
-                      {formatCompactNumber(v)}
-                    </text>
-                  </g>
+                  <button
+                    key={option}
+                    type="button"
+                    role="tab"
+                    aria-selected={on}
+                    onClick={() => {
+                      setPicked(null)
+                      onMonthsChange(option)
+                    }}
+                    className={`min-h-[36px] rounded-md px-3 text-caption font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus ${
+                      on ? 'bg-surface-3 text-fg' : 'text-fg-muted'
+                    }`}
+                  >
+                    {option}m
+                  </button>
                 )
               })}
-              {parsed.map((d, i) => {
-                const x0 = PAD_L + i * groupW + groupW / 2
-                const incH = (d.income / max) * chartH
-                const expH = (d.expense / max) * chartH
-                const ix = x0 - barW - gap / 2
-                const ex = x0 + gap / 2
-                const iy = PAD_T + chartH - incH
-                const ey = PAD_T + chartH - expH
-                const isCurrent = i === parsed.length - 1
-                const diff = d.income - d.expense
-                const diffLabel = signedCompactMoney(diff)
-                // O destaque fica sobre a barra do mês atual, a última: sem o limite ele
-                // passava da borda direita do SVG e o valor aparecia cortado.
-                const labelX = Math.min(x0 - 52, W - 106)
+            </div>
+          )
+        }
+      />
 
-                return (
-                  <g key={i}>
-                    <rect
-                      className="bar-income"
-                      x={ix}
-                      y={iy}
-                      width={barW}
-                      height={incH}
-                      rx="3"
-                      opacity={isCurrent ? 1 : 0.85}
-                    />
-                    <rect
-                      className="bar-expense"
-                      x={ex}
-                      y={ey}
-                      width={barW}
-                      height={expH}
-                      rx="3"
-                      opacity={isCurrent ? 1 : 0.85}
-                    />
-                    <text
-                      className="axis"
-                      x={x0}
-                      y={H - 10}
-                      textAnchor="middle"
-                      style={{
-                        fontWeight: isCurrent ? 600 : 400,
-                        fill: isCurrent ? 'var(--text)' : 'var(--text-faint)',
-                      }}
-                    >
-                      {d.m}
-                    </text>
-                    {isCurrent && incH > 4 && (
-                      <g>
-                        <rect
-                          x={labelX}
-                          y={iy - 34}
-                          width="104"
-                          height="26"
-                          rx="6"
-                          fill="var(--surface-3)"
-                          stroke="var(--border-strong)"
-                        />
-                        <text
-                          x={labelX + 52}
-                          y={iy - 16}
-                          textAnchor="middle"
-                          fontSize="11"
-                          fill="var(--text)"
-                          fontFamily="var(--font-mono)"
-                          style={{ fontVariantNumeric: 'tabular-nums' }}
-                        >
-                          {diffLabel}
-                        </text>
-                      </g>
-                    )}
-                  </g>
-                )
-              })}
-            </svg>
-          </div>
-        )}
+      <div className="mb-3 flex gap-4 text-caption text-fg-muted" aria-hidden="true">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-xs bg-income" />
+          Receitas
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-xs bg-expense" />
+          Despesas
+        </span>
       </div>
-    </div>
+
+      {isLoading ? (
+        <SkeletonBlock className="h-[188px] md:h-[228px]" />
+      ) : isError ? (
+        <WidgetError message="Erro ao carregar gráfico." onRetry={() => void refetch()} />
+      ) : parsed.length === 0 ? (
+        <WidgetEmpty>Sem dados disponíveis.</WidgetEmpty>
+      ) : (
+        <>
+          {current && (
+            <p
+              className="mb-2 self-start rounded-md bg-fg px-2.5 py-1.5 text-caption font-medium tabular-nums text-bg"
+              aria-live="polite"
+            >
+              <b>{current.label}</b> · + {money(current.income)} · − {money(current.expense)}
+            </p>
+          )}
+          <div
+            className="flex h-[150px] items-end gap-1 border-b border-border md:h-[190px] md:gap-2"
+            aria-hidden="true"
+          >
+            {parsed.map((d, i) => {
+              const on = i === selected
+              return (
+                <button
+                  key={d.key}
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setPicked(i)}
+                  className={`flex h-full min-w-0 flex-1 items-end justify-center gap-[3px] rounded-t-md transition-opacity ${
+                    on ? 'bg-fg/5 opacity-100' : 'opacity-50'
+                  }`}
+                >
+                  <span
+                    className="w-[30%] max-w-[18px] rounded-t-[5px] bg-income"
+                    style={{ height: `${(d.income / max) * 100}%` }}
+                  />
+                  <span
+                    className="w-[30%] max-w-[18px] rounded-t-[5px] bg-expense"
+                    style={{ height: `${(d.expense / max) * 100}%` }}
+                  />
+                </button>
+              )
+            })}
+          </div>
+          <div
+            className="mt-1.5 flex gap-1 md:gap-2"
+            role="group"
+            aria-label="Escolher mês do gráfico"
+          >
+            {parsed.map((d, i) => (
+              <button
+                key={d.key}
+                type="button"
+                aria-pressed={i === selected}
+                aria-label={`${d.label}: receitas ${money(d.income)}, despesas ${money(d.expense)}`}
+                onClick={() => setPicked(i)}
+                className={`min-h-touch min-w-0 flex-1 rounded-md text-caption focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus ${
+                  i === selected ? 'font-semibold text-fg' : 'text-fg-muted'
+                }`}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+          <table className="sr-only">
+            <caption>Receitas e despesas por mês</caption>
+            <thead>
+              <tr>
+                <th scope="col">Mês</th>
+                <th scope="col">Receitas</th>
+                <th scope="col">Despesas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {parsed.map((d) => (
+                <tr key={d.key}>
+                  <th scope="row">{d.key}</th>
+                  <td>{money(d.income)}</td>
+                  <td>{money(d.expense)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
+    </Panel>
   )
 }

@@ -77,32 +77,8 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="submit"
-            form="create-account-form"
-            variant="primary"
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Criando…
-              </>
-            ) : (
-              'Criar conta'
-            )}
+          <Button type="submit" form="create-account-form" variant="primary" loading={isPending}>
+            {isPending ? 'Criando…' : 'Criar conta'}
           </Button>
         </>
       }

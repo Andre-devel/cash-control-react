@@ -1,25 +1,36 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Lock } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/app/router/routes'
+import { StatusPage } from './status-page'
 
 export default function ForbiddenPage() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // Aberta direto (sem histórico): "Voltar" leva ao dashboard em vez de não fazer nada.
+  function goBack() {
+    if (location.key !== 'default') navigate(-1)
+    else navigate(ROUTES.DASHBOARD)
+  }
+
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: 'var(--bg)' }}
-    >
-      <div className="text-center">
-        <h1 className="fw-700" style={{ fontSize: 64 }}>
-          403
-        </h1>
-        <p className="mt-2 text-dim">Você não tem permissão para acessar esta página.</p>
-        <Link
-          to={ROUTES.DASHBOARD}
-          className="mt-4 inline-block hover:underline"
-          style={{ color: 'var(--accent)' }}
-        >
-          Ir para o dashboard
-        </Link>
-      </div>
-    </div>
+    <StatusPage
+      code="403"
+      icon={Lock}
+      tone="pending"
+      title="Você não tem permissão"
+      description="Você não tem permissão para acessar esta página. Peça a um administrador para incluir a permissão na sua função."
+      actions={
+        <>
+          <Button variant="primary" size="lg" className="w-full" onClick={goBack}>
+            Voltar
+          </Button>
+          <Button asChild variant="ghost" size="lg" className="w-full">
+            <Link to={ROUTES.DASHBOARD}>Ir para o dashboard</Link>
+          </Button>
+        </>
+      }
+    />
   )
 }

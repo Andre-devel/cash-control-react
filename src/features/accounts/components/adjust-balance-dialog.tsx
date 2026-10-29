@@ -66,32 +66,8 @@ export function AdjustBalanceDialog({ account, open, onClose }: AdjustBalanceDia
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="submit"
-            form="adjust-balance-form"
-            variant="primary"
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Ajustando…
-              </>
-            ) : (
-              'Ajustar saldo'
-            )}
+          <Button type="submit" form="adjust-balance-form" variant="primary" loading={isPending}>
+            {isPending ? 'Ajustando…' : 'Ajustar saldo'}
           </Button>
         </>
       }

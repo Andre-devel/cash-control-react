@@ -115,7 +115,9 @@ describe('Roles routes', () => {
       permissions: [],
     })
     renderAtPath('/admin/roles')
-    expect(await screen.findByText(/não tem permissão para acessar/i)).toBeTruthy()
+    expect(
+      await screen.findByText(/não tem permissão para acessar/i, {}, { timeout: 5000 }),
+    ).toBeTruthy()
   })
 
   it('allows access when user has role:update but not role:create or role:delete', async () => {

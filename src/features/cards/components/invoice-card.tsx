@@ -1,19 +1,23 @@
 import { useMemo } from 'react'
-import { Check } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Check, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { IconBubble } from '@/components/ui/icon-bubble'
 import { Money } from '@/components/ui/money'
 import { useCategories } from '@/features/categories/hooks/use-categories'
 import { flattenCategories } from '@/features/categories/utils/flatten-categories'
 import type { Card, Invoice } from '@/features/cards/types'
 import { canPayInvoice, dueBadge } from '@/features/invoices/utils/invoice-status'
+import { InvoiceStatusBadge } from '@/features/invoices/components/invoice-status-badge'
+import { InvoiceItemRow } from '@/features/invoices/components/invoice-item-row'
 import {
   dueMonthLabel,
   getCurrentInvoiceMonth,
   shiftMonth,
 } from '@/features/cards/utils/invoice-month'
+import { ROUTES } from '@/app/router/routes'
 import { formatLocalDate } from '@/lib/format-date'
+import { categoryColorCss } from '@/features/categories/utils/category-colors'
 
 interface InvoiceCardProps {
   card: Card
@@ -58,21 +62,21 @@ export function InvoiceCard({
   const totalAmount = invoice ? parseFloat(invoice.totalAmount) : 0
   const paidAmount = invoice ? parseFloat(invoice.paidAmount) : 0
   const remainingAmount = totalAmount - paidAmount
-  const paidPct = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0
+  const paidPct = totalAmount > 0 ? Math.min(100, (paidAmount / totalAmount) * 100) : 0
 
   return (
-    <div className="card">
-      <div className="card-h">
-        <div>
-          <h3>Fatura — {card.name}</h3>
+    <section className="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-surface-1">
+      <header className="flex flex-col gap-3 border-b border-border p-4 md:p-5 xl:flex-row xl:items-start">
+        <div className="min-w-0 flex-1">
+          <h3 className="m-0 font-display text-h2 font-bold">Fatura — {card.name}</h3>
           {invoice && (
-            <div className="sub">
+            <p className="m-0 mt-1 text-body-sm text-fg-muted">
               Fecha em {formatLocalDate(closesAt)} · Vence em {formatLocalDate(invoice.dueDate)}
-            </div>
+            </p>
           )}
         </div>
-        <div className="right">
-          <div className="tabs" role="tablist" aria-label="Mês da fatura">
+        <div className="-mx-1 overflow-x-auto px-1">
+          <div className="tabs w-max" role="tablist" aria-label="Mês da fatura">
             {tabs.map((t) => (
               <button
                 key={t.key}
@@ -87,121 +91,114 @@ export function InvoiceCard({
             ))}
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="card-b">
+      <div className="p-4 md:p-5">
         {invoiceLoading ? (
           <div
-            className="animate-pulse"
+            className="flex animate-pulse flex-col gap-3"
             aria-busy="true"
             aria-label="Carregando fatura"
-            style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
           >
-            <div
-              style={{ height: 40, width: 180, background: 'var(--surface-3)', borderRadius: 6 }}
-            />
-            <div style={{ height: 8, background: 'var(--surface-3)', borderRadius: 4 }} />
-            <div
-              style={{ height: 8, width: '60%', background: 'var(--surface-3)', borderRadius: 4 }}
-            />
+            <div className="h-10 w-44 rounded-sm bg-surface-3" />
+            <div className="h-2 rounded-full bg-surface-3" />
+            <div className="h-2 w-3/5 rounded-full bg-surface-3" />
           </div>
         ) : invoice ? (
           <>
-            {/* Summary row */}
-            <div
-              className="row gap-6 invoice-summary"
-              style={{ alignItems: 'flex-end', marginBottom: 16, flexWrap: 'wrap' }}
-            >
-              <div>
-                <div className="text-xs text-dim">Valor total</div>
-                <div className="text-3xl mono fw-500" style={{ color: 'var(--text)' }}>
-                  <Money value={totalAmount} />
+            <div className="flex flex-col gap-4 rounded-xl bg-surface-2 p-4 md:flex-row md:items-end md:gap-6">
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <InvoiceStatusBadge status={invoice.status} />
+                  {due && invoice.status !== 'PAID' && (
+                    <Badge kind={due.kind} dot={false}>
+                      {due.label}
+                    </Badge>
+                  )}
                 </div>
+                <span className="text-body-sm text-fg-muted">Valor total</span>
+                <span className="font-display text-amount-lg font-extrabold tabular-nums">
+                  <Money value={totalAmount} />
+                </span>
               </div>
-              <div style={{ flex: 1, minWidth: 180 }}>
-                <div className="row between text-xs text-dim mb-2">
+
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-caption text-fg-muted tabular-nums">
                   <span>
-                    Pago:{' '}
-                    <span className="mono">
-                      <Money value={paidAmount} />
-                    </span>
+                    Pago: <Money value={paidAmount} />
                   </span>
                   <span>
                     Restante:{' '}
                     <span
-                      className="mono fw-500"
-                      style={{
-                        color: remainingAmount > 0 ? 'var(--pending)' : 'var(--paid)',
-                      }}
+                      className={`font-semibold ${remainingAmount > 0 ? 'text-pending' : 'text-paid'}`}
                     >
                       <Money value={remainingAmount} />
                     </span>
                   </span>
                 </div>
-                <div className="bar">
-                  <i style={{ width: `${paidPct}%`, background: 'var(--paid)' }} />
+                <div
+                  className="bar"
+                  role="progressbar"
+                  aria-label="Fatura paga"
+                  aria-valuenow={Math.round(paidPct)}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <i style={{ width: `${paidPct}%`, background: 'rgb(var(--cc-paid))' }} />
                 </div>
               </div>
-              <div className="invoice-due" style={{ textAlign: 'right' }}>
-                {due && (
-                  <Badge kind={due.kind} dot={false}>
-                    {due.label}
-                  </Badge>
-                )}
-                <div className="text-xs text-dim mt-2">{formatLocalDate(invoice.dueDate)}</div>
-              </div>
-              {canPayInvoice(invoice) && (
-                <Button variant="primary" onClick={onPay} leading={<Check size={14} />}>
-                  Pagar fatura
+
+              <div className="flex flex-wrap gap-2">
+                <Button variant="ghost" asChild className="min-h-touch">
+                  <Link to={ROUTES.INVOICE_DETAIL.replace(':invoiceId', invoice.id)}>
+                    Ver fatura
+                    <ChevronRight size={14} aria-hidden="true" />
+                  </Link>
                 </Button>
-              )}
+                {canPayInvoice(invoice) && (
+                  <Button
+                    variant="primary"
+                    className="min-h-touch"
+                    onClick={onPay}
+                    leading={<Check size={14} />}
+                  >
+                    Pagar fatura
+                  </Button>
+                )}
+              </div>
             </div>
 
-            {/* Charges */}
-            <div className="row between mb-2 mt-4">
-              <div className="text-sm fw-500">Lançamentos ({invoice.items.length})</div>
+            <div className="mb-1 mt-5 flex items-center justify-between">
+              <h4 className="m-0 text-body font-semibold">Lançamentos ({invoice.items.length})</h4>
             </div>
-            <div style={{ borderTop: '1px solid var(--border)' }}>
-              {invoice.items.length === 0 ? (
-                <p className="text-sm" style={{ color: 'var(--text-dim)', padding: '16px 0' }}>
-                  Nenhum lançamento neste período.
-                </p>
-              ) : (
-                invoice.items.map((item) => {
+            {invoice.items.length === 0 ? (
+              <p className="m-0 py-4 text-body-sm text-fg-muted">
+                Nenhum lançamento neste período.
+              </p>
+            ) : (
+              <div>
+                {invoice.items.map((item) => {
                   const cat = flatCategories.find((c) => c.id === item.categoryId)
                   return (
-                    <div
+                    <InvoiceItemRow
                       key={item.id}
-                      className="list-row"
-                      style={{ padding: '10px 0', borderColor: 'var(--border)' }}
-                    >
-                      <IconBubble
-                        color={cat?.color ?? 'var(--text-muted)'}
-                        size="sm"
-                        glyph={(cat?.name ?? item.description)[0]?.toUpperCase() ?? '·'}
-                      />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="title">{item.description}</div>
-                        <div className="meta">
-                          {item.subcategoryName ?? cat?.name ?? 'Sem categoria'} ·{' '}
-                          {formatLocalDate(item.competenceDate)}
-                        </div>
-                      </div>
-                      <div className="amount mono">
-                        <Money value={parseFloat(item.amount)} />
-                      </div>
-                    </div>
+                      item={item}
+                      categoryLabel={
+                        item.subcategoryName ?? item.categoryName ?? cat?.name ?? 'Sem categoria'
+                      }
+                      categoryColor={cat?.color ? categoryColorCss(cat.color) : undefined}
+                    />
                   )
-                })
-              )}
-            </div>
+                })}
+              </div>
+            )}
           </>
         ) : (
-          <p className="text-sm" style={{ color: 'var(--text-dim)' }}>
+          <p className="m-0 text-body-sm text-fg-muted">
             Nenhuma fatura encontrada para este período.
           </p>
         )}
       </div>
-    </div>
+    </section>
   )
 }

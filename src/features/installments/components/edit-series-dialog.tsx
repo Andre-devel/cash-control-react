@@ -73,32 +73,8 @@ export function EditSeriesDialog({ series, open, onClose }: EditSeriesDialogProp
             Cancelar
           </Button>
           <div className="spacer" />
-          <Button
-            type="submit"
-            form="edit-series-form"
-            variant="primary"
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? (
-              <>
-                <span
-                  className="animate-spin"
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: '2px solid currentColor',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                  }}
-                  aria-hidden="true"
-                />
-                Salvando…
-              </>
-            ) : (
-              'Salvar alterações'
-            )}
+          <Button type="submit" form="edit-series-form" variant="primary" loading={isPending}>
+            {isPending ? 'Salvando…' : 'Salvar alterações'}
           </Button>
         </>
       }

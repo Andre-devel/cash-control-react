@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '@/app/router/routes'
-import { AlertTriangle } from 'lucide-react'
+import { Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
@@ -78,22 +78,26 @@ interface ImportStatementDialogProps {
   onReconcile?: () => void
 }
 
-const LINK_STYLE = {
-  background: 'none',
-  border: 0,
-  padding: 0,
-  color: 'var(--accent)',
-  cursor: 'pointer',
-  font: 'inherit',
-} as const
+const LINK_CLASS =
+  'rounded-xs font-semibold text-brand-text underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info'
 
-const NOTE_STYLE = {
-  border: '1px solid var(--border)',
-  background: 'var(--surface-3)',
-  borderRadius: 6,
-  padding: '10px 14px',
-  fontSize: 13,
-} as const
+/** Aviso de atenção (pendência que muda o resultado da importação). */
+const WARN_NOTE_CLASS =
+  'flex flex-col gap-2 rounded-lg bg-pending-soft px-3.5 py-2.5 text-body-sm text-fg'
+
+/** Contadores da revisão: linhas lidas, já importadas, para revisar. */
+function PreviewStat({ value, label, tone }: { value: number; label: string; tone?: string }) {
+  return (
+    <div
+      className={`flex flex-col gap-1 rounded-lg border p-2.5 ${
+        tone ?? 'border-border bg-surface-1'
+      }`}
+    >
+      <span className="text-[17px] font-bold leading-none">{value}</span>
+      <span className="text-[11px] leading-none text-fg-muted">{label}</span>
+    </div>
+  )
+}
 
 export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStatementDialogProps) {
   const { data: allAccounts = [] } = useAccounts()
@@ -385,8 +389,8 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
 
   const selectedCount = selected.size
   const subtitle = preview
-    ? `${preview.totalRows} lançamentos lidos · ${preview.duplicateCount} já importados · ${preview.warningCount} para revisar`
-    : 'Envie o arquivo do extrato para conferir os lançamentos antes de gravar'
+    ? 'Passo 2 de 2 · confira os lançamentos antes de gravar'
+    : 'Passo 1 de 2 · envie o arquivo do extrato para conferir os lançamentos antes de gravar'
   const reviewCount = reviewRows().length
 
   return (
@@ -426,9 +430,23 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
       }
     >
       {preview ? (
-        <div className="col gap-4">
+        <div className="flex flex-col gap-4">
+          <div className="[display:grid] grid-cols-3 gap-1.5 md:max-w-[420px]">
+            <PreviewStat value={preview.totalRows} label="linhas lidas" />
+            <PreviewStat
+              value={preview.duplicateCount}
+              label="já importadas"
+              tone={preview.duplicateCount > 0 ? 'border-transparent bg-overdue-soft' : undefined}
+            />
+            <PreviewStat
+              value={preview.warningCount}
+              label="para revisar"
+              tone={preview.warningCount > 0 ? 'border-transparent bg-pending-soft' : undefined}
+            />
+          </div>
+
           {preview.sourceAccountLabel && (
-            <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>
+            <div className="text-body-sm text-fg-muted">
               Conta no extrato: <strong>{preview.sourceAccountLabel}</strong>
               {preview.periodStart && preview.periodEnd && (
                 <>
@@ -440,7 +458,10 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
           )}
 
           {preview.errors.length > 0 && (
-            <div role="alert" className="err">
+            <div
+              role="alert"
+              className="rounded-lg bg-overdue-soft px-3.5 py-2.5 text-body-sm text-overdue"
+            >
               {preview.errors.length} linha(s) não puderam ser lidas e ficarão de fora:{' '}
               {preview.errors
                 .slice(0, 3)
@@ -451,7 +472,7 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
           )}
 
           {preview.investmentAccountMissing && (
-            <div role="note" className="col gap-2" style={NOTE_STYLE}>
+            <div role="note" className={WARN_NOTE_CLASS}>
               <span>
                 {preview.rows.filter((row) => row.investment).length} aplicação(ões) ou resgate(s)
                 de investimento no extrato. Sem uma conta de investimento eles entram como
@@ -472,7 +493,7 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
           )}
 
           {preview.rows.some((row) => row.invoicePaymentUnmatched && !row.duplicate) && (
-            <div role="note" style={NOTE_STYLE}>
+            <div role="note" className={WARN_NOTE_CLASS}>
               Há pagamento de fatura sem fatura correspondente no sistema (marcado com &quot;sem
               fatura&quot;). Importe a fatura do cartão antes, ou ele entra como despesa e as
               compras dela contam duas vezes.
@@ -480,7 +501,7 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
           )}
 
           {preview.keepCurrentBalanceSuggested && (
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13 }}>
+            <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-body-sm">
               <input
                 type="checkbox"
                 className="checkbox"
@@ -495,27 +516,23 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
             </label>
           )}
 
-          {reviewCount > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-              <span style={{ color: 'var(--text-dim)' }}>
-                {reviewCount} sem categoria confirmada
+          <div className="flex flex-wrap items-center justify-between gap-2 text-body-sm">
+            <span className="text-fg-muted">
+              {selectedCount} de {preview.rows.length} selecionadas
+            </span>
+            {reviewCount > 0 && (
+              <span className="flex items-center gap-2">
+                <span className="text-pending">{reviewCount} sem categoria confirmada</span>
+                <button
+                  type="button"
+                  onClick={jumpToReview}
+                  className={`min-h-touch ${LINK_CLASS}`}
+                >
+                  revisar
+                </button>
               </span>
-              <button
-                type="button"
-                onClick={jumpToReview}
-                style={{
-                  background: 'none',
-                  border: 0,
-                  padding: 0,
-                  color: 'var(--accent)',
-                  cursor: 'pointer',
-                  font: 'inherit',
-                }}
-              >
-                revisar
-              </button>
-            </div>
-          )}
+            )}
+          </div>
 
           <div
             className="tbl-wrap stack-tbl-wrap statement-tbl-wrap"
@@ -526,9 +543,10 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
             <table className="tbl stack-tbl statement-tbl">
               <thead>
                 <tr>
-                  <th style={{ width: 36, paddingLeft: 16 }}>
+                  <th className="w-9 !pl-4">
                     <input
                       type="checkbox"
+                      className="checkbox"
                       aria-label="Selecionar todos"
                       checked={allImportableSelected}
                       ref={(el) => {
@@ -552,12 +570,13 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
                   return (
                     <tr
                       key={row.externalRef}
-                      style={row.duplicate ? { opacity: 0.55 } : undefined}
+                      className={row.duplicate ? 'opacity-[.55]' : undefined}
                       data-testid={`import-row-${row.lineNumber}`}
                     >
-                      <td className="cell-check" style={{ paddingLeft: 16 }}>
+                      <td className="cell-check !pl-4">
                         <input
                           type="checkbox"
+                          className="checkbox"
                           aria-label={`Importar ${descriptionOf(row)}`}
                           checked={isSelected}
                           onChange={() => toggleRow(row)}
@@ -584,16 +603,7 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
                             type="button"
                             onClick={() => applyDescriptionToSimilar(row)}
                             title={`Aplicar esta descrição às ${similarCount(row)} outras linhas deste estabelecimento`}
-                            style={{
-                              display: 'block',
-                              background: 'none',
-                              border: 0,
-                              padding: 0,
-                              marginTop: 2,
-                              color: 'var(--accent)',
-                              fontSize: 11,
-                              cursor: 'pointer',
-                            }}
+                            className="mt-0.5 block text-caption font-semibold text-brand-text hover:underline"
                           >
                             aplicar nome a +{similarCount(row)} iguais
                           </button>
@@ -637,7 +647,7 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
                           </>
                         )}
                       </td>
-                      <td className="cell-hist" style={{ color: 'var(--text-dim)' }}>
+                      <td className="cell-hist font-mono text-caption text-fg-subtle">
                         {row.rawHistory}
                       </td>
                       <td className="cell-type">
@@ -655,7 +665,7 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
                       </td>
                       <td className="cell-cat">
                         {MOVEMENT_TYPES.includes(typeOf(row)) ? (
-                          <span style={{ color: 'var(--text-faint)' }}>—</span>
+                          <span className="text-fg-subtle">—</span>
                         ) : (
                           <>
                             <EditableCategoryCell
@@ -676,16 +686,7 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
                                 type="button"
                                 onClick={() => applyCategoryToSimilar(row)}
                                 title={`Aplicar esta categoria às ${similarCount(row)} outras linhas deste estabelecimento`}
-                                style={{
-                                  display: 'block',
-                                  background: 'none',
-                                  border: 0,
-                                  padding: 0,
-                                  marginTop: 2,
-                                  color: 'var(--accent)',
-                                  fontSize: 11,
-                                  cursor: 'pointer',
-                                }}
+                                className="mt-0.5 block text-caption font-semibold text-brand-text hover:underline"
                               >
                                 aplicar a +{similarCount(row)} iguais
                               </button>
@@ -693,8 +694,19 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
                           </>
                         )}
                       </td>
-                      <td className="num cell-amount">
-                        <Money value={Number(row.amount)} />
+                      <td
+                        className={`num cell-amount whitespace-nowrap ${
+                          row.outgoing ? 'text-fg' : 'text-income'
+                        }`}
+                      >
+                        <Money
+                          value={
+                            row.outgoing
+                              ? -Math.abs(Number(row.amount))
+                              : Math.abs(Number(row.amount))
+                          }
+                          signed
+                        />
                       </td>
                     </tr>
                   )
@@ -704,7 +716,7 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
           </div>
         </div>
       ) : (
-        <div className="col gap-4">
+        <div className="flex flex-col gap-4">
           <Field label="Conta de destino" required>
             <Select
               aria-label="Conta de destino"
@@ -749,29 +761,21 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
             />
           </Field>
 
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              fontSize: 12,
-              color: 'var(--text-dim)',
-              alignItems: 'flex-start',
-            }}
-          >
-            <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+          <div className="flex items-start gap-2 rounded-lg bg-info-soft px-3.5 py-2.5 text-body-sm text-fg">
+            <Info size={16} className="mt-px shrink-0 text-info" aria-hidden="true" />
             <span>
               Nada é gravado nesta etapa. Você vai conferir os lançamentos classificados antes de
               confirmar, e os que já tiverem sido importados nesta conta virão desmarcados.
             </span>
           </div>
 
-          <div className="col gap-1" style={{ fontSize: 12, color: 'var(--text-dim)' }}>
+          <div className="flex flex-col gap-1.5 text-body-sm text-fg-muted">
             <span>
               Só um Pix?{' '}
               <button
                 type="button"
                 onClick={() => void navigate(ROUTES.SHARE_TARGET)}
-                style={LINK_STYLE}
+                className={LINK_CLASS}
               >
                 Lançar comprovante Pix
               </button>{' '}
@@ -781,7 +785,7 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
               <span>
                 Importou extratos ou faturas antes? Pagamentos de fatura como despesa, aplicações e
                 parcelamentos partidos podem ser corrigidos em{' '}
-                <button type="button" onClick={onReconcile} style={LINK_STYLE}>
+                <button type="button" onClick={onReconcile} className={LINK_CLASS}>
                   Corrigir importações antigas
                 </button>
                 .

@@ -13,7 +13,7 @@ interface IconBubbleProps {
 }
 
 export function IconBubble({
-  color = '#7c5cff',
+  color = 'var(--accent)',
   icon: Icon,
   size = 'md',
   glyph,
@@ -26,7 +26,8 @@ export function IconBubble({
       className={`icon-bubble${sizeClass}`}
       style={
         {
-          '--icon-bg': `${color}22`,
+          // color-mix aceita hex e var(--token); `${hex}22` quebrava com tokens.
+          '--icon-bg': `color-mix(in srgb, ${color} 16%, transparent)`,
           '--icon-fg': color,
           color,
         } as CSSProperties

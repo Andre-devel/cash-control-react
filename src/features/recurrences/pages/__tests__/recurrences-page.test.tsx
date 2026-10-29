@@ -184,7 +184,7 @@ describe('RecurrencesPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_RECURRENCE_1.description))
 
-      const pauseButtons = screen.getAllByRole('button', { name: /^pause /i })
+      const pauseButtons = screen.getAllByRole('button', { name: /^pausar /i })
       await user.click(pauseButtons[0])
 
       await waitFor(() => {
@@ -200,7 +200,7 @@ describe('RecurrencesPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_RECURRENCE_2.description))
 
-      const resumeButton = screen.getByRole('button', { name: /^resume /i })
+      const resumeButton = screen.getByRole('button', { name: /^retomar /i })
       await user.click(resumeButton)
 
       await waitFor(() => {
@@ -217,10 +217,10 @@ describe('RecurrencesPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_RECURRENCE_1.description))
 
-      const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
+      const deleteButtons = screen.getAllByRole('button', { name: /^excluir monthly rent/i })
       await user.click(deleteButtons[0])
 
-      await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
+      await waitFor(() => expect(screen.getByRole('alertdialog')).toBeTruthy())
       expect(screen.getByRole('heading', { name: /excluir regra de recorrência/i })).toBeTruthy()
     })
 
@@ -230,10 +230,10 @@ describe('RecurrencesPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_RECURRENCE_1.description))
 
-      const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
+      const deleteButtons = screen.getAllByRole('button', { name: /^excluir monthly rent/i })
       await user.click(deleteButtons[0])
 
-      await waitFor(() => screen.getByRole('dialog'))
+      await waitFor(() => screen.getByRole('alertdialog'))
 
       expect(screen.getAllByText(/somente futuras/i).length).toBeGreaterThan(0)
       expect(screen.getAllByText(/todas em aberto/i).length).toBeGreaterThan(0)
@@ -245,10 +245,10 @@ describe('RecurrencesPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_RECURRENCE_1.description))
 
-      const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
+      const deleteButtons = screen.getAllByRole('button', { name: /^excluir monthly rent/i })
       await user.click(deleteButtons[0])
 
-      await waitFor(() => screen.getByRole('dialog'))
+      await waitFor(() => screen.getByRole('alertdialog'))
 
       // As ocorrências ficam canceladas, não são removidas.
       expect(screen.getByText(/ocorrências pagas são mantidas/i)).toBeTruthy()
@@ -261,13 +261,13 @@ describe('RecurrencesPage', () => {
 
       await waitFor(() => screen.getByText(MOCK_RECURRENCE_1.description))
 
-      const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
+      const deleteButtons = screen.getAllByRole('button', { name: /^excluir monthly rent/i })
       await user.click(deleteButtons[0])
 
-      await waitFor(() => screen.getByRole('dialog'))
+      await waitFor(() => screen.getByRole('alertdialog'))
       await user.click(screen.getByRole('button', { name: /excluir regra/i }))
 
-      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
       await waitFor(() => expect(screen.queryByText(MOCK_RECURRENCE_1.description)).toBeNull())
     })
   })

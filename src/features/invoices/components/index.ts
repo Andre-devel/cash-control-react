@@ -1,1 +1,5 @@
 export * from './edit-invoice-item-dialog'
+export * from './invoice-status-badge'
+export * from './invoice-item-row'
+export * from './invoice-history-list'
+export * from './invoice-filter-tabs'
