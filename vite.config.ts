@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => ({
         enabled: true,
         type: 'module',
       },
-      includeAssets: ['favicon.ico'],
+      includeAssets: ['favicon.ico', 'favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'Cash Control',
         short_name: 'Cash Control',
