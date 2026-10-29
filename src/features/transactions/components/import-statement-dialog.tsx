@@ -483,6 +483,7 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
                   type="button"
                   size="sm"
                   variant="ghost"
+                  className="h-auto min-h-touch whitespace-normal py-2 text-left"
                   onClick={handleCreateInvestmentAccount}
                   disabled={isCreatingAccount || isAnalyzing}
                 >

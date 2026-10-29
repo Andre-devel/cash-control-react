@@ -11,6 +11,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ActionMenu } from '@/components/ui/action-menu'
 import { Money } from '@/components/ui/money'
 import { Modal } from '@/components/ui/modal'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -566,7 +567,7 @@ export default function TransactionsPage() {
     <div className="flex flex-col gap-4">
       {/* Cabeçalho */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-[13rem] flex-1">
           <h1 className="font-display text-h1 font-extrabold">Transações</h1>
           <p className="mt-1 text-body-sm text-fg-muted">
             {totalElements} {totalElements === 1 ? 'transação' : 'transações'} ·{' '}
@@ -574,7 +575,26 @@ export default function TransactionsPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {/* Tablet (768–1279): ações secundárias no ⋯ para não espremer o título. */}
+          {!isMobile && (
+            <span className="xl:hidden">
+              <ActionMenu
+                label="Mais ações de transações"
+                items={[
+                  ...(totalElements > 0 && !exporting
+                    ? [{ label: 'Exportar', onSelect: () => void handleExport() }]
+                    : []),
+                  { label: 'Corrigir importações', onSelect: () => setReconcileOpen(true) },
+                  {
+                    label: 'Lançar comprovante',
+                    onSelect: () => receiptInputRef.current?.click(),
+                  },
+                ]}
+              />
+            </span>
+          )}
           <Button
+            className={isMobile ? undefined : 'hidden xl:inline-flex'}
             leading={<Download size={16} aria-hidden="true" />}
             disabled={exporting || totalElements === 0}
             loading={exporting}
@@ -585,6 +605,7 @@ export default function TransactionsPage() {
           </Button>
           {!isMobile && (
             <Button
+              className="hidden xl:inline-flex"
               leading={<History size={16} aria-hidden="true" />}
               onClick={() => setReconcileOpen(true)}
             >
@@ -600,6 +621,7 @@ export default function TransactionsPage() {
           </Button>
           {!isMobile && (
             <Button
+              className="hidden xl:inline-flex"
               leading={<ScanLine size={16} aria-hidden="true" />}
               onClick={() => receiptInputRef.current?.click()}
             >
