@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import { precacheAndRoute } from 'workbox-precaching'
 import { stashSharedFile } from '@/app/pwa/shared-file-store'
+import { createBankNotifications, type BankPush } from '@/app/pwa/bank-notifications'
 
 declare const self: ServiceWorkerGlobalScope & {
   // Placeholder que o build do vite-plugin-pwa substitui pela lista real de assets
@@ -46,4 +47,26 @@ self.addEventListener('fetch', (event) => {
       return Response.redirect(new URL(`${SHARE_TARGET_PATH}?ready=1`, self.location.origin), 303)
     })(),
   )
+})
+
+// ── Notificações de lançamento do banco (etapa 6A) ───────────────────────────
+// A lógica fica em bank-notifications.ts, testável fora do service worker.
+
+const notifications = createBankNotifications({
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '',
+  origin: self.location.origin,
+  fetch: (input, init) => fetch(input, init),
+  showNotification: (title, options) => self.registration.showNotification(title, options),
+  clients: self.clients,
+})
+
+self.addEventListener('push', (event) => {
+  const data = event.data?.json() as BankPush | undefined
+  if (data) event.waitUntil(notifications.show(data))
+})
+
+self.addEventListener('notificationclick', (event) => {
+  const data = event.notification.data as BankPush | undefined
+  event.notification.close()
+  event.waitUntil(notifications.click(event.action, data))
 })

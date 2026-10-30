@@ -4,6 +4,7 @@ import { useAuthStore } from '@/features/auth/store/auth.store'
 import { VersionInfo } from '@/features/version'
 import { resolveTheme } from '@/styles/theme/dark-mode'
 import { visibleSections } from './nav-config'
+import { NavBadge } from './nav-badge'
 import { userInitials } from './user-initials'
 
 /**
@@ -45,6 +46,7 @@ export function Sidebar() {
               >
                 <item.icon size={20} className="ico" aria-hidden="true" />
                 <span className="nav-label">{item.label}</span>
+                <NavBadge badge={item.badge} />
               </NavLink>
             ))}
           </div>

@@ -28,6 +28,8 @@ export const ROUTES = {
   INVOICES: '/invoices',
   INVOICE_DETAIL: '/invoices/:invoiceId',
   PROFILE: '/profile',
+  /** Fila de lançamentos avisados pelo banco; a notificação do celular abre aqui. */
+  BANK_REVIEW: '/revisar',
   /** Destino do Web Share Target (manifest `share_target.action`) e do link manual. */
   SHARE_TARGET: '/share-target',
 } as const

@@ -6,6 +6,7 @@ import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
 import { TRANSACTIONS_QUERY_KEY } from './use-transactions'
 import { ACCOUNTS_QUERY_KEY } from '@/features/accounts/hooks/use-accounts'
 import { CARDS_QUERY_KEY } from '@/features/cards/hooks/use-cards'
+import { BANK_PENDING_QUERY_KEY } from '@/features/bank-connections/hooks/use-bank-pending'
 import type { ImportCommitRequest, ImportResultResponse } from '@/features/transactions/types'
 import type { NormalizedError } from '@/features/auth/types'
 
@@ -21,6 +22,8 @@ export function useCommitStatementImport() {
         TRANSACTIONS_QUERY_KEY,
         ACCOUNTS_QUERY_KEY,
         CARDS_QUERY_KEY,
+        // O que veio do banco sai da fila de revisão.
+        BANK_PENDING_QUERY_KEY,
       ])
 
       const parts = [`${result.imported} transações importadas`]

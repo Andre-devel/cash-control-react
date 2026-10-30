@@ -13,6 +13,7 @@ import {
   UserRound,
   ScrollText,
   ShieldCheck,
+  Inbox,
 } from 'lucide-react'
 import { ROUTES } from '@/app/router/routes'
 
@@ -28,6 +29,8 @@ export interface NavItem {
   end?: boolean
   /** Basta uma das permissões (mesma regra do PermissionGuard da rota). */
   anyPermission?: string[]
+  /** Contagem ao lado do rótulo; só o selo da fila do banco existe hoje. */
+  badge?: 'bank-pending'
 }
 
 export interface NavSection {
@@ -56,6 +59,13 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'investments', label: 'Investimentos', icon: PiggyBank, path: ROUTES.INVESTMENTS },
       { id: 'cards', label: 'Cartões', icon: CreditCard, path: ROUTES.CARDS },
       { id: 'invoices', label: 'Faturas', icon: ReceiptText, path: ROUTES.INVOICES },
+      {
+        id: 'bank-review',
+        label: 'Revisar',
+        icon: Inbox,
+        path: ROUTES.BANK_REVIEW,
+        badge: 'bank-pending',
+      },
     ],
   },
   {

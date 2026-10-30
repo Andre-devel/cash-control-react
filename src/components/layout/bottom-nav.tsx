@@ -8,6 +8,7 @@ import { useInstallPrompt } from '@/app/pwa/use-install-prompt'
 import type { Theme } from '@/styles/theme/dark-mode'
 import { BOTTOM_NAV_IDS, findNavItem, visibleSections } from './nav-config'
 import { QuickActionsFab } from './quick-actions'
+import { NavBadge } from './nav-badge'
 
 const THEME_OPTIONS: Array<{ value: Theme; label: string; icon: typeof Sun }> = [
   { value: 'light', label: 'Claro', icon: Sun },
@@ -42,6 +43,7 @@ function MoreSheet({ onClose }: { onClose: () => void }) {
                 >
                   <item.icon size={22} aria-hidden="true" />
                   <span>{item.label}</span>
+                  <NavBadge badge={item.badge} />
                 </NavLink>
               ))}
             </div>
@@ -129,6 +131,7 @@ export function BottomNav() {
         >
           <Ellipsis size={22} aria-hidden="true" />
           <span>Mais</span>
+          <NavBadge badge="bank-pending" />
         </button>
       </nav>
       {moreOpen && <MoreSheet onClose={() => setMoreOpen(false)} />}

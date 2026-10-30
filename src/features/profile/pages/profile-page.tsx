@@ -11,6 +11,7 @@ import { useUpdateProfile } from '@/features/profile/hooks/use-update-profile'
 import { ConsentHistorySection } from '@/features/profile/components/consent-history-section'
 import { ChangePasswordSection } from '@/features/profile/components/change-password-section'
 import { BankConnectionsSection } from '@/features/bank-connections/components/bank-connections-section'
+import { NotificationsSection } from '@/features/bank-connections/components/notifications-section'
 import { useAuthStore } from '@/features/auth/store/auth.store'
 import { getFrontendVersion } from '@/features/version/utils'
 import { useInstallPrompt } from '@/app/pwa/use-install-prompt'
@@ -237,6 +238,8 @@ export default function ProfilePage() {
         </div>
 
         <BankConnectionsSection />
+
+        <NotificationsSection />
 
         <section className="flex flex-col gap-2.5" aria-labelledby="consent-history-title">
           <h2 id="consent-history-title" className="font-display text-h2 text-fg">

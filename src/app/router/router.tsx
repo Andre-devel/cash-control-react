@@ -37,6 +37,7 @@ const CardDetailPage = lazy(() => import('@/features/cards/pages/card-detail-pag
 const InvoicesPage = lazy(() => import('@/features/invoices/pages/invoices-page'))
 const InvoiceDetailPage = lazy(() => import('@/features/invoices/pages/invoice-detail-page'))
 const ProfilePage = lazy(() => import('@/features/profile/pages/profile-page'))
+const BankReviewPage = lazy(() => import('@/features/bank-connections/pages/bank-review-page'))
 const AuditPage = lazy(() => import('@/features/audit/pages/audit-page'))
 const ShareTargetPage = lazy(() => import('@/features/transactions/pages/share-target-page'))
 
@@ -248,6 +249,14 @@ export const routeConfig: RouteObject[] = [
                 element: (
                   <Suspense fallback={<PageLoader />}>
                     <ProfilePage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.BANK_REVIEW,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <BankReviewPage />
                   </Suspense>
                 ),
               },

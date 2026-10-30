@@ -1,3 +1,5 @@
+import type { ImportPreviewRow } from '@/features/transactions/types'
+
 export type BankAccountKind = 'BANK' | 'CREDIT'
 
 export interface BankConnectionAccount {
@@ -31,4 +33,44 @@ export interface BankConnectionsResponse {
 export interface LinkBankAccountRequest {
   accountId: string | null
   creditCardId: string | null
+}
+
+/** Lançamento que o banco avisou e ainda não foi confirmado, classificado como na prévia do import. */
+export interface BankPendingItem {
+  id: string
+  accountId: string
+  accountName: string
+  row: ImportPreviewRow
+}
+
+export interface BankPendingConfirmResponse {
+  description: string
+  categoryName: string | null
+}
+
+export interface BankPendingConfirmAllResponse {
+  confirmed: number
+  /** Ficaram na fila: possíveis duplicatas e linhas que falharam. */
+  skipped: number
+}
+
+export interface PushConfig {
+  enabled: boolean
+  /** Chave VAPID (base64url) com que o navegador se inscreve. */
+  publicKey: string | null
+}
+
+export interface PushDevice {
+  endpoint: string
+  deviceLabel: string | null
+  hideAmounts: boolean
+  createdAt: string
+}
+
+export interface PushSubscribeRequest {
+  endpoint: string
+  p256dh: string
+  auth: string
+  deviceLabel: string
+  hideAmounts: boolean
 }
