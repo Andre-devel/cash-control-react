@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Copy, CreditCard, Undo2 } from 'lucide-react'
+import { AlertTriangle, Copy, CreditCard, Landmark, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
@@ -14,7 +14,12 @@ import {
   EditableCategoryCell,
   EditableTextCell,
 } from '@/features/transactions/components/import-editable-cell'
-import { useFaturaImportPreview } from '@/features/cards/hooks/use-fatura-import-preview'
+import {
+  useBankBills,
+  useBankFaturaPreview,
+  useFaturaImportPreview,
+} from '@/features/cards/hooks/use-fatura-import-preview'
+import { useBankConnections } from '@/features/bank-connections/hooks/use-bank-connections'
 import { useFaturaImportDuplicates } from '@/features/cards/hooks/use-fatura-import-duplicates'
 import { useCommitFaturaImport } from '@/features/cards/hooks/use-commit-fatura-import'
 import {
@@ -28,6 +33,7 @@ import {
 } from '@/features/cards/types'
 import { invoiceLabel } from '@/features/cards/utils/invoice-month'
 import { formatLocalDate } from '@/lib/format-date'
+import { formatMoney } from '@/lib/money'
 
 /** "1 de 2 · Conta e arquivo" — o mesmo indicador de passo da importação de extrato. */
 function StepLabel({ step, title }: { step: 1 | 2; title: string }) {
@@ -64,6 +70,71 @@ function SummaryTile({
   )
 }
 
+/**
+ * Cartão conectado ao banco: escolhe uma das faturas fechadas e busca a prévia de lá, sem
+ * PDF. As faturas são lidas na Pluggy quando o bloco aparece.
+ */
+function BankFaturaPicker({
+  cardId,
+  cardName,
+  disabled,
+  loading,
+  onFetch,
+}: {
+  cardId: string
+  cardName: string
+  disabled: boolean
+  loading: boolean
+  onFetch: (billId: string) => void
+}) {
+  const { data: bills = [], isLoading, isError } = useBankBills(cardId)
+  const [billId, setBillId] = useState('')
+  const chosen = billId || bills[0]?.billId || ''
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface-2 px-3.5 py-3 text-body-sm">
+      <span>
+        O cartão <strong>{cardName}</strong> está conectado ao banco. Busque uma fatura fechada
+        direto de lá, sem PDF.
+      </span>
+      {isError ? (
+        <span className="text-caption text-fg-muted">
+          Não foi possível ler as faturas no banco agora.
+        </span>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            aria-label={`Fatura do banco do cartão ${cardName}`}
+            value={chosen}
+            onChange={(e) => setBillId(e.target.value)}
+            disabled={isLoading || bills.length === 0}
+          >
+            {isLoading && <option value="">Carregando faturas…</option>}
+            {!isLoading && bills.length === 0 && <option value="">Nenhuma fatura fechada</option>}
+            {bills.map((bill) => (
+              <option key={bill.billId} value={bill.billId}>
+                {`Vence em ${formatLocalDate(bill.dueDate)}`}
+                {bill.totalAmount ? ` · ${formatMoney(bill.totalAmount)}` : ''}
+              </option>
+            ))}
+          </Select>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            leading={<Landmark size={16} aria-hidden="true" />}
+            loading={loading}
+            disabled={disabled || !chosen}
+            onClick={() => onFetch(chosen)}
+          >
+            Buscar do banco
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface ImportFaturaDialogProps {
   open: boolean
   onClose: () => void
@@ -83,6 +154,20 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   const { data: allAccounts = [] } = useAccounts()
   const accounts = useMemo(() => allAccounts.filter((a) => !a.archivedAt), [allAccounts])
   const { data: categories = [] } = useCategories()
+  const { data: bankConnections } = useBankConnections()
+  /** Cartões do app vinculados a um cartão do banco: só eles oferecem "Buscar do banco". */
+  const linkedCards = useMemo(() => {
+    const linked = new Set(
+      bankConnections?.enabled
+        ? bankConnections.connections.flatMap((connection) =>
+            connection.accounts.flatMap((account) =>
+              account.creditCardId ? [account.creditCardId] : [],
+            ),
+          )
+        : [],
+    )
+    return cards.filter((card) => linked.has(card.id))
+  }, [bankConnections, cards])
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [format, setFormat] = useState<InvoiceImportFormat>('INTER_FATURA_PDF')
@@ -94,6 +179,8 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
    */
   const [accountId, setAccountId] = useState('')
   const [preview, setPreview] = useState<FaturaImportPreviewResponse | null>(null)
+  /** De onde veio a prévia em tela: o PDF enviado ou o banco (Pluggy). */
+  const [source, setSource] = useState<'file' | 'bank'>('file')
   /**
    * A fatura já foi paga na vida real (importação de histórico). Quando marcado, o servidor
    * grava a fatura do mês como paga; as compras seguem pendentes e o saldo da conta não se
@@ -111,7 +198,9 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   /** Descrições reescritas pelo usuário, também por `externalRef`. */
   const [descriptionEdits, setDescriptionEdits] = useState<Record<string, string>>({})
 
-  const { mutate: analyze, isPending: isAnalyzing } = useFaturaImportPreview()
+  const { mutate: analyzeFile, isPending: isAnalyzingFile } = useFaturaImportPreview()
+  const { mutate: fetchFromBank, isPending: isFetchingFromBank } = useBankFaturaPreview()
+  const isAnalyzing = isAnalyzingFile || isFetchingFromBank
   const { mutate: commit, isPending: isImporting } = useCommitFaturaImport()
 
   /**
@@ -177,6 +266,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
     setFile(null)
     setAccountId('')
     setPreview(null)
+    setSource('file')
     setAlreadyPaid(false)
     setSelected(new Set())
     setCardByGroup({})
@@ -275,30 +365,50 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
       ?.focus()
   }
 
+  function showPreview(result: FaturaImportPreviewResponse) {
+    appliedDuplicates.current = {}
+    setPreview(result)
+    // Duplicatas já entraram numa importação anterior, e a possível duplicata pode ser a
+    // mesma compra vinda por outro caminho: as duas vêm desmarcadas para que confirmar sem
+    // revisar não seja um caminho para duplicar a fatura.
+    setSelected(
+      new Set(
+        result.groups.flatMap((group) =>
+          group.rows
+            .filter((row) => !row.duplicate && !row.possibleDuplicate)
+            .map((row) => row.externalRef),
+        ),
+      ),
+    )
+    setCardByGroup(
+      Object.fromEntries(
+        result.groups
+          .filter((group) => group.suggestedCreditCardId !== null)
+          .map((group) => [group.cardLast4, group.suggestedCreditCardId as string]),
+      ),
+    )
+  }
+
   function handleAnalyze() {
     if (!file) return
-    analyze(
+    analyzeFile(
       { file, format },
       {
         onSuccess: (result) => {
-          appliedDuplicates.current = {}
-          setPreview(result)
-          // Duplicatas já entraram numa importação anterior: vêm desmarcadas para que
-          // confirmar sem revisar não seja um caminho para duplicar a fatura.
-          setSelected(
-            new Set(
-              result.groups.flatMap((group) =>
-                group.rows.filter((row) => !row.duplicate).map((row) => row.externalRef),
-              ),
-            ),
-          )
-          setCardByGroup(
-            Object.fromEntries(
-              result.groups
-                .filter((group) => group.suggestedCreditCardId !== null)
-                .map((group) => [group.cardLast4, group.suggestedCreditCardId as string]),
-            ),
-          )
+          setSource('file')
+          showPreview(result)
+        },
+      },
+    )
+  }
+
+  function handleFetchFromBank(cardId: string, billId: string) {
+    fetchFromBank(
+      { cardId, billId },
+      {
+        onSuccess: (result) => {
+          setSource('bank')
+          showPreview(result)
         },
       },
     )
@@ -384,7 +494,13 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
     )
 
     commit(
-      { format, referenceMonth: preview.referenceMonth, accountId, rows, alreadyPaid },
+      {
+        format: source === 'bank' ? 'OPEN_FINANCE' : format,
+        referenceMonth: preview.referenceMonth,
+        accountId,
+        rows,
+        alreadyPaid,
+      },
       { onSuccess: handleClose },
     )
   }
@@ -464,7 +580,8 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
             em {formatLocalDate(preview.dueDate)}
             {preview.totalAmount && (
               <>
-                {' · '}total no PDF: <Money value={Number(preview.totalAmount)} />
+                {' · '}total {source === 'bank' ? 'no banco' : 'no PDF'}:{' '}
+                <Money value={Number(preview.totalAmount)} />
               </>
             )}
           </div>
@@ -524,9 +641,10 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
               role="note"
               className="rounded-xl border border-info/30 bg-info-soft p-3 text-body-sm text-fg"
             >
-              A soma dos lançamentos lidos (<Money value={readTotal} />) difere do total do PDF em{' '}
-              <Money value={pdfDifference} />. Costuma ser saldo anterior, juros, IOF ou encargos,
-              que não viram lançamento; se não for o caso, confira as linhas não lidas.
+              A soma dos lançamentos lidos (<Money value={readTotal} />) difere do total{' '}
+              {source === 'bank' ? 'do banco' : 'do PDF'} em <Money value={pdfDifference} />.
+              Costuma ser saldo anterior, juros, IOF ou encargos, que não viram lançamento; se não
+              for o caso, confira as linhas não lidas.
             </div>
           )}
 
@@ -677,6 +795,16 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
                               </Badge>
                             </>
                           )}
+                          {!isDuplicate(group, row) && row.possibleDuplicate && (
+                            <>
+                              {' '}
+                              <span title="A fatura deste mês já tem uma cobrança que parece esta, vinda de outra origem. Marque só se for outra compra.">
+                                <Badge kind="pending" square dot={false}>
+                                  possível duplicata
+                                </Badge>
+                              </span>
+                            </>
+                          )}
                         </td>
                         <td className="cell-meta text-fg-muted">
                           {!row.refund && row.installmentNumber && row.totalInstallments ? (
@@ -751,6 +879,17 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
               ))}
             </Select>
           </Field>
+
+          {linkedCards.map((card) => (
+            <BankFaturaPicker
+              key={card.id}
+              cardId={card.id}
+              cardName={card.name}
+              disabled={isAnalyzing || !accountId}
+              loading={isFetchingFromBank}
+              onFetch={(billId) => handleFetchFromBank(card.id, billId)}
+            />
+          ))}
 
           <Field label="Formato da fatura" required>
             <Select

@@ -1,5 +1,6 @@
 import { axiosInstance } from '@/services/http'
 import type {
+  BankBill,
   FaturaImportCommitRequest,
   FaturaImportDuplicateCheckRequest,
   FaturaImportDuplicateCheckResponse,
@@ -27,6 +28,25 @@ export async function previewFaturaImport(
     '/cards/invoices/import/preview',
     formData,
     { params: { format }, headers: { 'Content-Type': undefined } },
+  )
+  return response.data
+}
+
+/** Faturas fechadas do cartão do banco vinculado a este cartão, da mais recente para a mais antiga. */
+export async function listBankBills(cardId: string): Promise<BankBill[]> {
+  const response = await axiosInstance.get<BankBill[]>(`/cards/${cardId}/bank-bills`)
+  return response.data
+}
+
+/** Mesma prévia do PDF, com a fatura `billId` buscada no banco (Pluggy). */
+export async function previewBankFatura(
+  cardId: string,
+  billId: string,
+): Promise<FaturaImportPreviewResponse> {
+  const response = await axiosInstance.post<FaturaImportPreviewResponse>(
+    `/cards/${cardId}/invoices/import/bank-preview`,
+    null,
+    { params: { billId } },
   )
   return response.data
 }

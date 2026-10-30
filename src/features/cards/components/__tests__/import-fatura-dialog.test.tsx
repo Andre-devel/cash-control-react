@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen, waitFor, cleanup, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { http, HttpResponse } from 'msw'
+import { server } from '@/test/msw/server'
 import { renderWithProviders } from '@/test/utils'
 import {
   resetCardsStore,
@@ -75,6 +77,7 @@ function previewWithRepeatedMerchant(): FaturaImportPreviewResponse {
     suggestionSource: 'NONE',
     duplicate: false,
     refund: false,
+    possibleDuplicate: false,
   })
 
   return {
@@ -714,5 +717,95 @@ describe('ImportFaturaDialog', () => {
     const rows = getLastFaturaCommit()!.rows
     expect(rows.find((row) => row.externalRef === 'ref-sorvete-1')?.categoryId).toBe('cat-3')
     expect(rows.find((row) => row.externalRef === 'ref-sorvete-2')?.categoryId).toBe('cat-3')
+  })
+})
+
+describe('ImportFaturaDialog — fetching from the bank', () => {
+  function linkCard1() {
+    server.use(
+      http.get('*/bank-connections', () =>
+        HttpResponse.json({
+          enabled: true,
+          connections: [
+            {
+              id: 'conn-1',
+              itemId: 'item-1',
+              connectorName: 'MeuPluggy',
+              status: 'UPDATED',
+              statusDetail: null,
+              lastSyncedAt: null,
+              accounts: [
+                {
+                  id: 'ba-1',
+                  kind: 'CREDIT',
+                  name: 'GOLD',
+                  number: '7866',
+                  accountId: null,
+                  creditCardId: 'card-1',
+                },
+              ],
+            },
+          ],
+        }),
+      ),
+      http.get('*/cards/card-1/bank-bills', () =>
+        HttpResponse.json([
+          { billId: 'bill-08', dueDate: '2026-08-07', totalAmount: '1617.29' },
+          { billId: 'bill-07', dueDate: '2026-07-07', totalAmount: '2241.47' },
+        ]),
+      ),
+    )
+  }
+
+  it('is not offered without a linked card', async () => {
+    renderDialog()
+    await screen.findByRole('option', { name: 'Nubank' })
+    expect(screen.queryByRole('button', { name: /buscar do banco/i })).not.toBeInTheDocument()
+  })
+
+  it('fetches the chosen bill, leaves possible duplicates unchecked and commits as OPEN_FINANCE', async () => {
+    linkCard1()
+    let requestedBill: string | null = null
+    const base = previewWithRepeatedMerchant()
+    server.use(
+      http.post('*/cards/card-1/invoices/import/bank-preview', ({ request }) => {
+        requestedBill = new URL(request.url).searchParams.get('billId')
+        return HttpResponse.json({
+          ...base,
+          fileName: null,
+          format: 'OPEN_FINANCE',
+          groups: [
+            {
+              ...base.groups[0]!,
+              rows: [
+                base.groups[0]!.rows[0]!,
+                { ...base.groups[0]!.rows[1]!, possibleDuplicate: true },
+              ],
+            },
+          ],
+        })
+      }),
+    )
+    const user = userEvent.setup()
+    renderDialog()
+
+    const bills = await screen.findByRole('combobox', { name: /fatura do banco do cartão/i })
+    await screen.findByRole('option', { name: /vence em 07\/07\/2026/i })
+    await user.selectOptions(bills, 'bill-07')
+    const fetch = screen.getByRole('button', { name: /buscar do banco/i })
+    expect(fetch).toBeDisabled()
+
+    await chooseAccount(user)
+    await user.click(fetch)
+
+    expect(await screen.findByText('possível duplicata')).toBeInTheDocument()
+    expect(requestedBill).toBe('bill-07')
+    expect(screen.getByText(/total no banco/i)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /importar 1 lançamentos/i }))
+
+    await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
+    expect(getLastFaturaCommit()!.format).toBe('OPEN_FINANCE')
+    expect(getLastFaturaCommit()!.rows.map((row) => row.externalRef)).toEqual(['ref-sorvete-1'])
   })
 })

@@ -116,6 +116,16 @@ export const INVOICE_IMPORT_FORMAT_LABELS: Record<InvoiceImportFormat, string> =
   INTER_FATURA_PDF: 'Banco Inter (PDF da fatura)',
 }
 
+/** Origem da fatura importada: um formato de arquivo, ou o banco direto (Pluggy). */
+export type InvoiceImportSource = InvoiceImportFormat | 'OPEN_FINANCE'
+
+/** Fatura fechada do cartão no banco, para escolher qual importar. */
+export interface BankBill {
+  billId: string
+  dueDate: string
+  totalAmount: string | null
+}
+
 export interface FaturaImportRowError {
   lineNumber: number
   message: string
@@ -161,6 +171,11 @@ export interface FaturaImportPreviewRow {
   duplicate: boolean
   /** Crédito na fatura que não é o pagamento dela: vira estorno e abate o total. */
   refund: boolean
+  /**
+   * A fatura do mês já tem uma cobrança que pode ser esta, vinda de outra origem (PDF ×
+   * banco, ou digitada): mesma parcela com valor próximo, ou mesmo valor no mesmo dia.
+   */
+  possibleDuplicate: boolean
 }
 
 /**
@@ -176,8 +191,9 @@ export interface FaturaImportGroupPreview {
 }
 
 export interface FaturaImportPreviewResponse {
-  fileName: string
-  format: InvoiceImportFormat
+  /** `null` quando a fatura veio do banco. */
+  fileName: string | null
+  format: InvoiceImportSource
   dueDate: string
   referenceMonth: string
   totalAmount: string | null
@@ -228,7 +244,7 @@ export interface FaturaImportCommitRow {
 }
 
 export interface FaturaImportCommitRequest {
-  format: InvoiceImportFormat
+  format: InvoiceImportSource
   referenceMonth: string
   /** Conta que recebe as transações de cartão — uma só para o arquivo inteiro. */
   accountId: string
