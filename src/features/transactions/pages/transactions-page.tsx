@@ -739,7 +739,7 @@ export default function TransactionsPage() {
           setReconcileOpen(true)
         }}
       />
-      <ImportReconciliationDialog open={reconcileOpen} onClose={() => setReconcileOpen(false)} />
+      {reconcileOpen && <ImportReconciliationDialog open onClose={() => setReconcileOpen(false)} />}
       {receiptFile && (
         <ReceiptReviewDialog open file={receiptFile} onClose={() => setReceiptFile(null)} />
       )}

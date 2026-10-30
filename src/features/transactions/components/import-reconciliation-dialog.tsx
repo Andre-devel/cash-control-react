@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { CircleCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
@@ -46,19 +46,17 @@ export function ImportReconciliationDialog({ open, onClose }: ImportReconciliati
   const { data, isLoading, isError, refetch } = useImportReconciliation(open)
   const { mutate: apply, isPending } = useApplyImportReconciliation()
   const { mutate: createAccount, isPending: isCreatingAccount } = useCreateAccount()
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-
-  // Tudo marcado ao chegar a análise: o usuário desmarca o que não quiser.
-  useEffect(() => {
-    if (data) setSelected(new Set(data.proposals.map(keyOf)))
-  }, [data])
+  // Guarda o que foi desmarcado, não o que está marcado: assim tudo já chega marcado
+  // no primeiro render com a análise, sem um render intermediário com 0 selecionadas.
+  const [deselected, setDeselected] = useState<Set<string>>(new Set())
 
   if (!open) return null
 
   const proposals = data?.proposals ?? []
+  const selected = new Set(proposals.map(keyOf).filter((key) => !deselected.has(key)))
 
   function toggle(proposal: ReconciliationProposal) {
-    setSelected((current) => {
+    setDeselected((current) => {
       const next = new Set(current)
       const key = keyOf(proposal)
       if (next.has(key)) next.delete(key)
