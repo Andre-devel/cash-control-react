@@ -8,6 +8,8 @@ export default defineConfig({
     environment: './src/test/environments/jsdom-node-fetch.ts',
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
+    // Acima do asyncUtilTimeout (src/test/setup.ts) para um findBy lento não estourar o teste inteiro.
+    testTimeout: 15000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
