@@ -17,6 +17,7 @@ export const ROUTES = {
   FORBIDDEN: '/forbidden',
   ACCOUNTS: '/accounts',
   ACCOUNT_DETAIL: '/accounts/:id',
+  INVESTMENTS: '/investments',
   TRANSACTIONS: '/transactions',
   TRANSACTION_DETAIL: '/transactions/:id',
   INSTALLMENTS: '/installments',

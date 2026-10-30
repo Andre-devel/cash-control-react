@@ -49,10 +49,14 @@ describe('TransactionsPage', () => {
 
   it('renders active transactions after loading (cancelled hidden by default)', async () => {
     renderWithProviders(<TransactionsPage />)
-    await waitFor(() => {
-      expect(screen.getByText(MOCK_TRANSACTION_1.description)).toBeTruthy()
-      expect(screen.getByText(MOCK_TRANSACTION_2.description)).toBeTruthy()
-    })
+    // Primeiro render do arquivo: com a suíte inteira em paralelo, passa de 1 s às vezes.
+    await waitFor(
+      () => {
+        expect(screen.getByText(MOCK_TRANSACTION_1.description)).toBeTruthy()
+        expect(screen.getByText(MOCK_TRANSACTION_2.description)).toBeTruthy()
+      },
+      { timeout: 5000 },
+    )
     expect(screen.queryByText(MOCK_TRANSACTION_CANCELLED.description)).toBeNull()
   })
 
