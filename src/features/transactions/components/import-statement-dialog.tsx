@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '@/app/router/routes'
-import { Info } from 'lucide-react'
+import { Info, Landmark } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Field } from '@/components/ui/field'
@@ -17,7 +17,11 @@ import {
   EditableTextCell,
   EditableTypeCell,
 } from '@/features/transactions/components/import-editable-cell'
-import { useStatementImportPreview } from '@/features/transactions/hooks/use-statement-import-preview'
+import {
+  useBankStatementPreview,
+  useStatementImportPreview,
+} from '@/features/transactions/hooks/use-statement-import-preview'
+import { useBankConnections } from '@/features/bank-connections/hooks/use-bank-connections'
 import { useCommitStatementImport } from '@/features/transactions/hooks/use-commit-statement-import'
 import {
   STATEMENT_FORMATS,
@@ -107,6 +111,8 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [accountId, setAccountId] = useState('')
   const [format, setFormat] = useState<StatementFormat>('INTER_CSV')
+  /** De onde veio a prévia em tela: o arquivo enviado ou o banco (Pluggy). */
+  const [source, setSource] = useState<'file' | 'bank'>('file')
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<ImportPreviewResponse | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -120,13 +126,31 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
   const [keepCurrentBalance, setKeepCurrentBalance] = useState(false)
   const navigate = useNavigate()
 
-  const { mutate: analyze, isPending: isAnalyzing } = useStatementImportPreview()
+  const { mutate: analyzeFile, isPending: isAnalyzingFile } = useStatementImportPreview()
+  const { mutate: fetchFromBank, isPending: isFetchingFromBank } = useBankStatementPreview()
+  const isAnalyzing = isAnalyzingFile || isFetchingFromBank
+  const { data: bankConnections } = useBankConnections()
+  /** Contas do app vinculadas a uma conta do banco: só elas oferecem "Buscar do banco". */
+  const linkedAccountIds = useMemo(
+    () =>
+      new Set(
+        bankConnections?.enabled
+          ? bankConnections.connections.flatMap((connection) =>
+              connection.accounts.flatMap((account) =>
+                account.accountId ? [account.accountId] : [],
+              ),
+            )
+          : [],
+      ),
+    [bankConnections],
+  )
   const { mutate: commit, isPending: isImporting } = useCommitStatementImport()
   const { mutate: createAccount, isPending: isCreatingAccount } = useCreateAccount()
 
   function reset() {
     setAccountId('')
     setFormat('INTER_CSV')
+    setSource('file')
     setFile(null)
     setPreview(null)
     setSelected(new Set())
@@ -309,22 +333,42 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
     onClose()
   }
 
+  function showPreview(result: ImportPreviewResponse) {
+    setPreview(result)
+    setKeepCurrentBalance(result.keepCurrentBalanceSuggested)
+    // Duplicatas já entraram numa importação anterior, e a possível duplicata pode ser o
+    // mesmo lançamento vindo por outro caminho: as duas vêm desmarcadas para que confirmar
+    // sem revisar não seja um caminho para duplicar a base.
+    setSelected(
+      new Set(
+        result.rows
+          .filter((row) => !row.duplicate && !row.possibleDuplicate)
+          .map((row) => row.externalRef),
+      ),
+    )
+  }
+
   function handleAnalyze() {
     if (!file || !accountId) return
-    analyze(
+    analyzeFile(
       { file, accountId, format },
       {
         onSuccess: (result) => {
-          setPreview(result)
-          setKeepCurrentBalance(result.keepCurrentBalanceSuggested)
-          // Duplicatas já entraram numa importação anterior: vêm desmarcadas para
-          // que confirmar sem revisar não seja um caminho para duplicar a base.
-          setSelected(
-            new Set(result.rows.filter((row) => !row.duplicate).map((row) => row.externalRef)),
-          )
+          setSource('file')
+          showPreview(result)
         },
       },
     )
+  }
+
+  function handleFetchFromBank() {
+    if (!accountId) return
+    fetchFromBank(accountId, {
+      onSuccess: (result) => {
+        setSource('bank')
+        showPreview(result)
+      },
+    })
   }
 
   function toggleRow(row: ImportPreviewRow) {
@@ -351,7 +395,10 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
 
   /** Aplicações viram transferência só com uma conta de investimento: cria e reanalisa. */
   function handleCreateInvestmentAccount() {
-    createAccount({ name: 'Investimentos', type: 'INVESTMENT' }, { onSuccess: handleAnalyze })
+    createAccount(
+      { name: 'Investimentos', type: 'INVESTMENT' },
+      { onSuccess: source === 'bank' ? handleFetchFromBank : handleAnalyze },
+    )
   }
 
   function handleImport() {
@@ -382,7 +429,15 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
         invoiceId: typeOf(row) === 'INVOICE_PAYMENT' ? invoiceIdOf(row) : null,
       }))
 
-    commit({ accountId, format, rows, keepCurrentBalance }, { onSuccess: handleClose })
+    commit(
+      {
+        accountId,
+        format: source === 'bank' ? 'OPEN_FINANCE' : format,
+        rows,
+        keepCurrentBalance,
+      },
+      { onSuccess: handleClose },
+    )
   }
 
   if (!open) return null
@@ -454,6 +509,12 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
                   {formatLocalDate(preview.periodEnd)}
                 </>
               )}
+            </div>
+          )}
+
+          {source === 'bank' && preview.rows.length === 0 && (
+            <div role="status" className="rounded-lg bg-surface-2 px-3.5 py-2.5 text-body-sm">
+              Nada novo no banco desde a última importação.
             </div>
           )}
 
@@ -639,6 +700,16 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
                             </span>
                           </>
                         )}
+                        {row.possibleDuplicate && (
+                          <>
+                            {' '}
+                            <span title="Já existe nesta conta um lançamento com a mesma data e o mesmo valor, vindo de outra origem. Marque só se for outro lançamento.">
+                              <Badge kind="pending" square dot={false}>
+                                possível duplicata
+                              </Badge>
+                            </span>
+                          </>
+                        )}
                         {row.unknownHistory && (
                           <>
                             {' '}
@@ -732,6 +803,26 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
               ))}
             </Select>
           </Field>
+
+          {linkedAccountIds.has(accountId) && (
+            <div className="flex flex-col items-start gap-2 rounded-lg border border-border bg-surface-2 px-3.5 py-3 text-body-sm">
+              <span>
+                Esta conta está conectada ao banco. Busque os lançamentos novos direto de lá, sem
+                arquivo, ou envie o extrato abaixo.
+              </span>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                leading={<Landmark size={16} aria-hidden="true" />}
+                loading={isFetchingFromBank}
+                disabled={isAnalyzing}
+                onClick={handleFetchFromBank}
+              >
+                Buscar do banco
+              </Button>
+            </div>
+          )}
 
           <Field label="Formato do extrato" required>
             <Select

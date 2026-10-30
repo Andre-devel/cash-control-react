@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen, waitFor, cleanup, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { http, HttpResponse } from 'msw'
+import { server } from '@/test/msw/server'
 import { renderWithProviders } from '@/test/utils'
 import {
   resetTransactionsStore,
@@ -111,6 +113,7 @@ function previewWithRepeatedMerchant(): ImportPreviewResponse {
     invoiceOptions: [],
     investment: false,
     invoicePaymentUnmatched: false,
+    possibleDuplicate: false,
   })
 
   return {
@@ -727,5 +730,120 @@ describe('ImportStatementDialog — edição na prévia', () => {
     await waitFor(() =>
       expect(screen.getByRole('combobox', { name: /categoria da linha 7/i })).toHaveFocus(),
     )
+  })
+
+  describe('fetching from the bank', () => {
+    function linkAccount1() {
+      server.use(
+        http.get('*/bank-connections', () =>
+          HttpResponse.json({
+            enabled: true,
+            connections: [
+              {
+                id: 'conn-1',
+                itemId: 'item-1',
+                connectorName: 'MeuPluggy',
+                status: 'UPDATED',
+                statusDetail: null,
+                lastSyncedAt: null,
+                accounts: [
+                  {
+                    id: 'ba-1',
+                    kind: 'BANK',
+                    name: 'BANCO INTER',
+                    number: '1',
+                    accountId: 'account-1',
+                    creditCardId: null,
+                  },
+                ],
+              },
+            ],
+          }),
+        ),
+      )
+    }
+
+    async function chooseAccount(user: ReturnType<typeof userEvent.setup>, id: string) {
+      await waitFor(() => screen.getByRole('option', { name: 'Nubank' }))
+      await user.selectOptions(screen.getByRole('combobox', { name: /conta de destino/i }), id)
+    }
+
+    it('is offered only for an account linked to the bank', async () => {
+      linkAccount1()
+      const user = userEvent.setup()
+      renderDialog()
+      await chooseAccount(user, 'account-1')
+
+      expect(await screen.findByRole('button', { name: /buscar do banco/i })).toBeInTheDocument()
+
+      await user.selectOptions(screen.getByRole('combobox', { name: /conta de destino/i }), '')
+      expect(screen.queryByRole('button', { name: /buscar do banco/i })).not.toBeInTheDocument()
+    })
+
+    it('opens the same review with possible duplicates unchecked and commits as OPEN_FINANCE', async () => {
+      linkAccount1()
+      const base = previewWithRepeatedMerchant()
+      server.use(
+        http.post('*/transactions/import/bank-preview', () =>
+          HttpResponse.json({
+            ...base,
+            fileName: null,
+            format: 'OPEN_FINANCE',
+            sourceAccountLabel: 'BANCO INTER · 1',
+            totalRows: 2,
+            importableCount: 2,
+            rows: [
+              { ...base.rows[0], externalRef: 'plg:a', description: 'Padaria' },
+              {
+                ...base.rows[1],
+                externalRef: 'plg:b',
+                description: 'Pix Marketplace',
+                possibleDuplicate: true,
+              },
+            ],
+          }),
+        ),
+      )
+      const user = userEvent.setup()
+      const { onClose } = renderDialog()
+      await chooseAccount(user, 'account-1')
+      await user.click(await screen.findByRole('button', { name: /buscar do banco/i }))
+
+      expect(await screen.findByText('possível duplicata')).toBeInTheDocument()
+      expect(screen.getByText(/BANCO INTER · 1/)).toBeInTheDocument()
+      expect(screen.getByRole('checkbox', { name: 'Importar Padaria' })).toBeChecked()
+      expect(screen.getByRole('checkbox', { name: 'Importar Pix Marketplace' })).not.toBeChecked()
+
+      await user.click(screen.getByRole('button', { name: /importar 1 transações/i }))
+      await waitFor(() => expect(onClose).toHaveBeenCalled())
+      const commit = getLastImportCommit()
+      expect(commit!.format).toBe('OPEN_FINANCE')
+      expect(commit!.rows.map((row) => row.externalRef)).toEqual(['plg:a'])
+    })
+
+    it('says so when the bank has nothing new', async () => {
+      linkAccount1()
+      server.use(
+        http.post('*/transactions/import/bank-preview', () =>
+          HttpResponse.json({
+            ...MOCK_IMPORT_PREVIEW,
+            fileName: null,
+            format: 'OPEN_FINANCE',
+            totalRows: 0,
+            importableCount: 0,
+            duplicateCount: 0,
+            warningCount: 0,
+            rows: [],
+          }),
+        ),
+      )
+      const user = userEvent.setup()
+      renderDialog()
+      await chooseAccount(user, 'account-1')
+      await user.click(await screen.findByRole('button', { name: /buscar do banco/i }))
+
+      expect(await screen.findByText(/nada novo no banco/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /importar 0 transações/i })).toBeDisabled()
+    })
   })
 })

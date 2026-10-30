@@ -1,5 +1,8 @@
 import { useMutation } from '@tanstack/react-query'
-import { previewStatementImport } from '@/features/transactions/api/statement-import.api'
+import {
+  previewBankStatement,
+  previewStatementImport,
+} from '@/features/transactions/api/statement-import.api'
 import { toast } from '@/lib/toast'
 import type { ImportPreviewResponse, StatementFormat } from '@/features/transactions/types'
 import type { NormalizedError } from '@/features/auth/types'
@@ -17,6 +20,16 @@ interface PreviewVariables {
 export function useStatementImportPreview() {
   return useMutation<ImportPreviewResponse, NormalizedError, PreviewVariables>({
     mutationFn: ({ file, accountId, format }) => previewStatementImport(file, accountId, format),
+    onError: (error) => {
+      toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
+    },
+  })
+}
+
+/** A prévia a partir do banco (Pluggy) da conta vinculada; também não grava nada. */
+export function useBankStatementPreview() {
+  return useMutation<ImportPreviewResponse, NormalizedError, string>({
+    mutationFn: previewBankStatement,
     onError: (error) => {
       toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)
     },

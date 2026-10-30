@@ -158,9 +158,12 @@ export interface MarkAsPaidRequest {
 
 // ── Importação de extrato ───────────────────────────────────────────────────
 
-/** Espelha `domain/entity/StatementFormat.java`. */
+/** Formatos de arquivo de `domain/entity/StatementFormat.java` (os que têm leitor). */
 export const STATEMENT_FORMATS = ['INTER_CSV'] as const
 export type StatementFormat = (typeof STATEMENT_FORMATS)[number]
+
+/** Origem do extrato: um formato de arquivo ou o banco direto (Pluggy). */
+export type ImportSource = StatementFormat | 'OPEN_FINANCE'
 
 export const STATEMENT_FORMAT_LABELS: Record<StatementFormat, string> = {
   INTER_CSV: 'Banco Inter (CSV)',
@@ -227,6 +230,11 @@ export interface ImportPreviewRow {
   investment: boolean
   /** Parece pagamento de fatura, mas nenhuma fatura com vencimento próximo existe. */
   invoicePaymentUnmatched: boolean
+  /**
+   * A conta já tem lançamento de mesma data e valor vindo de outra origem (arquivo, banco ou
+   * digitado). Pode ser o mesmo fato: a linha vem desmarcada.
+   */
+  possibleDuplicate: boolean
 }
 
 export interface ImportInvoiceOption {
@@ -237,8 +245,9 @@ export interface ImportInvoiceOption {
 }
 
 export interface ImportPreviewResponse {
-  fileName: string
-  format: StatementFormat
+  /** Nulo quando os lançamentos vieram do banco. */
+  fileName: string | null
+  format: ImportSource
   sourceAccountLabel: string | null
   periodStart: string | null
   periodEnd: string | null
@@ -275,7 +284,7 @@ export interface ImportCommitRow {
 
 export interface ImportCommitRequest {
   accountId: string
-  format: StatementFormat
+  format: ImportSource
   rows: ImportCommitRow[]
   /** Compensa o efeito dos lançamentos com um saldo de abertura, sem mudar o saldo atual. */
   keepCurrentBalance?: boolean

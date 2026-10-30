@@ -30,6 +30,16 @@ export async function previewStatementImport(
   return response.data
 }
 
+/** Mesma prévia, com os lançamentos buscados no banco da conta vinculada (Pluggy). */
+export async function previewBankStatement(accountId: string): Promise<ImportPreviewResponse> {
+  const response = await axiosInstance.post<ImportPreviewResponse>(
+    '/transactions/import/bank-preview',
+    null,
+    { params: { accountId } },
+  )
+  return response.data
+}
+
 export async function commitStatementImport(
   data: ImportCommitRequest,
 ): Promise<ImportResultResponse> {
