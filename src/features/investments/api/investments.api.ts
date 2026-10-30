@@ -7,6 +7,7 @@ import type {
   InvestmentSummary,
   ManualValueRequest,
   MarketIndexes,
+  PendingInvestmentTransfer,
   RedeemRequest,
   RedemptionPreviewParams,
   TreasuryBond,
@@ -25,6 +26,13 @@ export async function getMarketIndexes(): Promise<MarketIndexes> {
 
 export async function listTreasuryBonds(): Promise<TreasuryBond[]> {
   const response = await axiosInstance.get<TreasuryBond[]>('/investments/treasury-bonds')
+  return response.data
+}
+
+export async function listPendingTransfers(): Promise<PendingInvestmentTransfer[]> {
+  const response = await axiosInstance.get<PendingInvestmentTransfer[]>(
+    '/investments/pending-transfers',
+  )
   return response.data
 }
 

@@ -13,10 +13,15 @@ import {
 import { AllocationCard } from '@/features/investments/components/allocation-card'
 import { DeleteHoldingDialog } from '@/features/investments/components/delete-holding-dialog'
 import { HoldingDetailDialog } from '@/features/investments/components/holding-detail-dialog'
-import { HoldingFormDialog } from '@/features/investments/components/holding-form-dialog'
+import {
+  HoldingFormDialog,
+  type HoldingPrefill,
+} from '@/features/investments/components/holding-form-dialog'
 import { HoldingsList } from '@/features/investments/components/holdings-list'
 import { ManualValueDialog } from '@/features/investments/components/manual-value-dialog'
 import { MarketStatus } from '@/features/investments/components/market-status'
+import { PendingTransfers } from '@/features/investments/components/pending-transfers'
+import { PickHoldingDialog } from '@/features/investments/components/pick-holding-dialog'
 import { RedeemDialog } from '@/features/investments/components/redeem-dialog'
 import { Segmented } from '@/features/investments/components/segmented'
 import { SummaryCards } from '@/features/investments/components/summary-cards'
@@ -24,8 +29,13 @@ import {
   useHoldings,
   useInvestmentSummary,
   useMarketIndexes,
+  usePendingTransfers,
 } from '@/features/investments/hooks/use-investments'
-import type { FixedIncomeHolding, FixedIncomeStatus } from '@/features/investments/types'
+import type {
+  FixedIncomeHolding,
+  FixedIncomeStatus,
+  PendingInvestmentTransfer,
+} from '@/features/investments/types'
 import { toNumber } from '@/features/investments/utils/labels'
 import { formatLocalDate } from '@/lib/format-date'
 
@@ -40,19 +50,29 @@ export default function InvestmentsPage() {
   const holdings = useHoldings(status)
   const { data: indexes } = useMarketIndexes()
   const { data: accounts = [] } = useAccounts()
+  const { data: pendingTransfers = [] } = usePendingTransfers()
+  const { data: activeHoldings = [] } = useHoldings('ACTIVE')
 
   const [formOpen, setFormOpen] = useState(false)
-  const [prefill, setPrefill] = useState<{ accountId: string; principal: number } | null>(null)
+  const [prefill, setPrefill] = useState<HoldingPrefill | null>(null)
   const [editTarget, setEditTarget] = useState<FixedIncomeHolding | null>(null)
   const [detailTarget, setDetailTarget] = useState<FixedIncomeHolding | null>(null)
   const [redeemTarget, setRedeemTarget] = useState<FixedIncomeHolding | null>(null)
+  /** Resgate do extrato sendo conciliado: escolhe a aplicação, depois o diálogo de resgate. */
+  const [reconcileTarget, setReconcileTarget] = useState<PendingInvestmentTransfer | null>(null)
+  const [pickingHolding, setPickingHolding] = useState(false)
   const [manualTarget, setManualTarget] = useState<FixedIncomeHolding | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<FixedIncomeHolding | null>(null)
 
-  function openCreate(fill: { accountId: string; principal: number } | null = null) {
+  function openCreate(fill: HoldingPrefill | null = null) {
     setPrefill(fill)
     setEditTarget(null)
     setFormOpen(true)
+  }
+
+  function closeRedeem() {
+    setRedeemTarget(null)
+    setReconcileTarget(null)
   }
 
   function closeForm() {
@@ -138,10 +158,27 @@ export default function InvestmentsPage() {
             >
               As aplicações de <strong>{account.accountName}</strong> somam <Money value={-value} />{' '}
               a mais que o saldo da conta. Algum resgate entrou pelo extrato sem ser registrado
-              aqui: use “Resgatar” na aplicação correspondente.
+              aqui: concilie em “Movimentos para registrar” ou use “Resgatar” na aplicação.
             </div>
           )
         })}
+
+        <PendingTransfers
+          transfers={pendingTransfers}
+          onRegister={(transfer) =>
+            openCreate({
+              accountId: transfer.accountId,
+              principal: toNumber(transfer.amount),
+              appliedAt: transfer.date,
+              name: transfer.description,
+              fundingTransferGroupId: transfer.transferGroupId,
+            })
+          }
+          onReconcile={(transfer) => {
+            setReconcileTarget(transfer)
+            setPickingHolding(true)
+          }}
+        />
 
         <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr] lg:gap-5">
           <Panel label="Aplicações" className="order-2 lg:order-1">
@@ -228,10 +265,23 @@ export default function InvestmentsPage() {
         prefill={prefill}
       />
       <HoldingDetailDialog holding={detailTarget} onClose={() => setDetailTarget(null)} />
+      <PickHoldingDialog
+        transfer={pickingHolding ? reconcileTarget : null}
+        holdings={activeHoldings}
+        onPick={(holding) => {
+          setPickingHolding(false)
+          setRedeemTarget(holding)
+        }}
+        onClose={() => {
+          setPickingHolding(false)
+          setReconcileTarget(null)
+        }}
+      />
       <RedeemDialog
         holding={redeemTarget}
         accounts={accounts}
-        onClose={() => setRedeemTarget(null)}
+        transfer={reconcileTarget}
+        onClose={closeRedeem}
       />
       <ManualValueDialog holding={manualTarget} onClose={() => setManualTarget(null)} />
       <DeleteHoldingDialog holding={deleteTarget} onClose={() => setDeleteTarget(null)} />

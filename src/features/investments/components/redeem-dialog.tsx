@@ -12,8 +12,13 @@ import type { Account } from '@/features/accounts/types'
 import { useRedeemHolding } from '@/features/investments/hooks/use-holding-mutations'
 import { useRedemptionPreview } from '@/features/investments/hooks/use-investments'
 import { redeemSchema, type RedeemFormValues } from '@/features/investments/schemas/redeem.schema'
-import type { FixedIncomeHolding, RedemptionPreviewParams } from '@/features/investments/types'
+import type {
+  FixedIncomeHolding,
+  PendingInvestmentTransfer,
+  RedemptionPreviewParams,
+} from '@/features/investments/types'
 import { formatPercent, toNumber } from '@/features/investments/utils/labels'
+import { formatLocalDate } from '@/lib/format-date'
 import { localIsoDate } from '@/lib/local-date'
 import { formatMoney, normalizeMoneyInput } from '@/lib/money'
 
@@ -21,26 +26,29 @@ interface RedeemDialogProps {
   holding: FixedIncomeHolding | null
   accounts: Account[]
   onClose: () => void
+  /** Resgate que já veio do extrato: a transferência dá o líquido e o destino. */
+  transfer?: PendingInvestmentTransfer | null
 }
 
 const STAY = 'STAY'
 
-export function RedeemDialog({ holding, accounts, onClose }: RedeemDialogProps) {
+export function RedeemDialog({ holding, accounts, onClose, transfer }: RedeemDialogProps) {
   if (!holding) return null
-  return <RedeemForm holding={holding} accounts={accounts} onClose={onClose} />
+  return <RedeemForm holding={holding} accounts={accounts} onClose={onClose} transfer={transfer} />
 }
 
 function RedeemForm({
   holding,
   accounts,
   onClose,
+  transfer,
 }: { holding: FixedIncomeHolding } & Omit<RedeemDialogProps, 'holding'>) {
   const destinations = accounts.filter((a) => !a.archivedAt && a.id !== holding.accountId)
   const { mutate: redeem, isPending } = useRedeemHolding()
   const form = useForm<RedeemFormValues>({
     resolver: zodResolver(redeemSchema),
     defaultValues: {
-      date: localIsoDate(),
+      date: transfer?.date ?? localIsoDate(),
       mode: 'TOTAL',
       grossAmount: '',
       destination: destinations.find((a) => a.type === 'CHECKING')?.id ?? STAY,
@@ -75,8 +83,9 @@ function RedeemForm({
           date: values.date,
           total: values.mode === 'TOTAL',
           grossAmount: values.mode === 'PARTIAL' ? normalizeMoneyInput(values.grossAmount) : null,
-          netAmount: values.netAmount ? normalizeMoneyInput(values.netAmount) : null,
-          toAccountId: values.destination === STAY ? null : values.destination,
+          netAmount: !transfer && values.netAmount ? normalizeMoneyInput(values.netAmount) : null,
+          toAccountId: transfer || values.destination === STAY ? null : values.destination,
+          transferGroupId: transfer?.transferGroupId ?? null,
         },
       },
       { onSuccess: () => onClose() },
@@ -183,24 +192,37 @@ function RedeemForm({
           )}
         </section>
 
-        <Field label="Para onde vai o dinheiro" error={errors.destination?.message}>
-          <Select aria-label="Conta de destino" {...form.register('destination')}>
-            <option value={STAY}>Fica na conta de investimento</option>
-            {destinations.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        {transfer ? (
+          <p className="rounded-xl border border-border bg-surface-1 p-3 text-body-sm text-fg">
+            Vinculado à transferência do extrato de {formatLocalDate(transfer.date)}:{' '}
+            <strong>
+              <Money value={toNumber(transfer.amount)} />
+            </strong>{' '}
+            {transfer.counterpartAccountName ? `para ${transfer.counterpartAccountName}` : ''}. É
+            esse o líquido registrado; a diferença para a prévia vira rendimento.
+          </p>
+        ) : (
+          <>
+            <Field label="Para onde vai o dinheiro" error={errors.destination?.message}>
+              <Select aria-label="Conta de destino" {...form.register('destination')}>
+                <option value={STAY}>Fica na conta de investimento</option>
+                {destinations.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
 
-        <Field
-          label="Valor líquido recebido (opcional)"
-          hint="Preencha se o banco pagou um valor diferente da prévia; é ele que entra na conta."
-          error={errors.netAmount?.message}
-        >
-          <MoneyInput placeholder="ex: 1.061,10" {...form.register('netAmount')} />
-        </Field>
+            <Field
+              label="Valor líquido recebido (opcional)"
+              hint="Preencha se o banco pagou um valor diferente da prévia; é ele que entra na conta."
+              error={errors.netAmount?.message}
+            >
+              <MoneyInput placeholder="ex: 1.061,10" {...form.register('netAmount')} />
+            </Field>
+          </>
+        )}
       </form>
     </Modal>
   )

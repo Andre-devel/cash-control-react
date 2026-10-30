@@ -142,6 +142,20 @@ export interface RedeemRequest {
   grossAmount?: string | null
   netAmount?: string | null
   toAccountId?: string | null
+  /** Transferência que já levou o dinheiro (vinda do extrato); o valor dela é o líquido. */
+  transferGroupId?: string | null
+}
+
+/** Transferência com a conta de investimento que ainda não virou aplicação nem resgate. */
+export interface PendingInvestmentTransfer {
+  transferGroupId: string
+  accountId: string
+  accountName: string
+  counterpartAccountName: string | null
+  date: string
+  amount: Decimal
+  description: string
+  direction: 'APPLICATION' | 'REDEMPTION'
 }
 
 export interface RedemptionPreviewParams {

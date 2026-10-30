@@ -4,6 +4,7 @@ import {
   getInvestmentSummary,
   getMarketIndexes,
   listHoldings,
+  listPendingTransfers,
   listTreasuryBonds,
   previewRedemption,
 } from '@/features/investments/api/investments.api'
@@ -33,6 +34,13 @@ export function useTreasuryBonds(enabled: boolean) {
     queryFn: listTreasuryBonds,
     enabled,
     staleTime: 60 * 60 * 1000,
+  })
+}
+
+export function usePendingTransfers() {
+  return useQuery({
+    queryKey: [...INVESTMENTS_QUERY_KEY, 'pending-transfers'],
+    queryFn: listPendingTransfers,
   })
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { screen, waitFor, cleanup } from '@testing-library/react'
+import { screen, waitFor, cleanup, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
@@ -8,6 +8,7 @@ import type {
   FixedIncomeHolding,
   InvestmentSummary,
   MarketIndexes,
+  PendingInvestmentTransfer,
 } from '@/features/investments/types'
 import InvestmentsPage from '../investments-page'
 
@@ -84,6 +85,26 @@ const SUMMARY: InvestmentSummary = {
   ],
 }
 
+const PENDING_APPLICATION: PendingInvestmentTransfer = {
+  transferGroupId: 'tg-app',
+  accountId: 'inv-1',
+  accountName: 'Investimentos',
+  counterpartAccountName: 'Conta corrente',
+  date: '2026-10-20',
+  amount: 2000,
+  description: 'CDB Inter liquidez',
+  direction: 'APPLICATION',
+}
+
+const PENDING_REDEMPTION: PendingInvestmentTransfer = {
+  ...PENDING_APPLICATION,
+  transferGroupId: 'tg-red',
+  date: '2026-10-28',
+  amount: 1061.1,
+  description: 'Resgate CDB',
+  direction: 'REDEMPTION',
+}
+
 const INDEXES: MarketIndexes = {
   indexes: [
     { index: 'CDI', date: '2026-10-29', value: 0.050788, stale: false },
@@ -99,9 +120,11 @@ function mockApi(
     holdings?: FixedIncomeHolding[]
     summary?: InvestmentSummary
     indexes?: MarketIndexes
+    pending?: PendingInvestmentTransfer[]
   } = {},
 ) {
   server.use(
+    http.get('*/investments/pending-transfers', () => HttpResponse.json(options.pending ?? [])),
     http.get('*/investments/summary', () => HttpResponse.json(options.summary ?? SUMMARY)),
     http.get('*/investments/holdings', () => HttpResponse.json(options.holdings ?? [HOLDING])),
     http.get('*/investments/indexes/latest', () => HttpResponse.json(options.indexes ?? INDEXES)),
@@ -175,5 +198,78 @@ describe('InvestmentsPage', () => {
 
     const preview = await screen.findByRole('region', { name: 'Prévia do resgate' })
     await waitFor(() => expect(preview.textContent).toContain('Líquido'))
+  })
+  it('registers an imported application linked to its transfer', async () => {
+    let body: Record<string, unknown> | null = null
+    mockApi({ pending: [PENDING_APPLICATION] })
+    server.use(
+      http.post('*/investments/holdings', async ({ request }) => {
+        body = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json(HOLDING, { status: 201 })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<InvestmentsPage />)
+
+    const panel = await screen.findByRole('region', { name: 'Movimentos para registrar' })
+    expect(panel.textContent).toContain('CDB Inter liquidez')
+    await user.click(within(panel).getByRole('button', { name: 'Registrar aplicação' }))
+
+    expect(await screen.findByText(/Vinculada à transferência do extrato/)).toBeTruthy()
+    expect((screen.getByLabelText('Data da aplicação') as HTMLInputElement).value).toBe(
+      '2026-10-20',
+    )
+    await user.type(screen.getByPlaceholderText('ex: 110'), '105')
+    await user.click(screen.getByRole('button', { name: 'Registrar aplicação' }))
+
+    await waitFor(() => expect(body).not.toBeNull())
+    expect(body).toMatchObject({
+      accountId: 'inv-1',
+      principal: '2000.00',
+      appliedAt: '2026-10-20',
+      fundingTransferGroupId: 'tg-app',
+      fromAccountId: null,
+    })
+  })
+
+  it('reconciles an imported redemption with the chosen holding', async () => {
+    let body: Record<string, unknown> | null = null
+    mockApi({ pending: [PENDING_REDEMPTION] })
+    server.use(
+      http.get('*/investments/holdings/h-1/redemption-preview', () =>
+        HttpResponse.json({ ...HOLDING.valuation }),
+      ),
+      http.post('*/investments/holdings/h-1/redemptions', async ({ request }) => {
+        body = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json({ ...HOLDING, status: 'REDEEMED' })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<InvestmentsPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Conciliar resgate' }))
+    await user.click(await screen.findByRole('button', { name: /CDB Inter/ }))
+
+    expect(await screen.findByText(/Vinculado à transferência do extrato/)).toBeTruthy()
+    expect(screen.queryByLabelText('Conta de destino')).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Registrar resgate' }))
+
+    await waitFor(() => expect(body).not.toBeNull())
+    expect(body).toMatchObject({
+      date: '2026-10-28',
+      total: true,
+      transferGroupId: 'tg-red',
+      toAccountId: null,
+      netAmount: null,
+    })
+  })
+
+  it('says when there is no holding to reconcile a redemption with', async () => {
+    mockApi({ pending: [PENDING_REDEMPTION], holdings: [] })
+    const user = userEvent.setup()
+    renderWithProviders(<InvestmentsPage />)
+
+    await user.click(await screen.findByRole('button', { name: 'Conciliar resgate' }))
+    expect(await screen.findByText(/Nenhuma aplicação ativa em/)).toBeTruthy()
   })
 })

@@ -9,6 +9,7 @@ import { TRANSACTIONS_QUERY_KEY } from './use-transactions'
 import { ACCOUNTS_QUERY_KEY } from '@/features/accounts/hooks/use-accounts'
 import { CARDS_QUERY_KEY } from '@/features/cards/hooks/use-cards'
 import { INSTALLMENTS_QUERY_KEY } from '@/features/installments/hooks/use-installment-series'
+import { INVESTMENTS_QUERY_KEY } from '@/features/investments/hooks/use-investments'
 import type {
   ApplyReconciliationRequest,
   ApplyReconciliationResult,
@@ -39,13 +40,18 @@ export function useApplyImportReconciliation() {
         CARDS_QUERY_KEY,
         INSTALLMENTS_QUERY_KEY,
         IMPORT_RECONCILIATION_QUERY_KEY,
+        INVESTMENTS_QUERY_KEY,
       ])
       const parts = [
         result.invoicePayments > 0 && `${result.invoicePayments} pagamento(s) de fatura`,
         result.investments > 0 && `${result.investments} aplicação(ões)/resgate(s)`,
         result.seriesMerged > 0 && `${result.seriesMerged} parcelamento(s) unificado(s)`,
       ].filter(Boolean)
-      toast.success(parts.length > 0 ? `Corrigidos: ${parts.join(', ')}.` : 'Nada a corrigir.')
+      // As transferências viram pendências na tela de investimentos, para registrar a aplicação.
+      const next = result.investments > 0 ? ' Registre as aplicações em Investimentos.' : ''
+      toast.success(
+        parts.length > 0 ? `Corrigidos: ${parts.join(', ')}.${next}` : 'Nada a corrigir.',
+      )
     },
     onError: (error) => {
       toast.error(error.message, error.status >= 500 ? error.correlationId : undefined)

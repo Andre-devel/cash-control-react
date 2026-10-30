@@ -32,8 +32,19 @@ interface HoldingFormDialogProps {
   accounts: Account[]
   /** Edição quando presente. */
   holding?: FixedIncomeHolding | null
-  /** Cadastro do saldo não alocado: conta e valor já preenchidos, sem transferência. */
-  prefill?: { accountId: string; principal: number } | null
+  /**
+   * Cadastro a partir do saldo não alocado (conta e valor, sem transferência) ou de uma
+   * transferência do extrato, que fica vinculada e fixa valor e data.
+   */
+  prefill?: HoldingPrefill | null
+}
+
+export interface HoldingPrefill {
+  accountId: string
+  principal: number
+  appliedAt?: string
+  name?: string
+  fundingTransferGroupId?: string
 }
 
 const RATE_HINTS: Record<string, string> = {
@@ -79,11 +90,11 @@ function defaults(
     kind: 'CDB',
     indexer: 'CDI_PERCENT',
     rate: '',
-    name: '',
+    name: prefill?.name ?? '',
     issuer: '',
     taxExempt: false,
     liquidity: 'DAILY',
-    appliedAt: localIsoDate(),
+    appliedAt: prefill?.appliedAt ?? localIsoDate(),
     maturityDate: '',
     principal: prefill ? formatMoneyInput(prefill.principal) : '',
     treasuryBond: '',
@@ -144,9 +155,10 @@ export function HoldingFormDialog({
   const { data: bonds, isLoading: bondsLoading } = useTreasuryBonds(open && isTreasury)
   const errors = form.formState.errors
   const locked = editing && (holding?.redemptions.length ?? 0) > 0
+  const linkedTransfer = !editing ? (prefill?.fundingTransferGroupId ?? null) : null
 
   function onSubmit(values: HoldingFormValues) {
-    const request = toRequest(values, editing)
+    const request = { ...toRequest(values, editing), fundingTransferGroupId: linkedTransfer }
     const options = { onSuccess: () => onClose() }
     if (holding) {
       update({ id: holding.id, data: request }, options)
@@ -281,6 +293,7 @@ export function HoldingFormDialog({
             <MoneyInput
               placeholder="ex: 1.000,00"
               disabled={locked}
+              readOnly={linkedTransfer !== null}
               {...form.register('principal')}
             />
           </Field>
@@ -289,6 +302,7 @@ export function HoldingFormDialog({
               type="date"
               max={localIsoDate()}
               disabled={locked}
+              readOnly={linkedTransfer !== null}
               {...form.register('appliedAt')}
             />
           </Field>
@@ -341,6 +355,12 @@ export function HoldingFormDialog({
               </Field>
             )}
           </fieldset>
+        )}
+
+        {linkedTransfer && (
+          <p className="text-caption text-fg-muted">
+            Vinculada à transferência do extrato: valor e data vêm dela.
+          </p>
         )}
 
         {locked && (
