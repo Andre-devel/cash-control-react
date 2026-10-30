@@ -98,6 +98,35 @@ export interface RecentTransactionItem {
   status: TransactionStatus
 }
 
+export interface BalanceProjectionPoint {
+  date: string
+  balance: string
+}
+
+export type BalanceProjectionEventKind = 'TRANSACTION' | 'INVOICE' | 'RECURRENCE'
+
+export interface BalanceProjectionEvent {
+  /** Data prevista; o que está vencido aparece em hoje. */
+  date: string
+  kind: BalanceProjectionEventKind
+  description: string
+  /** Com sinal: positivo entra, negativo sai. */
+  amount: string
+  /** Ocorrência de recorrência que ainda não foi gerada. */
+  estimated: boolean
+}
+
+export interface BalanceProjection {
+  from: string
+  to: string
+  startBalance: string
+  endBalance: string
+  lowest: BalanceProjectionPoint
+  firstNegativeDate: string | null
+  points: BalanceProjectionPoint[]
+  events: BalanceProjectionEvent[]
+}
+
 export interface CategoriesChartParams {
   from: string
   to: string

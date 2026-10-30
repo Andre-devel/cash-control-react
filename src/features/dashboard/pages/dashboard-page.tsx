@@ -24,6 +24,7 @@ import { OpenInvoicesCard } from '@/features/dashboard/components/open-invoices-
 import { RecentTransactionsCard } from '@/features/dashboard/components/recent-transactions-card'
 import { CategoriesChartSection } from '@/features/dashboard/components/categories-chart-section'
 import { NetWorthChartSection } from '@/features/dashboard/components/net-worth-chart-section'
+import { BalanceProjectionSection } from '@/features/dashboard/components/balance-projection-section'
 import { MonthComparisonSection } from '@/features/dashboard/components/month-comparison-section'
 import { LargestExpensesWidget } from '@/features/dashboard/components/largest-expenses-widget'
 import { CreateTransactionDialog } from '@/features/transactions/components/create-transaction-dialog'
@@ -245,6 +246,9 @@ export default function DashboardPage() {
           miniBars={miniBars}
           selectedKey={selectedMonth}
         />
+
+        {/* Logo abaixo do resumo em todo tamanho: mesma ordem do resumo, vem depois pelo DOM. */}
+        <BalanceProjectionSection className="md:order-1 md:col-span-2 xl:col-span-12" />
 
         <UpcomingBillsCard className="md:order-2 xl:order-5 xl:col-span-4" />
         <OpenInvoicesCard className="md:order-3 xl:order-4 xl:col-span-4" />

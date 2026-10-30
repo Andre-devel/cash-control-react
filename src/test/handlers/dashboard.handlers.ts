@@ -9,6 +9,7 @@ import type {
   UpcomingInvoiceItem,
   LargestExpenseItem,
   RecentTransactionItem,
+  BalanceProjection,
 } from '@/features/dashboard/types'
 
 export const MOCK_OVERVIEW: DashboardOverview = {
@@ -135,6 +136,44 @@ export const MOCK_RECENT_TRANSACTIONS: RecentTransactionItem[] = [
   },
 ]
 
+export const MOCK_BALANCE_PROJECTION: BalanceProjection = {
+  from: '2026-11-01',
+  to: '2026-12-01',
+  startBalance: '1000.00',
+  endBalance: '2300.00',
+  lowest: { date: '2026-11-01', balance: '800.00' },
+  firstNegativeDate: null,
+  points: [
+    { date: '2026-11-01', balance: '800.00' },
+    { date: '2026-11-05', balance: '3800.00' },
+    { date: '2026-11-10', balance: '2300.00' },
+    { date: '2026-12-01', balance: '2300.00' },
+  ],
+  events: [
+    {
+      date: '2026-11-01',
+      kind: 'TRANSACTION',
+      description: 'Conta de luz',
+      amount: '-200.00',
+      estimated: false,
+    },
+    {
+      date: '2026-11-05',
+      kind: 'TRANSACTION',
+      description: 'Salário',
+      amount: '3000.00',
+      estimated: false,
+    },
+    {
+      date: '2026-11-10',
+      kind: 'RECURRENCE',
+      description: 'Aluguel',
+      amount: '-1500.00',
+      estimated: true,
+    },
+  ],
+}
+
 export const dashboardHandlers = [
   http.get('*/dashboard/overview', () => {
     return HttpResponse.json(MOCK_OVERVIEW)
@@ -170,5 +209,9 @@ export const dashboardHandlers = [
 
   http.get('*/dashboard/widgets/recent-transactions', () => {
     return HttpResponse.json(MOCK_RECENT_TRANSACTIONS)
+  }),
+
+  http.get('*/dashboard/projection', () => {
+    return HttpResponse.json(MOCK_BALANCE_PROJECTION)
   }),
 ]
