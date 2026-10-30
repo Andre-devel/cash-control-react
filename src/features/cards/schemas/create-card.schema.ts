@@ -21,13 +21,13 @@ export const createCardSchema = z.object({
   closingDay: z
     .number()
     .int('Dia de fechamento deve ser um número inteiro')
-    .min(1, 'Dia de fechamento deve estar entre 1 e 28')
-    .max(28, 'Dia de fechamento deve estar entre 1 e 28'),
+    .min(1, 'Dia de fechamento deve estar entre 1 e 31')
+    .max(31, 'Dia de fechamento deve estar entre 1 e 31'),
   dueDay: z
     .number()
     .int('Dia de vencimento deve ser um número inteiro')
-    .min(1, 'Dia de vencimento deve estar entre 1 e 28')
-    .max(28, 'Dia de vencimento deve estar entre 1 e 28'),
+    .min(1, 'Dia de vencimento deve estar entre 1 e 31')
+    .max(31, 'Dia de vencimento deve estar entre 1 e 31'),
 })
 
 export type CreateCardFormValues = z.infer<typeof createCardSchema>

@@ -64,8 +64,8 @@ describe('createCardSchema', () => {
     }
   })
 
-  it('rejects closingDay above 28', () => {
-    const result = createCardSchema.safeParse({ ...VALID_INPUT, closingDay: 29 })
+  it('rejects closingDay above 31', () => {
+    const result = createCardSchema.safeParse({ ...VALID_INPUT, closingDay: 32 })
     expect(result.success).toBe(false)
   })
 
@@ -73,8 +73,8 @@ describe('createCardSchema', () => {
     expect(createCardSchema.safeParse({ ...VALID_INPUT, closingDay: 1 }).success).toBe(true)
   })
 
-  it('accepts closingDay 28', () => {
-    expect(createCardSchema.safeParse({ ...VALID_INPUT, closingDay: 28 }).success).toBe(true)
+  it('accepts closingDay 30', () => {
+    expect(createCardSchema.safeParse({ ...VALID_INPUT, closingDay: 30 }).success).toBe(true)
   })
 
   it('rejects dueDay below 1', () => {
@@ -82,8 +82,8 @@ describe('createCardSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects dueDay above 28', () => {
-    const result = createCardSchema.safeParse({ ...VALID_INPUT, dueDay: 29 })
+  it('rejects dueDay above 31', () => {
+    const result = createCardSchema.safeParse({ ...VALID_INPUT, dueDay: 32 })
     expect(result.success).toBe(false)
   })
 
