@@ -70,6 +70,11 @@ export const profileHandlers = [
   http.get('*/users/me/consents', () => {
     return HttpResponse.json(MOCK_CONSENTS)
   }),
+
+  // Integração bancária desligada por padrão: a seção do perfil não aparece.
+  http.get('*/bank-connections', () => {
+    return HttpResponse.json({ enabled: false, connections: [] })
+  }),
 ]
 
 export const handlers = [
