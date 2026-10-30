@@ -12,6 +12,13 @@ export interface DashboardOverview {
   previousNetWorth?: string
   previousMonthIncome?: string
   previousMonthExpenses?: string
+  /** Aplicações de renda fixa ativas, hoje: bruto e líquido de IR/IOF. */
+  investmentsGross?: string
+  investmentsNet?: string
+  /** Quanto o bruto das aplicações ativas rendeu desde o fim do mês anterior. */
+  investmentsYieldMonth?: string
+  /** Falta pagar de todas as faturas não pagas, futuras inclusive. */
+  openCardDebt?: string
 }
 
 export interface CategoryChartItem {

@@ -11,6 +11,7 @@ import type {
   RecentTransactionItem,
   BalanceProjection,
 } from '@/features/dashboard/types'
+import type { InvestmentSummary } from '@/features/investments/types'
 
 export const MOCK_OVERVIEW: DashboardOverview = {
   totalBalance: '12500.00',
@@ -174,6 +175,22 @@ export const MOCK_BALANCE_PROJECTION: BalanceProjection = {
   ],
 }
 
+/** Sem conta de investimento: a Dashboard não mostra o card. */
+export const MOCK_EMPTY_INVESTMENT_SUMMARY: InvestmentSummary = {
+  totalPrincipal: '0',
+  totalGross: '0',
+  totalIncomeTax: '0',
+  totalIof: '0',
+  totalNet: '0',
+  totalYield: '0',
+  estimated: false,
+  byKind: [],
+  byIndexer: [],
+  byMaturity: [],
+  upcomingMaturities: [],
+  accounts: [],
+}
+
 export const dashboardHandlers = [
   http.get('*/dashboard/overview', () => {
     return HttpResponse.json(MOCK_OVERVIEW)
@@ -213,5 +230,9 @@ export const dashboardHandlers = [
 
   http.get('*/dashboard/projection', () => {
     return HttpResponse.json(MOCK_BALANCE_PROJECTION)
+  }),
+
+  http.get('*/investments/summary', () => {
+    return HttpResponse.json(MOCK_EMPTY_INVESTMENT_SUMMARY)
   }),
 ]

@@ -8,6 +8,9 @@ import { useAuthStore } from '@/features/auth/store/auth.store'
 import { useOverview } from '@/features/dashboard/hooks/use-overview'
 import { useMonthlyChart } from '@/features/dashboard/hooks/use-monthly-chart'
 import { useHideValues } from '@/features/dashboard/hooks/use-hide-values'
+import { useDiscountInvoices } from '@/lib/discount-invoices'
+import { useInvestmentSummary } from '@/features/investments/hooks/use-investments'
+import { toNumber } from '@/features/investments/utils/labels'
 import {
   HIDDEN_MONEY,
   initialsOf,
@@ -25,6 +28,7 @@ import { RecentTransactionsCard } from '@/features/dashboard/components/recent-t
 import { CategoriesChartSection } from '@/features/dashboard/components/categories-chart-section'
 import { NetWorthChartSection } from '@/features/dashboard/components/net-worth-chart-section'
 import { BalanceProjectionSection } from '@/features/dashboard/components/balance-projection-section'
+import { InvestmentsCard } from '@/features/dashboard/components/investments-card'
 import { MonthComparisonSection } from '@/features/dashboard/components/month-comparison-section'
 import { LargestExpensesWidget } from '@/features/dashboard/components/largest-expenses-widget'
 import { CreateTransactionDialog } from '@/features/transactions/components/create-transaction-dialog'
@@ -64,6 +68,12 @@ export default function DashboardPage() {
   const userName = user?.name ?? 'Usuário'
   const firstName = userName.trim().split(/\s+/)[0] || userName
   const { hidden, toggle: toggleHidden } = useHideValues()
+  const { discount: discountInvoices, toggle: toggleDiscountInvoices } = useDiscountInvoices()
+  const { data: investments } = useInvestmentSummary()
+  // Card só para quem tem conta de investimento ou aplicação; sem ele, a projeção ocupa a linha.
+  const showInvestments =
+    investments !== undefined &&
+    (investments.accounts.length > 0 || toNumber(investments.totalGross) > 0)
 
   const now = new Date()
   const year = now.getFullYear()
@@ -87,7 +97,7 @@ export default function DashboardPage() {
   const { data: chartData } = useMonthlyChart(chartMonths)
   const { data: summaryChart, isLoading: summaryChartLoading } = useMonthlyChart(SUMMARY_MONTHS)
 
-  // Patrimônio inclui as contas de investimento: aplicar não diminui o que a pessoa tem.
+  // Patrimônio inclui os investimentos pelo líquido de IR/IOF: aplicar não diminui o que a pessoa tem.
   const netWorth = overview ? parseFloat(overview.netWorth ?? overview.totalBalance) : 0
   const monthlyIncome = overview ? parseFloat(overview.monthlyIncome) : 0
   const monthlyExpenses = overview ? parseFloat(overview.monthlyExpenses) : 0
@@ -163,7 +173,7 @@ export default function DashboardPage() {
     if (overview) {
       rows.push([])
       rows.push(['Resumo atual', '', '', ''])
-      rows.push(['Patrimônio total', csvMoney(netWorth), '', ''])
+      rows.push(['Patrimônio líquido', csvMoney(netWorth), '', ''])
       rows.push([`Receitas (${monthAbbrLabel}.)`, csvMoney(overview.monthlyIncome), '', ''])
       rows.push([`Despesas (${monthAbbrLabel}.)`, csvMoney(overview.monthlyExpenses), '', ''])
       rows.push(['Saldo do mês', csvMoney(balanceDelta), '', ''])
@@ -243,12 +253,24 @@ export default function DashboardPage() {
           expensesDelta={expensesDelta}
           netWorth={netWorth}
           netWorthDelta={netWorthDelta}
+          openCardDebt={parseFloat(overview?.openCardDebt ?? '0')}
+          discountInvoices={discountInvoices}
+          onToggleDiscountInvoices={toggleDiscountInvoices}
           miniBars={miniBars}
           selectedKey={selectedMonth}
         />
 
         {/* Logo abaixo do resumo em todo tamanho: mesma ordem do resumo, vem depois pelo DOM. */}
-        <BalanceProjectionSection className="md:order-1 md:col-span-2 xl:col-span-12" />
+        <BalanceProjectionSection
+          className={`md:order-1 md:col-span-2 ${showInvestments ? 'xl:col-span-8' : 'xl:col-span-12'}`}
+        />
+        {showInvestments && (
+          <InvestmentsCard
+            className="md:order-1 md:col-span-2 xl:col-span-4"
+            summary={investments}
+            yieldMonth={parseFloat(overview?.investmentsYieldMonth ?? '0')}
+          />
+        )}
 
         <UpcomingBillsCard className="md:order-2 xl:order-5 xl:col-span-4" />
         <OpenInvoicesCard className="md:order-3 xl:order-4 xl:col-span-4" />

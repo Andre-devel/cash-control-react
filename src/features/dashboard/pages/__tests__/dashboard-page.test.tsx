@@ -1,14 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, waitFor, cleanup } from '@testing-library/react'
+import { screen, waitFor, cleanup, fireEvent } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
 import { renderWithProviders } from '@/test/utils'
 import {
+  MOCK_EMPTY_INVESTMENT_SUMMARY,
+  MOCK_OVERVIEW,
   MOCK_RECENT_TRANSACTIONS,
   MOCK_UPCOMING_BILLS,
   MOCK_UPCOMING_INVOICES,
   dashboardHandlers,
 } from '@/test/handlers/dashboard.handlers'
+import { useDiscountInvoicesStore } from '@/lib/discount-invoices'
 import DashboardPage from '../dashboard-page'
 
 vi.mock('@/lib/toast', () => ({
@@ -28,6 +31,7 @@ vi.mock('@/styles/theme/dark-mode', () => ({
 beforeEach(() => {
   vi.clearAllMocks()
   server.use(...dashboardHandlers)
+  useDiscountInvoicesStore.setState({ discount: false })
 })
 
 afterEach(() => {
@@ -48,7 +52,7 @@ describe('DashboardPage', () => {
   it('renders KPI cards with correct labels after overview loads', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
-      expect(screen.getByText('Patrimônio total')).toBeTruthy()
+      expect(screen.getByText('Patrimônio líquido')).toBeTruthy()
       expect(screen.getByText(/^Saldo de /)).toBeTruthy()
     })
   })
@@ -214,8 +218,74 @@ describe('DashboardPage', () => {
   it('MOCK_OVERVIEW netWorth value is formatted and displayed', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => {
-      expect(screen.getByText('Patrimônio total')).toBeTruthy()
+      expect(screen.getByText('Patrimônio líquido')).toBeTruthy()
     })
     expect(screen.getByText(/15\.000/)).toBeTruthy()
+  })
+  it('hides the investments card without an investment account', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => expect(screen.getByText('Patrimônio líquido')).toBeTruthy())
+    expect(screen.queryByRole('region', { name: 'Investimentos' })).toBeNull()
+  })
+
+  it('shows the investments card with the month yield and the next maturity', async () => {
+    server.use(
+      http.get('*/dashboard/overview', () =>
+        HttpResponse.json({ ...MOCK_OVERVIEW, investmentsYieldMonth: '12.34' }),
+      ),
+      http.get('*/investments/summary', () =>
+        HttpResponse.json({
+          ...MOCK_EMPTY_INVESTMENT_SUMMARY,
+          totalGross: '1072.41',
+          totalNet: '1057.93',
+          upcomingMaturities: [
+            { holdingId: 'h-1', name: 'CDB Banco X', maturityDate: '2026-12-15', net: '1057.93' },
+          ],
+          accounts: [
+            {
+              accountId: 'inv-1',
+              accountName: 'Investimentos',
+              balance: '1000',
+              allocatedPrincipal: '1000',
+              unallocated: '0',
+            },
+          ],
+        }),
+      ),
+    )
+    renderWithProviders(<DashboardPage />)
+    const card = await screen.findByRole('region', { name: 'Investimentos' })
+    expect(card.textContent).toContain('1.072')
+    expect(card.textContent).toMatch(/\+R\$\s?12,34/)
+    expect(card.textContent).toContain('CDB Banco X')
+    expect(screen.getByRole('link', { name: 'Ver investimentos' }).getAttribute('href')).toBe(
+      '/investments',
+    )
+  })
+
+  it('discounts open invoices from net worth when the switch is on', async () => {
+    server.use(
+      http.get('*/dashboard/overview', () =>
+        HttpResponse.json({ ...MOCK_OVERVIEW, openCardDebt: '2500.00' }),
+      ),
+    )
+    renderWithProviders(<DashboardPage />)
+    const toggle = await screen.findByRole('switch', { name: /descontar faturas em aberto/i })
+    expect(toggle.getAttribute('aria-checked')).toBe('false')
+
+    fireEvent.click(toggle)
+
+    expect(screen.getByRole('switch').getAttribute('aria-checked')).toBe('true')
+    expect(screen.getAllByText('12.500').length).toBeGreaterThan(0)
+    expect(screen.getByText(/já descontando/).textContent).toMatch(/2\.500,00 de faturas/)
+    // A variação continua sobre o patrimônio sem desconto.
+    expect(screen.getByText(/desde/).textContent).toMatch(/\+R\$\s1\.000,00 desde/)
+    expect(localStorage.getItem('cash-control-react:discount-invoices')).toBe('1')
+  })
+
+  it('has no discount switch without open invoices', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => expect(screen.getByText('Patrimônio líquido')).toBeTruthy())
+    expect(screen.queryByRole('switch')).toBeNull()
   })
 })

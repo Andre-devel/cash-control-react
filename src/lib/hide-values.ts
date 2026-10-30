@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { readFlag, storeFlag } from './persisted-flag'
 
 /**
  * "Ocultar valores" (botão de olho da Dashboard). Global: `<Money>` e os widgets da
@@ -6,32 +7,16 @@ import { create } from 'zustand'
  */
 export const HIDE_VALUES_STORAGE_KEY = 'cash-control-react:hide-values'
 
-function readStored(): boolean {
-  try {
-    return localStorage.getItem(HIDE_VALUES_STORAGE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
-function store(hidden: boolean) {
-  try {
-    localStorage.setItem(HIDE_VALUES_STORAGE_KEY, hidden ? '1' : '0')
-  } catch {
-    // Navegação privada ou armazenamento bloqueado: vale só para esta sessão.
-  }
-}
-
 interface HideValuesState {
   hidden: boolean
   toggle: () => void
 }
 
 export const useHideValuesStore = create<HideValuesState>((set, get) => ({
-  hidden: readStored(),
+  hidden: readFlag(HIDE_VALUES_STORAGE_KEY),
   toggle: () => {
     const next = !get().hidden
-    store(next)
+    storeFlag(HIDE_VALUES_STORAGE_KEY, next)
     set({ hidden: next })
   },
 }))

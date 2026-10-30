@@ -29,8 +29,13 @@ interface MonthSummaryProps {
   expenses: number
   incomeDelta?: SummaryDelta | null
   expensesDelta?: SummaryDelta | null
+  /** Patrimônio com as aplicações pelo líquido de IR/IOF, sem descontar faturas. */
   netWorth: number
   netWorthDelta?: SummaryDelta | null
+  /** Falta pagar das faturas; com a chave ligada, sai do patrimônio exibido. */
+  openCardDebt?: number
+  discountInvoices?: boolean
+  onToggleDiscountInvoices?: () => void
   miniBars: MiniBar[]
   selectedKey: string
   className?: string
@@ -96,6 +101,9 @@ export function MonthSummary({
   expensesDelta,
   netWorth,
   netWorthDelta,
+  openCardDebt = 0,
+  discountInvoices = false,
+  onToggleDiscountInvoices,
   miniBars,
   selectedKey,
   className = '',
@@ -123,6 +131,9 @@ export function MonthSummary({
   }
 
   const barMax = Math.max(1, ...miniBars.flatMap((b) => [b.income, b.expense]))
+  // A variação continua sem desconto: o quanto faltava das faturas no mês passado não é guardado.
+  const discounting = discountInvoices && openCardDebt > 0
+  const shownNetWorth = discounting ? netWorth - openCardDebt : netWorth
 
   return (
     <section
@@ -205,10 +216,30 @@ export function MonthSummary({
         <div className="flex min-w-0 flex-1 flex-col gap-1 md:gap-2.5">
           <span className="flex items-center gap-1.5 text-caption text-fg-muted md:text-body-sm md:font-medium">
             <Landmark size={14} className="hidden text-info md:inline" aria-hidden="true" />
-            Patrimônio total
+            Patrimônio líquido
           </span>
-          <Amount value={netWorth} className={KPI_VALUE} />
+          <Amount value={shownNetWorth} className={KPI_VALUE} />
           <Delta delta={netWorthDelta} />
+          {discounting && (
+            <span className="text-caption text-fg-muted">
+              já descontando <Amount value={openCardDebt} /> de faturas
+            </span>
+          )}
+          {onToggleDiscountInvoices && openCardDebt > 0 && (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={discountInvoices}
+              onClick={onToggleDiscountInvoices}
+              className="flex min-h-touch items-center gap-2 self-start text-caption font-medium text-fg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
+            >
+              <span
+                className={`toggle inline-block${discountInvoices ? ' on' : ''}`}
+                aria-hidden="true"
+              />
+              Descontar faturas em aberto
+            </button>
+          )}
         </div>
       </div>
     </section>
