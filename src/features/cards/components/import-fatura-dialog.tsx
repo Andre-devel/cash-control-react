@@ -94,8 +94,8 @@ function BankFaturaPicker({
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-border bg-surface-2 px-3.5 py-3 text-body-sm">
       <span>
-        O cartão <strong>{cardName}</strong> está conectado ao banco. Busque uma fatura fechada
-        direto de lá, sem PDF.
+        O cartão <strong>{cardName}</strong> está conectado ao banco. Busque a fatura atual ou uma
+        fechada direto de lá, sem PDF.
       </span>
       {isError ? (
         <span className="text-caption text-fg-muted">
@@ -110,10 +110,12 @@ function BankFaturaPicker({
             disabled={isLoading || bills.length === 0}
           >
             {isLoading && <option value="">Carregando faturas…</option>}
-            {!isLoading && bills.length === 0 && <option value="">Nenhuma fatura fechada</option>}
+            {!isLoading && bills.length === 0 && <option value="">Nenhuma fatura no banco</option>}
             {bills.map((bill) => (
               <option key={bill.billId} value={bill.billId}>
-                {`Vence em ${formatLocalDate(bill.dueDate)}`}
+                {bill.open
+                  ? `Fatura atual (em aberto) · vence em ${formatLocalDate(bill.dueDate)}`
+                  : `Vence em ${formatLocalDate(bill.dueDate)}`}
                 {bill.totalAmount ? ` · ${formatMoney(bill.totalAmount)}` : ''}
               </option>
             ))}
@@ -608,6 +610,17 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
               </span>
             </span>
           </label>
+
+          {source === 'bank' && preview.totalAmount === null && (
+            <div
+              role="note"
+              className="rounded-xl border border-info/30 bg-info-soft p-3 text-body-sm text-fg"
+            >
+              Fatura ainda em aberto: entram também as compras pendentes, que podem mudar de valor
+              ou ser canceladas. Quando ela fechar, busque de novo: o que não mudou aparece como já
+              importado.
+            </div>
+          )}
 
           {preview.errors.length > 0 && (
             <div role="alert" className="err">

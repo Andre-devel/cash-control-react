@@ -750,8 +750,9 @@ describe('ImportFaturaDialog — fetching from the bank', () => {
       ),
       http.get('*/cards/card-1/bank-bills', () =>
         HttpResponse.json([
-          { billId: 'bill-08', dueDate: '2026-08-07', totalAmount: '1617.29' },
-          { billId: 'bill-07', dueDate: '2026-07-07', totalAmount: '2241.47' },
+          { billId: 'open', dueDate: '2026-09-07', totalAmount: null, open: true },
+          { billId: 'bill-08', dueDate: '2026-08-07', totalAmount: '1617.29', open: false },
+          { billId: 'bill-07', dueDate: '2026-07-07', totalAmount: '2241.47', open: false },
         ]),
       ),
     )
@@ -761,6 +762,36 @@ describe('ImportFaturaDialog — fetching from the bank', () => {
     renderDialog()
     await screen.findByRole('option', { name: 'Nubank' })
     expect(screen.queryByRole('button', { name: /buscar do banco/i })).not.toBeInTheDocument()
+  })
+
+  it('offers the current open bill first and warns that pending charges may change', async () => {
+    linkCard1()
+    let requestedBill: string | null = null
+    server.use(
+      http.post('*/cards/card-1/invoices/import/bank-preview', ({ request }) => {
+        requestedBill = new URL(request.url).searchParams.get('billId')
+        return HttpResponse.json({
+          ...previewWithRepeatedMerchant(),
+          fileName: null,
+          format: 'OPEN_FINANCE',
+          totalAmount: null,
+        })
+      }),
+    )
+    const user = userEvent.setup()
+    renderDialog()
+
+    const bills = await screen.findByRole('combobox', { name: /fatura do banco do cartão/i })
+    await screen.findByRole('option', {
+      name: /fatura atual \(em aberto\) · vence em 07\/09\/2026/i,
+    })
+    expect((bills as HTMLSelectElement).value).toBe('open')
+
+    await chooseAccount(user)
+    await user.click(screen.getByRole('button', { name: /buscar do banco/i }))
+
+    expect(await screen.findByText(/fatura ainda em aberto/i)).toBeInTheDocument()
+    expect(requestedBill).toBe('open')
   })
 
   it('fetches the chosen bill, leaves possible duplicates unchecked and commits as OPEN_FINANCE', async () => {
@@ -801,6 +832,7 @@ describe('ImportFaturaDialog — fetching from the bank', () => {
     expect(await screen.findByText('possível duplicata')).toBeInTheDocument()
     expect(requestedBill).toBe('bill-07')
     expect(screen.getByText(/total no banco/i)).toBeInTheDocument()
+    expect(screen.queryByText(/fatura ainda em aberto/i)).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /importar 1 lançamentos/i }))
 

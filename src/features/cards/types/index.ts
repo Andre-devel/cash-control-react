@@ -121,9 +121,13 @@ export type InvoiceImportSource = InvoiceImportFormat | 'OPEN_FINANCE'
 
 /** Fatura fechada do cartão no banco, para escolher qual importar. */
 export interface BankBill {
+  /** `open` na fatura atual, que no banco ainda não tem id. */
   billId: string
+  /** Na fatura em aberto, estimado: um mês depois da última fechada. */
   dueDate: string
   totalAmount: string | null
+  /** Fatura atual, ainda em aberto: traz também os lançamentos pendentes. */
+  open: boolean
 }
 
 export interface FaturaImportRowError {
