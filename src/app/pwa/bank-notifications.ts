@@ -20,7 +20,15 @@ export interface SummaryPush {
   body: string
 }
 
-export type BankPush = PendingPush | SummaryPush
+/** Categoria chegando a 80% ou passando do teto do mês; tocar abre os orçamentos. */
+export interface BudgetPush {
+  type: 'budget'
+  categoryId: string
+  title: string
+  body: string
+}
+
+export type BankPush = PendingPush | SummaryPush | BudgetPush
 
 /** `actions` e `renotify` existem no Chrome, mas não na lib DOM do TypeScript. */
 export interface BankNotificationOptions {
@@ -53,11 +61,16 @@ interface BankNotificationDeps {
 }
 
 export const REVIEW_PATH = '/revisar'
+export const BUDGETS_PATH = '/budgets'
 /** Uma notificação-resumo só: a próxima a substitui. */
 export const SUMMARY_TAG = 'bank-pending-summary'
 const ICON = '/icons/icon-192.png'
 
 export function notificationOf(data: BankPush): BankNotificationOptions {
+  if (data.type === 'budget') {
+    // Uma por categoria: o aviso de 100% substitui o de 80%.
+    return { body: data.body, icon: ICON, tag: `budget-${data.categoryId}`, renotify: true, data }
+  }
   return data.type === 'pending'
     ? {
         body: data.body,
@@ -80,8 +93,8 @@ export function notificationOf(data: BankPush): BankNotificationOptions {
 }
 
 export function createBankNotifications(deps: BankNotificationDeps) {
-  async function openReview(): Promise<void> {
-    const url = new URL(REVIEW_PATH, deps.origin).href
+  async function openPath(path: string): Promise<void> {
+    const url = new URL(path, deps.origin).href
     const windows = await deps.clients.matchAll({ type: 'window', includeUncontrolled: true })
     const open = windows.find((client) => new URL(client.url).origin === deps.origin)
     if (open) {
@@ -91,6 +104,8 @@ export function createBankNotifications(deps: BankNotificationDeps) {
     }
     await deps.clients.openWindow(url)
   }
+
+  const openReview = () => openPath(REVIEW_PATH)
 
   async function confirm(data: PendingPush): Promise<void> {
     try {
@@ -122,8 +137,15 @@ export function createBankNotifications(deps: BankNotificationDeps) {
 
   return {
     show: (data: BankPush) => deps.showNotification(data.title, notificationOf(data)),
-    /** Botão Confirmar grava sem abrir o app; o resto (Revisar, tocar no corpo) abre a fila. */
+    /**
+     * Botão Confirmar grava sem abrir o app; o resto (Revisar, tocar no corpo) abre a fila.
+     * O alerta de orçamento abre a página de orçamentos.
+     */
     click: (action: string, data: BankPush | undefined) =>
-      action === 'confirm' && data?.type === 'pending' ? confirm(data) : openReview(),
+      data?.type === 'budget'
+        ? openPath(BUDGETS_PATH)
+        : action === 'confirm' && data?.type === 'pending'
+          ? confirm(data)
+          : openReview(),
   }
 }

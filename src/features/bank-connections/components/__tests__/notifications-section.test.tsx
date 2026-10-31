@@ -101,7 +101,13 @@ describe('NotificationsSection', () => {
       http.post('*/push/subscriptions', async ({ request }) => {
         body = await request.json()
         mockServer(true, [
-          { endpoint: ENDPOINT, deviceLabel: 'x', hideAmounts: false, createdAt: '' },
+          {
+            endpoint: ENDPOINT,
+            deviceLabel: 'x',
+            hideAmounts: false,
+            budgetAlerts: false,
+            createdAt: '',
+          },
         ])
         return HttpResponse.json({})
       }),
@@ -117,6 +123,7 @@ describe('NotificationsSection', () => {
         p256dh: 'p256',
         auth: 'auth',
         hideAmounts: false,
+        budgetAlerts: false,
       }),
     )
     expect(subscribe).toHaveBeenCalledWith(expect.objectContaining({ userVisibleOnly: true }))
@@ -125,10 +132,47 @@ describe('NotificationsSection', () => {
     ).toBeInTheDocument()
   })
 
+  it('budget alerts: re-sends this device keeping the hide-amounts choice', async () => {
+    mockBrowser('granted')
+    current = browserSubscription()
+    mockServer(true, [
+      {
+        endpoint: ENDPOINT,
+        deviceLabel: 'x',
+        hideAmounts: true,
+        budgetAlerts: false,
+        createdAt: '',
+      },
+    ])
+    let body: unknown
+    server.use(
+      http.post('*/push/subscriptions', async ({ request }) => {
+        body = await request.json()
+        return HttpResponse.json({})
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<NotificationsSection />)
+
+    await user.click(await screen.findByRole('button', { name: 'Alertas de orçamento' }))
+
+    await waitFor(() =>
+      expect(body).toMatchObject({ endpoint: ENDPOINT, hideAmounts: true, budgetAlerts: true }),
+    )
+  })
+
   it('turns off: removes the device on the server and in the browser', async () => {
     mockBrowser('granted')
     current = browserSubscription()
-    mockServer(true, [{ endpoint: ENDPOINT, deviceLabel: 'x', hideAmounts: false, createdAt: '' }])
+    mockServer(true, [
+      {
+        endpoint: ENDPOINT,
+        deviceLabel: 'x',
+        hideAmounts: false,
+        budgetAlerts: false,
+        createdAt: '',
+      },
+    ])
     let deleted: unknown
     server.use(
       http.delete('*/push/subscriptions', async ({ request }) => {

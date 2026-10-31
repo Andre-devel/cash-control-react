@@ -1,4 +1,4 @@
-import { BellRing, EyeOff } from 'lucide-react'
+import { BellRing, EyeOff, Target } from 'lucide-react'
 import { Toggle } from '@/components/ui/toggle'
 import { usePushNotifications } from '@/features/bank-connections/hooks/use-push-notifications'
 
@@ -47,6 +47,23 @@ export function NotificationsSection() {
               label="Esconder valores na notificação"
               disabled={push.pending}
               onChange={push.setHideAmounts}
+            />
+          </div>
+        )}
+        {push.on && (
+          <div className="flex items-center gap-3 py-3.5">
+            <Target size={19} className="shrink-0 text-fg-muted" aria-hidden="true" />
+            <div className="flex flex-1 flex-col">
+              <span className="font-medium">Alertas de orçamento</span>
+              <span className="text-caption text-fg-muted">
+                Avisa quando uma categoria chega a 80% do teto do mês e quando passa dele.
+              </span>
+            </div>
+            <Toggle
+              on={push.budgetAlerts}
+              label="Alertas de orçamento"
+              disabled={push.pending}
+              onChange={push.setBudgetAlerts}
             />
           </div>
         )}

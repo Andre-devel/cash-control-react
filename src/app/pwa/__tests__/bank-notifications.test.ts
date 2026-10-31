@@ -3,8 +3,16 @@ import {
   createBankNotifications,
   notificationOf,
   SUMMARY_TAG,
+  type BudgetPush,
   type PendingPush,
 } from '../bank-notifications'
+
+const BUDGET: BudgetPush = {
+  type: 'budget',
+  categoryId: 'cat-1',
+  title: 'Mercado: 85% do orçamento',
+  body: 'Falta R$ 150,00 de R$ 1.000,00.',
+}
 
 const PENDING: PendingPush = {
   type: 'pending',
@@ -86,5 +94,15 @@ describe('createBankNotifications', () => {
     expect(open[0].navigate).toHaveBeenCalledWith('https://app.test/revisar')
     expect(deps.fetch).not.toHaveBeenCalled()
     expect(deps.clients.openWindow).not.toHaveBeenCalled()
+  })
+
+  it('gives the budget alert one notification per category and opens the budgets page', async () => {
+    const { deps, notifications } = setup()
+
+    expect(notificationOf(BUDGET)).toMatchObject({ tag: 'budget-cat-1', renotify: true })
+    await notifications.click('', BUDGET)
+
+    expect(deps.clients.openWindow).toHaveBeenCalledWith('https://app.test/budgets')
+    expect(deps.fetch).not.toHaveBeenCalled()
   })
 })

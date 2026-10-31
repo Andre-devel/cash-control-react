@@ -87,8 +87,8 @@ export function usePushNotifications() {
 
   const device = devices.data?.find((d) => d.endpoint === endpoint) ?? null
 
-  const save = useMutation<void, Error, { hideAmounts: boolean }>({
-    mutationFn: async ({ hideAmounts }) => {
+  const save = useMutation<void, Error, { hideAmounts: boolean; budgetAlerts: boolean }>({
+    mutationFn: async ({ hideAmounts, budgetAlerts }) => {
       if ((await Notification.requestPermission()) !== 'granted') {
         throw new Error('Permita as notificações do Cash Control nas configurações do navegador.')
       }
@@ -109,6 +109,7 @@ export function usePushNotifications() {
         auth: keys.auth ?? '',
         deviceLabel: deviceLabel(navigator.userAgent),
         hideAmounts,
+        budgetAlerts,
       })
       setEndpoint(subscription.endpoint)
     },
@@ -128,14 +129,19 @@ export function usePushNotifications() {
     onError: (error) => toast.error(error.message),
   })
 
+  const hideAmounts = device?.hideAmounts ?? false
+  const budgetAlerts = device?.budgetAlerts ?? false
+
   return {
     supported,
     available: enabledOnServer,
     on: device !== null,
-    hideAmounts: device?.hideAmounts ?? false,
+    hideAmounts,
+    budgetAlerts,
     pending: save.isPending || disable.isPending,
-    enable: (hideAmounts = false) => save.mutate({ hideAmounts }),
-    setHideAmounts: (hideAmounts: boolean) => save.mutate({ hideAmounts }),
+    enable: (hide = false) => save.mutate({ hideAmounts: hide, budgetAlerts: false }),
+    setHideAmounts: (hide: boolean) => save.mutate({ hideAmounts: hide, budgetAlerts }),
+    setBudgetAlerts: (alerts: boolean) => save.mutate({ hideAmounts, budgetAlerts: alerts }),
     disable: () => disable.mutate(),
   }
 }

@@ -64,6 +64,8 @@ export interface PushDevice {
   endpoint: string
   deviceLabel: string | null
   hideAmounts: boolean
+  /** Recebe o aviso de categoria a 80% e acima de 100% do orçamento. */
+  budgetAlerts: boolean
   createdAt: string
 }
 
@@ -73,4 +75,5 @@ export interface PushSubscribeRequest {
   auth: string
   deviceLabel: string
   hideAmounts: boolean
+  budgetAlerts: boolean
 }
