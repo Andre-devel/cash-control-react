@@ -18,6 +18,7 @@ export const ROUTES = {
   ACCOUNTS: '/accounts',
   ACCOUNT_DETAIL: '/accounts/:id',
   INVESTMENTS: '/investments',
+  BUDGETS: '/budgets',
   TRANSACTIONS: '/transactions',
   TRANSACTION_DETAIL: '/transactions/:id',
   INSTALLMENTS: '/installments',

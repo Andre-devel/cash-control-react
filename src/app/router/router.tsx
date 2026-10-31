@@ -24,6 +24,7 @@ const RolesPage = lazy(() => import('@/features/roles/pages/roles-page'))
 const RoleDetailPage = lazy(() => import('@/features/roles/pages/role-detail-page'))
 const AccountsPage = lazy(() => import('@/features/accounts/pages/accounts-page'))
 const InvestmentsPage = lazy(() => import('@/features/investments/pages/investments-page'))
+const BudgetsPage = lazy(() => import('@/features/budgets/pages/budgets-page'))
 const AccountDetailPage = lazy(() => import('@/features/accounts/pages/account-detail-page'))
 const TransactionsPage = lazy(() => import('@/features/transactions/pages/transactions-page'))
 const TransactionDetailPage = lazy(
@@ -161,6 +162,14 @@ export const routeConfig: RouteObject[] = [
                 element: (
                   <Suspense fallback={<PageLoader />}>
                     <InvestmentsPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.BUDGETS,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <BudgetsPage />
                   </Suspense>
                 ),
               },

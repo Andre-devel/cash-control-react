@@ -8,13 +8,20 @@ interface MonthPickerProps {
   options: string[]
   value: string
   onChange: (month: string) => void
+  /** Rótulo do grupo para leitor de tela. */
+  label?: string
 }
 
 const FOCUS =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus'
 
 /** Celular: pills roláveis, o mês atual à direita já visível. */
-export function MonthPills({ options, value, onChange }: MonthPickerProps) {
+export function MonthPills({
+  options,
+  value,
+  onChange,
+  label = 'Mês do resumo',
+}: MonthPickerProps) {
   const scroller = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -26,7 +33,7 @@ export function MonthPills({ options, value, onChange }: MonthPickerProps) {
     <div
       ref={scroller}
       role="group"
-      aria-label="Mês do resumo"
+      aria-label={label}
       className="-mx-4 flex snap-x scroll-px-4 gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]"
     >
       {options.map((m) => {
@@ -50,7 +57,12 @@ export function MonthPills({ options, value, onChange }: MonthPickerProps) {
 }
 
 /** Tablet e desktop: ‹ out/2026 ›. */
-export function MonthStepper({ options, value, onChange }: MonthPickerProps) {
+export function MonthStepper({
+  options,
+  value,
+  onChange,
+  label = 'Mês do resumo',
+}: MonthPickerProps) {
   const index = options.indexOf(value)
   const prev = index > 0 ? options[index - 1] : undefined
   const next = index >= 0 && index < options.length - 1 ? options[index + 1] : undefined
@@ -58,7 +70,7 @@ export function MonthStepper({ options, value, onChange }: MonthPickerProps) {
   return (
     <div
       role="group"
-      aria-label="Mês do resumo"
+      aria-label={label}
       className="flex items-center rounded-lg border border-border bg-surface-1"
     >
       <button

@@ -29,6 +29,7 @@ import { CategoriesChartSection } from '@/features/dashboard/components/categori
 import { NetWorthChartSection } from '@/features/dashboard/components/net-worth-chart-section'
 import { BalanceProjectionSection } from '@/features/dashboard/components/balance-projection-section'
 import { InvestmentsCard } from '@/features/dashboard/components/investments-card'
+import { BudgetsCard } from '@/features/dashboard/components/budgets-card'
 import { MonthComparisonSection } from '@/features/dashboard/components/month-comparison-section'
 import { LargestExpensesWidget } from '@/features/dashboard/components/largest-expenses-widget'
 import { CreateTransactionDialog } from '@/features/transactions/components/create-transaction-dialog'
@@ -274,6 +275,12 @@ export default function DashboardPage() {
 
         <UpcomingBillsCard className="md:order-2 xl:order-5 xl:col-span-4" />
         <OpenInvoicesCard className="md:order-3 xl:order-4 xl:col-span-4" />
+        {/* Antes das recentes no DOM: divide a mesma ordem com elas no tablet e no desktop. */}
+        <BudgetsCard
+          key={`bud-${selectedMonth}`}
+          month={selectedMonth}
+          className="md:order-7 md:col-span-2 xl:order-9 xl:col-span-12"
+        />
         <RecentTransactionsCard className="md:order-7 md:col-span-2 xl:order-9 xl:col-span-12" />
 
         <section aria-labelledby="dash-analyses" className="flex flex-col gap-2 md:contents">

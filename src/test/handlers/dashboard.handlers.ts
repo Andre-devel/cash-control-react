@@ -12,6 +12,7 @@ import type {
   BalanceProjection,
 } from '@/features/dashboard/types'
 import type { InvestmentSummary } from '@/features/investments/types'
+import type { BudgetProgress } from '@/features/budgets/types'
 
 export const MOCK_OVERVIEW: DashboardOverview = {
   totalBalance: '12500.00',
@@ -191,6 +192,44 @@ export const MOCK_EMPTY_INVESTMENT_SUMMARY: InvestmentSummary = {
   accounts: [],
 }
 
+export const MOCK_BUDGET_PROGRESS: BudgetProgress = {
+  month: '2026-10',
+  totalBudget: 1600,
+  totalSpent: 1046.5,
+  totalForecast: 120,
+  uncategorizedSpent: 35,
+  dayOfMonth: 15,
+  daysInMonth: 31,
+  items: [
+    {
+      categoryId: 'cat-rest',
+      name: 'Restaurantes',
+      color: '#ef4444',
+      icon: 'utensils',
+      parentId: null,
+      budget: 400,
+      spent: 452.3,
+      forecast: 0,
+      remaining: -52.3,
+      percent: 113.08,
+      source: 'MONTH',
+    },
+    {
+      categoryId: 'cat-food',
+      name: 'Mercado',
+      color: '#22c55e',
+      icon: 'shopping-cart',
+      parentId: 'cat-home',
+      budget: 1200,
+      spent: 594.2,
+      forecast: 120,
+      remaining: 605.8,
+      percent: 49.52,
+      source: 'DEFAULT',
+    },
+  ],
+}
+
 export const dashboardHandlers = [
   http.get('*/dashboard/overview', () => {
     return HttpResponse.json(MOCK_OVERVIEW)
@@ -234,5 +273,9 @@ export const dashboardHandlers = [
 
   http.get('*/investments/summary', () => {
     return HttpResponse.json(MOCK_EMPTY_INVESTMENT_SUMMARY)
+  }),
+
+  http.get('*/budgets', () => {
+    return HttpResponse.json(MOCK_BUDGET_PROGRESS)
   }),
 ]
