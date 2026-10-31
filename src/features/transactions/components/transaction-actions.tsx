@@ -4,6 +4,7 @@ import { ActionMenu, type ActionMenuItem } from '@/components/ui/action-menu'
 import {
   canPayTransaction,
   canReactivateTransaction,
+  canSetReimbursement,
   isLockedTransaction,
 } from '@/features/transactions/utils/transaction-status'
 import { isInstallmentGroup } from '@/features/transactions/utils/installment'
@@ -18,6 +19,8 @@ export interface TransactionActionHandlers {
   onView: (t: Transaction) => void
   /** Abre a série de parcelamento — usado no lugar das ações por parcela. */
   onViewSeries?: (t: Transaction) => void
+  /** Abre o diálogo de reembolso da despesa. Sem ele, a ação não aparece. */
+  onReimbursement?: (t: Transaction) => void
 }
 
 interface TransactionActionsProps extends TransactionActionHandlers {
@@ -42,6 +45,7 @@ export function TransactionActions({
   onReactivate,
   onView,
   onViewSeries,
+  onReimbursement,
   payPlacement = 'inline',
 }: TransactionActionsProps) {
   // Numa linha de série, pagar/editar/excluir valem para a série inteira e vivem
@@ -74,6 +78,12 @@ export function TransactionActions({
   if (!isCancelled && !isLocked) {
     items.push({ label: 'Editar', onSelect: () => onEdit(transaction) })
     items.push({ label: 'Cancelar transação', onSelect: () => onCancel(transaction) })
+  }
+  if (onReimbursement && canSetReimbursement(transaction)) {
+    items.push({
+      label: transaction.reimbursement?.reimbursable ? 'Reembolso…' : 'Marcar como reembolsável…',
+      onSelect: () => onReimbursement(transaction),
+    })
   }
   if (canReactivateTransaction(transaction)) {
     items.push({ label: 'Reativar', onSelect: () => onReactivate(transaction) })

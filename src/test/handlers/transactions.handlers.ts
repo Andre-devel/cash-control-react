@@ -343,6 +343,8 @@ export const transactionsHandlers = [
   }),
 
   // Precisa vir antes de `*/transactions/:id`, senão "summary" seria capturado como um id.
+  http.get('*/transactions/reimbursements/pending', () => HttpResponse.json([])),
+
   http.get('*/transactions/summary', ({ request }) => {
     const result = filterStore(new URL(request.url).searchParams).filter(
       (t) => t.status !== 'CANCELLED',

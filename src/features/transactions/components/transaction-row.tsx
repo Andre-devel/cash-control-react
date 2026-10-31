@@ -11,6 +11,7 @@ import {
   fmtDateMedium,
   fmtDateShort,
 } from '@/features/transactions/utils/transaction-display'
+import { ReimbursementBadge } from '@/features/transactions/components/reimbursement-badge'
 import type { Transaction } from '@/features/transactions/types'
 import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
@@ -36,6 +37,7 @@ export const TransactionRow = memo(function TransactionRow({
   onReactivate,
   onView,
   onViewSeries,
+  onReimbursement,
 }: TransactionRowProps) {
   const d = describeTransaction(transaction, accounts, categories)
   const paidOn =
@@ -71,6 +73,7 @@ export const TransactionRow = memo(function TransactionRow({
                   {d.installments}
                 </span>
               )}
+              <ReimbursementBadge transaction={transaction} />
             </span>
             <span className="text-caption text-fg-muted">
               {d.typeLabel} · {fmtDateMedium(transaction.competenceDate)}
@@ -131,6 +134,7 @@ export const TransactionRow = memo(function TransactionRow({
             onReactivate={onReactivate}
             onView={onView}
             onViewSeries={onViewSeries}
+            onReimbursement={onReimbursement}
           />
         </div>
       </td>

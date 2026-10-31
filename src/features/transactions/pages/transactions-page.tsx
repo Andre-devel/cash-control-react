@@ -52,6 +52,8 @@ import { CreateTransactionDialog } from '@/features/transactions/components/crea
 import { EditTransactionDialog } from '@/features/transactions/components/edit-transaction-dialog'
 import { DeleteTransactionDialog } from '@/features/transactions/components/delete-transaction-dialog'
 import { CancelTransactionDialog } from '@/features/transactions/components/cancel-transaction-dialog'
+import { ReimbursementDialog } from '@/features/transactions/components/reimbursement-dialog'
+import { PendingReimbursements } from '@/features/transactions/components/pending-reimbursements'
 import { ImportStatementDialog } from '@/features/transactions/components/import-statement-dialog'
 import { ImportReconciliationDialog } from '@/features/transactions/components/import-reconciliation-dialog'
 import { ReceiptReviewDialog } from '@/features/transactions/components/receipt-review-dialog'
@@ -327,6 +329,7 @@ export default function TransactionsPage() {
   const [editTarget, setEditTarget] = useState<Transaction | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null)
   const [cancelTarget, setCancelTarget] = useState<Transaction | null>(null)
+  const [reimbursementTarget, setReimbursementTarget] = useState<Transaction | null>(null)
 
   const isMobile = useMediaQuery(MOBILE_QUERY)
   const isCardList = useMediaQuery(CARD_LIST_QUERY)
@@ -445,6 +448,7 @@ export default function TransactionsPage() {
     onReactivate: handleReactivate,
     onView: handleView,
     onViewSeries: handleViewSeries,
+    onReimbursement: setReimbursementTarget,
   }
 
   const filterFields = (
@@ -695,12 +699,13 @@ export default function TransactionsPage() {
             <ActiveFilterChips chips={chips} onRemove={handleRemoveChip} scroll={isMobile} />
           </div>
 
-          <div className="order-2 md:order-1">
+          <div className="order-2 flex flex-col gap-3 md:order-1">
             <TransactionTotals
               totals={totals}
               loading={totalsLoading}
               periodText={periodLabel(period).toLowerCase()}
             />
+            <PendingReimbursements onSelect={setReimbursementTarget} />
           </div>
 
           <div className="order-3 flex flex-col gap-3">{list}</div>
@@ -754,6 +759,11 @@ export default function TransactionsPage() {
         transaction={deleteTarget}
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
+      />
+
+      <ReimbursementDialog
+        transaction={reimbursementTarget}
+        onClose={() => setReimbursementTarget(null)}
       />
 
       <CancelTransactionDialog

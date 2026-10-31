@@ -8,6 +8,7 @@ import type {
   CreateTransactionRequest,
   UpdateTransactionRequest,
   MarkAsPaidRequest,
+  SetReimbursementRequest,
 } from '@/features/transactions/types'
 
 export async function listTransactions(
@@ -62,6 +63,26 @@ export async function cancelTransaction(id: string): Promise<Transaction> {
 
 export async function reactivateTransaction(id: string): Promise<Transaction> {
   const response = await axiosInstance.post<Transaction>(`/transactions/${id}/reactivate`)
+  return response.data
+}
+
+export async function setReimbursement(
+  id: string,
+  body: SetReimbursementRequest,
+): Promise<Transaction> {
+  const response = await axiosInstance.put<Transaction>(`/transactions/${id}/reimbursement`, body)
+  return response.data
+}
+
+export async function listPendingReimbursements(): Promise<Transaction[]> {
+  const response = await axiosInstance.get<Transaction[]>('/transactions/reimbursements/pending')
+  return response.data
+}
+
+export async function listReimbursementCandidates(id: string): Promise<Transaction[]> {
+  const response = await axiosInstance.get<Transaction[]>(
+    `/transactions/${id}/reimbursement/candidates`,
+  )
   return response.data
 }
 

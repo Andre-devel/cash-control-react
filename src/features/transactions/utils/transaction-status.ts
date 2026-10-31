@@ -36,3 +36,14 @@ export function canReactivateTransaction(
 ): boolean {
   return transaction.status === 'CANCELLED' && !transaction.installmentSeriesId
 }
+
+/** Espelha `setReimbursement` na API: só despesa não cancelada e fora de parcelamento. */
+export function canSetReimbursement(
+  transaction: Pick<Transaction, 'type' | 'status' | 'installmentSeriesId'>,
+): boolean {
+  return (
+    transaction.type === 'EXPENSE' &&
+    transaction.status !== 'CANCELLED' &&
+    !transaction.installmentSeriesId
+  )
+}

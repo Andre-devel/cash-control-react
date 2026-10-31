@@ -25,6 +25,23 @@ export interface PaymentMethod {
   name: string
 }
 
+/**
+ * Vínculo de reembolso. Na despesa, `reimbursable` é true e `linked*` descrevem a receita que a
+ * devolveu (nulos enquanto pendente). Na receita, `reimbursable` é false e `linked*` descrevem a
+ * despesa que ela reembolsou. A despesa reembolsável só conta nos gráficos pelo que não voltou.
+ */
+export interface Reimbursement {
+  reimbursable: boolean
+  linkedTransactionId: string | null
+  linkedDescription: string | null
+  linkedAmount: string | null
+}
+
+export interface SetReimbursementRequest {
+  reimbursable: boolean
+  reimbursedById?: string | null
+}
+
 export interface Transaction {
   id: string
   description: string
@@ -58,6 +75,8 @@ export interface Transaction {
   installmentGroup?: boolean
   recurrenceId?: string
   updatedAt?: string
+  /** Null quando a transação não faz parte de um reembolso. */
+  reimbursement?: Reimbursement | null
 }
 
 export interface TransactionSummary {

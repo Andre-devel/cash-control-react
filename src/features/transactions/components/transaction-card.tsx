@@ -9,6 +9,7 @@ import {
 } from '@/features/transactions/components/transaction-actions'
 import { describeTransaction } from '@/features/transactions/utils/transaction-display'
 import { canPayTransaction } from '@/features/transactions/utils/transaction-status'
+import { ReimbursementBadge } from '@/features/transactions/components/reimbursement-badge'
 import type { Transaction } from '@/features/transactions/types'
 import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
@@ -43,6 +44,7 @@ export const TransactionCard = memo(function TransactionCard({
   onReactivate,
   onView,
   onViewSeries,
+  onReimbursement,
 }: TransactionCardProps) {
   const d = describeTransaction(transaction, accounts, categories)
   const swipeEnabled = !d.isSeries && canPayTransaction(transaction)
@@ -153,6 +155,7 @@ export const TransactionCard = memo(function TransactionCard({
                 {d.installments}
               </span>
             )}
+            <ReimbursementBadge transaction={transaction} />
           </span>
         </div>
 
@@ -178,6 +181,7 @@ export const TransactionCard = memo(function TransactionCard({
             onReactivate={onReactivate}
             onView={onView}
             onViewSeries={onViewSeries}
+            onReimbursement={onReimbursement}
           />
         </div>
       </div>

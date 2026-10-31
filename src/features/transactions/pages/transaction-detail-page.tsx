@@ -11,6 +11,7 @@ import { AttachmentSection } from '@/features/transactions/components/attachment
 import { EditTransactionDialog } from '@/features/transactions/components/edit-transaction-dialog'
 import { DeleteTransactionDialog } from '@/features/transactions/components/delete-transaction-dialog'
 import { CancelTransactionDialog } from '@/features/transactions/components/cancel-transaction-dialog'
+import { ReimbursementDialog } from '@/features/transactions/components/reimbursement-dialog'
 import { PayTransactionButton } from '@/features/transactions/components/pay-transaction-button'
 import { useReactivateTransaction } from '@/features/transactions/hooks/use-reactivate-transaction'
 import {
@@ -20,6 +21,7 @@ import {
 } from '@/features/transactions/utils/transaction-type'
 import {
   canReactivateTransaction,
+  canSetReimbursement,
   isLockedTransaction,
 } from '@/features/transactions/utils/transaction-status'
 import { ROUTES } from '@/app/router/routes'
@@ -67,6 +69,7 @@ export default function TransactionDetailPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
+  const [reimbursementOpen, setReimbursementOpen] = useState(false)
   const { mutate: reactivate, isPending: reactivating } = useReactivateTransaction()
 
   if (isLoading) return <DetailSkeleton />
@@ -147,6 +150,15 @@ export default function TransactionDetailPage() {
               </Button>
             </>
           )}
+          {canSetReimbursement(transaction) && (
+            <Button
+              variant="ghost"
+              className="min-h-touch"
+              onClick={() => setReimbursementOpen(true)}
+            >
+              {transaction.reimbursement?.reimbursable ? 'Reembolso' : 'Marcar como reembolsável'}
+            </Button>
+          )}
           {canReactivateTransaction(transaction) && (
             <Button
               className="min-h-touch"
@@ -211,6 +223,25 @@ export default function TransactionDetailPage() {
               </Link>
             </DetailItem>
           )}
+          {transaction.reimbursement && (
+            <DetailItem
+              label={transaction.reimbursement.reimbursable ? 'Reembolso' : 'Reembolso de'}
+            >
+              {transaction.reimbursement.linkedTransactionId ? (
+                <Link
+                  to={ROUTES.TRANSACTION_DETAIL.replace(
+                    ':id',
+                    transaction.reimbursement.linkedTransactionId,
+                  )}
+                  className="link"
+                >
+                  {transaction.reimbursement.linkedDescription}
+                </Link>
+              ) : (
+                <span className="text-fg-muted">Aguardando o dinheiro voltar</span>
+              )}
+            </DetailItem>
+          )}
           <DetailItem label="Criado em">{formatInstantDate(transaction.createdAt)}</DetailItem>
         </dl>
         {transaction.notes && (
@@ -236,6 +267,11 @@ export default function TransactionDetailPage() {
           setDeleteOpen(false)
           void navigate(ROUTES.TRANSACTIONS)
         }}
+      />
+
+      <ReimbursementDialog
+        transaction={reimbursementOpen ? transaction : null}
+        onClose={() => setReimbursementOpen(false)}
       />
 
       <CancelTransactionDialog
