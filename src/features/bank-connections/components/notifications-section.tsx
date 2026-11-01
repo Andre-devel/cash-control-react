@@ -1,4 +1,5 @@
-import { BellRing, EyeOff, Target } from 'lucide-react'
+import { BellRing, EyeOff, Send, Target } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Toggle } from '@/components/ui/toggle'
 import { usePushNotifications } from '@/features/bank-connections/hooks/use-push-notifications'
 
@@ -65,6 +66,20 @@ export function NotificationsSection() {
               disabled={push.pending}
               onChange={push.setBudgetAlerts}
             />
+          </div>
+        )}
+        {push.on && (
+          <div className="flex items-center gap-3 py-3.5">
+            <Send size={19} className="shrink-0 text-fg-muted" aria-hidden="true" />
+            <div className="flex flex-1 flex-col">
+              <span className="font-medium">Testar notificação</span>
+              <span className="text-caption text-fg-muted">
+                Manda um aviso agora para os seus aparelhos, para conferir se ele aparece.
+              </span>
+            </div>
+            <Button size="sm" loading={push.testing} onClick={push.sendTest}>
+              Enviar teste
+            </Button>
           </div>
         )}
       </div>

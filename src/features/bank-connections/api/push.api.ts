@@ -3,6 +3,7 @@ import type {
   PushConfig,
   PushDevice,
   PushSubscribeRequest,
+  PushTestResult,
 } from '@/features/bank-connections/types'
 
 export async function getPushConfig(): Promise<PushConfig> {
@@ -17,6 +18,11 @@ export async function listPushDevices(): Promise<PushDevice[]> {
 
 export async function subscribePush(data: PushSubscribeRequest): Promise<PushDevice> {
   const response = await axiosInstance.post<PushDevice>('/push/subscriptions', data)
+  return response.data
+}
+
+export async function sendTestPush(): Promise<PushTestResult> {
+  const response = await axiosInstance.post<PushTestResult>('/push/test')
   return response.data
 }
 

@@ -105,4 +105,16 @@ describe('createBankNotifications', () => {
     expect(deps.clients.openWindow).toHaveBeenCalledWith('https://app.test/budgets')
     expect(deps.fetch).not.toHaveBeenCalled()
   })
+
+  it('shows the test notification without actions and opens the app', async () => {
+    const { deps, notifications } = setup()
+    const test = { type: 'test', title: 'Cash Control', body: 'Funcionando.' } as const
+
+    expect(notificationOf(test)).toMatchObject({ tag: 'push-test', renotify: true })
+    expect(notificationOf(test).actions).toBeUndefined()
+    await notifications.click('', test)
+
+    expect(deps.clients.openWindow).toHaveBeenCalledWith('https://app.test/')
+    expect(deps.fetch).not.toHaveBeenCalled()
+  })
 })

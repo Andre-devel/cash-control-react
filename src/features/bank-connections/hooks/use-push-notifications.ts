@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   getPushConfig,
   listPushDevices,
+  sendTestPush,
   subscribePush,
   unsubscribePush,
 } from '@/features/bank-connections/api/push.api'
@@ -129,6 +130,19 @@ export function usePushNotifications() {
     onError: (error) => toast.error(error.message),
   })
 
+  const test = useMutation({
+    mutationFn: sendTestPush,
+    onSuccess: ({ devices, delivered }) => {
+      if (devices === 0) toast.error('Nenhum aparelho com notificações ligadas.')
+      else if (delivered === 0) toast.error('O serviço de notificações recusou o envio.')
+      else
+        toast.success(
+          `Teste enviado para ${delivered} ${delivered === 1 ? 'aparelho' : 'aparelhos'}. Se não aparecer, confira as notificações do Chrome no Android.`,
+        )
+    },
+    onError: (error) => toast.error(error.message),
+  })
+
   const hideAmounts = device?.hideAmounts ?? false
   const budgetAlerts = device?.budgetAlerts ?? false
 
@@ -143,5 +157,7 @@ export function usePushNotifications() {
     setHideAmounts: (hide: boolean) => save.mutate({ hideAmounts: hide, budgetAlerts }),
     setBudgetAlerts: (alerts: boolean) => save.mutate({ hideAmounts, budgetAlerts: alerts }),
     disable: () => disable.mutate(),
+    testing: test.isPending,
+    sendTest: () => test.mutate(),
   }
 }

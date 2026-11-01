@@ -69,6 +69,12 @@ export interface PushDevice {
   createdAt: string
 }
 
+/** Resultado do envio de teste: aparelhos do usuário e quantos o serviço de push aceitou. */
+export interface PushTestResult {
+  devices: number
+  delivered: number
+}
+
 export interface PushSubscribeRequest {
   endpoint: string
   p256dh: string

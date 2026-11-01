@@ -161,6 +161,30 @@ describe('NotificationsSection', () => {
     )
   })
 
+  it('sends a test notification and tells how many devices got it', async () => {
+    mockBrowser('granted')
+    current = browserSubscription()
+    mockServer(true, [
+      {
+        endpoint: ENDPOINT,
+        deviceLabel: 'x',
+        hideAmounts: false,
+        budgetAlerts: false,
+        createdAt: '',
+      },
+    ])
+    server.use(http.post('*/push/test', () => HttpResponse.json({ devices: 1, delivered: 1 })))
+    const user = userEvent.setup()
+    renderWithProviders(<NotificationsSection />)
+
+    await user.click(await screen.findByRole('button', { name: 'Enviar teste' }))
+
+    const { toast } = await import('@/lib/toast')
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(expect.stringMatching(/1 aparelho\./)),
+    )
+  })
+
   it('turns off: removes the device on the server and in the browser', async () => {
     mockBrowser('granted')
     current = browserSubscription()
