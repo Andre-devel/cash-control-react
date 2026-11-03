@@ -28,6 +28,12 @@ import { submitOnModEnter } from '@/features/transactions/utils/form-shortcuts'
 import { SegmentedRadio, type SegmentedOption } from './segmented-radio'
 import '@/features/transactions/transactions.css'
 
+const TYPE_OPTIONS: SegmentedOption[] = (['INCOME', 'REFUND'] as const).map((t) => ({
+  value: t,
+  label: TRANSACTION_TYPE_DISPLAY[t].label,
+  activeClass: 'peer-checked:text-income',
+}))
+
 const DEFAULT_VALUES: UpdateTransactionFormValues = {
   description: '',
   amount: '',
@@ -38,6 +44,7 @@ const DEFAULT_VALUES: UpdateTransactionFormValues = {
   notes: '',
   paymentMethod: 'OTHER',
   creditCardId: '',
+  type: undefined,
 }
 
 interface EditTransactionDialogProps {
@@ -65,6 +72,12 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
   // Compra no cartão é paga pela fatura: status e data de pagamento não são editáveis aqui.
   const editableStatus =
     paymentMethod !== 'CREDIT_CARD' && transaction?.paymentMethod.slug !== 'CREDIT_CARD'
+  // Receita e reembolso trocam entre si (ex.: Pix que o banco trouxe como reembolso). No cartão
+  // o reembolso é estorno da fatura, então o tipo fica fixo.
+  const editableType =
+    (transaction?.type === 'INCOME' || transaction?.type === 'REFUND') &&
+    !transaction.creditCard &&
+    paymentMethod !== 'CREDIT_CARD'
 
   useEffect(() => {
     if (transaction) {
@@ -78,6 +91,10 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
         notes: transaction.notes ?? '',
         paymentMethod: transaction.paymentMethod.slug,
         creditCardId: transaction.creditCard?.id ?? '',
+        type:
+          transaction.type === 'INCOME' || transaction.type === 'REFUND'
+            ? transaction.type
+            : undefined,
       })
     }
   }, [transaction, form])
@@ -91,6 +108,7 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
       categoryId: data.categoryId || undefined,
       notes: data.notes || undefined,
       creditCardId: data.creditCardId || undefined,
+      type: editableType ? data.type : undefined,
     }
     updateTransaction(
       { id: transaction.id, data: payload },
@@ -264,6 +282,16 @@ export function EditTransactionDialog({ transaction, open, onClose }: EditTransa
             </Field>
           )}
         </div>
+
+        {editableType && (
+          <SegmentedRadio
+            legend="Tipo"
+            className="md:max-w-[320px]"
+            options={TYPE_OPTIONS}
+            registration={form.register('type')}
+            error={form.formState.errors.type?.message}
+          />
+        )}
 
         {/* Pago não volta a pendente (a API recusa); para desfazer, cancele a transação. */}
         {editableStatus && status && transaction?.status !== 'PAID' && (

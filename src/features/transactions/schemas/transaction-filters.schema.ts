@@ -24,6 +24,7 @@ export const transactionFiltersSchema = z.object({
   amountMax: moneyField('Valor máximo deve ser um decimal válido').optional().or(z.literal('')),
   searchText: z.string().optional(),
   includeCancelled: z.boolean().optional(),
+  includeCreditCard: z.boolean().optional(),
   page: z.number().int().min(0).optional(),
   size: z.number().int().min(1).optional(),
   sort: z.string().optional(),

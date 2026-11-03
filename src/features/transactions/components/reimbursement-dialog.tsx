@@ -16,7 +16,7 @@ interface ReimbursementDialogProps {
 
 /**
  * Reembolso de uma despesa: marcar como reembolsável (sai dos gráficos e do orçamento já),
- * vincular a receita que devolveu o dinheiro, desvincular ou voltar a contar como gasto.
+ * vincular a entrada (receita ou reembolso) que devolveu o dinheiro, desvincular ou voltar a contar como gasto.
  */
 export function ReimbursementDialog({ transaction, onClose }: ReimbursementDialogProps) {
   const reimbursement = transaction?.reimbursement ?? null
@@ -70,7 +70,7 @@ export function ReimbursementDialog({ transaction, onClose }: ReimbursementDialo
     >
       <div className="flex flex-col gap-4">
         <p className="text-body-sm text-fg-muted">
-          Despesa reembolsável não conta nos gráficos nem no orçamento, e a receita que a devolve
+          Despesa reembolsável não conta nos gráficos nem no orçamento, e a entrada que a devolve
           também não. O saldo das contas não muda.
         </p>
 
@@ -92,14 +92,14 @@ export function ReimbursementDialog({ transaction, onClose }: ReimbursementDialo
         ) : (
           <section aria-labelledby="reimbursement-candidates-h" className="flex flex-col gap-2">
             <h3 id="reimbursement-candidates-h" className="text-body font-semibold">
-              Vincular a receita que devolveu o dinheiro
+              Vincular a entrada que devolveu o dinheiro
             </h3>
             {isLoading ? (
-              <p className="text-body-sm text-fg-muted">Carregando receitas…</p>
+              <p className="text-body-sm text-fg-muted">Carregando entradas…</p>
             ) : candidates.length === 0 ? (
               <p className="text-body-sm text-fg-muted">
-                Nenhuma receita sem vínculo de até <Money value={amount} />. Quando o dinheiro cair,
-                volte aqui para vincular.
+                Nenhuma receita ou reembolso sem vínculo de até <Money value={amount} />. Quando o
+                dinheiro cair, volte aqui para vincular.
               </p>
             ) : (
               <ul className="flex flex-col divide-y divide-border rounded-lg border border-border">

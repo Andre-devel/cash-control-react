@@ -9,6 +9,7 @@ import {
   MOCK_TRANSACTION_2,
   MOCK_TRANSACTION_PENDING,
   MOCK_TRANSACTION_CANCELLED,
+  MOCK_TRANSACTION_CREDIT_CARD,
   resetTransactionsStore,
 } from '@/test/handlers/transactions.handlers'
 import TransactionsPage from '../transactions-page'
@@ -70,6 +71,21 @@ describe('TransactionsPage', () => {
     await waitFor(() =>
       expect(screen.getByText(MOCK_TRANSACTION_CANCELLED.description)).toBeTruthy(),
     )
+  })
+
+  it('hides credit card purchases by default and shows them through the checkbox', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionsPage />)
+
+    await waitFor(() => screen.getByText(MOCK_TRANSACTION_1.description))
+    expect(screen.queryByText(MOCK_TRANSACTION_CREDIT_CARD.description)).toBeNull()
+
+    await user.click(screen.getByRole('checkbox', { name: /incluir compras no cartão/i }))
+
+    await waitFor(() =>
+      expect(screen.getByText(MOCK_TRANSACTION_CREDIT_CARD.description)).toBeTruthy(),
+    )
+    expect(screen.getByText('Inclui cartão de crédito')).toBeTruthy()
   })
 
   it('shows empty state when no transactions exist', async () => {
@@ -239,6 +255,25 @@ describe('TransactionsPage', () => {
       expect(screen.getByText('Pag. de fatura')).toBeTruthy()
       expect(screen.getByText('Resultado líquido')).toBeTruthy()
     })
+  })
+
+  it('filters by type when a totals card is clicked, and clears on a second click', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionsPage />)
+    await waitFor(() => screen.getByText(MOCK_TRANSACTION_1.description))
+
+    const incomeCard = screen.getByRole('button', { name: /receitas/i })
+    await user.click(incomeCard)
+
+    await waitFor(() => expect(screen.queryByText(MOCK_TRANSACTION_1.description)).toBeNull())
+    expect(screen.getByText(MOCK_TRANSACTION_2.description)).toBeTruthy()
+    expect(screen.getByRole('button', { name: /receitas/i })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+
+    await user.click(screen.getByRole('button', { name: /receitas/i }))
+    await waitFor(() => expect(screen.getByText(MOCK_TRANSACTION_1.description)).toBeTruthy())
   })
 
   it('renders table column headers', async () => {

@@ -1,10 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen, waitFor, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { http, HttpResponse } from 'msw'
+import { server } from '@/test/msw/server'
 import { renderWithProviders } from '@/test/utils'
 import { resetCardsStore } from '@/test/handlers/cards.handlers'
 import {
   MOCK_TRANSACTION_1,
+  MOCK_TRANSACTION_2,
   MOCK_TRANSACTION_PENDING,
   resetTransactionsStore,
 } from '@/test/handlers/transactions.handlers'
@@ -115,5 +118,31 @@ describe('EditTransactionDialog — payment method integration', () => {
     expect(screen.getByRole('combobox', { name: /cartão de crédito/i })).toBeInTheDocument()
     await user.selectOptions(screen.getByRole('combobox', { name: /forma de pagamento/i }), 'PIX')
     expect(screen.queryByRole('combobox', { name: /cartão de crédito/i })).toBeNull()
+  })
+})
+
+describe('EditTransactionDialog — type', () => {
+  it('lets an income switch to refund and sends the new type', async () => {
+    let sent: Record<string, unknown> | undefined
+    server.use(
+      http.put('*/transactions/:id', async ({ request }) => {
+        sent = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json({ ...MOCK_TRANSACTION_2, ...sent })
+      }),
+    )
+    const user = userEvent.setup()
+    renderDialog(MOCK_TRANSACTION_2)
+    await waitForPaymentMethodsLoaded()
+
+    await user.click(screen.getByRole('radio', { name: 'Reembolso' }))
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+
+    await waitFor(() => expect(sent?.type).toBe('REFUND'))
+  })
+
+  it('does not offer a type change for expenses', async () => {
+    renderDialog(MOCK_TRANSACTION_1)
+    await waitForPaymentMethodsLoaded()
+    expect(screen.queryByRole('radio', { name: 'Reembolso' })).toBeNull()
   })
 })

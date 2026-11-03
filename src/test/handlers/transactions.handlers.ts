@@ -317,6 +317,9 @@ function filterStore(params: URLSearchParams): Transaction[] {
   if (params.get('includeCancelled') !== 'true') {
     result = result.filter((t) => t.status !== 'CANCELLED')
   }
+  if (params.get('includeCreditCard') === 'false') {
+    result = result.filter((t) => !t.creditCard)
+  }
   if (type) result = result.filter((t) => t.type === type)
   if (status) result = result.filter((t) => t.status === status)
   if (accountId) result = result.filter((t) => t.accountId === accountId)

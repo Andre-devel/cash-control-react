@@ -137,6 +137,8 @@ export interface ListTransactionsParams {
   amountMax?: string
   searchText?: string
   includeCancelled?: boolean
+  /** Falso tira as compras no cartão de crédito (a API inclui quando omitido). */
+  includeCreditCard?: boolean
   /** Colapsa cada parcelamento em uma linha só, representando a compra inteira. */
   groupInstallments?: boolean
   page?: number
@@ -169,6 +171,8 @@ export interface UpdateTransactionRequest {
   notes?: string
   paymentMethod?: PaymentMethodSlug
   creditCardId?: string
+  /** Só troca entre receita e reembolso, fora do cartão. */
+  type?: 'INCOME' | 'REFUND'
 }
 
 export interface MarkAsPaidRequest {

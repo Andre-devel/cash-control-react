@@ -63,7 +63,7 @@ describe('ReimbursementDialog', () => {
     const user = userEvent.setup()
     renderWithProviders(<ReimbursementDialog transaction={tx()} onClose={onClose} />)
 
-    expect(await screen.findByText(/nenhuma receita sem vínculo/i)).toBeInTheDocument()
+    expect(await screen.findByText(/nenhuma receita ou reembolso sem vínculo/i)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /marcar como reembolsável/i }))
 
     await waitFor(() => expect(onClose).toHaveBeenCalled())

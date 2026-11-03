@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import { ArrowDownLeft, ArrowUpRight, Receipt, Scale } from 'lucide-react'
 import { Money } from '@/components/ui/money'
-import type { TransactionTotals as Totals } from '@/features/transactions/types'
+import type { TransactionTotals as Totals, TransactionType } from '@/features/transactions/types'
 
 function countLabel(n: number): string {
   return `${n} ${n === 1 ? 'lançamento' : 'lançamentos'}`
@@ -15,6 +15,9 @@ interface TotalCardProps {
   valueClass: string
   sub: string
   loading: boolean
+  /** Presente: o card vira um botão que liga/desliga o filtro de tipo correspondente. */
+  active?: boolean
+  onClick?: () => void
 }
 
 function TotalCard({
@@ -25,9 +28,13 @@ function TotalCard({
   valueClass,
   sub,
   loading,
+  active,
+  onClick,
 }: TotalCardProps) {
-  return (
-    <div className="flex min-w-[150px] shrink-0 flex-col gap-2 rounded-xl border border-border bg-surface-1 p-3.5 md:min-w-0 xl:p-4">
+  const base =
+    'flex min-w-[150px] shrink-0 flex-col gap-2 rounded-xl border bg-surface-1 p-3.5 text-left md:min-w-0 xl:p-4'
+  const content = (
+    <>
       <span className="flex items-center gap-1.5 text-caption font-medium text-fg-muted">
         <Icon size={14} aria-hidden className={iconClass} />
         {label}
@@ -41,7 +48,22 @@ function TotalCard({
       <span className="text-[11px] leading-none text-fg-muted xl:text-caption">
         {loading ? ' ' : sub}
       </span>
-    </div>
+    </>
+  )
+
+  if (!onClick) return <div className={`${base} border-border`}>{content}</div>
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`${base} transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
+        active ? 'border-brand' : 'border-border hover:border-border-strong'
+      }`}
+    >
+      {content}
+    </button>
   )
 }
 
@@ -49,13 +71,26 @@ interface TransactionTotalsProps {
   totals: Totals | undefined
   loading: boolean
   periodText: string
+  /** Tipo filtrado agora; o card dele fica marcado. */
+  activeType?: TransactionType
+  /** Clique num card: filtra pelo tipo dele, ou limpa o filtro se ele já estiver ativo. */
+  onTypeChange?: (type: TransactionType | undefined) => void
 }
 
 /**
  * Totais do filtro inteiro (todas as páginas), no topo da lista. No celular a fileira rola
  * na horizontal; do tablet em diante são quatro colunas.
  */
-export function TransactionTotals({ totals, loading, periodText }: TransactionTotalsProps) {
+export function TransactionTotals({
+  totals,
+  loading,
+  periodText,
+  activeType,
+  onTypeChange,
+}: TransactionTotalsProps) {
+  const toggle = (type: TransactionType) =>
+    onTypeChange ? () => onTypeChange(activeType === type ? undefined : type) : undefined
+
   const income = Number(totals?.incomeAmount ?? 0)
   const expense = Number(totals?.expenseAmount ?? 0)
   const invoicePayments = Number(totals?.invoicePaymentAmount ?? 0)
@@ -70,6 +105,8 @@ export function TransactionTotals({ totals, loading, periodText }: TransactionTo
         icon={ArrowDownLeft}
         iconClass="text-income"
         label="Receitas"
+        active={activeType === 'INCOME'}
+        onClick={toggle('INCOME')}
         value={Math.abs(income)}
         valueClass="text-income"
         sub={countLabel(totals?.incomeCount ?? 0)}
@@ -79,6 +116,8 @@ export function TransactionTotals({ totals, loading, periodText }: TransactionTo
         icon={ArrowUpRight}
         iconClass="text-expense"
         label="Despesas"
+        active={activeType === 'EXPENSE'}
+        onClick={toggle('EXPENSE')}
         value={-Math.abs(expense)}
         valueClass="text-fg"
         sub={countLabel(totals?.expenseCount ?? 0)}
@@ -90,6 +129,8 @@ export function TransactionTotals({ totals, loading, periodText }: TransactionTo
         icon={Receipt}
         iconClass="text-info"
         label="Pag. de fatura"
+        active={activeType === 'INVOICE_PAYMENT'}
+        onClick={toggle('INVOICE_PAYMENT')}
         value={-Math.abs(invoicePayments)}
         valueClass="text-fg"
         sub={`${countLabel(totals?.invoicePaymentCount ?? 0)} · fora do resultado`}

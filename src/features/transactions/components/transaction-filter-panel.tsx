@@ -288,6 +288,13 @@ export function buildFilterChips(
       remove: { includeCancelled: false },
     })
   }
+  if (filters.includeCreditCard && filters.paymentMethod !== 'CREDIT_CARD') {
+    chips.push({
+      key: 'creditCard',
+      label: 'Inclui cartão de crédito',
+      remove: { includeCreditCard: false },
+    })
+  }
   return chips
 }
 
@@ -446,6 +453,17 @@ export function TransactionFilterFields({
           className="checkbox"
           checked={includeCancelled}
           onChange={onToggleIncludeCancelled}
+        />
+      </label>
+
+      <label className="flex min-h-touch cursor-pointer items-center justify-between gap-3 text-body-sm font-medium">
+        Incluir compras no cartão de crédito
+        <input
+          type="checkbox"
+          className="checkbox"
+          checked={filters.includeCreditCard ?? false}
+          disabled={filters.paymentMethod === 'CREDIT_CARD'}
+          onChange={() => update({ includeCreditCard: !filters.includeCreditCard })}
         />
       </label>
     </div>

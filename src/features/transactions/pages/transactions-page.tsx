@@ -91,6 +91,10 @@ function buildParams(
     amountMax: get('amountMax'),
     searchText: get('searchText'),
     includeCancelled: searchParams.get('includeCancelled') === 'true',
+    // Compras no cartão ficam de fora por padrão: elas não mexem no saldo da conta e o que
+    // sai dela é o pagamento da fatura. Filtrar pela forma "cartão de crédito" as traz.
+    includeCreditCard:
+      searchParams.get('includeCreditCard') === 'true' || get('paymentMethod') === 'CREDIT_CARD',
     // Um parcelamento é uma compra só: entra na grid por uma linha, com o valor cheio
     // e o número de parcelas, em vez de N linhas repetindo a mesma compra.
     groupInstallments: true,
@@ -116,6 +120,8 @@ function paramsToSearchParams(
   if (params.amountMax) out.amountMax = params.amountMax
   if (params.searchText) out.searchText = params.searchText
   if (params.includeCancelled) out.includeCancelled = 'true'
+  if (params.includeCreditCard && params.paymentMethod !== 'CREDIT_CARD')
+    out.includeCreditCard = 'true'
   if (params.page && params.page > 0) out.page = String(params.page)
   return out
 }
@@ -709,6 +715,8 @@ export default function TransactionsPage() {
               totals={totals}
               loading={totalsLoading}
               periodText={periodLabel(period).toLowerCase()}
+              activeType={filters.type}
+              onTypeChange={(type) => handleFiltersChange({ ...filters, type, page: 0 })}
             />
             <PendingReimbursements onSelect={setReimbursementTarget} />
           </div>

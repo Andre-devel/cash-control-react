@@ -17,6 +17,8 @@ export const updateTransactionSchema = z
     notes: z.string().max(5000, 'Notas deve ter no máximo 5000 caracteres').optional(),
     paymentMethod: z.enum(PAYMENT_METHOD_SLUGS).optional(),
     creditCardId: z.string().optional(),
+    /** Receita e reembolso trocam entre si; os demais tipos não mudam na edição. */
+    type: z.enum(['INCOME', 'REFUND']).optional(),
   })
   .refine((data) => data.paymentMethod !== 'CREDIT_CARD' || !!data.creditCardId, {
     message: 'Selecione um cartão de crédito',
