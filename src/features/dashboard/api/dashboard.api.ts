@@ -64,10 +64,14 @@ export async function getUpcomingInvoices(daysAhead?: number): Promise<UpcomingI
   return response.data
 }
 
-export async function getLargestExpenses(limit?: number): Promise<LargestExpenseItem[]> {
+/** Sem `range`, a API usa o mês atual. */
+export async function getLargestExpenses(
+  limit?: number,
+  range?: { from: string; to: string },
+): Promise<LargestExpenseItem[]> {
   const response = await axiosInstance.get<LargestExpenseItem[]>(
     '/dashboard/widgets/largest-expenses',
-    { params: limit !== undefined ? { limit } : undefined },
+    { params: { limit, from: range?.from, to: range?.to } },
   )
   return response.data
 }

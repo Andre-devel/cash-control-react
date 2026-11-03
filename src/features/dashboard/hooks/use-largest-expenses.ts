@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { getLargestExpenses } from '@/features/dashboard/api/dashboard.api'
 
-export function useLargestExpenses(limit?: number) {
+export function useLargestExpenses(limit?: number, range?: { from: string; to: string }) {
   return useQuery({
-    queryKey: ['dashboard', 'widgets', 'largest-expenses', limit],
-    queryFn: () => getLargestExpenses(limit),
+    queryKey: ['dashboard', 'widgets', 'largest-expenses', limit, range],
+    queryFn: () => getLargestExpenses(limit, range),
     staleTime: 120_000,
   })
 }

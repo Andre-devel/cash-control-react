@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Target } from 'lucide-react'
 import { ROUTES } from '@/app/router/routes'
 import { BudgetRow } from '@/features/budgets/components/budget-row'
 import { useBudgetProgress } from '@/features/budgets/hooks/use-budgets'
@@ -12,13 +13,15 @@ const PREVIEW = 4
 interface BudgetsCardProps {
   /** Mês escolhido no topo do dashboard (`aaaa-mm`). */
   month: string
+  /** Sem orçamento, vira uma linha só (Início do celular) em vez do card com texto. */
+  compactEmpty?: boolean
   className?: string
 }
 
 const LINK =
   'inline-flex min-h-touch items-center px-1 text-body-sm font-semibold text-brand-text no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus'
 
-export function BudgetsCard({ month, className = '' }: BudgetsCardProps) {
+export function BudgetsCard({ month, compactEmpty = false, className = '' }: BudgetsCardProps) {
   const { data, isLoading, isError, refetch } = useBudgetProgress(month)
 
   if (isLoading) {
@@ -38,6 +41,19 @@ export function BudgetsCard({ month, className = '' }: BudgetsCardProps) {
           onRetry={() => void refetch()}
         />
       </Panel>
+    )
+  }
+
+  if (data.items.length === 0 && compactEmpty) {
+    return (
+      <Link
+        to={ROUTES.BUDGETS}
+        className={`flex min-h-[56px] items-center gap-3 rounded-2xl border border-dashed border-border-strong px-4 py-2 text-fg no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus ${className}`}
+      >
+        <Target size={18} className="flex-none text-brand-text" aria-hidden="true" />
+        <span className="flex-1 text-body-sm text-fg-muted">Defina um teto por categoria</span>
+        <span className="text-body-sm font-semibold text-brand-text">Criar</span>
+      </Link>
     )
   }
 

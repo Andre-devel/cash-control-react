@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import type { LucideProps } from 'lucide-react'
 import {
   LayoutGrid,
+  ChartColumn,
   ArrowLeftRight,
   Landmark,
   PiggyBank,
@@ -55,6 +56,7 @@ export const NAV_SECTIONS: NavSection[] = [
         path: ROUTES.DASHBOARD,
         end: true,
       },
+      { id: 'analytics', label: 'Análises', icon: ChartColumn, path: ROUTES.ANALYTICS },
       { id: 'transactions', label: 'Transações', icon: ArrowLeftRight, path: ROUTES.TRANSACTIONS },
       { id: 'accounts', label: 'Contas', icon: Landmark, path: ROUTES.ACCOUNTS },
       { id: 'investments', label: 'Investimentos', icon: PiggyBank, path: ROUTES.INVESTMENTS },

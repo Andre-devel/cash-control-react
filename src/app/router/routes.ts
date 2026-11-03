@@ -10,6 +10,8 @@ export const ROUTES = {
   /** Pública, sem login: é a URL cadastrada no consentimento OAuth do Google. */
   PRIVACY_POLICY: '/privacidade',
   DASHBOARD: '/dashboard',
+  /** Gráficos do dashboard numa tela própria; o Início do celular aponta para cá. */
+  ANALYTICS: '/analises',
   ADMIN: '/admin',
   ROLES: '/admin/roles',
   ROLE_DETAIL: '/admin/roles/:roleId',

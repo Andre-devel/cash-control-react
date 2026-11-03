@@ -11,16 +11,22 @@ const CAT_COLORS = Array.from({ length: 10 }, (_, i) => `var(--cat-${i + 1})`)
 interface CategoriesChartSectionProps {
   /** Mês inicial (`aaaa-mm`); o período pode ser personalizado depois. */
   month?: string
+  /** Período vindo de fora (tela de Análises): manda no gráfico e esconde o personalizar. */
+  range?: { from: string; to: string }
   className?: string
 }
 
-export function CategoriesChartSection({ month, className = '' }: CategoriesChartSectionProps) {
+export function CategoriesChartSection({
+  month,
+  range,
+  className = '',
+}: CategoriesChartSectionProps) {
   const defaults = monthRange(month ?? toYearMonth(new Date()))
   const [from, setFrom] = useState(defaults.from)
   const [to, setTo] = useState(defaults.to)
   const { hidden } = useHideValues()
 
-  const { data, isLoading, isError, refetch } = useCategoriesChart({ from, to })
+  const { data, isLoading, isError, refetch } = useCategoriesChart(range ?? { from, to })
 
   const entries = (data?.entries ?? []).map((item, index) => ({
     name: item.categoryName ?? 'Sem categoria',
@@ -35,30 +41,32 @@ export function CategoriesChartSection({ month, className = '' }: CategoriesChar
   return (
     <Panel className={className} label="Gastos por categoria">
       <PanelHeader title="Gastos por categoria" />
-      <RangeDetails>
-        <label className="flex items-center gap-2">
-          <span className="text-fg-muted">De</span>
-          <input
-            id="cat-from"
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="input input-compact"
-            aria-label="Data de início"
-          />
-        </label>
-        <label className="flex items-center gap-2">
-          <span className="text-fg-muted">até</span>
-          <input
-            id="cat-to"
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="input input-compact"
-            aria-label="Data de fim"
-          />
-        </label>
-      </RangeDetails>
+      {!range && (
+        <RangeDetails>
+          <label className="flex items-center gap-2">
+            <span className="text-fg-muted">De</span>
+            <input
+              id="cat-from"
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="input input-compact"
+              aria-label="Data de início"
+            />
+          </label>
+          <label className="flex items-center gap-2">
+            <span className="text-fg-muted">até</span>
+            <input
+              id="cat-to"
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="input input-compact"
+              aria-label="Data de fim"
+            />
+          </label>
+        </RangeDetails>
+      )}
 
       {isLoading ? (
         <div

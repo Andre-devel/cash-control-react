@@ -289,3 +289,51 @@ describe('DashboardPage', () => {
     expect(screen.queryByRole('switch')).toBeNull()
   })
 })
+
+describe('DashboardPage no celular', () => {
+  const originalMatchMedia = window.matchMedia
+
+  beforeEach(() => {
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(max-width: 767px)',
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia
+  })
+
+  afterEach(() => {
+    window.matchMedia = originalMatchMedia
+  })
+
+  it('mostra o patrimônio com entrou, saiu e resultado do mês', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => expect(screen.getByText('Patrimônio líquido')).toBeTruthy())
+    expect(screen.getByText('Entrou')).toBeTruthy()
+    expect(screen.getByText('Saiu')).toBeTruthy()
+    expect(screen.getByText('Resultado')).toBeTruthy()
+  })
+
+  it('junta contas e faturas no card dos próximos 30 dias', async () => {
+    renderWithProviders(<DashboardPage />)
+    const card = await screen.findByRole('region', { name: 'Próximos 30 dias' })
+    await waitFor(() => {
+      expect(card.textContent).toContain(MOCK_UPCOMING_BILLS[0].description)
+      expect(card.textContent).toContain(`Fatura ${MOCK_UPCOMING_INVOICES[0].cardName}`)
+    })
+    expect(screen.getAllByRole('link', { name: /pagar fatura/i }).length).toBeGreaterThan(0)
+  })
+
+  it('tira os gráficos do Início e aponta para Análises', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => expect(screen.getByText('Patrimônio líquido')).toBeTruthy())
+    expect(screen.queryByText('Receitas vs Despesas')).toBeNull()
+    expect(screen.queryByText('Comparação mensal')).toBeNull()
+    const link = screen.getByRole('link', { name: /análises/i })
+    expect(link.getAttribute('href')).toBe('/analises')
+  })
+})

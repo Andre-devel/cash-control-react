@@ -57,8 +57,14 @@ function RecentSkeleton() {
   )
 }
 
-export function RecentTransactionsCard({ className = '' }: { className?: string }) {
-  const { data, isLoading, isError, refetch } = useRecentTransactions(7)
+interface RecentTransactionsCardProps {
+  /** Quantas linhas; o Início do celular mostra menos. */
+  limit?: number
+  className?: string
+}
+
+export function RecentTransactionsCard({ limit = 7, className = '' }: RecentTransactionsCardProps) {
+  const { data, isLoading, isError, refetch } = useRecentTransactions(limit)
   const transactions = data ?? []
 
   return (

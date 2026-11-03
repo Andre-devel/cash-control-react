@@ -28,12 +28,14 @@ interface PanelHeaderProps {
 
 export function PanelHeader({ title, sub, right }: PanelHeaderProps) {
   return (
-    <div className="mb-3 flex min-h-touch flex-wrap items-center justify-between gap-x-3 gap-y-2">
-      <div className="min-w-0">
-        <h2 className="font-display text-h2 text-fg">{title}</h2>
-        {sub && <p className="mt-1 text-caption text-fg-muted">{sub}</p>}
+    // O subtítulo fica fora da linha do título: com ele junto, o bloco ocupava a largura
+    // toda no celular e o link ("Ver todas") caía sozinho numa linha de baixo.
+    <div className="mb-3">
+      <div className="flex min-h-touch flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <h2 className="min-w-0 font-display text-h2 text-fg">{title}</h2>
+        {right && <div className="flex flex-wrap items-center gap-2">{right}</div>}
       </div>
-      {right && <div className="flex flex-wrap items-center gap-2">{right}</div>}
+      {sub && <p className="text-caption text-fg-muted">{sub}</p>}
     </div>
   )
 }
@@ -57,7 +59,7 @@ export function WidgetError({ message, onRetry }: WidgetErrorProps) {
 }
 
 export function WidgetEmpty({ children }: { children: ReactNode }) {
-  return <p className="py-8 text-center text-body-sm text-fg-muted">{children}</p>
+  return <p className="py-3 text-center md:py-8 text-body-sm text-fg-muted">{children}</p>
 }
 
 /** Bloco de esqueleto; sem brilho com `prefers-reduced-motion`. */

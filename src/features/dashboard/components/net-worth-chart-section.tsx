@@ -26,13 +26,19 @@ function getDefaultRange() {
 
 const AXIS_TICK = { fontSize: 11, fill: 'var(--text-muted)' }
 
-export function NetWorthChartSection({ className = '' }: { className?: string }) {
+interface NetWorthChartSectionProps {
+  /** Período vindo de fora (tela de Análises): manda no gráfico e esconde o personalizar. */
+  range?: { from: string; to: string }
+  className?: string
+}
+
+export function NetWorthChartSection({ range, className = '' }: NetWorthChartSectionProps) {
   const defaults = getDefaultRange()
   const [from, setFrom] = useState(defaults.from)
   const [to, setTo] = useState(defaults.to)
   const { hidden } = useHideValues()
 
-  const { data, isLoading, isError, refetch } = useNetWorthChart({ from, to })
+  const { data, isLoading, isError, refetch } = useNetWorthChart(range ?? { from, to })
 
   const points = (data?.snapshots ?? []).map((p) => ({
     date: p.date,
@@ -64,30 +70,32 @@ export function NetWorthChartSection({ className = '' }: { className?: string })
   return (
     <Panel className={className} label="Evolução do patrimônio">
       <PanelHeader title="Evolução do patrimônio" right={changeBadge} />
-      <RangeDetails>
-        <label className="flex items-center gap-2">
-          <span className="text-fg-muted">De</span>
-          <input
-            id="nw-from"
-            type="date"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="input input-compact"
-            aria-label="Data de início"
-          />
-        </label>
-        <label className="flex items-center gap-2">
-          <span className="text-fg-muted">até</span>
-          <input
-            id="nw-to"
-            type="date"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="input input-compact"
-            aria-label="Data de fim"
-          />
-        </label>
-      </RangeDetails>
+      {!range && (
+        <RangeDetails>
+          <label className="flex items-center gap-2">
+            <span className="text-fg-muted">De</span>
+            <input
+              id="nw-from"
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="input input-compact"
+              aria-label="Data de início"
+            />
+          </label>
+          <label className="flex items-center gap-2">
+            <span className="text-fg-muted">até</span>
+            <input
+              id="nw-to"
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="input input-compact"
+              aria-label="Data de fim"
+            />
+          </label>
+        </RangeDetails>
+      )}
 
       {isLoading ? (
         <div aria-busy="true" aria-label="Carregando gráfico de patrimônio">

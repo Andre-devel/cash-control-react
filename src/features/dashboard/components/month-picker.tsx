@@ -1,7 +1,5 @@
-import { useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatYearMonth } from '@/lib/format-date'
-import { monthPillLabel } from '@/features/dashboard/utils'
 
 interface MonthPickerProps {
   /** Meses selecionáveis (`aaaa-mm`), do mais antigo ao atual. */
@@ -15,54 +13,14 @@ interface MonthPickerProps {
 const FOCUS =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus'
 
-/** Celular: pills roláveis, o mês atual à direita já visível. */
-export function MonthPills({
-  options,
-  value,
-  onChange,
-  label = 'Mês do resumo',
-}: MonthPickerProps) {
-  const scroller = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const el = scroller.current
-    if (el) el.scrollLeft = el.scrollWidth
-  }, [])
-
-  return (
-    <div
-      ref={scroller}
-      role="group"
-      aria-label={label}
-      className="-mx-4 flex snap-x scroll-px-4 gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]"
-    >
-      {options.map((m) => {
-        const on = m === value
-        return (
-          <button
-            key={m}
-            type="button"
-            aria-pressed={on}
-            onClick={() => onChange(m)}
-            className={`min-h-touch min-w-[60px] flex-1 snap-end rounded-lg border text-caption font-semibold ${FOCUS} ${
-              on ? 'border-brand bg-brand text-brand-ink' : 'border-border text-fg-muted'
-            }`}
-          >
-            {monthPillLabel(m)}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-/** Tablet e desktop: ‹ out/2026 ›. */
+/** ‹ out/2026 ›. */
 export function MonthStepper({
   options,
   value,
   onChange,
   label = 'Mês do resumo',
-}: MonthPickerProps) {
+  className = '',
+}: MonthPickerProps & { className?: string }) {
   const index = options.indexOf(value)
   const prev = index > 0 ? options[index - 1] : undefined
   const next = index >= 0 && index < options.length - 1 ? options[index + 1] : undefined
@@ -71,7 +29,7 @@ export function MonthStepper({
     <div
       role="group"
       aria-label={label}
-      className="flex items-center rounded-lg border border-border bg-surface-1"
+      className={`flex items-center rounded-lg border border-border bg-surface-1 ${className}`}
     >
       <button
         type="button"

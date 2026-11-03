@@ -12,13 +12,6 @@ export interface SummaryDelta {
   trend?: 'up' | 'down'
 }
 
-export interface MiniBar {
-  key: string
-  label: string
-  income: number
-  expense: number
-}
-
 interface MonthSummaryProps {
   status: 'loading' | 'error' | 'ready'
   onRetry?: () => void
@@ -36,8 +29,6 @@ interface MonthSummaryProps {
   openCardDebt?: number
   discountInvoices?: boolean
   onToggleDiscountInvoices?: () => void
-  miniBars: MiniBar[]
-  selectedKey: string
   className?: string
 }
 
@@ -104,8 +95,6 @@ export function MonthSummary({
   openCardDebt = 0,
   discountInvoices = false,
   onToggleDiscountInvoices,
-  miniBars,
-  selectedKey,
   className = '',
 }: MonthSummaryProps) {
   if (status === 'loading') return <SummarySkeleton className={className} />
@@ -130,7 +119,6 @@ export function MonthSummary({
     )
   }
 
-  const barMax = Math.max(1, ...miniBars.flatMap((b) => [b.income, b.expense]))
   // A variação continua sem desconto: o quanto faltava das faturas no mês passado não é guardado.
   const discounting = discountInvoices && openCardDebt > 0
   const shownNetWorth = discounting ? netWorth - openCardDebt : netWorth
@@ -154,32 +142,6 @@ export function MonthSummary({
             className="font-display text-display md:text-amount-lg md:font-bold xl:text-[1.75rem] xl:font-extrabold"
           />
           <span className="text-caption text-fg-muted">Receitas − Despesas</span>
-          {miniBars.length > 0 && (
-            <div className="flex h-[72px] items-end gap-2.5 md:hidden" aria-hidden="true">
-              {miniBars.map((b) => (
-                <div
-                  key={b.key}
-                  className={`flex flex-1 flex-col items-center gap-1.5 ${
-                    b.key === selectedKey ? 'opacity-100' : 'opacity-40'
-                  }`}
-                >
-                  <div className="flex h-[54px] items-end gap-[3px]">
-                    <span
-                      className="w-[9px] rounded-[4px] bg-income"
-                      style={{ height: `${Math.max(2, (b.income / barMax) * 54)}px` }}
-                    />
-                    <span
-                      className="w-[9px] rounded-[4px] bg-expense"
-                      style={{ height: `${Math.max(2, (b.expense / barMax) * 54)}px` }}
-                    />
-                  </div>
-                  <span className="text-[10px] font-medium leading-none text-fg-muted">
-                    {b.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         <div className="[display:grid] grid-cols-2 border-t border-border pt-4 md:contents">

@@ -6,8 +6,14 @@ import { formatLocalDate } from '@/lib/format-date'
 import { Amount } from './amount'
 import { Panel, PanelHeader, SkeletonBlock, WidgetEmpty, WidgetError } from './panel'
 
-export function LargestExpensesWidget({ className = '' }: { className?: string }) {
-  const { data, isLoading, isError, refetch } = useLargestExpenses(5)
+interface LargestExpensesWidgetProps {
+  /** Sem período, a API usa o mês atual. */
+  range?: { from: string; to: string }
+  className?: string
+}
+
+export function LargestExpensesWidget({ range, className = '' }: LargestExpensesWidgetProps) {
+  const { data, isLoading, isError, refetch } = useLargestExpenses(5, range)
   const { hidden } = useHideValues()
   const items = data ?? []
   const max = Math.max(1, ...items.map((e) => parseFloat(e.amount)))

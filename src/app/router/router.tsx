@@ -18,6 +18,7 @@ const ResetPasswordPage = lazy(() => import('@/features/auth/pages/reset-passwor
 const OAuth2CallbackPage = lazy(() => import('@/features/auth/pages/oauth2-callback-page'))
 const PrivacyPolicyPage = lazy(() => import('@/features/auth/pages/privacy-policy-page'))
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/dashboard-page'))
+const AnalyticsPage = lazy(() => import('@/features/dashboard/pages/analytics-page'))
 const NotFoundPage = lazy(() => import('@/components/feedback/not-found-page'))
 const ForbiddenPage = lazy(() => import('@/components/feedback/forbidden-page'))
 const RolesPage = lazy(() => import('@/features/roles/pages/roles-page'))
@@ -146,6 +147,14 @@ export const routeConfig: RouteObject[] = [
                 element: (
                   <Suspense fallback={<PageLoader />}>
                     <DashboardPage />
+                  </Suspense>
+                ),
+              },
+              {
+                path: ROUTES.ANALYTICS,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <AnalyticsPage />
                   </Suspense>
                 ),
               },

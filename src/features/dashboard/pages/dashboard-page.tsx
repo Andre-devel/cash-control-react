@@ -20,7 +20,11 @@ import {
   toYearMonth,
 } from '@/features/dashboard/utils'
 import { MonthSummary, type SummaryDelta } from '@/features/dashboard/components/month-summary'
-import { MonthPills, MonthStepper } from '@/features/dashboard/components/month-picker'
+import { MonthStepper } from '@/features/dashboard/components/month-picker'
+import { MobileSummary } from '@/features/dashboard/components/mobile-summary'
+import { NextDaysCard } from '@/features/dashboard/components/next-days-card'
+import { MobileShortcuts } from '@/features/dashboard/components/mobile-shortcuts'
+import { useMediaQuery, MOBILE_QUERY } from '@/hooks/use-media-query'
 import { BarChartCard } from '@/features/dashboard/components/bar-chart-card'
 import { UpcomingBillsCard } from '@/features/dashboard/components/upcoming-bills-card'
 import { OpenInvoicesCard } from '@/features/dashboard/components/open-invoices-card'
@@ -63,6 +67,7 @@ const ICON_BTN =
   'btn btn-icon min-h-touch min-w-touch rounded-lg border border-border bg-surface-1 text-fg'
 
 export default function DashboardPage() {
+  const isMobile = useMediaQuery(MOBILE_QUERY)
   const [chartMonths, setChartMonths] = useState(6)
   const [createOpen, setCreateOpen] = useState(false)
   const user = useAuthStore((s) => s.user)
@@ -157,13 +162,6 @@ export default function DashboardPage() {
         ? 'loading'
         : 'ready'
 
-  const miniBars = chartEntries.map((e) => ({
-    key: e.month,
-    label: monthAbbr(e.month),
-    income: parseFloat(e.income),
-    expense: parseFloat(e.expenses),
-  }))
-
   function handleExport() {
     const rows: string[][] = [['Mês', 'Receitas (R$)', 'Despesas (R$)', 'Saldo (R$)']]
     const entries = chartData?.months ?? []
@@ -236,83 +234,103 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="mb-3 md:hidden">
-        <MonthPills options={monthOptions} value={selectedMonth} onChange={setSelectedMonth} />
-      </div>
-
-      {/* Celular: pilha priorizada + carrossel de análises. Tablet: 2 colunas. Desktop: 12. */}
-      <div className="flex flex-col gap-3 md:[display:grid] md:grid-cols-2 xl:grid-cols-12 xl:gap-4">
-        <MonthSummary
-          className="md:order-1 md:col-span-2 xl:col-span-12"
-          status={summaryStatus}
-          onRetry={() => void retryOverview()}
-          monthName={selectedName}
-          balance={income - expenses}
-          income={income}
-          expenses={expenses}
-          incomeDelta={incomeDelta}
-          expensesDelta={expensesDelta}
-          netWorth={netWorth}
-          netWorthDelta={netWorthDelta}
-          openCardDebt={parseFloat(overview?.openCardDebt ?? '0')}
-          discountInvoices={discountInvoices}
-          onToggleDiscountInvoices={toggleDiscountInvoices}
-          miniBars={miniBars}
-          selectedKey={selectedMonth}
-        />
-
-        {/* Logo abaixo do resumo em todo tamanho: mesma ordem do resumo, vem depois pelo DOM. */}
-        <BalanceProjectionSection
-          className={`md:order-1 md:col-span-2 ${showInvestments ? 'xl:col-span-8' : 'xl:col-span-12'}`}
-        />
-        {showInvestments && (
-          <InvestmentsCard
-            className="md:order-1 md:col-span-2 xl:col-span-4"
-            summary={investments}
-            yieldMonth={parseFloat(overview?.investmentsYieldMonth ?? '0')}
+      {isMobile ? (
+        // Celular: o que importa primeiro (patrimônio e mês), depois o que pede ação; o resto
+        // vira atalho. Os gráficos ficam na tela de Análises.
+        <div className="flex flex-col gap-3">
+          <MonthStepper
+            options={monthOptions}
+            value={selectedMonth}
+            onChange={setSelectedMonth}
+            className="justify-between"
           />
-        )}
+          <MobileSummary
+            status={summaryStatus}
+            onRetry={() => void retryOverview()}
+            monthName={selectedName}
+            income={income}
+            expenses={expenses}
+            netWorth={netWorth}
+            netWorthDelta={netWorthDelta}
+            openCardDebt={parseFloat(overview?.openCardDebt ?? '0')}
+            discountInvoices={discountInvoices}
+            onToggleDiscountInvoices={toggleDiscountInvoices}
+          />
+          <NextDaysCard />
+          <BudgetsCard key={`bud-${selectedMonth}`} month={selectedMonth} compactEmpty />
+          <RecentTransactionsCard limit={4} />
+          <MobileShortcuts
+            investments={
+              showInvestments
+                ? {
+                    gross: toNumber(investments.totalGross),
+                    yieldMonth: parseFloat(overview?.investmentsYieldMonth ?? '0'),
+                  }
+                : undefined
+            }
+          />
+        </div>
+      ) : (
+        // Tablet: 2 colunas. Desktop: 12.
+        <div className="flex flex-col gap-3 md:[display:grid] md:grid-cols-2 xl:grid-cols-12 xl:gap-4">
+          <MonthSummary
+            className="md:order-1 md:col-span-2 xl:col-span-12"
+            status={summaryStatus}
+            onRetry={() => void retryOverview()}
+            monthName={selectedName}
+            balance={income - expenses}
+            income={income}
+            expenses={expenses}
+            incomeDelta={incomeDelta}
+            expensesDelta={expensesDelta}
+            netWorth={netWorth}
+            netWorthDelta={netWorthDelta}
+            openCardDebt={parseFloat(overview?.openCardDebt ?? '0')}
+            discountInvoices={discountInvoices}
+            onToggleDiscountInvoices={toggleDiscountInvoices}
+          />
 
-        <UpcomingBillsCard className="md:order-2 xl:order-5 xl:col-span-4" />
-        <OpenInvoicesCard className="md:order-3 xl:order-4 xl:col-span-4" />
-        {/* Antes das recentes no DOM: divide a mesma ordem com elas no tablet e no desktop. */}
-        <BudgetsCard
-          key={`bud-${selectedMonth}`}
-          month={selectedMonth}
-          className="md:order-7 md:col-span-2 xl:order-9 xl:col-span-12"
-        />
-        <RecentTransactionsCard className="md:order-7 md:col-span-2 xl:order-9 xl:col-span-12" />
+          {/* Logo abaixo do resumo em todo tamanho: mesma ordem do resumo, vem depois pelo DOM. */}
+          <BalanceProjectionSection
+            className={`md:order-1 md:col-span-2 ${showInvestments ? 'xl:col-span-8' : 'xl:col-span-12'}`}
+          />
+          {showInvestments && (
+            <InvestmentsCard
+              className="md:order-1 md:col-span-2 xl:col-span-4"
+              summary={investments}
+              yieldMonth={parseFloat(overview?.investmentsYieldMonth ?? '0')}
+            />
+          )}
 
-        <section aria-labelledby="dash-analyses" className="flex flex-col gap-2 md:contents">
-          <div className="flex items-baseline justify-between px-1 pt-4 md:hidden">
-            <h2 id="dash-analyses" className="font-display text-h2">
-              Análises
-            </h2>
-            <span className="text-caption text-fg-muted" aria-hidden="true">
-              deslize →
-            </span>
-          </div>
-          <div className="relative -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:contents">
-            <BarChartCard
-              months={chartMonths}
-              onMonthsChange={setChartMonths}
-              className="w-[88%] max-w-[360px] flex-none snap-start md:order-4 md:col-span-2 md:w-auto md:max-w-none xl:order-2 xl:col-span-8"
-            />
-            <CategoriesChartSection
-              key={`cat-${selectedMonth}`}
-              month={selectedMonth}
-              className="w-[88%] max-w-[360px] flex-none snap-start md:order-5 md:w-auto md:max-w-none xl:order-3 xl:col-span-4"
-            />
-            <NetWorthChartSection className="w-[88%] max-w-[360px] flex-none snap-start md:order-6 md:w-auto md:max-w-none xl:order-7 xl:col-span-6" />
-            <MonthComparisonSection
-              key={`cmp-${selectedMonth}`}
-              month={selectedMonth}
-              className="w-[88%] max-w-[360px] flex-none snap-start md:order-8 md:w-auto md:max-w-none xl:order-8 xl:col-span-6"
-            />
-            <LargestExpensesWidget className="w-[88%] max-w-[360px] flex-none snap-start md:order-9 md:w-auto md:max-w-none xl:order-6 xl:col-span-4" />
-          </div>
-        </section>
-      </div>
+          <UpcomingBillsCard className="md:order-2 xl:order-5 xl:col-span-4" />
+          <OpenInvoicesCard className="md:order-3 xl:order-4 xl:col-span-4" />
+          {/* Antes das recentes no DOM: divide a mesma ordem com elas no tablet e no desktop. */}
+          <BudgetsCard
+            key={`bud-${selectedMonth}`}
+            month={selectedMonth}
+            className="md:order-7 md:col-span-2 xl:order-9 xl:col-span-12"
+          />
+          <RecentTransactionsCard className="md:order-7 md:col-span-2 xl:order-9 xl:col-span-12" />
+
+          <BarChartCard
+            months={chartMonths}
+            onMonthsChange={setChartMonths}
+            className="md:order-4 md:col-span-2 xl:order-2 xl:col-span-8"
+          />
+          <CategoriesChartSection
+            key={`cat-${selectedMonth}`}
+            month={selectedMonth}
+            className="md:order-5 xl:order-3 xl:col-span-4"
+          />
+          <NetWorthChartSection className="md:order-6 xl:order-7 xl:col-span-6" />
+          <MonthComparisonSection
+            key={`cmp-${selectedMonth}`}
+            month={selectedMonth}
+            className="md:order-8 xl:order-8 xl:col-span-6"
+          />
+          <LargestExpensesWidget className="md:order-9 xl:order-6 xl:col-span-4" />
+        </div>
+      )}
 
       <CreateTransactionDialog open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
