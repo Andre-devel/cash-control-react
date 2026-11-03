@@ -328,6 +328,12 @@ describe('DashboardPage no celular', () => {
     expect(screen.getAllByRole('link', { name: /pagar fatura/i }).length).toBeGreaterThan(0)
   })
 
+  it('o avatar do cabeçalho abre o perfil', async () => {
+    renderWithProviders(<DashboardPage />)
+    const link = await screen.findByRole('link', { name: 'Abrir perfil' })
+    expect(link.getAttribute('href')).toBe('/profile')
+  })
+
   it('tira os gráficos do Início e aponta para Análises', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => expect(screen.getByText('Patrimônio líquido')).toBeTruthy())

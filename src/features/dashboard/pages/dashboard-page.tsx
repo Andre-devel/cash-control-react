@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Download, Eye, EyeOff, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
@@ -36,6 +37,7 @@ import { InvestmentsCard } from '@/features/dashboard/components/investments-car
 import { BudgetsCard } from '@/features/dashboard/components/budgets-card'
 import { MonthComparisonSection } from '@/features/dashboard/components/month-comparison-section'
 import { LargestExpensesWidget } from '@/features/dashboard/components/largest-expenses-widget'
+import { ROUTES } from '@/app/router/routes'
 import { CreateTransactionDialog } from '@/features/transactions/components/create-transaction-dialog'
 
 /** Quantos meses o seletor do topo oferece (o atual e os anteriores). */
@@ -186,9 +188,13 @@ export default function DashboardPage() {
     <div>
       {/* Cabeçalho: no celular, avatar + saudação + olho; no tablet/desktop, mês e ações. */}
       <div className="mb-4 flex items-center gap-3 md:mb-6">
-        <span className="md:hidden" aria-hidden="true">
+        <Link
+          to={ROUTES.PROFILE}
+          className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand md:hidden"
+          aria-label="Abrir perfil"
+        >
           <Avatar name={initialsOf(userName)} />
-        </span>
+        </Link>
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-body font-semibold text-fg md:font-display md:text-h1">
             <span className="block text-caption font-normal text-fg-muted md:inline md:text-[1em] md:text-fg md:[font-weight:inherit]">
