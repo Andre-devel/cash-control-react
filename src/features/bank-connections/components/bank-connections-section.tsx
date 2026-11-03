@@ -63,8 +63,8 @@ export function BankConnectionsSection() {
 
   return (
     <section className="flex flex-col gap-2.5" aria-labelledby="bank-connections-title">
-      <div className="flex items-center gap-2">
-        <h2 id="bank-connections-title" className="font-display text-h2 text-fg">
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 id="bank-connections-title" className="whitespace-nowrap font-display text-h2 text-fg">
           Conexões bancárias
         </h2>
         <div className="spacer" />
@@ -123,30 +123,38 @@ function ConnectionCard({ connection, reconnecting, onReconnect, onDelete }: Con
   const refresh = useRefreshBankConnection()
   const status = STATUS[connection.status] ?? { label: connection.status, kind: 'muted' }
   const name = connection.connectorName ?? 'Banco'
+  // Duas conexões pelo MeuPluggy têm o mesmo nome; o número da conta diferencia.
+  const accountNumber = connection.accounts.find((account) => account.kind === 'BANK')?.number
 
   return (
     <div className={`${CARD} flex flex-col gap-3 p-4`}>
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-body font-semibold text-fg">{name}</span>
-        <Badge kind={status.kind}>{status.label}</Badge>
-        <div className="spacer" />
-        {NEEDS_RECONNECT.has(connection.status) && (
-          <Button size="sm" loading={reconnecting} onClick={onReconnect}>
-            Reconectar
+      <div className="flex items-start gap-2">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="min-w-0 truncate text-body font-semibold text-fg">
+            {name}
+            {accountNumber && <span className="font-normal text-fg-muted"> · {accountNumber}</span>}
+          </span>
+          <Badge kind={status.kind}>{status.label}</Badge>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          {NEEDS_RECONNECT.has(connection.status) && (
+            <Button size="sm" loading={reconnecting} onClick={onReconnect}>
+              Reconectar
+            </Button>
+          )}
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label={`Atualizar ${name}`}
+            loading={refresh.isPending}
+            onClick={() => refresh.mutate(connection.id)}
+          >
+            <RefreshCw size={16} aria-hidden="true" />
           </Button>
-        )}
-        <Button
-          size="icon"
-          variant="ghost"
-          aria-label={`Atualizar ${name}`}
-          loading={refresh.isPending}
-          onClick={() => refresh.mutate(connection.id)}
-        >
-          <RefreshCw size={16} aria-hidden="true" />
-        </Button>
-        <Button size="icon" variant="ghost" aria-label={`Remover ${name}`} onClick={onDelete}>
-          <Trash2 size={16} aria-hidden="true" />
-        </Button>
+          <Button size="icon" variant="ghost" aria-label={`Remover ${name}`} onClick={onDelete}>
+            <Trash2 size={16} aria-hidden="true" />
+          </Button>
+        </div>
       </div>
       {(connection.lastSyncedAt || connection.statusDetail) && (
         <p className="text-caption text-fg-muted">

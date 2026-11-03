@@ -124,7 +124,7 @@ export default function CategoriesPage() {
               onClick={() => setCreateOpen(true)}
               aria-label="Nova categoria"
             >
-              <span className="hidden md:inline">Nova categoria</span>
+              Nova categoria
             </Button>
           </div>
         )}
@@ -165,7 +165,9 @@ export default function CategoriesPage() {
           aria-labelledby="categories-tab-categorias"
           className="flex flex-col gap-3"
         >
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Filtros">
+          {/* Rótulos curtos: com "Mostrar …" os dois botões quebravam em duas linhas no celular. */}
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Mostrar">
+            <span className="text-body-sm text-fg-muted">Mostrar</span>
             <Button
               size="sm"
               variant={showHidden ? 'default' : 'ghost'}
@@ -173,8 +175,9 @@ export default function CategoriesPage() {
               leading={<EyeOff size={14} aria-hidden="true" />}
               onClick={() => setShowHidden((v) => !v)}
               aria-pressed={showHidden}
+              aria-label="Mostrar ocultas"
             >
-              Mostrar ocultas
+              Ocultas
             </Button>
             <Button
               size="sm"
@@ -183,8 +186,9 @@ export default function CategoriesPage() {
               leading={<Archive size={14} aria-hidden="true" />}
               onClick={() => setShowArchived((v) => !v)}
               aria-pressed={showArchived}
+              aria-label="Mostrar arquivadas"
             >
-              Mostrar arquivadas
+              Arquivadas
             </Button>
           </div>
 

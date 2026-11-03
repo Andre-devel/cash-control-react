@@ -145,7 +145,7 @@ export function AdvanceInstallmentsDialog({
                 {selectionError}
               </p>
             )}
-            <div className="flex max-h-[40dvh] flex-col gap-1.5 overflow-y-auto">
+            <div className="flex flex-col gap-1.5 md:max-h-[40dvh] md:overflow-y-auto">
               {pendingTransactions.map((t) => {
                 const checked = selectedIds.includes(t.id)
                 return (

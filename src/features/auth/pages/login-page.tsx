@@ -61,7 +61,7 @@ export default function LoginPage() {
         <div className="flex flex-col gap-1.5">
           <Field label="Senha" error={form.formState.errors.password?.message}>
             <PasswordInput
-              placeholder="••••••••"
+              placeholder="Sua senha"
               autoComplete="current-password"
               error={!!form.formState.errors.password}
               {...form.register('password')}

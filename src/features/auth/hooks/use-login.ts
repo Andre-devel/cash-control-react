@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { loginApi } from '@/features/auth/api/auth.api'
+import { getMeApi, loginApi } from '@/features/auth/api/auth.api'
 import { useAuthStore } from '@/features/auth/store/auth.store'
 import { decodeJwtPayload } from '@/lib/jwt'
 import { toast } from '@/lib/toast'
@@ -32,6 +32,20 @@ export function useLogin() {
         })
         logger.log({ event: LOG_EVENTS.LOGIN_SUCCESS, permissions })
       }
+      // O JWT não traz nome nem e-mail; o perfil completa o usuário (saudação, avatar).
+      void getMeApi()
+        .then((profile) =>
+          setUser({
+            id: profile.id,
+            email: profile.maskedEmail,
+            name: profile.displayName,
+            roles: profile.roles,
+            permissions: profile.permissions,
+          }),
+        )
+        .catch(() => {
+          // Sem o perfil, a sessão segue com os dados do token até o próximo carregamento.
+        })
       const redirectTo = searchParams.get('redirect')
       navigate(redirectTo ? decodeURIComponent(redirectTo) : ROUTES.DASHBOARD, { replace: true })
     },

@@ -168,8 +168,9 @@ function AuditCard({ entry }: { entry: AuditLogEntry }) {
       <EventIcon eventType={entry.eventType} />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <span className="min-w-0 break-all font-mono text-body-sm font-semibold">
-            {entry.eventType}
+          {/* Quebra só depois do "_": com break-all saía "TOKEN_RETENTION_PU / RGE". */}
+          <span className="min-w-0 break-words font-mono text-body-sm font-semibold">
+            {entry.eventType.replace(/_/g, '_\u200B')}
           </span>
           <OutcomeBadge outcome={entry.outcome} />
         </div>

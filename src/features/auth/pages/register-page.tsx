@@ -93,7 +93,7 @@ export default function RegisterPage() {
 
         <Field label="Confirmar senha" error={form.formState.errors.confirmPassword?.message}>
           <PasswordInput
-            placeholder="••••••••"
+            placeholder="Repita a senha"
             autoComplete="new-password"
             error={!!form.formState.errors.confirmPassword}
             {...form.register('confirmPassword')}

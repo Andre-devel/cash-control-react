@@ -122,7 +122,7 @@ export const CategoryNode = memo(function CategoryNode({
         </span>
 
         <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-          <ActionMenu label={`Ações de ${node.name}`} items={items} />
+          <ActionMenu label={`Ações de ${node.name}`} title={node.name} items={items} />
         </div>
       </div>
 

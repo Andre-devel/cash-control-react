@@ -119,7 +119,7 @@ export default function ProfilePage() {
     <div className="flex max-w-5xl flex-col gap-4">
       <h1 className="font-display text-h1 text-fg">Perfil</h1>
 
-      <div className="grid items-start gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
         <div className="flex flex-col gap-3">
           <section className={`${CARD} p-4 md:p-5`} aria-label="Informações da conta">
             {isLoading ? (

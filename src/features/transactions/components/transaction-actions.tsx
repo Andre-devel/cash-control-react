@@ -58,6 +58,7 @@ export function TransactionActions({
         <ActionMenu
           items={[{ label: 'Ver parcelas', onSelect: viewSeries }]}
           label={`Ações de ${transaction.description}`}
+          title={transaction.description}
         />
       )
     }
@@ -104,7 +105,11 @@ export function TransactionActions({
           Pagar
         </Button>
       )}
-      <ActionMenu items={items} label={`Ações de ${transaction.description}`} />
+      <ActionMenu
+        items={items}
+        label={`Ações de ${transaction.description}`}
+        title={transaction.description}
+      />
     </>
   )
 }

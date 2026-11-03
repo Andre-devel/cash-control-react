@@ -16,14 +16,11 @@ import {
 import { usePayInvoice } from '@/features/cards/hooks/use-pay-invoice'
 import type { Invoice } from '@/features/cards/types'
 import { localIsoDate, parseLocalDate } from '@/lib/local-date'
+import { formatMoneyInput } from '@/lib/money'
 
 function fmtDate(dateStr: string) {
   const d = parseLocalDate(dateStr)
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
-}
-
-function toDecimalString(value: number): string {
-  return value.toFixed(2)
 }
 
 function todayIso(): string {
@@ -67,9 +64,9 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
   const totalAmount = parseFloat(invoice.totalAmount)
   const paidAmount = parseFloat(invoice.paidAmount)
   const remainingAmount = totalAmount - paidAmount
-  const remainingAmountStr = remainingAmount.toFixed(2)
+  const remainingAmountStr = formatMoneyInput(remainingAmount)
 
-  const schema = createPayInvoiceSchema(remainingAmountStr)
+  const schema = createPayInvoiceSchema(remainingAmount.toFixed(2))
   const form = useForm<PayInvoiceFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -168,9 +165,13 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
             type="button"
             className={PRESET_CLASS}
             onClick={() =>
-              form.setValue('amount', toDecimalString(remainingAmount / 2), {
-                shouldValidate: true,
-              })
+              form.setValue(
+                'amount',
+                formatMoneyInput(Math.round((remainingAmount / 2) * 100) / 100),
+                {
+                  shouldValidate: true,
+                },
+              )
             }
           >
             50%
@@ -179,9 +180,13 @@ export function PayInvoiceDialog({ invoice, cardName, open, onClose }: PayInvoic
             type="button"
             className={PRESET_CLASS}
             onClick={() =>
-              form.setValue('amount', toDecimalString(totalAmount * 0.15), {
-                shouldValidate: true,
-              })
+              form.setValue(
+                'amount',
+                formatMoneyInput(Math.round(totalAmount * 0.15 * 100) / 100),
+                {
+                  shouldValidate: true,
+                },
+              )
             }
           >
             Mínimo (15%)

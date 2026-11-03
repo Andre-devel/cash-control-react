@@ -206,7 +206,7 @@ export function CategorizationRulesSection({
   return (
     <section className="flex flex-col gap-3" aria-labelledby="rules-title">
       <div className="flex flex-wrap items-start gap-3">
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="flex min-w-[14rem] flex-1 flex-col gap-1">
           <h2 id="rules-title" className="font-display text-h2 text-fg">
             Regras de categorização automática
           </h2>

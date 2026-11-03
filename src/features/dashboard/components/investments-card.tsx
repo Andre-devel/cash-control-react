@@ -47,7 +47,7 @@ export function InvestmentsCard({ summary, yieldMonth, className = '' }: Investm
       />
       <div className="mb-3 grid grid-cols-3 gap-3 xl:grid-cols-2">
         <Stat label="Valor bruto" value={toNumber(summary.totalGross)} />
-        <Stat label="Líquido se resgatar" value={toNumber(summary.totalNet)} />
+        <Stat label="Líquido" value={toNumber(summary.totalNet)} />
         <Stat
           label="Rendeu no mês"
           value={yieldMonth}

@@ -76,9 +76,13 @@ export function BudgetDialog({ state, month, groups, onClose }: BudgetDialogProp
       onClose={onClose}
       footer={
         <>
-          {item && (
+          {item ? (
             <Button type="button" variant="ghost" onClick={onRemove} disabled={saving || removing}>
               {item.source === 'MONTH' ? 'Voltar ao valor de todo mês' : 'Remover orçamento'}
+            </Button>
+          ) : (
+            <Button type="button" variant="ghost" onClick={onClose}>
+              Cancelar
             </Button>
           )}
           <div className="spacer" />

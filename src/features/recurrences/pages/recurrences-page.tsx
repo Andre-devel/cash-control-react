@@ -15,7 +15,7 @@ import type { Recurrence } from '@/features/recurrences/types'
 function RecurrencesSkeleton() {
   return (
     <div
-      className="grid gap-3 md:grid-cols-2 xl:grid-cols-3"
+      className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
       aria-busy="true"
       aria-label="Carregando recorrências"
     >
@@ -148,7 +148,7 @@ export default function RecurrencesPage() {
       ) : (
         <>
           <RecurrencesSummary recurrences={recurrences} />
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {recurrences.map((recurrence) => (
               <RecurrenceCard
                 key={recurrence.id}

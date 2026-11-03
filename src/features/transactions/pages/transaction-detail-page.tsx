@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
+import { ActionMenu } from '@/components/ui/action-menu'
 import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
 import { IconBubble } from '@/components/ui/icon-bubble'
@@ -95,6 +96,10 @@ export default function TransactionDetailPage() {
   const isPositive = isPositiveTransaction(transaction.type, amount)
   const display = TRANSACTION_TYPE_DISPLAY[transaction.type]
   const canEdit = !isCancelled && !isLockedTransaction(transaction)
+  const deleteLabel = isInvoicePayment ? 'Estornar pagamento' : 'Excluir'
+  const reimbursementLabel = transaction.reimbursement?.reimbursable
+    ? 'Reembolso'
+    : 'Marcar como reembolsável'
 
   return (
     <div className="flex w-full max-w-[880px] flex-col gap-4">
@@ -137,26 +142,13 @@ export default function TransactionDetailPage() {
           <Money value={isPositive ? Math.abs(amount) : -Math.abs(amount)} signed />
         </p>
 
-        {/* Ações: "marcar como paga" em destaque; o resto ao lado. No celular quebram linha. */}
+        {/* Ações: "marcar como paga" em destaque e "Editar" ao lado. No celular as demais vão
+            para o "…": quebradas em linhas, com o Excluir vermelho, pareciam a ação principal. */}
         <div className="flex flex-wrap items-center gap-2">
           <PayTransactionButton transaction={transaction} className="max-md:w-full" />
           {canEdit && (
-            <>
-              <Button className="min-h-touch" onClick={() => setEditOpen(true)}>
-                Editar
-              </Button>
-              <Button variant="ghost" className="min-h-touch" onClick={() => setCancelOpen(true)}>
-                Cancelar transação
-              </Button>
-            </>
-          )}
-          {canSetReimbursement(transaction) && (
-            <Button
-              variant="ghost"
-              className="min-h-touch"
-              onClick={() => setReimbursementOpen(true)}
-            >
-              {transaction.reimbursement?.reimbursable ? 'Reembolso' : 'Marcar como reembolsável'}
+            <Button className="min-h-touch" onClick={() => setEditOpen(true)}>
+              Editar
             </Button>
           )}
           {canReactivateTransaction(transaction) && (
@@ -168,9 +160,46 @@ export default function TransactionDetailPage() {
               Reativar
             </Button>
           )}
-          <Button variant="danger" className="min-h-touch" onClick={() => setDeleteOpen(true)}>
-            {isInvoicePayment ? 'Estornar pagamento' : 'Excluir'}
+          {canEdit && (
+            <Button
+              variant="ghost"
+              className="min-h-touch max-md:hidden"
+              onClick={() => setCancelOpen(true)}
+            >
+              Cancelar transação
+            </Button>
+          )}
+          {canSetReimbursement(transaction) && (
+            <Button
+              variant="ghost"
+              className="min-h-touch max-md:hidden"
+              onClick={() => setReimbursementOpen(true)}
+            >
+              {reimbursementLabel}
+            </Button>
+          )}
+          <Button
+            variant="danger"
+            className="min-h-touch max-md:hidden"
+            onClick={() => setDeleteOpen(true)}
+          >
+            {deleteLabel}
           </Button>
+          <span className="md:hidden">
+            <ActionMenu
+              label={`Mais ações de ${transaction.description}`}
+              title={transaction.description}
+              items={[
+                ...(canEdit
+                  ? [{ label: 'Cancelar transação', onSelect: () => setCancelOpen(true) }]
+                  : []),
+                ...(canSetReimbursement(transaction)
+                  ? [{ label: reimbursementLabel, onSelect: () => setReimbursementOpen(true) }]
+                  : []),
+                { label: deleteLabel, onSelect: () => setDeleteOpen(true), danger: true },
+              ]}
+            />
+          </span>
         </div>
       </section>
 

@@ -515,7 +515,7 @@
 
 .more-sheet { display: flex; flex-direction: column; gap: var(--s-4); }
 .more-group .nav-section { padding: 0 0 var(--s-2); }
-.more-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-2); }
+.more-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); }
 .more-item {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
   min-height: 76px;
@@ -661,6 +661,7 @@
 .input-group .trailing { right: 12px; }
 .input-group .trailing.btn-eye { pointer-events: auto; cursor: pointer; background: none; border: 0; padding: 0; color: var(--text-muted); }
 .input-group .input.with-leading { padding-left: 42px; }
+.input-group .input.with-leading.with-leading-wide { padding-left: 58px; }
 .input-group .input.with-trailing { padding-right: 44px; }
 .input-group .leading .currency { font-size: 15px; font-weight: 600; color: var(--text-dim); }
 
@@ -1021,6 +1022,7 @@
 .action-menu-item:hover, .action-menu-item:focus-visible { background: var(--surface-hover); outline: none; }
 .action-menu-item.danger { color: var(--expense); }
 .action-menu-scrim { display: none; }
+.action-menu-title, .action-menu-cancel { display: none; }
 
 @media (max-width: 767px) {
   /* Sheet de ações: a posição calculada (inline) é para o desktop. */
@@ -1042,6 +1044,29 @@
     animation: slideUp 200ms cubic-bezier(.4,0,.2,1);
   }
   .action-menu-item { min-height: 52px; font-size: 16px; padding: 0 16px; }
+  .action-menu-title {
+    display: block;
+    margin: 0;
+    padding: 4px 16px 10px;
+    font-size: 13px;
+    color: var(--text-dim);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+  .action-menu-cancel {
+    display: block;
+    margin-top: 8px;
+    min-height: 52px;
+    border: 1px solid var(--border);
+    border-radius: var(--cc-radius-md);
+    background: var(--surface-1);
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
 }
 
 /* ============================================================
@@ -1398,13 +1423,13 @@
 
 /* Variante de formulário: mesma caixa dos demais campos */
 .cat-combo-trigger--field {
-  height: 36px;
-  padding: 0 10px;
-  font-size: 13px;
+  height: 44px;
+  padding: 0 14px;
+  font-size: 15px;
   color: var(--text);
-  background: var(--surface-1);
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: var(--r-2);
+  border-radius: var(--cc-radius-md);
   transition: border-color 80ms, box-shadow 80ms;
 }
 .cat-combo-trigger--field:hover:not(:disabled) { border-color: var(--border-strong); }
@@ -1662,7 +1687,9 @@
   .icon-picker-grid {
     grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
     gap: 8px;
-    max-height: 240px;
+    /* Sem rolagem própria: dentro do sheet, que já rola, o dedo prendia na grade. */
+    max-height: none;
+    overflow: visible;
   }
   .icon-picker-btn { width: 44px; height: 44px; font-size: 22px; }
 
@@ -1693,6 +1720,7 @@
   .invoice-summary .btn { width: 100%; justify-content: center; }
 
   /* Seletor de categoria: campo de busca com 16 px para o iOS não dar zoom ao focar */
+  .cat-combo-trigger--field { font-size: 16px; }
   .cat-combo-search { height: 44px; }
   .cat-combo-search input { font-size: 16px; }
   .cat-combo-opt { padding: 9px 8px; }

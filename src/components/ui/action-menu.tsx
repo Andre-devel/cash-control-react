@@ -13,6 +13,8 @@ interface ActionMenuProps {
   items: ActionMenuItem[]
   /** Nome acessível do botão "…". */
   label?: string
+  /** Do que são as ações; no celular vira o título do sheet. */
+  title?: string
 }
 
 /**
@@ -21,7 +23,7 @@ interface ActionMenuProps {
  * No celular (< 768) o CSS transforma a lista em sheet de ações preso ao rodapé, com fundo
  * escurecido (`.action-menu-scrim`).
  */
-export function ActionMenu({ items, label = 'Mais ações' }: ActionMenuProps) {
+export function ActionMenu({ items, label = 'Mais ações', title }: ActionMenuProps) {
   const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -75,7 +77,7 @@ export function ActionMenu({ items, label = 'Mais ações' }: ActionMenuProps) {
         aria-expanded={open}
         onClick={toggle}
       >
-        <MoreHorizontal size={18} aria-hidden="true" />
+        <MoreHorizontal size={20} strokeWidth={2.25} aria-hidden="true" />
       </Button>
       {anchor &&
         createPortal(
@@ -88,6 +90,11 @@ export function ActionMenu({ items, label = 'Mais ações' }: ActionMenuProps) {
               className="action-menu"
               style={{ top: anchor.top, right: anchor.right }}
             >
+              {title && (
+                <p className="action-menu-title" aria-hidden="true">
+                  {title}
+                </p>
+              )}
               {items.map((item) => (
                 <button
                   key={item.label}
@@ -102,6 +109,17 @@ export function ActionMenu({ items, label = 'Mais ações' }: ActionMenuProps) {
                   {item.label}
                 </button>
               ))}
+              {/* Só no celular: no sheet o clique fora não é óbvio. */}
+              <button
+                type="button"
+                className="action-menu-cancel"
+                onClick={() => {
+                  setAnchor(null)
+                  triggerRef.current?.focus()
+                }}
+              >
+                Cancelar
+              </button>
             </div>
           </>,
           document.body,

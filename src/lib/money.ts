@@ -25,7 +25,9 @@ export function moneyField(message: string, options?: { signed?: boolean; positi
   const field = z
     .string()
     .transform(normalizeMoneyInput)
-    .refine((value) => pattern.test(value), message)
+    // Campo vazio é falta de valor, não formato errado.
+    .refine((value) => value !== '', 'Valor é obrigatório')
+    .refine((value) => value === '' || pattern.test(value), message)
   // A API recusa zero (`@DecimalMin("0.01")`); sem isto o erro só aparecia como
   // "Falha na validação da requisição." depois do envio.
   return options?.positive

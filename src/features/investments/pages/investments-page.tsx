@@ -106,7 +106,7 @@ export default function InvestmentsPage() {
             aria-label="Nova aplicação"
             className="min-w-touch"
           >
-            <span className="hidden md:inline">Nova aplicação</span>
+            Nova aplicação
           </Button>
         </div>
       </div>
@@ -158,7 +158,10 @@ export default function InvestmentsPage() {
             >
               As aplicações de <strong>{account.accountName}</strong> somam <Money value={-value} />{' '}
               a mais que o saldo da conta. Algum resgate entrou pelo extrato sem ser registrado
-              aqui: concilie em “Movimentos para registrar” ou use “Resgatar” na aplicação.
+              aqui: {/* A seção só existe quando há transferência pendente nos últimos 90 dias. */}
+              {pendingTransfers.length > 0
+                ? 'concilie em “Movimentos para registrar” ou use “Resgatar” na aplicação.'
+                : 'use “Resgatar” na aplicação que foi resgatada.'}
             </div>
           )
         })}
@@ -180,7 +183,7 @@ export default function InvestmentsPage() {
           }}
         />
 
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr] lg:gap-5">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr] lg:gap-5">
           <Panel label="Aplicações" className="order-2 lg:order-1">
             <PanelHeader
               title="Aplicações"

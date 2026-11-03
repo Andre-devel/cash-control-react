@@ -132,7 +132,11 @@ export function InstallmentSeriesCard({
             </span>
           )}
         </div>
-        <ActionMenu items={menuItems} label={`Ações da série: ${series.description}`} />
+        <ActionMenu
+          items={menuItems}
+          label={`Ações da série: ${series.description}`}
+          title={series.description}
+        />
       </div>
 
       <div className="flex flex-col gap-1.5">

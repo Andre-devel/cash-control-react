@@ -137,7 +137,7 @@ export function RolePermissionsPanel({ role }: RolePermissionsPanelProps) {
                   <span className="tabular-nums">· {group.items.length}</span>
                 </h3>
                 <ul
-                  className="m-0 grid list-none !gap-2 p-0 md:grid-cols-2"
+                  className="m-0 grid list-none grid-cols-1 !gap-2 p-0 md:grid-cols-2"
                   aria-label={`Permissões atribuídas — ${group.key}`}
                 >
                   {group.items.map((permission) => (

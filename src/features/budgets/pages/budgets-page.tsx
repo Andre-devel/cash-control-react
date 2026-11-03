@@ -83,7 +83,7 @@ export default function BudgetsPage() {
             aria-label="Novo orçamento"
             className="min-w-touch"
           >
-            <span className="hidden md:inline">Novo orçamento</span>
+            Novo orçamento
           </Button>
         </div>
       </div>

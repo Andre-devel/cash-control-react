@@ -70,7 +70,9 @@ export function InvoiceItemRow({
         aria-hidden
       />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="text-body font-medium leading-tight">{item.description}</span>
+        <span className="text-body font-medium leading-tight [overflow-wrap:anywhere]">
+          {item.description}
+        </span>
         {original && (
           <span
             className="truncate font-mono text-[11px] leading-tight text-fg-subtle"

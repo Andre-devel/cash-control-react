@@ -103,7 +103,7 @@ export default function AccountsPage() {
             leading={<ArrowLeftRight size={16} aria-hidden="true" />}
             onClick={() => setTransferOpen(true)}
           >
-            <span className="hidden md:inline">Transferir</span>
+            Transferir
           </Button>
           <Button
             variant="primary"
@@ -112,14 +112,14 @@ export default function AccountsPage() {
             aria-label="Nova conta"
             className="min-w-touch"
           >
-            <span className="hidden md:inline">Nova conta</span>
+            Nova conta
           </Button>
         </div>
       </div>
 
       {/* Celular: patrimônio → contas → transferências. Desktop: contas em cima, gráfico e
           transferências lado a lado embaixo. */}
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr] lg:gap-5">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr] lg:gap-5">
         <div className="order-2 min-w-0 lg:order-1 lg:col-span-2">
           {isLoading ? (
             <AccountsSkeleton />

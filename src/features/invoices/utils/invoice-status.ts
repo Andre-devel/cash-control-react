@@ -96,3 +96,22 @@ export function matchesInvoiceFilter(
   if (filter === 'paid') return invoice.status === 'PAID'
   return true
 }
+
+/**
+ * A API devolve da mais nova para a mais velha, então as faturas futuras das parcelas
+ * (meses à frente) vinham primeiro e a atual ficava lá embaixo. Ordem: a próxima a fechar,
+ * as já fechadas (mais nova primeiro) e, por último, as futuras em ordem de mês.
+ */
+export function orderInvoices<T extends Pick<Invoice, 'closingDate' | 'dueDate'>>(
+  invoices: T[],
+  today: string = localIsoDate(),
+): T[] {
+  const closeOf = (invoice: T) => invoice.closingDate ?? invoice.dueDate
+  const upcoming = invoices
+    .filter((invoice) => closeOf(invoice) > today)
+    .sort((a, b) => closeOf(a).localeCompare(closeOf(b)))
+  const closed = invoices
+    .filter((invoice) => closeOf(invoice) <= today)
+    .sort((a, b) => closeOf(b).localeCompare(closeOf(a)))
+  return [...upcoming.slice(0, 1), ...closed, ...upcoming.slice(1)]
+}

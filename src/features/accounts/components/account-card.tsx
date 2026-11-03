@@ -66,7 +66,11 @@ export function AccountCard({
         <AccountTypeBubble type={account.type} />
         {/* Menu ⋯: o clique (inclusive nos itens, que vivem num portal) não pode abrir o detalhe. */}
         <div className="-mr-1.5 -mt-1.5" onClick={(e) => e.stopPropagation()}>
-          <ActionMenu label={`Mais opções para ${account.name}`} items={items} />
+          <ActionMenu
+            label={`Mais opções para ${account.name}`}
+            title={account.name}
+            items={items}
+          />
         </div>
       </div>
 

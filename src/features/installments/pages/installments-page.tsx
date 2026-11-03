@@ -16,7 +16,7 @@ import type { InstallmentSeries } from '@/features/installments/types'
 function InstallmentsSkeleton() {
   return (
     <div
-      className="grid gap-3 md:grid-cols-2 xl:grid-cols-3"
+      className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
       aria-busy="true"
       aria-label="Carregando parcelamentos"
     >
@@ -130,7 +130,7 @@ export default function InstallmentsPage() {
       ) : (
         <>
           <SeriesSummary series={series} />
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {series.map((s) => (
               <InstallmentSeriesCard
                 key={s.id}

@@ -105,7 +105,7 @@ export function HoldingsList({
                 </span>
               )}
             </button>
-            <ActionMenu items={items} label={`Ações de ${holding.name}`} />
+            <ActionMenu items={items} label={`Ações de ${holding.name}`} title={holding.name} />
           </li>
         )
       })}

@@ -160,8 +160,9 @@ export const TransactionCard = memo(function TransactionCard({
         </div>
 
         <div className="relative z-10 -my-1 flex shrink-0 flex-col items-end">
+          {/* pr-3 alinha o valor com os pontos do botão "…" logo abaixo. */}
           <span
-            className={`whitespace-nowrap text-body font-semibold ${
+            className={`whitespace-nowrap pr-3 text-body font-semibold ${
               d.isCancelled
                 ? 'text-fg-muted line-through'
                 : d.isPositive

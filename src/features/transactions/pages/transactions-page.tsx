@@ -579,34 +579,38 @@ export default function TransactionsPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {/* Tablet (768–1279): ações secundárias no ⋯ para não espremer o título. */}
+          {/* Celular e tablet (< 1280): ações secundárias no ⋯ para não espremer o título.
+              No celular, ícones soltos sem texto não diziam o que faziam. */}
+          <span className="xl:hidden">
+            <ActionMenu
+              label="Mais ações de transações"
+              title="Transações"
+              items={[
+                ...(totalElements > 0 && !exporting
+                  ? [{ label: 'Exportar', onSelect: () => void handleExport() }]
+                  : []),
+                ...(isMobile
+                  ? [{ label: 'Importar extrato', onSelect: () => setImportOpen(true) }]
+                  : []),
+                { label: 'Corrigir importações', onSelect: () => setReconcileOpen(true) },
+                {
+                  label: 'Lançar comprovante',
+                  onSelect: () => receiptInputRef.current?.click(),
+                },
+              ]}
+            />
+          </span>
           {!isMobile && (
-            <span className="xl:hidden">
-              <ActionMenu
-                label="Mais ações de transações"
-                items={[
-                  ...(totalElements > 0 && !exporting
-                    ? [{ label: 'Exportar', onSelect: () => void handleExport() }]
-                    : []),
-                  { label: 'Corrigir importações', onSelect: () => setReconcileOpen(true) },
-                  {
-                    label: 'Lançar comprovante',
-                    onSelect: () => receiptInputRef.current?.click(),
-                  },
-                ]}
-              />
-            </span>
+            <Button
+              className="hidden xl:inline-flex"
+              leading={<Download size={16} aria-hidden="true" />}
+              disabled={exporting || totalElements === 0}
+              loading={exporting}
+              onClick={handleExport}
+            >
+              {exporting ? 'Exportando…' : 'Exportar'}
+            </Button>
           )}
-          <Button
-            className={isMobile ? undefined : 'hidden xl:inline-flex'}
-            leading={<Download size={16} aria-hidden="true" />}
-            disabled={exporting || totalElements === 0}
-            loading={exporting}
-            aria-label={isMobile ? (exporting ? 'Exportando…' : 'Exportar') : undefined}
-            onClick={handleExport}
-          >
-            {!isMobile && (exporting ? 'Exportando…' : 'Exportar')}
-          </Button>
           {!isMobile && (
             <Button
               className="hidden xl:inline-flex"
@@ -616,13 +620,14 @@ export default function TransactionsPage() {
               Corrigir importações
             </Button>
           )}
-          <Button
-            leading={<Upload size={16} aria-hidden="true" />}
-            aria-label={isMobile ? 'Importar extrato' : undefined}
-            onClick={() => setImportOpen(true)}
-          >
-            {!isMobile && 'Importar extrato'}
-          </Button>
+          {!isMobile && (
+            <Button
+              leading={<Upload size={16} aria-hidden="true" />}
+              onClick={() => setImportOpen(true)}
+            >
+              Importar extrato
+            </Button>
+          )}
           {!isMobile && (
             <Button
               className="hidden xl:inline-flex"

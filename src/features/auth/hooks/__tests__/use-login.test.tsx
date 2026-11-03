@@ -71,6 +71,16 @@ describe('use-login', () => {
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
   })
 
+  it('fills the user name from the profile after login', async () => {
+    const { result } = renderHook(() => useLogin(), { wrapper: Wrapper })
+
+    act(() => {
+      result.current.mutate({ email: 'user@example.com', password: 'password123' })
+    })
+
+    await waitFor(() => expect(useAuthStore.getState().user?.name).toBe('Test User'))
+  })
+
   it('calls toast.error on failed login (401)', async () => {
     const { toast } = await import('@/lib/toast')
     const { result } = renderHook(() => useLogin(), { wrapper: Wrapper })
@@ -141,6 +151,8 @@ describe('use-login', () => {
   })
 
   it('falls back to empty strings when JWT payload fields are missing', async () => {
+    // Sem o perfil, vale só o que o token traz.
+    server.use(http.get('*/auth/me', () => new HttpResponse(null, { status: 500 })))
     const minimalToken = [
       Buffer.from(JSON.stringify({ alg: 'HS256' })).toString('base64'),
       Buffer.from(JSON.stringify({ exp: 9_999_999_999 })).toString('base64'),
@@ -173,6 +185,8 @@ describe('use-login', () => {
   })
 
   it('stores token without user data when JWT payload cannot be decoded', async () => {
+    // Sem o perfil, vale só o que o token traz.
+    server.use(http.get('*/auth/me', () => new HttpResponse(null, { status: 500 })))
     const malformedToken = [
       Buffer.from(JSON.stringify({ alg: 'HS256' })).toString('base64'),
       Buffer.from('not-valid-json').toString('base64'),

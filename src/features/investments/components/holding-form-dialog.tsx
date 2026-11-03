@@ -269,7 +269,7 @@ export function HoldingFormDialog({
             </Field>
           </>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label="Indexador" error={errors.indexer?.message}>
               <Select aria-label="Indexador" {...form.register('indexer')}>
                 {kind === 'OTHER' && <option value="">Sem indexador (valor informado)</option>}
@@ -288,7 +288,7 @@ export function HoldingFormDialog({
           </div>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Field label="Valor aplicado" error={errors.principal?.message}>
             <MoneyInput
               placeholder="ex: 1.000,00"
@@ -309,7 +309,7 @@ export function HoldingFormDialog({
         </div>
 
         {!isTreasury && (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label="Liquidez" error={errors.liquidity?.message}>
               <Select aria-label="Liquidez" {...form.register('liquidity')}>
                 <option value="DAILY">Diária</option>

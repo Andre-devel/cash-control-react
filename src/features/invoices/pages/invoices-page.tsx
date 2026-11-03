@@ -5,7 +5,11 @@ import { useCards } from '@/features/cards/hooks/use-cards'
 import { useInvoices } from '@/features/invoices/hooks/use-invoices'
 import { InvoiceHistoryList } from '@/features/invoices/components/invoice-history-list'
 import { InvoiceFilterTabs } from '@/features/invoices/components/invoice-filter-tabs'
-import { matchesInvoiceFilter, type InvoiceFilter } from '@/features/invoices/utils/invoice-status'
+import {
+  matchesInvoiceFilter,
+  orderInvoices,
+  type InvoiceFilter,
+} from '@/features/invoices/utils/invoice-status'
 
 function InvoicesSkeleton() {
   return (
@@ -32,7 +36,9 @@ export default function InvoicesPage() {
 
   const { data: invoices, isLoading, isError, refetch } = useInvoices(cardId ?? '')
   const cardName = activeCards.find((c) => c.id === cardId)?.name
-  const filtered = (invoices?.content ?? []).filter((inv) => matchesInvoiceFilter(inv, filter))
+  const filtered = orderInvoices(
+    (invoices?.content ?? []).filter((inv) => matchesInvoiceFilter(inv, filter)),
+  )
 
   return (
     <div>
