@@ -442,3 +442,60 @@ describe('CardsPage — cartões arquivados', () => {
     expect(link.getAttribute('href')).toBe(`/cards/${MOCK_CARD_2.id}`)
   })
 })
+
+describe('CardsPage no celular', () => {
+  const originalMatchMedia = window.matchMedia
+
+  beforeEach(() => {
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(max-width: 767px)',
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia
+  })
+
+  afterEach(() => {
+    window.matchMedia = originalMatchMedia
+  })
+
+  it('mostra a fatura antes de qualquer outra seção, com os cartões em pílulas', async () => {
+    renderWithProviders(<CardsPage />)
+    const invoice = await screen.findByRole('region', { name: 'Fatura' })
+    await waitFor(() =>
+      expect(within(invoice).getByRole('button', { name: 'Pagar fatura' })).toBeTruthy(),
+    )
+
+    const pills = within(screen.getByRole('group', { name: 'Escolher cartão' })).getAllByRole(
+      'button',
+    )
+    expect(pills[0].getAttribute('aria-pressed')).toBe('true')
+    expect(screen.queryByRole('button', { name: /cartão de crédito$/ })).toBeNull()
+
+    const regions = screen.getAllByRole('region').map((r) => r.getAttribute('aria-label'))
+    expect(regions[0]).toBe('Fatura')
+  })
+
+  it('mostra o limite uma vez só', async () => {
+    renderWithProviders(<CardsPage />)
+    await screen.findByText('Limite disponível')
+    expect(screen.queryByText('Limite total')).toBeNull()
+    expect(screen.queryByText('Uso do limite')).toBeNull()
+    // Sem o painel "Detalhes do cartão": só o link para a tela de detalhe.
+    const link = screen.getByRole('link', { name: 'Detalhes do cartão' })
+    expect(link.getAttribute('href')).toBe(`/cards/${MOCK_CARD_1.id}`)
+  })
+
+  it('trocar de pílula troca o cartão', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<CardsPage />)
+    const group = await screen.findByRole('group', { name: 'Escolher cartão' })
+    const second = within(group).getByRole('button', { name: new RegExp(MOCK_CARD_2.name) })
+    await user.click(second)
+    expect(second.getAttribute('aria-pressed')).toBe('true')
+  })
+})

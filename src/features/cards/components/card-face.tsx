@@ -7,7 +7,7 @@ import '@/features/cards/cards.css'
 /** Brilhos possíveis, em tokens de categoria — o id do cartão escolhe um, sempre o mesmo. */
 const GLOWS = [3, 4, 2, 7, 6, 5, 9, 1]
 
-function glowOf(id: string): number {
+export function glowOf(id: string): number {
   let hash = 0
   for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0
   return GLOWS[Math.abs(hash) % GLOWS.length]

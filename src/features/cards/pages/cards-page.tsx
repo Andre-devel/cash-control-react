@@ -16,6 +16,8 @@ import { PayInvoiceDialog } from '@/features/cards/components/pay-invoice-dialog
 import { ImportFaturaDialog } from '@/features/cards/components/import-fatura-dialog'
 import { getCurrentInvoiceMonth } from '@/features/cards/utils/invoice-month'
 import { limitViewFor } from '@/features/cards/utils/limit-view'
+import { MobileCardsView } from '@/features/cards/components/mobile-cards-view'
+import { useMediaQuery, MOBILE_QUERY } from '@/hooks/use-media-query'
 import { ROUTES } from '@/app/router/routes'
 
 function getSpendingRange(referenceMonth: string) {
@@ -48,6 +50,7 @@ function CardsSkeleton() {
 }
 
 export default function CardsPage() {
+  const isMobile = useMediaQuery(MOBILE_QUERY)
   const { data: cards, isLoading, isError, refetch } = useCards()
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const [referenceMonth, setReferenceMonth] = useState<string | null>(null)
@@ -101,6 +104,56 @@ export default function CardsPage() {
     }
     return complete ? { limit, available } : null
   }, [activeCards, usageByCard])
+
+  const dialogs = (
+    <>
+      <CreateCardDialog open={createOpen} onClose={() => setCreateOpen(false)} />
+
+      <ImportFaturaDialog open={importOpen} onClose={() => setImportOpen(false)} />
+
+      {invoice && selectedCard && (
+        <PayInvoiceDialog
+          invoice={invoice}
+          cardName={selectedCard.name}
+          open={payOpen}
+          onClose={() => setPayOpen(false)}
+        />
+      )}
+    </>
+  )
+
+  // No celular, com cartões carregados: a fatura primeiro (canvas "Cartões — fatura primeiro").
+  if (isMobile && selectedCard && !isError) {
+    return (
+      <div>
+        <MobileCardsView
+          cards={activeCards}
+          selectedCard={selectedCard}
+          onSelectCard={setSelectedCardId}
+          invoice={invoice}
+          invoiceLoading={invoiceLoading}
+          referenceMonth={referenceMonth ?? ''}
+          onMonthChange={setReferenceMonth}
+          onPay={() => setPayOpen(true)}
+          limitView={selectedLimitView}
+          spending={spending}
+          onImport={() => setImportOpen(true)}
+          onCreate={() => setCreateOpen(true)}
+        />
+        {archivedCards.length > 0 && (
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <span className="text-caption text-fg-muted">Arquivados:</span>
+            {archivedCards.map((card) => (
+              <Button key={card.id} variant="ghost" size="sm" asChild>
+                <Link to={ROUTES.CARD_DETAIL.replace(':id', card.id)}>{card.name}</Link>
+              </Button>
+            ))}
+          </div>
+        )}
+        {dialogs}
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -242,18 +295,7 @@ export default function CardsPage() {
         </div>
       )}
 
-      <CreateCardDialog open={createOpen} onClose={() => setCreateOpen(false)} />
-
-      <ImportFaturaDialog open={importOpen} onClose={() => setImportOpen(false)} />
-
-      {invoice && selectedCard && (
-        <PayInvoiceDialog
-          invoice={invoice}
-          cardName={selectedCard.name}
-          open={payOpen}
-          onClose={() => setPayOpen(false)}
-        />
-      )}
+      {dialogs}
     </div>
   )
 }
