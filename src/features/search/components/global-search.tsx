@@ -17,6 +17,7 @@ import { Modal } from '@/components/ui/modal'
 import { Money } from '@/components/ui/money'
 import { MOBILE_QUERY, useMediaQuery } from '@/hooks/use-media-query'
 import { formatShortDate } from '@/lib/format-date'
+import { ALL_PERIOD } from '@/features/transactions/utils/period'
 import { SEARCH_MIN_LENGTH, useGlobalSearch } from '@/features/search/hooks/use-global-search'
 import type { SearchResponse } from '@/features/search/types'
 
@@ -109,8 +110,25 @@ function buildGroups(data: SearchResponse | undefined): SearchGroup[] {
   return groups.filter((g) => g.options.length > 0)
 }
 
-function seeAllHref(q: string): string {
-  return `${ROUTES.TRANSACTIONS}?searchText=${encodeURIComponent(q)}`
+/** Valor exato em pt-BR ("615,23", "R$ 1.200"), o mesmo formato que a busca da API aceita. */
+const PT_BR_AMOUNT = /^(?:R\$\s*)?(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?$/
+
+/**
+ * A lista de lançamentos com o que a busca achou: todo o período e as compras no cartão, que a
+ * lista esconde por padrão. Um valor digitado vira filtro de valor exato, porque o texto da lista
+ * não compara valores.
+ */
+export function seeAllHref(q: string): string {
+  const params = new URLSearchParams({ period: ALL_PERIOD, includeCreditCard: 'true' })
+  const match = PT_BR_AMOUNT.exec(q.trim())
+  if (match) {
+    const amount = `${match[1].replace(/\./g, '')}${match[2] ? `.${match[2]}` : ''}`
+    params.set('amountMin', amount)
+    params.set('amountMax', amount)
+  } else {
+    params.set('searchText', q)
+  }
+  return `${ROUTES.TRANSACTIONS}?${params.toString()}`
 }
 
 interface SearchComboboxProps {

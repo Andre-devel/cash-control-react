@@ -8,7 +8,7 @@ import { server } from '@/test/msw/server'
 import { createTestQueryClient } from '@/test/utils'
 import { MOBILE_QUERY } from '@/hooks/use-media-query'
 import type { SearchResponse } from '@/features/search/types'
-import { GlobalSearch } from '../global-search'
+import { GlobalSearch, seeAllHref } from '../global-search'
 
 const RESPONSE: SearchResponse = {
   transactions: [
@@ -166,7 +166,18 @@ describe('GlobalSearch', () => {
       'true',
     )
     await user.keyboard('{Enter}')
-    expect(screen.getByTestId('location')).toHaveTextContent('/transactions?searchText=merc')
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      '/transactions?period=all&includeCreditCard=true&searchText=merc',
+    )
+  })
+
+  it('"Ver todas" com um valor filtra pelo valor exato em vez do texto', () => {
+    expect(seeAllHref('R$ 1.615,23')).toBe(
+      '/transactions?period=all&includeCreditCard=true&amountMin=1615.23&amountMax=1615.23',
+    )
+    expect(seeAllHref('mercado 2')).toBe(
+      '/transactions?period=all&includeCreditCard=true&searchText=mercado+2',
+    )
   })
 
   it('clique num cartão abre o detalhe do cartão', async () => {
