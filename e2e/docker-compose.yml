@@ -1,0 +1,81 @@
+# Ambiente dos testes E2E: Postgres 18 + API construída de ../../cash-control-api, com o
+# usuário seed de fixtures/seed.sql. Não usa o .env de ninguém e não fala com serviço externo
+# (sem Pluggy, sem Web Push, sem SMTP, sem jobs agendados). Ver e2e/README.md.
+name: cash-control-e2e
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: cashcontrol_e2e
+      POSTGRES_USER: e2e
+      POSTGRES_PASSWORD: e2e
+    ports:
+      - "127.0.0.1:${E2E_DB_PORT:-5434}:5432"
+    volumes:
+      - e2e_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U e2e -d cashcontrol_e2e"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  api:
+    build:
+      context: ../../cash-control-api
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      # Os @Scheduled (sincronização com o banco, faturas, alertas, cotações) ficam desligados:
+      # o teste não pode depender do relógio nem de rede externa.
+      APP_SCHEDULING_ENABLED: "false"
+      DB_URL: jdbc:postgresql://postgres:5432/cashcontrol_e2e
+      DB_USERNAME: e2e
+      DB_PASSWORD: e2e
+      # Segredo só deste ambiente descartável (HS512 pede >= 64 caracteres).
+      JWT_SECRET: e2e-only-secret-not-for-production-0123456789abcdef0123456789abcdef0123456789
+      GOOGLE_CLIENT_ID: e2e-google-client-id
+      GOOGLE_CLIENT_SECRET: e2e-google-client-secret
+      FRONTEND_BASE_URL: http://localhost:5173
+      ALLOWED_ORIGINS: http://localhost:5173,http://localhost:4173
+      # Cada spec faz login de novo; o limite de produção (20/min) derrubaria a suíte.
+      RATE_LIMIT_REQUESTS_PER_MINUTE: "1000"
+      OCR_ENABLED: "false"
+      # Vazios = integrações desligadas.
+      PLUGGY_CLIENT_ID: ""
+      PLUGGY_CLIENT_SECRET: ""
+      PLUGGY_WEBHOOK_URL: ""
+      PUSH_VAPID_PUBLIC_KEY: ""
+      PUSH_VAPID_PRIVATE_KEY: ""
+      LOG_LEVEL_ROOT: WARN
+      LOG_LEVEL_APP: INFO
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: WARN
+      SPRING_JPA_SHOW_SQL: "false"
+    ports:
+      # `pnpm dev` faz proxy de /api para localhost:8080.
+      - "127.0.0.1:${E2E_API_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 20s
+
+  # Roda uma vez, depois que a API subiu (e o Flyway criou o schema), e sai.
+  seed:
+    image: postgres:18-alpine
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: e2e
+    volumes:
+      - ./fixtures/seed.sql:/seed.sql:ro
+    command: ["psql", "-h", "postgres", "-U", "e2e", "-d", "cashcontrol_e2e", "-v", "ON_ERROR_STOP=1", "-f", "/seed.sql"]
+    restart: "no"
+
+volumes:
+  e2e_postgres_data:

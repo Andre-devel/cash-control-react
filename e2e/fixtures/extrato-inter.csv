@@ -1,0 +1,26 @@
+ Extrato Conta Corrente 
+Conta ;000000000
+Período ;12/10/2026 a 28/10/2026
+Saldo ;10.193,72
+
+Data Lançamento;Histórico;Descrição;Valor;Saldo
+28/10/2026;Pix recebido;Empresa Ficticia Ltda;5.200,00;10.193,72
+28/10/2026;Pix enviado ;Maria Exemplo;-150,00;4.993,72
+27/10/2026;Compra no débito;Supermercado Modelo;-312,45;5.143,72
+27/10/2026;Pagamento efetuado;Energia Teste SA;-189,90;5.456,17
+26/10/2026;Compra no débito;Padaria Fictícia;-18,50;5.646,07
+25/10/2026;Pix enviado ;João Exemplo;-80,00;5.664,57
+25/10/2026;Compra no débito;Posto Combustível Teste;-210,00;5.744,57
+24/10/2026;Pagamento efetuado;Internet Exemplo Telecom;-119,90;5.954,57
+23/10/2026;Pix recebido;Cliente Exemplo;450,00;6.074,47
+22/10/2026;Compra no débito;Farmácia Modelo;-64,30;5.624,47
+21/10/2026;Compra no débito;Restaurante Fictício;-92,00;5.688,77
+20/10/2026;Pix enviado ;Aluguel Imobiliária Teste;-1.800,00;5.780,77
+19/10/2026;Compra no débito;Livraria Exemplo;-75,40;7.580,77
+18/10/2026;Pagamento efetuado;Água Saneamento Teste;-88,20;7.656,17
+17/10/2026;Compra no débito;Mercadinho Modelo;-43,75;7.744,37
+16/10/2026;Pix recebido;Reembolso Exemplo;120,00;7.788,12
+15/10/2026;Compra no débito;Cafeteria Fictícia;-12,90;7.668,12
+14/10/2026;Pix enviado ;Academia Teste;-99,00;7.681,02
+13/10/2026;Compra no débito;Loja Exemplo Roupas;-159,99;7.780,02
+12/10/2026;Pagamento efetuado;Telefone Modelo Celular;-59,99;7.940,01

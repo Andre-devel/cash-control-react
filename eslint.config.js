@@ -6,7 +6,7 @@ import tsParser from '@typescript-eslint/parser'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 
 export default [
-  { ignores: ['dist', 'node_modules', 'coverage'] },
+  { ignores: ['dist', 'node_modules', 'coverage', 'test-results', 'playwright-report'] },
   js.configs.recommended,
   {
     files: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}', 'src/test/**/*.{ts,tsx}'],
@@ -55,6 +55,18 @@ export default [
     },
     settings: {
       react: { version: 'detect' },
+    },
+  },
+  {
+    // Specs do Playwright rodam no Node; o `use` das fixtures não é hook do React.
+    files: ['e2e/**/*.ts', 'playwright.config.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
     },
   },
 ]

@@ -30,3 +30,8 @@ yarn-error.log*
 
 # Service worker gerado pelo vite-plugin-pwa em `pnpm dev`
 dev-dist/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
