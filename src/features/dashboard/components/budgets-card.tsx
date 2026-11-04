@@ -88,7 +88,7 @@ export function BudgetsCard({ month, compactEmpty = false, className = '' }: Bud
           </Link>
         }
       />
-      <ul className="grid gap-x-6 md:grid-cols-2 xl:grid-cols-4">
+      <ul className="grid gap-x-6 md:grid-cols-2">
         {data.items.slice(0, PREVIEW).map((item) => (
           <li key={item.categoryId}>
             <BudgetRow item={item} pace={pace} compact />

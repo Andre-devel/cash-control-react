@@ -10,6 +10,7 @@ import type {
   LargestExpenseItem,
   RecentTransactionItem,
   BalanceProjection,
+  Subscriptions,
 } from '@/features/dashboard/types'
 import type { InvestmentSummary } from '@/features/investments/types'
 import type { BudgetProgress } from '@/features/budgets/types'
@@ -230,6 +231,14 @@ export const MOCK_BUDGET_PROGRESS: BudgetProgress = {
   ],
 }
 
+export const MOCK_SUBSCRIPTIONS: Subscriptions = {
+  monthlyTotal: '95.80',
+  items: [
+    { description: 'Netflix', amount: '55.90', source: 'RECURRENCE' },
+    { description: 'Hostinger', amount: '39.90', source: 'SUGGESTION' },
+  ],
+}
+
 export const dashboardHandlers = [
   http.get('*/dashboard/overview', () => {
     return HttpResponse.json(MOCK_OVERVIEW)
@@ -265,6 +274,10 @@ export const dashboardHandlers = [
 
   http.get('*/dashboard/widgets/recent-transactions', () => {
     return HttpResponse.json(MOCK_RECENT_TRANSACTIONS)
+  }),
+
+  http.get('*/dashboard/subscriptions', () => {
+    return HttpResponse.json(MOCK_SUBSCRIPTIONS)
   }),
 
   http.get('*/dashboard/projection', () => {

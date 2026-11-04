@@ -10,6 +10,7 @@ import { RecurrenceCard } from '@/features/recurrences/components/recurrence-car
 import { CreateRecurrenceDialog } from '@/features/recurrences/components/create-recurrence-dialog'
 import { EditRecurrenceDialog } from '@/features/recurrences/components/edit-recurrence-dialog'
 import { DeleteRecurrenceDialog } from '@/features/recurrences/components/delete-recurrence-dialog'
+import { RecurrenceSuggestions } from '@/features/recurrences/components/recurrence-suggestions'
 import type { Recurrence } from '@/features/recurrences/types'
 
 function RecurrencesSkeleton() {
@@ -118,6 +119,8 @@ export default function RecurrencesPage() {
           </Button>
         </div>
       </div>
+
+      <RecurrenceSuggestions />
 
       {isLoading ? (
         <RecurrencesSkeleton />

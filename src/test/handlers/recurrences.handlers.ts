@@ -43,6 +43,14 @@ export const recurrencesHandlers = [
     return HttpResponse.json(recurrencesStore)
   }),
 
+  http.get('*/recurrences/suggestions', () => {
+    return HttpResponse.json([])
+  }),
+
+  http.post('*/recurrences/suggestions/dismiss', () => {
+    return new HttpResponse(null, { status: 204 })
+  }),
+
   http.get('*/recurrences/:id', ({ params }) => {
     const recurrence = recurrencesStore.find((r) => r.id === params.id)
     if (!recurrence) {

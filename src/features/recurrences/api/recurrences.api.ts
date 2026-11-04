@@ -7,6 +7,7 @@ import type {
   PauseRecurrenceRequest,
   DeleteRecurrenceStrategy,
   EditRecurrenceResult,
+  RecurrenceSuggestion,
 } from '@/features/recurrences/types'
 
 export async function listRecurrences(): Promise<Recurrence[]> {
@@ -47,4 +48,13 @@ export async function deleteRecurrence(
   strategy: DeleteRecurrenceStrategy,
 ): Promise<void> {
   await axiosInstance.delete(`/recurrences/${id}`, { params: { strategy } })
+}
+
+export async function listRecurrenceSuggestions(): Promise<RecurrenceSuggestion[]> {
+  const response = await axiosInstance.get<RecurrenceSuggestion[]>('/recurrences/suggestions')
+  return response.data
+}
+
+export async function dismissRecurrenceSuggestion(pattern: string): Promise<void> {
+  await axiosInstance.post('/recurrences/suggestions/dismiss', { pattern })
 }

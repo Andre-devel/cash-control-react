@@ -7,6 +7,7 @@ import { BarChartCard } from '@/features/dashboard/components/bar-chart-card'
 import { CategoriesChartSection } from '@/features/dashboard/components/categories-chart-section'
 import { NetWorthChartSection } from '@/features/dashboard/components/net-worth-chart-section'
 import { LargestExpensesWidget } from '@/features/dashboard/components/largest-expenses-widget'
+import { SubscriptionsCard } from '@/features/dashboard/components/subscriptions-card'
 
 const PERIODS = [3, 6, 12] as const
 
@@ -65,6 +66,8 @@ export default function AnalyticsPage() {
       <CategoriesChartSection range={range} />
       <NetWorthChartSection range={range} />
       <LargestExpensesWidget range={range} />
+      {/* No celular o Início não mostra este card; aqui ele fica junto das análises. */}
+      <SubscriptionsCard />
     </div>
   )
 }

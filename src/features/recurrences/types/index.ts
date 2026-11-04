@@ -70,3 +70,19 @@ export interface EditRecurrenceResult {
   rule: Recurrence
   updatedInstances: number
 }
+
+/** Despesa que se repete no histórico sem regra de recorrência (`GET /recurrences/suggestions`). */
+export interface RecurrenceSuggestion {
+  /** Descrição normalizada do grupo; é a chave para ignorar a sugestão. */
+  pattern: string
+  /** Descrição original do lançamento mais recente. */
+  description: string
+  amount: string
+  dayOfMonth: number
+  /** Meses distintos em que o lançamento apareceu. */
+  months: number
+  lastDate: string
+  categoryId: string | null
+  accountId: string | null
+  creditCardId: string | null
+}

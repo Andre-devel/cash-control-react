@@ -29,7 +29,9 @@ const TYPE_LABELS: Record<string, string> = {
   REFUND: 'Reembolso',
 }
 
-function defaultValues(): CreateRecurrenceFormValues {
+function defaultValues(
+  initialValues?: Partial<CreateRecurrenceFormValues>,
+): CreateRecurrenceFormValues {
   return {
     description: '',
     amount: '',
@@ -41,15 +43,25 @@ function defaultValues(): CreateRecurrenceFormValues {
     endDate: '',
     paymentMethod: 'OTHER',
     creditCardId: '',
+    ...initialValues,
   }
 }
 
 interface CreateRecurrenceDialogProps {
   open: boolean
   onClose: () => void
+  /**
+   * Pré-preenchimento (ex.: sugestão detectada no histórico). Lido só na montagem: para trocar,
+   * remonte o diálogo com outra `key`.
+   */
+  initialValues?: Partial<CreateRecurrenceFormValues>
 }
 
-export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialogProps) {
+export function CreateRecurrenceDialog({
+  open,
+  onClose,
+  initialValues,
+}: CreateRecurrenceDialogProps) {
   const { data: accounts = [] } = useAccounts()
   const { data: categories = [] } = useCategories()
   const { data: allCards = [] } = useCards()
@@ -57,7 +69,7 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
 
   const form = useForm<CreateRecurrenceFormValues>({
     resolver: zodResolver(createRecurrenceSchema),
-    defaultValues: defaultValues(),
+    defaultValues: defaultValues(initialValues),
   })
   const paymentMethod = form.watch('paymentMethod')
   const { mutate: createRecurrence, isPending } = useCreateRecurrence({
@@ -73,14 +85,14 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
     }
     createRecurrence(payload, {
       onSuccess: () => {
-        form.reset(defaultValues())
+        form.reset(defaultValues(initialValues))
         onClose()
       },
     })
   }
 
   function handleClose() {
-    form.reset(defaultValues())
+    form.reset(defaultValues(initialValues))
     onClose()
   }
 
@@ -141,16 +153,31 @@ export function CreateRecurrenceDialog({ open, onClose }: CreateRecurrenceDialog
           </Select>
         </Field>
 
-        <Field label="Conta" required error={form.formState.errors.accountId?.message}>
-          <Select aria-label="Conta" {...form.register('accountId')}>
-            <option value="">Selecionar conta</option>
-            {accounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        {/* Controlado: com a conta pré-preenchida, as opções chegam depois do valor e um select
+            não controlado ficaria em "Selecionar conta". */}
+        <Controller
+          control={form.control}
+          name="accountId"
+          render={({ field, fieldState }) => (
+            <Field label="Conta" required error={fieldState.error?.message}>
+              <Select
+                aria-label="Conta"
+                name={field.name}
+                ref={field.ref}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              >
+                <option value="">Selecionar conta</option>
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
+        />
 
         <Controller
           control={form.control}

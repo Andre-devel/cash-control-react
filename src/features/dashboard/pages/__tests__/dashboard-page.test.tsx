@@ -283,6 +283,13 @@ describe('DashboardPage', () => {
     expect(localStorage.getItem('cash-control-react:discount-invoices')).toBe('1')
   })
 
+  it('shows the subscriptions card next to the budgets on desktop', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => expect(screen.getByTestId('subscriptions-total')).toBeTruthy())
+    const card = screen.getByRole('region', { name: 'Assinaturas' })
+    expect(card.className).toContain('max-md:hidden')
+  })
+
   it('has no discount switch without open invoices', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => expect(screen.getByText('Patrimônio líquido')).toBeTruthy())
@@ -332,6 +339,12 @@ describe('DashboardPage no celular', () => {
     renderWithProviders(<DashboardPage />)
     const link = await screen.findByRole('link', { name: 'Abrir perfil' })
     expect(link.getAttribute('href')).toBe('/profile')
+  })
+
+  it('não mostra o card de assinaturas no Início', async () => {
+    renderWithProviders(<DashboardPage />)
+    await waitFor(() => expect(screen.getByText('Patrimônio líquido')).toBeTruthy())
+    expect(screen.queryByRole('region', { name: 'Assinaturas' })).toBeNull()
   })
 
   it('tira os gráficos do Início e aponta para Análises', async () => {

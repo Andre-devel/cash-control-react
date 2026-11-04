@@ -35,6 +35,7 @@ import { NetWorthChartSection } from '@/features/dashboard/components/net-worth-
 import { BalanceProjectionSection } from '@/features/dashboard/components/balance-projection-section'
 import { InvestmentsCard } from '@/features/dashboard/components/investments-card'
 import { BudgetsCard } from '@/features/dashboard/components/budgets-card'
+import { SubscriptionsCard } from '@/features/dashboard/components/subscriptions-card'
 import { MonthComparisonSection } from '@/features/dashboard/components/month-comparison-section'
 import { LargestExpensesWidget } from '@/features/dashboard/components/largest-expenses-widget'
 import { ROUTES } from '@/app/router/routes'
@@ -314,8 +315,11 @@ export default function DashboardPage() {
           <BudgetsCard
             key={`bud-${selectedMonth}`}
             month={selectedMonth}
-            className="md:order-7 md:col-span-2 xl:order-9 xl:col-span-12"
+            className="md:order-7 md:col-span-2 xl:order-9 xl:col-span-8"
           />
+          {/* Só tablet e desktop: no celular o card fica em /analises. O `max-md:hidden` cobre
+              o primeiro quadro, antes de o `useMediaQuery` trocar para a variante do celular. */}
+          <SubscriptionsCard className="max-md:hidden md:order-7 md:col-span-2 xl:order-9 xl:col-span-4" />
           <RecentTransactionsCard className="md:order-7 md:col-span-2 xl:order-9 xl:col-span-12" />
 
           <BarChartCard

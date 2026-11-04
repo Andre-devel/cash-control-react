@@ -151,3 +151,18 @@ export interface ComparisonChartParams {
   month1: string
   month2: string
 }
+
+export type SubscriptionSource = 'RECURRENCE' | 'SUGGESTION'
+
+export interface SubscriptionItem {
+  description: string
+  amount: string
+  /** `RECURRENCE` é regra cadastrada; `SUGGESTION`, detectada no histórico e não recusada. */
+  source: SubscriptionSource
+}
+
+/** `GET /dashboard/subscriptions`. */
+export interface Subscriptions {
+  monthlyTotal: string
+  items: SubscriptionItem[]
+}

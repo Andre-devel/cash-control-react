@@ -13,6 +13,7 @@ import type {
   LargestExpenseItem,
   RecentTransactionItem,
   BalanceProjection,
+  Subscriptions,
 } from '@/features/dashboard/types'
 
 export async function getOverview(): Promise<DashboardOverview> {
@@ -88,5 +89,10 @@ export async function getBalanceProjection(days: number): Promise<BalanceProject
   const response = await axiosInstance.get<BalanceProjection>('/dashboard/projection', {
     params: { days },
   })
+  return response.data
+}
+
+export async function getSubscriptions(): Promise<Subscriptions> {
+  const response = await axiosInstance.get<Subscriptions>('/dashboard/subscriptions')
   return response.data
 }

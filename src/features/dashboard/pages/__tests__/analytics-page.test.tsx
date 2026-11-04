@@ -18,6 +18,7 @@ describe('AnalyticsPage', () => {
     expect(screen.getByText('Gastos por categoria')).toBeTruthy()
     expect(screen.getByText('Evolução do patrimônio')).toBeTruthy()
     expect(screen.getByText('Maiores despesas')).toBeTruthy()
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Assinaturas' })).toBeTruthy())
     expect(screen.getByRole('link', { name: 'Voltar para o início' }).getAttribute('href')).toBe(
       '/dashboard',
     )
