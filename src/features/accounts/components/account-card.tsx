@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Archive } from 'lucide-react'
 import { ActionMenu, type ActionMenuItem } from '@/components/ui/action-menu'
 import { ROUTES } from '@/app/router/routes'
+import { BankReconciliationRow } from '@/features/accounts/components/bank-reconciliation-row'
 import {
   AccountTypeBubble,
   accountTypeLabel,
@@ -100,6 +101,11 @@ export function AccountCard({
       >
         {formatBalance(balance, account.currencyCode)}
       </span>
+
+      {/* O botão e a folha (portal) borbulham o clique no React: não podem abrir o detalhe. */}
+      <div className="empty:hidden" onClick={(e) => e.stopPropagation()}>
+        <BankReconciliationRow accountId={account.id} currencyCode={account.currencyCode} />
+      </div>
     </div>
   )
 }

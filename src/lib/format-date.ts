@@ -48,3 +48,20 @@ export function formatYearMonth(iso: string | null | undefined): string {
   if (!match) return iso
   return `${MONTH_ABBR[Number(match[2]) - 1]}/${match[1]}`
 }
+
+/**
+ * Há quanto tempo foi um instante da API, curto: `agora`, `há 5 min`, `há 2 h`, `há 3 dias`.
+ * `now` existe para os testes fixarem o relógio.
+ */
+export function formatTimeAgo(iso: string | null | undefined, now: Date = new Date()): string {
+  if (!iso) return '—'
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return iso
+  const minutes = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 60_000))
+  if (minutes < 1) return 'agora'
+  if (minutes < 60) return `há ${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `há ${hours} h`
+  const days = Math.floor(hours / 24)
+  return days === 1 ? 'há 1 dia' : `há ${days} dias`
+}

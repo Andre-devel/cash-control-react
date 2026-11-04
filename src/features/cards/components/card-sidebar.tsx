@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Money } from '@/components/ui/money'
-import { LimitUsageBar } from '@/features/cards/components/limit-usage-bar'
+import { CardBankReconciliation, LimitUsageBar } from '@/features/cards/components/limit-usage-bar'
 import { LIMIT_TONE_TEXT, limitTone, type LimitView } from '@/features/cards/utils/limit-view'
 import type { Card, SpendingItem } from '@/features/cards/types'
 
@@ -69,6 +69,7 @@ export function CardSidebar({ card, limitView, spending, showDetails = true }: C
             {tone === 'over' ? 'Limite estourado.' : 'Perto do limite.'}
           </p>
         )}
+        <CardBankReconciliation cardId={card.id} />
       </section>
 
       {/* Gastos por categoria */}

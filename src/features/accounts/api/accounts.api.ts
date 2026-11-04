@@ -6,6 +6,9 @@ import type {
   UpdateAccountRequest,
   AdjustBalanceRequest,
   CreateTransferRequest,
+  AccountReconciliation,
+  CardReconciliation,
+  ReconcileCardRequest,
 } from '@/features/accounts/types'
 
 export async function listAccounts(params?: ListAccountsParams): Promise<Account[]> {
@@ -53,4 +56,25 @@ export async function createTransfer(data: CreateTransferRequest): Promise<void>
 
 export async function deleteTransfer(groupId: string): Promise<void> {
   await axiosInstance.delete(`/accounts/transfers/${groupId}`)
+}
+
+export async function getAccountReconciliation(id: string): Promise<AccountReconciliation> {
+  const response = await axiosInstance.get<AccountReconciliation>(`/accounts/${id}/reconciliation`)
+  return response.data
+}
+
+/** Leva o saldo do app ao do banco com um único ajuste flutuante por conta. */
+export async function reconcileAccount(id: string): Promise<AccountReconciliation> {
+  const response = await axiosInstance.post<AccountReconciliation>(`/accounts/${id}/reconcile`)
+  return response.data
+}
+
+export async function getCardReconciliation(cardId: string): Promise<CardReconciliation> {
+  const response = await axiosInstance.get<CardReconciliation>(`/cards/${cardId}/reconciliation`)
+  return response.data
+}
+
+/** Lança a diferença como despesa avulsa na fatura aberta do cartão. */
+export async function reconcileCard(cardId: string, data: ReconcileCardRequest): Promise<void> {
+  await axiosInstance.post(`/cards/${cardId}/reconcile`, data)
 }

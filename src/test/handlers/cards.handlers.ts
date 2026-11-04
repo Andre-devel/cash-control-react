@@ -252,6 +252,18 @@ export const cardsHandlers = [
     )
   }),
 
+  // Padrão: cartão sem vínculo com o banco.
+  http.get('*/cards/:id/reconciliation', () =>
+    HttpResponse.json({
+      bankLimit: null,
+      bankAvailable: null,
+      bankUsed: null,
+      appUsed: '0.00',
+      difference: null,
+      openInvoiceId: null,
+    }),
+  ),
+
   http.get('*/cards/:id/limit', ({ params }) => {
     if (params.id === 'card-1') return HttpResponse.json(MOCK_LIMIT_USAGE)
     return HttpResponse.json({

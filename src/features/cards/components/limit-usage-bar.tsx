@@ -1,4 +1,14 @@
+import { useState, type FormEvent } from 'react'
+import { AlertTriangle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Field } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Modal } from '@/components/ui/modal'
 import { Money } from '@/components/ui/money'
+import {
+  useCardReconciliation,
+  useReconcileCard,
+} from '@/features/cards/hooks/use-card-reconciliation'
 import { LIMIT_TONE_TEXT, limitTone, type LimitView } from '@/features/cards/utils/limit-view'
 import '@/features/cards/cards.css'
 
@@ -117,6 +127,123 @@ export function LimitUsageBar({
             <Money value={view.available} /> livres
           </span>
         </div>
+      )}
+    </div>
+  )
+}
+
+/** Descrição sugerida do lançamento da diferença; o usuário pode editar antes de enviar. */
+export const DEFAULT_CARD_ADJUSTMENT_DESCRIPTION = 'IOF e tarifas'
+
+interface CardBankReconciliationProps {
+  cardId: string
+}
+
+/**
+ * Limite e disponível que o banco informou na última leitura, ao lado do uso calculado no app.
+ * Some quando o cartão não está vinculado ou o banco não informou limite. Com a fatura do banco
+ * acima da do app, "Lançar diferença" cria uma despesa avulsa na fatura aberta — sempre por
+ * clique do usuário, com descrição editável.
+ */
+export function CardBankReconciliation({ cardId }: CardBankReconciliationProps) {
+  const { data } = useCardReconciliation(cardId)
+  const { mutate: reconcile, isPending } = useReconcileCard()
+  const [formOpen, setFormOpen] = useState(false)
+  const [description, setDescription] = useState(DEFAULT_CARD_ADJUSTMENT_DESCRIPTION)
+
+  if (!data || data.bankLimit === null || data.bankAvailable === null) return null
+
+  const difference = Number(data.difference ?? 0)
+
+  function openForm() {
+    setDescription(DEFAULT_CARD_ADJUSTMENT_DESCRIPTION)
+    setFormOpen(true)
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    reconcile(
+      {
+        cardId,
+        data: {
+          amount: difference.toFixed(2),
+          description: description.trim() || undefined,
+        },
+      },
+      { onSuccess: () => setFormOpen(false) },
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-2 border-t border-border pt-3">
+      <dl className="m-0 grid grid-cols-2 gap-3 text-body-sm tabular-nums">
+        <div className="flex flex-col gap-0.5">
+          <dt className="text-caption text-fg-muted">Limite no banco</dt>
+          <dd className="m-0 font-medium">
+            <Money value={Number(data.bankLimit)} />
+          </dd>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <dt className="text-caption text-fg-muted">Disponível no banco</dt>
+          <dd className="m-0 font-medium">
+            <Money value={Number(data.bankAvailable)} />
+          </dd>
+        </div>
+      </dl>
+
+      {difference !== 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="m-0 flex items-center gap-1.5 text-caption font-medium text-pending">
+            <AlertTriangle size={14} aria-hidden="true" />
+            <span>
+              A fatura no banco está <Money value={Math.abs(difference)} />{' '}
+              {difference > 0 ? 'acima' : 'abaixo'}
+            </span>
+          </p>
+          {/* Só a falta no app vira lançamento: a API aceita apenas valor positivo. */}
+          {difference > 0 && (
+            <Button size="sm" onClick={openForm}>
+              Lançar diferença
+            </Button>
+          )}
+        </div>
+      )}
+
+      {formOpen && (
+        <Modal
+          title="Lançar diferença"
+          onClose={() => setFormOpen(false)}
+          footer={
+            <>
+              <Button type="button" variant="ghost" onClick={() => setFormOpen(false)}>
+                Cancelar
+              </Button>
+              <div className="spacer" />
+              <Button
+                type="submit"
+                form="card-reconcile-form"
+                variant="primary"
+                loading={isPending}
+              >
+                {isPending ? 'Lançando…' : 'Lançar'}
+              </Button>
+            </>
+          }
+        >
+          <form id="card-reconcile-form" onSubmit={handleSubmit} noValidate className="col gap-4">
+            <p className="m-0 text-body-sm">
+              Cria uma despesa de <Money value={difference} /> na fatura aberta para o cartão bater
+              com o banco.
+            </p>
+            <Field label="Descrição">
+              <Input
+                value={description}
+                maxLength={255}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </Field>
+          </form>
+        </Modal>
       )}
     </div>
   )

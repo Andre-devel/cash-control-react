@@ -7,6 +7,7 @@ import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { EditAccountDialog } from '@/features/accounts/components/edit-account-dialog'
 import { AdjustBalanceDialog } from '@/features/accounts/components/adjust-balance-dialog'
 import { CreateTransferDialog } from '@/features/accounts/components/create-transfer-dialog'
+import { BankReconciliationRow } from '@/features/accounts/components/bank-reconciliation-row'
 import {
   AccountTypeBubble,
   accountTypeColor,
@@ -119,6 +120,7 @@ export default function AccountDetailPage() {
               >
                 {formatBalance(balance, account.currencyCode)}
               </span>
+              <BankReconciliationRow accountId={account.id} currencyCode={account.currencyCode} />
             </div>
 
             <div className="grid grid-cols-4 gap-1.5">

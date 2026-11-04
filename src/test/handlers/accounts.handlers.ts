@@ -42,6 +42,17 @@ export function resetAccountsStore() {
 }
 
 export const accountsHandlers = [
+  // Padrão: conta sem vínculo com o banco, então a linha de conciliação não aparece.
+  http.get('*/accounts/:id/reconciliation', ({ params }) => {
+    const account = accountsStore.find((a) => a.id === params.id)
+    return HttpResponse.json({
+      appBalance: account?.balance ?? '0.00',
+      bankBalance: null,
+      bankBalanceAt: null,
+      difference: null,
+    })
+  }),
+
   http.get('*/accounts', ({ request }) => {
     const url = new URL(request.url)
     const includeArchived = url.searchParams.get('includeArchived') === 'true'
