@@ -32,6 +32,7 @@ import {
   type TransactionType,
 } from '@/features/transactions/types'
 import { formatLocalDate } from '@/lib/format-date'
+import { counterpartyLabel } from '@/features/transactions/utils/transaction-display'
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   CASH: 'Dinheiro',
@@ -427,6 +428,8 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
         outgoing: row.outgoing,
         transferAccountId: typeOf(row) === 'TRANSFER' ? transferAccountIdOf(row) : null,
         invoiceId: typeOf(row) === 'INVOICE_PAYMENT' ? invoiceIdOf(row) : null,
+        counterpartyName: row.counterpartyName,
+        counterpartyDocument: row.counterpartyDocument,
       }))
 
     commit(
@@ -660,6 +663,11 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
                           }
                           onChange={(description) => editRow(row.externalRef, { description })}
                         />
+                        {row.counterpartyName && (
+                          <span className="mt-0.5 block truncate text-caption text-fg-muted">
+                            {counterpartyLabel(row.counterpartyName, row.outgoing)}
+                          </span>
+                        )}
                         {descriptionOf(row) !== row.description && similarCount(row) > 0 && (
                           <button
                             type="button"

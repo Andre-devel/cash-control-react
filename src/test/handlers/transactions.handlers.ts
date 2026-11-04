@@ -231,6 +231,8 @@ export const MOCK_IMPORT_PREVIEW: ImportPreviewResponse = {
       investment: false,
       invoicePaymentUnmatched: false,
       possibleDuplicate: false,
+      counterpartyName: null,
+      counterpartyDocument: null,
     },
     {
       lineNumber: 8,
@@ -261,6 +263,8 @@ export const MOCK_IMPORT_PREVIEW: ImportPreviewResponse = {
       investment: false,
       invoicePaymentUnmatched: false,
       possibleDuplicate: false,
+      counterpartyName: null,
+      counterpartyDocument: null,
     },
     {
       lineNumber: 9,
@@ -290,6 +294,8 @@ export const MOCK_IMPORT_PREVIEW: ImportPreviewResponse = {
       investment: false,
       invoicePaymentUnmatched: false,
       possibleDuplicate: false,
+      counterpartyName: null,
+      counterpartyDocument: null,
     },
   ],
   errors: [{ lineNumber: 24, message: "Data inválida: '32/13/2026'. Esperado dd/mm/aaaa." }],

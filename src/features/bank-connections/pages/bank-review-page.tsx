@@ -16,6 +16,10 @@ import {
   useDiscardBankPending,
 } from '@/features/bank-connections/hooks/use-bank-pending'
 import { TRANSACTION_TYPE_DISPLAY } from '@/features/transactions/utils/transaction-type'
+import {
+  counterpartyDocumentLabel,
+  counterpartyLabel,
+} from '@/features/transactions/utils/transaction-display'
 import { formatLocalDate } from '@/lib/format-date'
 import { toast } from '@/lib/toast'
 import type { BankPendingItem } from '@/features/bank-connections/types'
@@ -145,6 +149,8 @@ function ReviewCard({ item, position, canSkip, onSkip }: ReviewCardProps) {
           outgoing: row.outgoing,
           transferAccountId: draft.type === 'TRANSFER' ? row.transferAccountId : null,
           invoiceId: draft.type === 'INVOICE_PAYMENT' ? row.invoiceId : null,
+          counterpartyName: row.counterpartyName,
+          counterpartyDocument: row.counterpartyDocument,
         },
       },
       { onSuccess: (saved) => toast.success(`Gravado: ${saved.description}`) },
@@ -166,6 +172,13 @@ function ReviewCard({ item, position, canSkip, onSkip }: ReviewCardProps) {
           </span>
           {draft.description !== row.description && (
             <span className="text-caption text-fg-muted">{row.description}</span>
+          )}
+          {row.counterpartyName && (
+            <span className="text-caption text-fg-muted">
+              {counterpartyLabel(row.counterpartyName, row.outgoing)}
+              {row.counterpartyDocument &&
+                ` · ${counterpartyDocumentLabel(row.counterpartyDocument)}`}
+            </span>
           )}
         </div>
         <span className="text-amount-lg tabular-nums">

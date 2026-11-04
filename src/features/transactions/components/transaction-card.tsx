@@ -7,7 +7,10 @@ import {
   TransactionActions,
   type TransactionActionHandlers,
 } from '@/features/transactions/components/transaction-actions'
-import { describeTransaction } from '@/features/transactions/utils/transaction-display'
+import {
+  counterpartyLabel,
+  describeTransaction,
+} from '@/features/transactions/utils/transaction-display'
 import { canPayTransaction } from '@/features/transactions/utils/transaction-status'
 import { ReimbursementBadge } from '@/features/transactions/components/reimbursement-badge'
 import type { Transaction } from '@/features/transactions/types'
@@ -139,6 +142,11 @@ export const TransactionCard = memo(function TransactionCard({
           >
             {transaction.description}
           </button>
+          {transaction.counterpartyName && (
+            <span className="truncate text-caption text-fg-muted">
+              {counterpartyLabel(transaction.counterpartyName, !d.isPositive)}
+            </span>
+          )}
           <span className="truncate text-caption text-fg-muted">
             {[d.category?.name, d.accountLabel].filter(Boolean).join(' · ') || d.typeLabel}
           </span>

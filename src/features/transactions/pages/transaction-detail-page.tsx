@@ -25,6 +25,10 @@ import {
   canSetReimbursement,
   isLockedTransaction,
 } from '@/features/transactions/utils/transaction-status'
+import {
+  counterpartyDocumentLabel,
+  counterpartyLabel,
+} from '@/features/transactions/utils/transaction-display'
 import { ROUTES } from '@/app/router/routes'
 
 function DetailSkeleton() {
@@ -222,6 +226,18 @@ export default function TransactionDetailPage() {
           {isCancelled && transaction.cancelledAt && (
             <DetailItem label="Cancelada em">
               {formatInstantDate(transaction.cancelledAt)}
+            </DetailItem>
+          )}
+          {transaction.counterpartyName && (
+            <DetailItem label="Contraparte">
+              <span className="block truncate">
+                {counterpartyLabel(transaction.counterpartyName, !isPositive)}
+              </span>
+              {transaction.counterpartyDocument && (
+                <span className="block font-mono text-caption text-fg-muted">
+                  {counterpartyDocumentLabel(transaction.counterpartyDocument)}
+                </span>
+              )}
             </DetailItem>
           )}
           <DetailItem label="Forma de pagamento">

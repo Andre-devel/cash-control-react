@@ -114,6 +114,8 @@ function previewWithRepeatedMerchant(): ImportPreviewResponse {
     investment: false,
     invoicePaymentUnmatched: false,
     possibleDuplicate: false,
+    counterpartyName: null,
+    counterpartyDocument: null,
   })
 
   return {

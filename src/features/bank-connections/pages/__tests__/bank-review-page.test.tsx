@@ -41,6 +41,8 @@ function row(overrides: Partial<ImportPreviewRow>): ImportPreviewRow {
     investment: false,
     invoicePaymentUnmatched: false,
     possibleDuplicate: false,
+    counterpartyName: null,
+    counterpartyDocument: null,
     ...overrides,
   }
 }
@@ -83,6 +85,46 @@ describe('BankReviewPage', () => {
     expect(screen.getByText('PADARIA SAO JOAO')).toBeInTheDocument()
   })
 
+  it('shows the counterparty name and document from the bank', async () => {
+    mockQueue([
+      {
+        id: 'p-3',
+        accountId: 'acc-1',
+        accountName: 'Inter',
+        row: row({ counterpartyName: 'Fulano de Tal', counterpartyDocument: '***.123.456-**' }),
+      },
+      {
+        id: 'p-4',
+        accountId: 'acc-1',
+        accountName: 'Inter',
+        row: row({ externalRef: 'plg:t4', outgoing: false, type: 'INCOME' }),
+      },
+    ])
+    renderWithProviders(<BankReviewPage />)
+
+    expect(await screen.findByText('Para Fulano de Tal · CPF ***.123.456-**')).toBeInTheDocument()
+  })
+
+  it('shows "De" on incoming money', async () => {
+    mockQueue([
+      {
+        id: 'p-5',
+        accountId: 'acc-1',
+        accountName: 'Inter',
+        row: row({ type: 'INCOME', outgoing: false, counterpartyName: 'Beltrano' }),
+      },
+    ])
+    renderWithProviders(<BankReviewPage />)
+    expect(await screen.findByText('De Beltrano')).toBeInTheDocument()
+  })
+
+  it('omits the counterparty line when the bank did not send one', async () => {
+    mockQueue(ITEMS)
+    renderWithProviders(<BankReviewPage />)
+    expect(await screen.findByText(/1 de 2 · Inter/)).toBeInTheDocument()
+    expect(screen.queryByText(/^(Para|De) /)).not.toBeInTheDocument()
+  })
+
   it('skips to the next one, keeping the skipped at the end', async () => {
     mockQueue(ITEMS)
     const user = userEvent.setup()
@@ -119,6 +161,7 @@ describe('BankReviewPage', () => {
         description: 'Pão',
         originalDescription: 'PADARIA SAO JOAO',
         type: 'EXPENSE',
+        counterpartyName: null,
       }),
     )
   })

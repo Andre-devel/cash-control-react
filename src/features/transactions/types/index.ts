@@ -77,6 +77,10 @@ export interface Transaction {
   updatedAt?: string
   /** Null quando a transação não faz parte de um reembolso. */
   reimbursement?: Reimbursement | null
+  /** Quem recebeu (despesa) ou pagou (receita), como o banco informou. Nulo fora do Open Finance. */
+  counterpartyName?: string | null
+  /** CPF/CNPJ da contraparte, mascarado como o banco mandou, ex.: "***.123.456-**". */
+  counterpartyDocument?: string | null
 }
 
 export interface TransactionSummary {
@@ -93,6 +97,10 @@ export interface TransactionSummary {
   paymentDate: string | null
   createdAt: string
   paymentMethod: PaymentMethod
+  /** Quem recebeu (despesa) ou pagou (receita), como o banco informou. Nulo fora do Open Finance. */
+  counterpartyName?: string | null
+  /** CPF/CNPJ da contraparte, mascarado como o banco mandou, ex.: "***.123.456-**". */
+  counterpartyDocument?: string | null
 }
 
 export interface Attachment {
@@ -258,6 +266,10 @@ export interface ImportPreviewRow {
    * digitado). Pode ser o mesmo fato: a linha vem desmarcada.
    */
   possibleDuplicate: boolean
+  /** Quem recebeu (saída) ou pagou (entrada), como o banco informou. Nulo no import de arquivo. */
+  counterpartyName: string | null
+  /** CPF/CNPJ da contraparte, mascarado como o banco mandou. Nulo no import de arquivo. */
+  counterpartyDocument: string | null
 }
 
 export interface ImportInvoiceOption {
@@ -303,6 +315,9 @@ export interface ImportCommitRow {
   outgoing?: boolean
   transferAccountId?: string | null
   invoiceId?: string | null
+  /** Devolvidos como vieram na prévia, para o lançamento guardar a contraparte. */
+  counterpartyName?: string | null
+  counterpartyDocument?: string | null
 }
 
 export interface ImportCommitRequest {

@@ -106,3 +106,13 @@ export function describeTransaction(
     accountLabel: account?.name ?? transaction.accountName ?? null,
   }
 }
+
+/** "Para Fulano" no dinheiro que saiu, "De Fulano" no que entrou. */
+export function counterpartyLabel(name: string, outgoing: boolean): string {
+  return `${outgoing ? 'Para' : 'De'} ${name}`
+}
+
+/** "CPF ***.123.456-**" ou "CNPJ 12.345.678/0001-90": só o CNPJ formatado tem barra. */
+export function counterpartyDocumentLabel(document: string): string {
+  return `${document.includes('/') ? 'CNPJ' : 'CPF'} ${document}`
+}
