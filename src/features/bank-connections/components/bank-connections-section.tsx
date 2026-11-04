@@ -15,8 +15,10 @@ import {
   useRegisterBankConnection,
 } from '@/features/bank-connections/hooks/use-bank-connection-mutations'
 import { toast } from '@/lib/toast'
+import { formatInstantDate } from '@/lib'
 import {
   connectionStatus,
+  consentExpiringSoon,
   NEEDS_RECONNECT,
 } from '@/features/bank-connections/utils/connection-status'
 import { PluggyConnectWidget } from './pluggy-connect-widget'
@@ -118,6 +120,8 @@ function ConnectionCard({ connection, reconnecting, onReconnect, onDelete }: Con
   const name = connection.connectorName ?? 'Banco'
   // Duas conexões pelo MeuPluggy têm o mesmo nome; o número da conta diferencia.
   const accountNumber = connection.accounts.find((account) => account.kind === 'BANK')?.number
+  const needsReconnect = NEEDS_RECONNECT.has(connection.status)
+  const consentWarning = consentExpiringSoon(connection.consentExpiresAt)
 
   return (
     <div className={`${CARD} flex flex-col gap-3 p-4`}>
@@ -130,10 +134,17 @@ function ConnectionCard({ connection, reconnecting, onReconnect, onDelete }: Con
           <Badge kind={status.kind}>{status.label}</Badge>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          {NEEDS_RECONNECT.has(connection.status) && (
+          {needsReconnect ? (
             <Button size="sm" loading={reconnecting} onClick={onReconnect}>
               Reconectar
             </Button>
+          ) : (
+            consentWarning && (
+              // Renovar é o mesmo fluxo do Reconectar, antes de o consentimento cair.
+              <Button size="sm" loading={reconnecting} onClick={onReconnect}>
+                Renovar
+              </Button>
+            )
           )}
           <Button
             size="icon"
@@ -149,10 +160,18 @@ function ConnectionCard({ connection, reconnecting, onReconnect, onDelete }: Con
           </Button>
         </div>
       </div>
-      {(connection.lastSyncedAt || connection.statusDetail) && (
+      {(connection.lastSyncedAt || connection.consentExpiresAt || connection.statusDetail) && (
         <p className="text-caption text-fg-muted">
-          {connection.lastSyncedAt &&
-            `Última atualização com o banco: ${formatDateTime(connection.lastSyncedAt)}`}
+          {connection.lastSyncedAt && (
+            <span className="block">
+              Última atualização com o banco: {formatDateTime(connection.lastSyncedAt)}
+            </span>
+          )}
+          {connection.consentExpiresAt && (
+            <span className={consentWarning ? 'block font-semibold text-overdue' : 'block'}>
+              Consentimento até {formatInstantDate(connection.consentExpiresAt)}
+            </span>
+          )}
           {connection.statusDetail && (
             <span className="block text-overdue">{connection.statusDetail}</span>
           )}

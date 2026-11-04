@@ -21,6 +21,8 @@ export interface BankConnection {
   status: string
   statusDetail: string | null
   lastSyncedAt: string | null
+  /** Fim do consentimento do Open Finance (ISO); nulo enquanto a Pluggy não informar. */
+  consentExpiresAt: string | null
   accounts: BankConnectionAccount[]
 }
 

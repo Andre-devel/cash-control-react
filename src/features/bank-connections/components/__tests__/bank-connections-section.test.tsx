@@ -40,6 +40,7 @@ const CONNECTION: BankConnection = {
   status: 'UPDATED',
   statusDetail: null,
   lastSyncedAt: '2026-10-30T10:00:00Z',
+  consentExpiresAt: null,
   accounts: [
     {
       id: 'ba-1',
@@ -58,6 +59,10 @@ const CONNECTION: BankConnection = {
       creditCardId: 'card-1',
     },
   ],
+}
+
+function daysFromNow(days: number): string {
+  return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
 }
 
 function mockConnections(connections: BankConnection[], enabled = true) {
@@ -162,6 +167,62 @@ describe('BankConnectionsSection', () => {
     await user.click(screen.getByRole('button', { name: 'Reconectar' }))
 
     expect(await screen.findByText('atualiza item-1')).toBeInTheDocument()
+  })
+
+  it('shows until when the consent is valid', async () => {
+    const consentExpiresAt = '2027-10-30T12:00:00Z'
+    mockConnections([{ ...CONNECTION, consentExpiresAt }])
+    renderWithProviders(<BankConnectionsSection />)
+
+    const line = await screen.findByText(
+      `Consentimento até ${new Date(consentExpiresAt).toLocaleDateString('pt-BR')}`,
+    )
+    expect(line).not.toHaveClass('text-overdue')
+    expect(screen.queryByRole('button', { name: 'Renovar' })).not.toBeInTheDocument()
+  })
+
+  it('highlights a consent ending in 10 days and renews it on the same connection', async () => {
+    mockConnections([{ ...CONNECTION, consentExpiresAt: daysFromNow(10) }])
+    let tokenRequested = false
+    server.use(
+      http.post('*/bank-connections/conn-1/connect-token', () => {
+        tokenRequested = true
+        return HttpResponse.json({ accessToken: 'tok-renew' })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<BankConnectionsSection />)
+
+    expect(await screen.findByText(/Consentimento até/)).toHaveClass('text-overdue')
+    expect(screen.queryByRole('button', { name: 'Reconectar' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Renovar' }))
+
+    expect(await screen.findByText('atualiza item-1')).toBeInTheDocument()
+    expect(tokenRequested).toBe(true)
+  })
+
+  it('offers Renovar for an already expired consent', async () => {
+    mockConnections([{ ...CONNECTION, consentExpiresAt: daysFromNow(-2) }])
+    renderWithProviders(<BankConnectionsSection />)
+
+    expect(await screen.findByText(/Consentimento até/)).toHaveClass('text-overdue')
+    expect(screen.getByRole('button', { name: 'Renovar' })).toBeInTheDocument()
+  })
+
+  it('does not offer Renovar with 60 days of consent left', async () => {
+    mockConnections([{ ...CONNECTION, consentExpiresAt: daysFromNow(60) }])
+    renderWithProviders(<BankConnectionsSection />)
+
+    expect(await screen.findByText(/Consentimento até/)).not.toHaveClass('text-overdue')
+    expect(screen.queryByRole('button', { name: 'Renovar' })).not.toBeInTheDocument()
+  })
+
+  it('shows only Reconectar when the item also needs a new login', async () => {
+    mockConnections([{ ...CONNECTION, status: 'LOGIN_ERROR', consentExpiresAt: daysFromNow(5) }])
+    renderWithProviders(<BankConnectionsSection />)
+
+    expect(await screen.findByRole('button', { name: 'Reconectar' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Renovar' })).not.toBeInTheDocument()
   })
 
   it('removes a connection after confirmation', async () => {

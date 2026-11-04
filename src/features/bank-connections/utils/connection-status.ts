@@ -15,3 +15,15 @@ export function connectionStatus(status: string): { label: string; kind: BadgeKi
 
 /** Status em que só um novo consentimento no widget resolve. */
 export const NEEDS_RECONNECT = new Set(['LOGIN_ERROR', 'OUTDATED', 'WAITING_USER_INPUT'])
+
+/** Antecedência com que o card destaca o consentimento e oferece "Renovar". */
+export const CONSENT_WARNING_DAYS = 15
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** Consentimento vencido ou faltando {@link CONSENT_WARNING_DAYS} dias ou menos. */
+export function consentExpiringSoon(consentExpiresAt: string | null, now = Date.now()): boolean {
+  if (!consentExpiresAt) return false
+  const expiresAt = new Date(consentExpiresAt).getTime()
+  if (Number.isNaN(expiresAt)) return false
+  return expiresAt - now <= CONSENT_WARNING_DAYS * DAY_MS
+}

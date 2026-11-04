@@ -35,7 +35,15 @@ export interface TestPush {
   body: string
 }
 
-export type BankPush = PendingPush | SummaryPush | BudgetPush | TestPush
+/** Conexão bancária que precisa de atenção (erro, sem dados novos, consentimento); tocar abre o Perfil. */
+export interface ConnectionPush {
+  type: 'connection'
+  connectionId: string
+  title: string
+  body: string
+}
+
+export type BankPush = PendingPush | SummaryPush | BudgetPush | TestPush | ConnectionPush
 
 /** `actions` e `renotify` existem no Chrome, mas não na lib DOM do TypeScript. */
 export interface BankNotificationOptions {
@@ -69,6 +77,7 @@ interface BankNotificationDeps {
 
 export const REVIEW_PATH = '/revisar'
 export const BUDGETS_PATH = '/budgets'
+export const PROFILE_PATH = '/profile'
 export const HOME_PATH = '/'
 /** Uma notificação-resumo só: a próxima a substitui. */
 export const SUMMARY_TAG = 'bank-pending-summary'
@@ -81,6 +90,16 @@ export function notificationOf(data: BankPush): BankNotificationOptions {
   if (data.type === 'budget') {
     // Uma por categoria: o aviso de 100% substitui o de 80%.
     return { body: data.body, icon: ICON, tag: `budget-${data.categoryId}`, renotify: true, data }
+  }
+  if (data.type === 'connection') {
+    // Uma por conexão: o aviso do dia seguinte substitui o anterior.
+    return {
+      body: data.body,
+      icon: ICON,
+      tag: `connection-${data.connectionId}`,
+      renotify: true,
+      data,
+    }
   }
   return data.type === 'pending'
     ? {
@@ -150,15 +169,17 @@ export function createBankNotifications(deps: BankNotificationDeps) {
     show: (data: BankPush) => deps.showNotification(data.title, notificationOf(data)),
     /**
      * Botão Confirmar grava sem abrir o app; o resto (Revisar, tocar no corpo) abre a fila.
-     * O alerta de orçamento abre a página de orçamentos; o teste, o app.
+     * O alerta de orçamento abre a página de orçamentos; o de conexão, o Perfil; o teste, o app.
      */
     click: (action: string, data: BankPush | undefined) =>
       data?.type === 'budget'
         ? openPath(BUDGETS_PATH)
-        : data?.type === 'test'
-          ? openPath(HOME_PATH)
-          : action === 'confirm' && data?.type === 'pending'
-            ? confirm(data)
-            : openReview(),
+        : data?.type === 'connection'
+          ? openPath(PROFILE_PATH)
+          : data?.type === 'test'
+            ? openPath(HOME_PATH)
+            : action === 'confirm' && data?.type === 'pending'
+              ? confirm(data)
+              : openReview(),
   }
 }

@@ -4,6 +4,7 @@ import {
   notificationOf,
   SUMMARY_TAG,
   type BudgetPush,
+  type ConnectionPush,
   type PendingPush,
 } from '../bank-notifications'
 
@@ -103,6 +104,27 @@ describe('createBankNotifications', () => {
     await notifications.click('', BUDGET)
 
     expect(deps.clients.openWindow).toHaveBeenCalledWith('https://app.test/budgets')
+    expect(deps.fetch).not.toHaveBeenCalled()
+  })
+
+  it('gives each bank connection one notification without actions and opens the profile', async () => {
+    const { deps, notifications } = setup()
+    const connection: ConnectionPush = {
+      type: 'connection',
+      connectionId: 'conn-1',
+      title: 'Inter · 1234567-8: consentimento vence em 7 dias',
+      body: 'Renove no Perfil para continuar recebendo os lançamentos.',
+    }
+
+    expect(notificationOf(connection)).toMatchObject({
+      tag: 'connection-conn-1',
+      renotify: true,
+      body: connection.body,
+    })
+    expect(notificationOf(connection).actions).toBeUndefined()
+    await notifications.click('', connection)
+
+    expect(deps.clients.openWindow).toHaveBeenCalledWith('https://app.test/profile')
     expect(deps.fetch).not.toHaveBeenCalled()
   })
 
