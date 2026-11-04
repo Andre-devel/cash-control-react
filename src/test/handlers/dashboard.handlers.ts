@@ -14,6 +14,7 @@ import type {
 } from '@/features/dashboard/types'
 import type { InvestmentSummary } from '@/features/investments/types'
 import type { BudgetProgress } from '@/features/budgets/types'
+import type { SavingsGoal } from '@/features/goals/types'
 
 export const MOCK_OVERVIEW: DashboardOverview = {
   totalBalance: '12500.00',
@@ -239,6 +240,39 @@ export const MOCK_SUBSCRIPTIONS: Subscriptions = {
   ],
 }
 
+export const MOCK_GOALS: SavingsGoal[] = [
+  {
+    id: 'goal-1',
+    name: 'Reserva de emergência',
+    targetAmount: 20000,
+    targetDate: '2027-12-31',
+    accountId: 'acc-1',
+    holdingId: null,
+    icon: 'savings',
+    color: '#5CE1B8',
+    current: 5000,
+    percent: 25,
+    monthlyNeeded: 1250,
+    createdAt: '2026-11-01T12:00:00Z',
+    archivedAt: null,
+  },
+  {
+    id: 'goal-2',
+    name: 'Viagem',
+    targetAmount: 8000,
+    targetDate: null,
+    accountId: null,
+    holdingId: 'h-1',
+    icon: 'flight',
+    color: '#FF8A65',
+    current: 8000,
+    percent: 100,
+    monthlyNeeded: null,
+    createdAt: '2026-11-02T12:00:00Z',
+    archivedAt: null,
+  },
+]
+
 export const dashboardHandlers = [
   http.get('*/dashboard/overview', () => {
     return HttpResponse.json(MOCK_OVERVIEW)
@@ -290,5 +324,9 @@ export const dashboardHandlers = [
 
   http.get('*/budgets', () => {
     return HttpResponse.json(MOCK_BUDGET_PROGRESS)
+  }),
+
+  http.get('*/goals', () => {
+    return HttpResponse.json([])
   }),
 ]

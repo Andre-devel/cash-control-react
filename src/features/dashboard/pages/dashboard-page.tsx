@@ -36,6 +36,8 @@ import { BalanceProjectionSection } from '@/features/dashboard/components/balanc
 import { InvestmentsCard } from '@/features/dashboard/components/investments-card'
 import { BudgetsCard } from '@/features/dashboard/components/budgets-card'
 import { SubscriptionsCard } from '@/features/dashboard/components/subscriptions-card'
+import { GoalsCard } from '@/features/dashboard/components/goals-card'
+import { useGoals } from '@/features/goals/hooks/use-goals'
 import { MonthComparisonSection } from '@/features/dashboard/components/month-comparison-section'
 import { LargestExpensesWidget } from '@/features/dashboard/components/largest-expenses-widget'
 import { ROUTES } from '@/app/router/routes'
@@ -80,6 +82,7 @@ export default function DashboardPage() {
   const { hidden, toggle: toggleHidden } = useHideValues()
   const { discount: discountInvoices, toggle: toggleDiscountInvoices } = useDiscountInvoices()
   const { data: investments } = useInvestmentSummary()
+  const { data: goals } = useGoals()
   // Card só para quem tem conta de investimento ou aplicação; sem ele, a projeção ocupa a linha.
   const showInvestments =
     investments !== undefined &&
@@ -278,6 +281,7 @@ export default function DashboardPage() {
                   }
                 : undefined
             }
+            goals={goals?.filter((g) => !g.archivedAt)}
           />
         </div>
       ) : (
@@ -301,16 +305,19 @@ export default function DashboardPage() {
           />
 
           {/* Logo abaixo do resumo em todo tamanho: mesma ordem do resumo, vem depois pelo DOM. */}
-          <BalanceProjectionSection
-            className={`md:order-1 md:col-span-2 ${showInvestments ? 'xl:col-span-8' : 'xl:col-span-12'}`}
-          />
-          {showInvestments && (
-            <InvestmentsCard
-              className="md:order-1 md:col-span-2 xl:col-span-4"
-              summary={investments}
-              yieldMonth={parseFloat(overview?.investmentsYieldMonth ?? '0')}
-            />
-          )}
+          <BalanceProjectionSection className="md:order-1 md:col-span-2 xl:col-span-8" />
+          {/* Investimentos e metas lado a lado no tablet, empilhados ao lado da projeção no desktop. */}
+          <div
+            className={`flex flex-col gap-3 md:order-1 md:col-span-2 md:grid ${showInvestments ? 'md:grid-cols-2' : ''} xl:col-span-4 xl:flex xl:gap-4`}
+          >
+            {showInvestments && (
+              <InvestmentsCard
+                summary={investments}
+                yieldMonth={parseFloat(overview?.investmentsYieldMonth ?? '0')}
+              />
+            )}
+            <GoalsCard className={showInvestments ? '' : 'xl:flex-1'} />
+          </div>
 
           <UpcomingBillsCard className="md:order-2 xl:order-5 xl:col-span-4" />
           <OpenInvoicesCard className="md:order-3 xl:order-4 xl:col-span-4" />

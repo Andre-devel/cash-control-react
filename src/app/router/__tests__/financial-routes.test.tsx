@@ -116,6 +116,13 @@ describe('Financial feature routes — authenticated rendering', () => {
     ).toBeTruthy()
   })
 
+  it('renders goals page at /metas', async () => {
+    renderAtPath('/metas')
+    expect(
+      await screen.findByRole('heading', { name: /metas/i, level: 1 }, { timeout: 5000 }),
+    ).toBeTruthy()
+  })
+
   it('renders categories page at /categories', async () => {
     renderAtPath('/categories')
     expect(

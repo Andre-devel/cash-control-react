@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Inbox,
   Target,
+  Goal,
 } from 'lucide-react'
 import { ROUTES } from '@/app/router/routes'
 
@@ -76,6 +77,7 @@ export const NAV_SECTIONS: NavSection[] = [
     title: 'Gestão',
     items: [
       { id: 'budgets', label: 'Orçamentos', icon: Target, path: ROUTES.BUDGETS },
+      { id: 'goals', label: 'Metas', icon: Goal, path: ROUTES.GOALS },
       { id: 'categories', label: 'Categorias', icon: Tags, path: ROUTES.CATEGORIES },
       { id: 'installments', label: 'Parcelamentos', icon: Layers, path: ROUTES.INSTALLMENTS },
       { id: 'recurrences', label: 'Recorrências', icon: Repeat, path: ROUTES.RECURRENCES },

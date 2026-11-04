@@ -23,6 +23,8 @@ export const ROUTES = {
   ACCOUNT_DETAIL: '/accounts/:id',
   INVESTMENTS: '/investments',
   BUDGETS: '/budgets',
+  /** Metas de economia, com o progresso pelo saldo da conta ou da aplicação vinculada. */
+  GOALS: '/metas',
   TRANSACTIONS: '/transactions',
   TRANSACTION_DETAIL: '/transactions/:id',
   INSTALLMENTS: '/installments',

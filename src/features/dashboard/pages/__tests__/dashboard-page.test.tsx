@@ -5,6 +5,7 @@ import { server } from '@/test/msw/server'
 import { renderWithProviders } from '@/test/utils'
 import {
   MOCK_EMPTY_INVESTMENT_SUMMARY,
+  MOCK_GOALS,
   MOCK_OVERVIEW,
   MOCK_RECENT_TRANSACTIONS,
   MOCK_UPCOMING_BILLS,
@@ -290,6 +291,14 @@ describe('DashboardPage', () => {
     expect(card.className).toContain('max-md:hidden')
   })
 
+  it('shows the goals card beside the projection', async () => {
+    server.use(http.get('*/goals', () => HttpResponse.json(MOCK_GOALS)))
+    renderWithProviders(<DashboardPage />)
+    const card = await screen.findByRole('region', { name: 'Metas' })
+    await waitFor(() => expect(card.textContent).toContain('Reserva de emergência'))
+    expect(card.parentElement?.className).toContain('xl:col-span-4')
+  })
+
   it('has no discount switch without open invoices', async () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => expect(screen.getByText('Patrimônio líquido')).toBeTruthy())
@@ -345,6 +354,14 @@ describe('DashboardPage no celular', () => {
     renderWithProviders(<DashboardPage />)
     await waitFor(() => expect(screen.getByText('Patrimônio líquido')).toBeTruthy())
     expect(screen.queryByRole('region', { name: 'Assinaturas' })).toBeNull()
+  })
+
+  it('tem atalho para as metas', async () => {
+    server.use(http.get('*/goals', () => HttpResponse.json(MOCK_GOALS)))
+    renderWithProviders(<DashboardPage />)
+    const link = await screen.findByRole('link', { name: /Reserva de emergência/ })
+    expect(link.getAttribute('href')).toBe('/metas')
+    expect(screen.queryByRole('region', { name: 'Metas' })).toBeNull()
   })
 
   it('tira os gráficos do Início e aponta para Análises', async () => {
