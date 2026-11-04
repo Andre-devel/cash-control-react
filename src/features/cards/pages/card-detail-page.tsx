@@ -4,6 +4,7 @@ import {
   Archive,
   ArchiveRestore,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   FileUp,
@@ -60,6 +61,8 @@ export default function CardDetailPage() {
   const [archiveOpen, setArchiveOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [historyFilter, setHistoryFilter] = useState<InvoiceFilter>('all')
+  // Os lançamentos deixam a página longa: começam recolhidos e voltam a recolher ao trocar de mês.
+  const [itemsOpen, setItemsOpen] = useState(false)
   const { mutate: unarchiveCard, isPending: unarchivePending } = useUnarchiveCard()
 
   const spendingFrom = referenceMonth ? `${referenceMonth}-01` : ''
@@ -104,6 +107,11 @@ export default function CardDetailPage() {
   const filteredInvoices = (invoices?.content ?? []).filter((inv) =>
     matchesInvoiceFilter(inv, historyFilter),
   )
+
+  function changeMonth(month: string) {
+    setReferenceMonth(month)
+    setItemsOpen(false)
+  }
 
   const totalAmount = invoice ? parseFloat(invoice.totalAmount) : 0
   const paidAmount = invoice ? parseFloat(invoice.paidAmount) : 0
@@ -191,12 +199,7 @@ export default function CardDetailPage() {
               <div className="mx-auto w-full max-w-[420px] md:max-w-none">
                 <CardFace card={card} large />
               </div>
-              <CardSidebar
-                card={card}
-                limitView={limitView}
-                spending={spending}
-                showDetails={false}
-              />
+              <CardSidebar card={card} limitView={limitView} spending={spending} />
             </div>
 
             {/* Coluna das faturas */}
@@ -210,9 +213,7 @@ export default function CardDetailPage() {
                       size="icon"
                       className="min-h-touch min-w-touch"
                       aria-label="Mês anterior"
-                      onClick={() =>
-                        referenceMonth && setReferenceMonth(shiftMonth(referenceMonth, -1))
-                      }
+                      onClick={() => referenceMonth && changeMonth(shiftMonth(referenceMonth, -1))}
                     >
                       <ChevronLeft size={16} aria-hidden="true" />
                     </Button>
@@ -224,9 +225,7 @@ export default function CardDetailPage() {
                       size="icon"
                       className="min-h-touch min-w-touch"
                       aria-label="Próximo mês"
-                      onClick={() =>
-                        referenceMonth && setReferenceMonth(shiftMonth(referenceMonth, 1))
-                      }
+                      onClick={() => referenceMonth && changeMonth(shiftMonth(referenceMonth, 1))}
                     >
                       <ChevronRight size={16} aria-hidden="true" />
                     </Button>
@@ -293,17 +292,36 @@ export default function CardDetailPage() {
                     </div>
 
                     {invoice.items.length > 0 ? (
-                      <div>
-                        <h3 className="m-0 mb-1 text-body font-semibold">Cobranças</h3>
-                        {invoice.items.map((item) => (
-                          <InvoiceItemRow
-                            key={item.id}
-                            item={item}
-                            categoryLabel={
-                              item.subcategoryName ?? item.categoryName ?? 'Sem categoria'
-                            }
+                      <div className="border-t border-border pt-1">
+                        <button
+                          type="button"
+                          aria-expanded={itemsOpen}
+                          aria-controls={itemsOpen ? 'card-invoice-items' : undefined}
+                          onClick={() => setItemsOpen((open) => !open)}
+                          className="flex min-h-touch w-full items-center justify-between gap-2 text-left text-body-sm font-semibold text-brand"
+                        >
+                          {itemsOpen
+                            ? 'Ocultar lançamentos'
+                            : `Ver lançamentos (${invoice.items.length})`}
+                          <ChevronDown
+                            size={16}
+                            aria-hidden="true"
+                            className={`shrink-0 transition-transform motion-reduce:transition-none ${itemsOpen ? 'rotate-180' : ''}`}
                           />
-                        ))}
+                        </button>
+                        {itemsOpen && (
+                          <section id="card-invoice-items" aria-label="Lançamentos da fatura">
+                            {invoice.items.map((item) => (
+                              <InvoiceItemRow
+                                key={item.id}
+                                item={item}
+                                categoryLabel={
+                                  item.subcategoryName ?? item.categoryName ?? 'Sem categoria'
+                                }
+                              />
+                            ))}
+                          </section>
+                        )}
                       </div>
                     ) : (
                       <p className="m-0 text-body-sm text-fg-muted">

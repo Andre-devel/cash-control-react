@@ -80,7 +80,7 @@ describe('BottomNav', () => {
     expect(within(sheet).getByRole('link', { name: 'Recorrências' })).toBeTruthy()
     expect(within(sheet).queryByRole('link', { name: 'Transações' })).toBeNull()
     expect(within(sheet).queryByRole('link', { name: 'Auditoria' })).toBeNull()
-    expect(within(sheet).queryByRole('link', { name: 'Funções' })).toBeNull()
+    expect(within(sheet).queryByRole('link', { name: 'Papéis' })).toBeNull()
   })
 
   it('shows admin items in "Mais" when the user has the permissions', async () => {
@@ -89,7 +89,7 @@ describe('BottomNav', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Mais' }))
     const sheet = screen.getByRole('dialog', { name: 'Mais' })
     expect(within(sheet).getByRole('link', { name: 'Auditoria' })).toBeTruthy()
-    expect(within(sheet).getByRole('link', { name: 'Funções' })).toBeTruthy()
+    expect(within(sheet).getByRole('link', { name: 'Papéis' })).toBeTruthy()
   })
 
   it('switches the theme from the "Mais" sheet', async () => {
@@ -106,9 +106,9 @@ describe('BottomNav', () => {
 })
 
 describe('Sidebar permissions', () => {
-  it('removes Funções and Auditoria without permission', () => {
+  it('removes Papéis and Auditoria without permission', () => {
     renderWithProviders(<Sidebar />)
     expect(screen.queryByRole('link', { name: 'Auditoria' })).toBeNull()
-    expect(screen.queryByRole('link', { name: 'Funções' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Papéis' })).toBeNull()
   })
 })

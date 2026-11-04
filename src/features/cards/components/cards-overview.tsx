@@ -1,12 +1,8 @@
-import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, RefreshCw, Upload } from 'lucide-react'
+import { Plus, Upload } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Money } from '@/components/ui/money'
-import { useCategories } from '@/features/categories/hooks/use-categories'
-import { flattenCategories } from '@/features/categories/utils/flatten-categories'
-import { categoryColorCss } from '@/features/categories/utils/category-colors'
 import { glowOf } from '@/features/cards/components/card-face'
 import { LIMIT_TONE_TEXT, limitTone, type LimitView } from '@/features/cards/utils/limit-view'
 import {
@@ -15,27 +11,22 @@ import {
   getCurrentInvoiceMonth,
   shiftMonth,
 } from '@/features/cards/utils/invoice-month'
-import type { Card, Invoice, InvoiceItem, SpendingItem } from '@/features/cards/types'
+import type { Card, Invoice } from '@/features/cards/types'
 import { InvoiceStatusBadge } from '@/features/invoices/components/invoice-status-badge'
-import { InvoiceItemRow } from '@/features/invoices/components/invoice-item-row'
-import { installmentLabel } from '@/features/invoices/utils/invoice-item'
 import { canPayInvoice, dueBadge } from '@/features/invoices/utils/invoice-status'
 import { formatLocalDate } from '@/lib/format-date'
 import { ROUTES } from '@/app/router/routes'
 
 /**
- * Celular, tablet (768–1279) e desktop (≥ 1280). As três variantes seguem o canvas
- * "Cartões": a fatura do cartão escolhido em destaque e o limite uma vez só, dentro dela.
+ * Celular, tablet (768–1279) e desktop (≥ 1280). Em `/cards` fica só o resumo do cartão
+ * escolhido: a fatura (valor, vencimento, pagar) e o limite, uma vez só. Lançamentos,
+ * categorias e detalhes do cartão ficam em `/cards/:id`, para nada se repetir entre as duas.
  */
 export type CardsLayout = 'mobile' | 'tablet' | 'desktop'
 
 const ICON_BTN =
   'btn btn-icon min-h-touch min-w-touch rounded-lg border border-border bg-surface-1 text-fg'
 const SECTION = 'rounded-2xl border border-border bg-surface-1'
-/** No celular cabem 5 lançamentos e 3 categorias; o resto fica no detalhe da fatura. */
-const MOBILE_ITEMS = 5
-const MOBILE_CATEGORIES = 3
-const CATEGORY_TOKENS = [1, 7, 2, 6, 5, 3, 4, 9, 8, 10]
 const BAR_TONE = {
   ok: 'rgb(var(--cc-brand))',
   warn: 'rgb(var(--cc-pending-solid))',
@@ -64,24 +55,13 @@ interface CardsOverviewProps {
   referenceMonth: string
   onMonthChange: (month: string) => void
   onPay: () => void
-  spending: SpendingItem[] | undefined
   onImport: () => void
   onCreate: () => void
 }
 
 export function CardsOverview(props: CardsOverviewProps) {
-  const { layout, cards, selectedCard, limitViews, totals, spending } = props
+  const { layout, cards, selectedCard, limitViews, totals } = props
   const limitView = limitViews[selectedCard.id] ?? null
-
-  const sortedSpending = [...(spending ?? [])].sort(
-    (a, b) => parseFloat(b.totalAmount) - parseFloat(a.totalAmount),
-  )
-  const categories = (
-    <CategoriesSection
-      items={layout === 'mobile' ? sortedSpending.slice(0, MOBILE_CATEGORIES) : sortedSpending}
-      columns={layout === 'tablet' ? 2 : 1}
-    />
-  )
 
   const header =
     layout === 'mobile' ? (
@@ -135,16 +115,13 @@ export function CardsOverview(props: CardsOverviewProps) {
       <div className="flex flex-col gap-5">
         {header}
         <div className="grid grid-cols-[260px_minmax(0,1fr)] items-start gap-5 2xl:grid-cols-[300px_minmax(0,1fr)]">
-          <div className="flex flex-col gap-4">
-            <CardList
-              cards={cards}
-              selectedCard={selectedCard}
-              onSelectCard={props.onSelectCard}
-              limitViews={limitViews}
-              onCreate={props.onCreate}
-            />
-            {categories}
-          </div>
+          <CardList
+            cards={cards}
+            selectedCard={selectedCard}
+            onSelectCard={props.onSelectCard}
+            limitViews={limitViews}
+            onCreate={props.onCreate}
+          />
           <InvoiceSection {...props} limitView={limitView} />
         </div>
       </div>
@@ -161,7 +138,6 @@ export function CardsOverview(props: CardsOverviewProps) {
         onCreate={layout === 'tablet' ? props.onCreate : undefined}
       />
       <InvoiceSection {...props} limitView={limitView} />
-      {categories}
     </div>
   )
 }
@@ -310,9 +286,6 @@ function InvoiceSection({
   onPay,
   limitView,
 }: InvoiceSectionProps) {
-  const { data: categories } = useCategories()
-  const flatCategories = useMemo(() => flattenCategories(categories ?? []), [categories])
-
   const currentMonth = getCurrentInvoiceMonth(selectedCard)
   const offsets = layout === 'mobile' ? [-1, 0, 1] : [-2, -1, 0, 1]
   const tabs = offsets.map((offset) => {
@@ -328,13 +301,6 @@ function InvoiceSection({
   const payable = invoice ? canPayInvoice(invoice) : false
   const invoiceHref = invoice ? ROUTES.INVOICE_DETAIL.replace(':invoiceId', invoice.id) : ''
   const cardHref = ROUTES.CARD_DETAIL.replace(':id', selectedCard.id)
-  const categoryOf = (item: InvoiceItem) => {
-    const cat = flatCategories.find((c) => c.id === item.categoryId)
-    return {
-      label: item.subcategoryName ?? item.categoryName ?? cat?.name ?? 'Sem categoria',
-      color: cat?.color ? categoryColorCss(cat.color) : undefined,
-    }
-  }
 
   const monthTabs = (
     <div
@@ -458,7 +424,7 @@ function InvoiceSection({
       asChild
       className={`min-h-touch ${layout === 'mobile' && !payable ? 'flex-1' : ''}`}
     >
-      <Link to={invoiceHref}>{layout === 'mobile' ? 'Detalhes' : 'Ver fatura completa'}</Link>
+      <Link to={invoiceHref}>{layout === 'mobile' ? 'Ver fatura' : 'Ver fatura completa'}</Link>
     </Button>
   )
 
@@ -522,210 +488,27 @@ function InvoiceSection({
     )
   }
 
-  const items = invoice?.items ?? []
-
   return (
-    <>
-      <section
-        aria-label="Fatura"
-        className={`${SECTION} flex min-w-0 flex-col ${layout === 'mobile' ? 'gap-3.5 p-4' : ''}`}
-      >
-        {layout === 'mobile' ? (
-          <>
-            {monthTabs}
-            {summary}
-          </>
-        ) : (
-          <>
-            <header className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-4">
-              <h2 className="m-0 flex-1 font-display text-h2 font-bold">
-                Fatura · {selectedCard.name}
-              </h2>
-              {monthTabs}
-            </header>
-            <div className="flex flex-col gap-4 p-5">{summary}</div>
-            {layout === 'desktop' && invoice && (
-              <ItemsTable items={items} layout={layout} categoryOf={categoryOf} />
-            )}
-          </>
-        )}
-      </section>
-
-      {layout === 'mobile' && items.length > 0 && (
-        <section aria-label="Lançamentos" className={`${SECTION} px-4 pb-1 pt-1`}>
-          <div className="flex min-h-touch items-center justify-between">
-            <h2 className="m-0 font-display text-body font-bold">Lançamentos</h2>
-            {items.length > MOBILE_ITEMS && (
-              <Link
-                to={invoiceHref}
-                className="flex min-h-touch items-center text-body-sm font-semibold text-brand"
-              >
-                Ver todos ({items.length})
-              </Link>
-            )}
-          </div>
-          {items.slice(0, MOBILE_ITEMS).map((item) => {
-            const cat = categoryOf(item)
-            return (
-              <InvoiceItemRow
-                key={item.id}
-                item={item}
-                categoryLabel={cat.label}
-                categoryColor={cat.color}
-              />
-            )
-          })}
-        </section>
-      )}
-
-      {layout === 'tablet' && invoice && (
-        <section aria-label="Lançamentos" className={`${SECTION} px-5 pb-2 pt-1`}>
-          <h2 className="m-0 flex min-h-[48px] items-center font-display text-body font-bold">
-            Lançamentos ({items.length})
-          </h2>
-          <ItemsTable items={items} layout={layout} categoryOf={categoryOf} />
-        </section>
-      )}
-    </>
-  )
-}
-
-interface ItemsTableProps {
-  items: InvoiceItem[]
-  layout: 'tablet' | 'desktop'
-  categoryOf: (item: InvoiceItem) => { label: string; color?: string }
-}
-
-/** Uma linha por compra. No tablet a categoria vai sob a descrição; no desktop, em coluna. */
-function ItemsTable({ items, layout, categoryOf }: ItemsTableProps) {
-  const desktop = layout === 'desktop'
-  const grid = desktop
-    ? 'grid-cols-[88px_minmax(0,1fr)_140px_56px_100px]'
-    : 'grid-cols-[90px_minmax(0,1fr)_56px_104px]'
-
-  if (items.length === 0) {
-    return (
-      <p
-        className={`m-0 py-4 text-body-sm text-fg-muted ${desktop ? 'border-t border-border px-5' : ''}`}
-      >
-        Nenhum lançamento neste período.
-      </p>
-    )
-  }
-
-  return (
-    <div
-      role="table"
-      aria-label="Lançamentos"
-      className={desktop ? 'border-t border-border px-5 pb-3' : ''}
+    <section
+      aria-label="Fatura"
+      className={`${SECTION} flex min-w-0 flex-col ${layout === 'mobile' ? 'gap-3.5 p-4' : ''}`}
     >
-      {desktop && (
-        <div
-          role="row"
-          className={`grid ${grid} gap-3 border-b border-border py-2.5 text-caption uppercase tracking-wide text-fg-muted`}
-        >
-          <span role="columnheader">Data</span>
-          <span role="columnheader">Descrição</span>
-          <span role="columnheader">Categoria</span>
-          <span role="columnheader">Parcela</span>
-          <span role="columnheader" className="text-right">
-            Valor
-          </span>
-        </div>
+      {layout === 'mobile' ? (
+        <>
+          {monthTabs}
+          {summary}
+        </>
+      ) : (
+        <>
+          <header className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-4">
+            <h2 className="m-0 flex-1 font-display text-h2 font-bold">
+              Fatura · {selectedCard.name}
+            </h2>
+            {monthTabs}
+          </header>
+          <div className="flex flex-col gap-4 p-5">{summary}</div>
+        </>
       )}
-      {items.map((item) => {
-        const cat = categoryOf(item)
-        const dot = (
-          <span
-            aria-hidden="true"
-            className="size-2 shrink-0 rounded-full"
-            style={{ background: cat.color ?? 'var(--text-muted)' }}
-          />
-        )
-        return (
-          <div
-            key={item.id}
-            role="row"
-            className={`grid ${grid} min-h-[48px] items-center gap-3 border-b border-border py-2 text-body-sm last:border-b-0`}
-          >
-            <span role="cell" className="font-mono text-[12px] text-fg-muted">
-              {formatLocalDate(item.competenceDate)}
-            </span>
-            <span role="cell" className="flex min-w-0 flex-col gap-0.5">
-              <span className="flex min-w-0 items-center gap-1.5">
-                <span className="truncate font-medium" title={item.description}>
-                  {item.description}
-                </span>
-                {item.isRevolving && (
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-[6px] bg-pending-soft px-1.5 py-[3px] font-mono text-[11px] leading-none text-pending">
-                    <RefreshCw size={11} aria-hidden="true" />
-                    rotativo
-                  </span>
-                )}
-              </span>
-              {!desktop && (
-                <span className="flex items-center gap-1.5 text-caption text-fg-muted">
-                  {dot}
-                  {cat.label}
-                </span>
-              )}
-            </span>
-            {desktop && (
-              <span role="cell" className="flex min-w-0 items-center gap-2 text-fg-muted">
-                {dot}
-                <span className="truncate">{cat.label}</span>
-              </span>
-            )}
-            <span role="cell" className="font-mono text-[12px] text-fg-muted">
-              {installmentLabel(item) ?? ''}
-            </span>
-            <span role="cell" className="text-right font-semibold tabular-nums">
-              <Money value={parseFloat(item.amount)} />
-            </span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-interface CategoriesSectionProps {
-  items: SpendingItem[]
-  columns: 1 | 2
-}
-
-function CategoriesSection({ items, columns }: CategoriesSectionProps) {
-  if (items.length === 0) return null
-  const max = parseFloat(items[0].totalAmount)
-  return (
-    <section aria-label="Por categoria" className={`${SECTION} flex flex-col gap-3 p-4 md:px-5`}>
-      <h2 className="m-0 font-display text-body font-bold">Por categoria</h2>
-      <ul
-        className={`m-0 grid list-none gap-x-6 gap-y-3 p-0 ${columns === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}
-      >
-        {items.map((item, i) => {
-          const amount = parseFloat(item.totalAmount)
-          return (
-            <li key={item.categoryId ?? i} className="flex flex-col gap-1.5">
-              <div className="flex justify-between gap-2 text-body-sm">
-                <span className="truncate">{item.categoryName ?? 'Sem categoria'}</span>
-                <span className="tabular-nums text-fg-muted">
-                  <Money value={amount} />
-                </span>
-              </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-surface-3">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${max > 0 ? (amount / max) * 100 : 0}%`,
-                    background: `rgb(var(--cc-cat-${CATEGORY_TOKENS[i % CATEGORY_TOKENS.length]}))`,
-                  }}
-                />
-              </div>
-            </li>
-          )
-        })}
-      </ul>
     </section>
   )
 }

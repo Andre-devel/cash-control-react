@@ -2,12 +2,18 @@ import { ArrowLeftRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatMoney } from '@/lib/money'
 import { useRecentTransfers } from '@/features/accounts/hooks/use-recent-transfers'
+import type { TransferPair } from '@/features/accounts/utils/pair-transfer-legs'
 
 /** `2026-10-26` → `26/10/2026`, sem passar por `Date` (evita deslocar o dia pelo fuso). */
 function fmtDate(iso: string): string {
   const [year, month, day] = iso.split('-')
   if (!year || !month || !day) return iso
   return `${day.slice(0, 2)}/${month}/${year}`
+}
+
+/** "Inter → CDB teste"; o lado que não veio na página fica como "Outra conta". */
+function transferTitle(t: TransferPair): string {
+  return `${t.fromAccountName ?? 'Outra conta'} → ${t.toAccountName ?? 'Outra conta'}`
 }
 
 function TransferSkeleton() {
@@ -69,8 +75,13 @@ export function RecentTransfersCard() {
                   <ArrowLeftRight size={16} />
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="truncate text-body-sm font-medium text-fg">{t.description}</span>
-                  <span className="text-caption text-fg-muted">{fmtDate(t.competenceDate)}</span>
+                  <span className="truncate text-body-sm font-medium text-fg">
+                    {transferTitle(t)}
+                  </span>
+                  <span className="truncate text-caption text-fg-muted">
+                    {fmtDate(t.competenceDate)}
+                    {t.description !== 'Transferência' ? ` · ${t.description}` : ''}
+                  </span>
                 </span>
                 <span className="shrink-0 whitespace-nowrap text-body-sm font-semibold tabular-nums text-fg">
                   {formatMoney(t.amount)}

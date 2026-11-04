@@ -31,8 +31,7 @@ function TotalCard({
   active,
   onClick,
 }: TotalCardProps) {
-  const base =
-    'flex min-w-[150px] shrink-0 flex-col gap-2 rounded-xl border bg-surface-1 p-3.5 text-left md:min-w-0 xl:p-4'
+  const base = 'flex min-w-0 flex-col gap-2 rounded-xl border bg-surface-1 p-3.5 text-left xl:p-4'
   const content = (
     <>
       <span className="flex items-center gap-1.5 text-caption font-medium text-fg-muted">
@@ -45,7 +44,7 @@ function TotalCard({
       >
         {loading ? '—' : <Money value={value} signed />}
       </span>
-      <span className="text-[11px] leading-none text-fg-muted xl:text-caption">
+      <span className="text-[11px] leading-tight text-fg-muted xl:text-caption">
         {loading ? ' ' : sub}
       </span>
     </>
@@ -78,8 +77,9 @@ interface TransactionTotalsProps {
 }
 
 /**
- * Totais do filtro inteiro (todas as páginas), no topo da lista. No celular a fileira rola
- * na horizontal; do tablet em diante são quatro colunas.
+ * Totais do filtro inteiro (todas as páginas), no topo da lista. No celular é uma grade de
+ * duas colunas, sem rolagem lateral; um card que sobre sozinho na última linha ocupa a linha
+ * inteira. Do tablet em diante são quatro colunas.
  */
 export function TransactionTotals({
   totals,
@@ -99,7 +99,7 @@ export function TransactionTotals({
   return (
     <section
       aria-label="Totais do filtro"
-      className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0 xl:gap-3"
+      className="grid grid-cols-2 gap-2 [&>*:last-child:nth-child(odd)]:col-span-2 md:grid-cols-4 md:[&>*:last-child:nth-child(odd)]:col-span-1 xl:gap-3"
     >
       <TotalCard
         icon={ArrowDownLeft}

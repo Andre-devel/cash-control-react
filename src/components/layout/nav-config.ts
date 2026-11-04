@@ -87,7 +87,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'profile', label: 'Perfil', icon: UserRound, path: ROUTES.PROFILE },
       {
         id: 'roles',
-        label: 'Funções',
+        label: 'Papéis',
         icon: ShieldCheck,
         path: ROUTES.ROLES,
         anyPermission: ['role:create', 'role:update', 'role:delete'],

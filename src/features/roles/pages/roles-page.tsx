@@ -55,7 +55,7 @@ export default function RolesPage() {
       <div className="min-w-0">
         <span className="text-overline uppercase text-fg-subtle">Sistema</span>
         <h1 className="title">Papéis</h1>
-        <div className="desc">Funções de acesso e as permissões de cada uma.</div>
+        <div className="desc">Papéis de acesso e as permissões de cada um.</div>
       </div>
       <div className="spacer" />
       {canCreateRole && !isError && (

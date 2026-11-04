@@ -783,9 +783,7 @@ describe('ImportFaturaDialog — fetching from the bank', () => {
     renderDialog()
 
     const bills = await screen.findByRole('combobox', { name: /fatura do banco do cartão/i })
-    await screen.findByRole('option', {
-      name: /fatura atual \(em aberto\) · vence em 07\/09\/2026/i,
-    })
+    await screen.findByRole('option', { name: 'Atual · venc. 07/09' })
     expect((bills as HTMLSelectElement).value).toBe('open')
 
     await chooseAccount(user)
@@ -822,7 +820,7 @@ describe('ImportFaturaDialog — fetching from the bank', () => {
     renderDialog()
 
     const bills = await screen.findByRole('combobox', { name: /fatura do banco do cartão/i })
-    await screen.findByRole('option', { name: /vence em 07\/07\/2026/i })
+    await screen.findByRole('option', { name: 'Fechada · venc. 07/07' })
     await user.selectOptions(bills, 'bill-07')
     const fetch = screen.getByRole('button', { name: /buscar do banco/i })
     expect(fetch).toBeDisabled()

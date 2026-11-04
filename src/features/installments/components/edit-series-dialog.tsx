@@ -85,7 +85,7 @@ export function EditSeriesDialog({ series, open, onClose }: EditSeriesDialogProp
         noValidate
         className="col gap-4"
       >
-        <Field label="Descrição" error={form.formState.errors.description?.message}>
+        <Field label="Descrição" required error={form.formState.errors.description?.message}>
           <Input placeholder="ex: Notebook novo" {...form.register('description')} />
         </Field>
 

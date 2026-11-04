@@ -126,11 +126,11 @@ export function EditInstallmentDialog({ series, open, onClose }: EditInstallment
           </Select>
         </Field>
 
-        <Field label="Descrição" error={form.formState.errors.description?.message}>
+        <Field label="Descrição" required error={form.formState.errors.description?.message}>
           <Input placeholder="ex: Notebook novo — parcela 3" {...form.register('description')} />
         </Field>
 
-        <Field label="Valor" error={form.formState.errors.amount?.message}>
+        <Field label="Valor" required error={form.formState.errors.amount?.message}>
           <MoneyInput placeholder="ex: 300,00" {...form.register('amount')} />
         </Field>
 

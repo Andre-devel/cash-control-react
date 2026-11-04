@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { useCards } from '@/features/cards/hooks/use-cards'
 import { useInvoice } from '@/features/cards/hooks/use-invoice'
 import { useCardsLimitUsage } from '@/features/cards/hooks/use-cards-limit-usage'
-import { useSpendingBreakdown } from '@/features/cards/hooks/use-spending-breakdown'
 import { CreateCardDialog } from '@/features/cards/components/create-card-dialog'
 import { PayInvoiceDialog } from '@/features/cards/components/pay-invoice-dialog'
 import { ImportFaturaDialog } from '@/features/cards/components/import-fatura-dialog'
@@ -14,15 +13,6 @@ import { limitViewFor } from '@/features/cards/utils/limit-view'
 import { CardsOverview, type CardsLayout } from '@/features/cards/components/cards-overview'
 import { useMediaQuery, MOBILE_QUERY, DESKTOP_QUERY } from '@/hooks/use-media-query'
 import { ROUTES } from '@/app/router/routes'
-
-function getSpendingRange(referenceMonth: string) {
-  const [y, m] = referenceMonth.split('-').map(Number)
-  const lastDay = new Date(y, m, 0).getDate()
-  return {
-    from: `${referenceMonth}-01`,
-    to: `${referenceMonth}-${String(lastDay).padStart(2, '0')}`,
-  }
-}
 
 function CardsSkeleton() {
   return (
@@ -64,8 +54,6 @@ export default function CardsPage() {
     }
   }, [selectedCard])
 
-  const spendingRange = getSpendingRange(referenceMonth ?? '')
-
   const { data: invoice, isLoading: invoiceLoading } = useInvoice(
     selectedCard?.id ?? '',
     referenceMonth ?? '',
@@ -73,7 +61,6 @@ export default function CardsPage() {
   // Uso de todos os cartões ativos: cada cartão de um grupo compartilhado precisa do uso
   // dos outros para mostrar a barra somada.
   const usageByCard = useCardsLimitUsage(activeCards.map((c) => c.id))
-  const { data: spending } = useSpendingBreakdown(selectedCard?.id ?? '', spendingRange)
 
   const limitViews = useMemo(
     () =>
@@ -122,7 +109,6 @@ export default function CardsPage() {
           referenceMonth={referenceMonth ?? ''}
           onMonthChange={setReferenceMonth}
           onPay={() => setPayOpen(true)}
-          spending={spending}
           onImport={() => setImportOpen(true)}
           onCreate={() => setCreateOpen(true)}
         />

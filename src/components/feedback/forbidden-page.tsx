@@ -20,7 +20,7 @@ export default function ForbiddenPage() {
       icon={Lock}
       tone="pending"
       title="Você não tem permissão"
-      description="Você não tem permissão para acessar esta página. Peça a um administrador para incluir a permissão na sua função."
+      description="Você não tem permissão para acessar esta página. Peça a um administrador para incluir a permissão no seu papel."
       actions={
         <>
           <Button variant="primary" size="lg" className="w-full" onClick={goBack}>

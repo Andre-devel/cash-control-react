@@ -102,11 +102,11 @@ export function EditRecurrenceDialog({ recurrence, open, onClose }: EditRecurren
             {form.formState.errors.root.message}
           </div>
         )}
-        <Field label="Descrição" error={form.formState.errors.description?.message}>
+        <Field label="Descrição" required error={form.formState.errors.description?.message}>
           <Input placeholder="ex: Aluguel mensal" {...form.register('description')} />
         </Field>
 
-        <Field label="Valor" error={form.formState.errors.amount?.message}>
+        <Field label="Valor" required error={form.formState.errors.amount?.message}>
           <MoneyInput placeholder="ex: 1500,00" {...form.register('amount')} />
         </Field>
 

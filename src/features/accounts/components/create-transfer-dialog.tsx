@@ -110,7 +110,7 @@ export function CreateTransferDialog({
           </Select>
         </Field>
 
-        <Field label="Valor" error={form.formState.errors.amount?.message}>
+        <Field label="Valor" required error={form.formState.errors.amount?.message}>
           <MoneyInput placeholder="ex: 500,00" {...form.register('amount')} />
         </Field>
 

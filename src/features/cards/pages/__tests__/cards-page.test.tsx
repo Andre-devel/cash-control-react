@@ -178,12 +178,13 @@ describe('CardsPage — invoice section', () => {
     await waitFor(() => expect(screen.getByText(/fatura · nubank/i)).toBeTruthy())
   })
 
-  it('shows invoice charge descriptions', async () => {
+  it('does not list the invoice charges: they live on the card detail page', async () => {
     renderWithProviders(<CardsPage />)
-    await waitFor(() => {
-      expect(screen.getByText(MOCK_INVOICE.items[0].description)).toBeTruthy()
-      expect(screen.getByText(MOCK_INVOICE.items[1].description)).toBeTruthy()
-    })
+    await screen.findByText(/fatura · nubank/i)
+    await screen.findByRole('button', { name: /pagar fatura/i })
+    expect(screen.queryByText(MOCK_INVOICE.items[0].description)).toBeNull()
+    expect(screen.queryByRole('table', { name: 'Lançamentos' })).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Por categoria' })).toBeNull()
   })
 
   it('shows "Pagar fatura" button when remaining > 0', async () => {
@@ -238,14 +239,6 @@ describe('CardsPage — limite e detalhe do cartão', () => {
     renderWithProviders(<CardsPage />)
     const link = await screen.findByRole('link', { name: 'Detalhes do cartão' })
     expect(link.getAttribute('href')).toBe(`/cards/${MOCK_CARD_1.id}`)
-  })
-
-  it('lists the invoice items one row each', async () => {
-    renderWithProviders(<CardsPage />)
-    const table = await screen.findByRole('table', { name: 'Lançamentos' })
-    await waitFor(() =>
-      expect(within(table).getAllByRole('row')).toHaveLength(MOCK_INVOICE.items.length),
-    )
   })
 })
 
@@ -512,12 +505,14 @@ describe('CardsPage no desktop', () => {
     window.matchMedia = originalMatchMedia
   })
 
-  it('lista os cartões numa coluna e a fatura ao lado, com a tabela de lançamentos', async () => {
+  it('lista os cartões numa coluna e o resumo da fatura ao lado, sem os lançamentos', async () => {
     renderWithProviders(<CardsPage />)
     const list = await screen.findByRole('region', { name: 'Seus cartões' })
     expect(within(list).getAllByRole('button', { pressed: true })).toHaveLength(1)
-    const table = await screen.findByRole('table', { name: 'Lançamentos' })
-    expect(within(table).getByRole('columnheader', { name: 'Categoria' })).toBeTruthy()
-    expect(screen.getByRole('region', { name: 'Fatura' })).toBeTruthy()
+    const invoice = screen.getByRole('region', { name: 'Fatura' })
+    await waitFor(() =>
+      expect(within(invoice).getByRole('button', { name: 'Pagar fatura' })).toBeTruthy(),
+    )
+    expect(screen.queryByRole('table', { name: 'Lançamentos' })).toBeNull()
   })
 })

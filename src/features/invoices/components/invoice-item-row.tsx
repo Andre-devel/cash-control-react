@@ -53,6 +53,8 @@ interface InvoiceItemRowProps {
 /**
  * Item de fatura em formato de card (celular/tablet): descrição, original do arquivo,
  * data · categoria, selos e valor. Com `onEdit`, a linha ganha o botão de editar.
+ * A coluna do texto tem `min-w-0` e trunca numa linha (padrão P1 da auditoria mobile):
+ * descrição longa ou sem espaço não empurra o valor, que fica sempre alinhado à direita.
  */
 export function InvoiceItemRow({
   item,
@@ -70,7 +72,7 @@ export function InvoiceItemRow({
         aria-hidden
       />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="text-body font-medium leading-tight [overflow-wrap:anywhere]">
+        <span className="truncate text-body font-medium leading-tight" title={item.description}>
           {item.description}
         </span>
         {original && (
@@ -81,13 +83,13 @@ export function InvoiceItemRow({
             {original}
           </span>
         )}
-        <span className="text-caption text-fg-muted">
+        <span className="truncate text-caption text-fg-muted">
           {formatLocalDate(item.competenceDate)} · {categoryLabel}
         </span>
         <InvoiceItemMarks item={item} />
       </div>
-      <div className="flex shrink-0 flex-col items-end gap-1">
-        <span className="pt-0.5 text-body font-semibold tabular-nums">
+      <div className="ml-auto flex shrink-0 flex-col items-end gap-1 text-right">
+        <span className="whitespace-nowrap pt-0.5 text-body font-semibold tabular-nums">
           <Money value={parseFloat(item.amount)} />
         </span>
         {onEdit && (

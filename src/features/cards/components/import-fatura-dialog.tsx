@@ -31,11 +31,11 @@ import {
   type FaturaImportGroupPreview,
   type FaturaImportPreviewResponse,
   type FaturaImportPreviewRow,
+  type BankBill,
   type InvoiceImportFormat,
 } from '@/features/cards/types'
 import { invoiceLabel } from '@/features/cards/utils/invoice-month'
 import { formatLocalDate } from '@/lib/format-date'
-import { formatMoney } from '@/lib/money'
 
 /** "1 de 2 · Conta e arquivo" — o mesmo indicador de passo da importação de extrato. */
 function StepLabel({ step, title }: { step: 1 | 2; title: string }) {
@@ -76,6 +76,16 @@ function SummaryTile({
  * Cartão conectado ao banco: escolhe uma das faturas fechadas e busca a prévia de lá, sem
  * PDF. As faturas são lidas na Pluggy quando o bloco aparece.
  */
+/**
+ * Rótulo curto da fatura do banco, para caber no select em 360 px:
+ * "Atual · venc. 07/11" ou "Fechada · venc. 07/10".
+ */
+function bankBillLabel(bill: Pick<BankBill, 'open' | 'dueDate'>): string {
+  const [, month, day] = bill.dueDate.split('-')
+  const due = month && day ? `${day.slice(0, 2)}/${month}` : bill.dueDate
+  return `${bill.open ? 'Atual' : 'Fechada'} · venc. ${due}`
+}
+
 function BankFaturaPicker({
   cardId,
   cardName,
@@ -115,10 +125,7 @@ function BankFaturaPicker({
             {!isLoading && bills.length === 0 && <option value="">Nenhuma fatura no banco</option>}
             {bills.map((bill) => (
               <option key={bill.billId} value={bill.billId}>
-                {bill.open
-                  ? `Fatura atual (em aberto) · vence em ${formatLocalDate(bill.dueDate)}`
-                  : `Vence em ${formatLocalDate(bill.dueDate)}`}
-                {bill.totalAmount ? ` · ${formatMoney(bill.totalAmount)}` : ''}
+                {bankBillLabel(bill)}
               </option>
             ))}
           </Select>

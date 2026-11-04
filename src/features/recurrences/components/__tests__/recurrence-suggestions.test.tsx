@@ -125,7 +125,7 @@ describe('RecurrenceSuggestions', () => {
     expect(
       (within(dialog).getByRole('textbox', { name: /descrição/i }) as HTMLInputElement).value,
     ).toBe('Hostinger')
-    expect((within(dialog).getByLabelText('Valor') as HTMLInputElement).value).toBe('39,90')
+    expect((within(dialog).getByLabelText(/^Valor/) as HTMLInputElement).value).toBe('39,90')
     expect((within(dialog).getByLabelText('Tipo') as HTMLSelectElement).value).toBe('EXPENSE')
     expect((within(dialog).getByLabelText('Frequência') as HTMLSelectElement).value).toBe('MONTHLY')
     expect((within(dialog).getByLabelText('Data de início') as HTMLInputElement).value).toBe(

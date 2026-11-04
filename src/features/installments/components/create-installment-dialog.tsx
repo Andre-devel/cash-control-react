@@ -107,11 +107,11 @@ export function CreateInstallmentDialog({ open, onClose }: CreateInstallmentDial
             {form.formState.errors.root.message}
           </div>
         )}
-        <Field label="Descrição" error={form.formState.errors.description?.message}>
+        <Field label="Descrição" required error={form.formState.errors.description?.message}>
           <Input placeholder="ex: Notebook novo" {...form.register('description')} />
         </Field>
 
-        <Field label="Valor total" error={form.formState.errors.totalAmount?.message}>
+        <Field label="Valor total" required error={form.formState.errors.totalAmount?.message}>
           <MoneyInput placeholder="ex: 3600,00" {...form.register('totalAmount')} />
         </Field>
 
