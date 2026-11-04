@@ -5,9 +5,16 @@ import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
 import { renderWithProviders } from '@/test/utils'
 import { toast } from '@/lib/toast'
+import { invalidateFinancialQueries } from '@/lib/invalidate-financial-queries'
+import type * as InvalidateModule from '@/lib/invalidate-financial-queries'
 import BankReviewPage from '../bank-review-page'
 import type { BankPendingItem } from '@/features/bank-connections/types'
 import type { ImportPreviewRow } from '@/features/transactions/types'
+
+vi.mock('@/lib/invalidate-financial-queries', async (importOriginal) => {
+  const actual = await importOriginal<typeof InvalidateModule>()
+  return { ...actual, invalidateFinancialQueries: vi.fn(actual.invalidateFinancialQueries) }
+})
 
 vi.mock('@/lib/toast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn(), action: vi.fn() },
@@ -310,5 +317,117 @@ describe('BankReviewPage — regra a partir da correção', () => {
     const before = listCalls
     await user.click(dialog.getByRole('button', { name: 'Criar regra' }))
     await waitFor(() => expect(listCalls).toBeGreaterThan(before))
+  })
+})
+
+describe('BankReviewPage — compras do cartão', () => {
+  function cardItem(overrides: Partial<BankPendingItem> = {}): BankPendingItem {
+    return {
+      id: 'c-1',
+      accountId: null,
+      accountName: null,
+      creditCardId: 'card-1',
+      creditCardName: 'Inter Gold',
+      installmentNumber: null,
+      totalInstallments: null,
+      row: row({
+        externalRef: 'fat:c1',
+        description: 'MERCADO LIVRE',
+        rawHistory: '',
+        suggestedDescription: null,
+        amount: '30.00',
+        paymentMethod: 'CREDIT_CARD',
+      }),
+      ...overrides,
+    }
+  }
+
+  it('groups the queue by origin, with the card charges under the card', async () => {
+    mockQueue([
+      { id: 'p-1', accountId: 'acc-1', accountName: 'Inter', row: row({}) },
+      cardItem(),
+      { id: 'p-2', accountId: 'acc-1', accountName: 'Inter', row: row({ externalRef: 'plg:t2' }) },
+    ])
+    const user = userEvent.setup()
+    renderWithProviders(<BankReviewPage />)
+
+    const origins = within(await screen.findByRole('list', { name: 'Origens' }))
+    expect(origins.getByText('Inter · 2')).toBeInTheDocument()
+    expect(origins.getByText('Cartão Inter Gold · 1')).toBeInTheDocument()
+
+    // Os dois da conta vêm juntos antes do cartão.
+    expect(screen.getByText(/1 de 3 · Inter ·/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Pular/ }))
+    expect(screen.getByText(/1 de 3 · Inter ·/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Pular/ }))
+    expect(screen.getByText(/1 de 3 · Cartão Inter Gold ·/)).toBeInTheDocument()
+  })
+
+  it('shows the installment plan the first installment creates', async () => {
+    mockQueue([cardItem({ installmentNumber: 1, totalInstallments: 10 })])
+    renderWithProviders(<BankReviewPage />)
+
+    expect(
+      await screen.findByText(/^10x de R\$\s30,00 · cria o parcelamento ao confirmar$/),
+    ).toBeInTheDocument()
+  })
+
+  it('shows the installment number when it is not the first one', async () => {
+    mockQueue([cardItem({ installmentNumber: 2, totalInstallments: 10 })])
+    renderWithProviders(<BankReviewPage />)
+
+    expect(await screen.findByText('parcela 2/10')).toBeInTheDocument()
+    expect(screen.queryByText(/cria o parcelamento/)).not.toBeInTheDocument()
+  })
+
+  it('edits only name and category on a card charge', async () => {
+    mockQueue([cardItem()])
+    renderWithProviders(<BankReviewPage />)
+
+    expect(await screen.findByLabelText('Nome')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: /categoria/i })).toBeInTheDocument()
+    expect(screen.queryByLabelText('Tipo')).not.toBeInTheDocument()
+  })
+
+  it('confirms with name and category only and refreshes the financial queries', async () => {
+    mockQueue([cardItem({ installmentNumber: 1, totalInstallments: 10 })])
+    let body: Record<string, unknown> | undefined
+    server.use(
+      http.post('*/bank-pending/c-1/confirm', async ({ request }) => {
+        body = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json({ description: 'Fone', categoryName: 'Food' })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<BankReviewPage />)
+
+    const name = await screen.findByLabelText('Nome')
+    await user.clear(name)
+    await user.type(name, 'Fone')
+    await user.click(screen.getByRole('combobox', { name: /categoria/i }))
+    await user.click(await screen.findByRole('option', { name: 'Food' }))
+    await user.click(screen.getByRole('button', { name: /Confirmar e próximo/ }))
+
+    await waitFor(() =>
+      expect(body).toMatchObject({
+        description: 'Fone',
+        categoryId: 'cat-1',
+        type: 'EXPENSE',
+        amount: '30.00',
+        transferAccountId: null,
+        invoiceId: null,
+      }),
+    )
+    await waitFor(() =>
+      expect(invalidateFinancialQueries).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.arrayContaining([
+          ['bank-pending'],
+          ['cards'],
+          ['invoices'],
+          ['installments', 'series'],
+        ]),
+      ),
+    )
   })
 })

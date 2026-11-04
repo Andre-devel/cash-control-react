@@ -11,6 +11,8 @@ import { toast } from '@/lib/toast'
 import { TRANSACTIONS_QUERY_KEY } from '@/features/transactions/hooks/use-transactions'
 import { ACCOUNTS_QUERY_KEY } from '@/features/accounts/hooks/use-accounts'
 import { CARDS_QUERY_KEY } from '@/features/cards/hooks/use-cards'
+import { INVOICES_QUERY_KEY } from '@/features/invoices/hooks/use-invoices'
+import { INSTALLMENTS_QUERY_KEY } from '@/features/installments/hooks/use-installment-series'
 import type { ImportCommitRow } from '@/features/transactions/types'
 import type {
   BankPendingConfirmAllResponse,
@@ -43,13 +45,16 @@ function showError(error: NormalizedError) {
 
 function useInvalidateAfterSave() {
   const queryClient = useQueryClient()
-  // Confirmar grava lançamento (às vezes transferência ou pagamento de fatura).
+  // Confirmar grava lançamento (às vezes transferência ou pagamento de fatura) ou, no cartão,
+  // a compra na fatura, criando o parcelamento; a projeção mora sob a chave do dashboard.
   return () =>
     invalidateFinancialQueries(queryClient, [
       BANK_PENDING_QUERY_KEY,
       TRANSACTIONS_QUERY_KEY,
       ACCOUNTS_QUERY_KEY,
       CARDS_QUERY_KEY,
+      INVOICES_QUERY_KEY,
+      INSTALLMENTS_QUERY_KEY,
     ])
 }
 

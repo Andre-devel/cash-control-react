@@ -40,8 +40,16 @@ export interface LinkBankAccountRequest {
 /** Lançamento que o banco avisou e ainda não foi confirmado, classificado como na prévia do import. */
 export interface BankPendingItem {
   id: string
-  accountId: string
-  accountName: string
+  /** Conta corrente; nula na compra do cartão. */
+  accountId?: string | null
+  accountName?: string | null
+  /** Cartão vinculado; nulo no lançamento da conta corrente. */
+  creditCardId?: string | null
+  creditCardName?: string | null
+  /** Parcela da compra no cartão, quando parcelada. */
+  installmentNumber?: number | null
+  /** Total de parcelas; confirmar a parcela 1 cria o parcelamento com as próximas faturas. */
+  totalInstallments?: number | null
   row: ImportPreviewRow
 }
 

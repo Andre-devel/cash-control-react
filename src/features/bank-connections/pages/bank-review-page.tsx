@@ -26,6 +26,7 @@ import {
   counterpartyLabel,
 } from '@/features/transactions/utils/transaction-display'
 import { formatLocalDate } from '@/lib/format-date'
+import { formatMoney } from '@/lib/money'
 import { toast } from '@/lib/toast'
 import type { BankPendingItem } from '@/features/bank-connections/types'
 import type { ImportPreviewRow, TransactionType } from '@/features/transactions/types'
@@ -46,6 +47,32 @@ interface Draft {
   description: string
   categoryId: string | null
   type: TransactionType
+}
+
+/** De onde veio o lançamento: a conta corrente ou o cartão vinculado. */
+function originOf(item: BankPendingItem): { key: string; label: string } {
+  if (item.creditCardId) {
+    return { key: `card:${item.creditCardId}`, label: `Cartão ${item.creditCardName ?? ''}`.trim() }
+  }
+  return { key: `account:${item.accountId ?? ''}`, label: item.accountName ?? 'Conta' }
+}
+
+/** O que a confirmação faz com a compra parcelada no cartão. */
+function installmentLabel(item: BankPendingItem): string | null {
+  const { installmentNumber: number, totalInstallments: total } = item
+  if (!item.creditCardId || !total || total < 2) return null
+  if (number && number > 1) return `parcela ${number}/${total}`
+  return `${total}x de ${formatMoney(item.row.amount)} · cria o parcelamento ao confirmar`
+}
+
+/** Mantém a ordem da fila e junta os itens da mesma origem, na ordem em que a origem aparece. */
+function groupByOrigin(items: BankPendingItem[]): BankPendingItem[] {
+  const groups = new Map<string, BankPendingItem[]>()
+  for (const item of items) {
+    const { key } = originOf(item)
+    groups.set(key, [...(groups.get(key) ?? []), item])
+  }
+  return [...groups.values()].flat()
 }
 
 function draftOf(row: ImportPreviewRow): Draft {
@@ -82,11 +109,21 @@ export default function BankReviewPage() {
   }
 
   // Pular só muda a ordem: o pulado volta no fim da fila.
+  // A ordem dos grupos vem da fila inteira, para pular não trocar a origem de lugar.
+  const grouped = groupByOrigin(items)
   const queue = [
-    ...items.filter((item) => !skipped.includes(item.id)),
-    ...items.filter((item) => skipped.includes(item.id)),
+    ...grouped.filter((item) => !skipped.includes(item.id)),
+    ...grouped.filter((item) => skipped.includes(item.id)),
   ]
   const current = queue[0]
+  const origins = useMemo(() => {
+    const counts = new Map<string, { label: string; count: number }>()
+    for (const item of items) {
+      const { key, label } = originOf(item)
+      counts.set(key, { label, count: (counts.get(key)?.count ?? 0) + 1 })
+    }
+    return [...counts.entries()].map(([key, value]) => ({ key, ...value }))
+  }, [items])
 
   return (
     <div className="flex flex-col gap-4">
@@ -109,6 +146,18 @@ export default function BankReviewPage() {
           title="Tudo revisado"
           desc="Quando o banco avisar de um lançamento novo, ele aparece aqui."
         />
+      )}
+
+      {origins.length > 1 && (
+        <ul className="flex flex-wrap gap-2" aria-label="Origens">
+          {origins.map((origin) => (
+            <li key={origin.key}>
+              <Badge kind={current && originOf(current).key === origin.key ? 'info' : 'muted'}>
+                {origin.label} · {origin.count}
+              </Badge>
+            </li>
+          ))}
+        </ul>
       )}
 
       {current && (
@@ -166,8 +215,12 @@ function ReviewCard({ item, position, canSkip, onSkip, onConfirmed }: ReviewCard
 
   useEffect(() => setDraft(draftOf(row)), [row])
 
-  const movement = MOVEMENT_TYPES.includes(draft.type)
+  // No cartão a compra vai para a fatura: só nome e categoria são editáveis.
+  const card = Boolean(item.creditCardId)
+  const type = card ? row.type : draft.type
+  const movement = MOVEMENT_TYPES.includes(type)
   const busy = confirm.isPending || discard.isPending
+  const installments = installmentLabel(item)
 
   function handleConfirm() {
     const categoryId = movement ? null : draft.categoryId
@@ -181,12 +234,12 @@ function ReviewCard({ item, position, canSkip, onSkip, onConfirmed }: ReviewCard
           description: draft.description.trim() || row.description,
           originalDescription: row.description,
           amount: row.amount,
-          type: draft.type,
+          type,
           paymentMethod: row.paymentMethod,
           categoryId,
           outgoing: row.outgoing,
-          transferAccountId: draft.type === 'TRANSFER' ? row.transferAccountId : null,
-          invoiceId: draft.type === 'INVOICE_PAYMENT' ? row.invoiceId : null,
+          transferAccountId: type === 'TRANSFER' ? row.transferAccountId : null,
+          invoiceId: type === 'INVOICE_PAYMENT' ? row.invoiceId : null,
           counterpartyName: row.counterpartyName,
           counterpartyDocument: row.counterpartyDocument,
         },
@@ -208,7 +261,7 @@ function ReviewCard({ item, position, canSkip, onSkip, onConfirmed }: ReviewCard
       <div className="flex items-start gap-3">
         <div className="flex flex-1 flex-col gap-1">
           <span className="text-caption text-fg-muted">
-            {position} · {item.accountName} · {formatLocalDate(row.date)}
+            {position} · {originOf(item).label} · {formatLocalDate(row.date)}
           </span>
           <span className="text-body font-semibold text-fg">
             {row.rawHistory || row.description}
@@ -229,6 +282,8 @@ function ReviewCard({ item, position, canSkip, onSkip, onConfirmed }: ReviewCard
         </span>
       </div>
 
+      {installments && <span className="text-caption text-fg-muted">{installments}</span>}
+
       {row.possibleDuplicate && (
         <Badge kind="pending">Pode já estar lançado: mesma data e valor</Badge>
       )}
@@ -242,22 +297,24 @@ function ReviewCard({ item, position, canSkip, onSkip, onConfirmed }: ReviewCard
       </Field>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Field label="Tipo">
-          <Select
-            value={draft.type}
-            onChange={(e) => setDraft((d) => ({ ...d, type: e.target.value as TransactionType }))}
-          >
-            {typeOptionsOf(row).map((type) => (
-              <option key={type} value={type}>
-                {TRANSACTION_TYPE_DISPLAY[type].label}
-                {type === 'TRANSFER' && row.transferAccountName
-                  ? ` · ${row.transferAccountName}`
-                  : ''}
-                {type === 'INVOICE_PAYMENT' && row.invoiceLabel ? ` · ${row.invoiceLabel}` : ''}
-              </option>
-            ))}
-          </Select>
-        </Field>
+        {!card && (
+          <Field label="Tipo">
+            <Select
+              value={draft.type}
+              onChange={(e) => setDraft((d) => ({ ...d, type: e.target.value as TransactionType }))}
+            >
+              {typeOptionsOf(row).map((type) => (
+                <option key={type} value={type}>
+                  {TRANSACTION_TYPE_DISPLAY[type].label}
+                  {type === 'TRANSFER' && row.transferAccountName
+                    ? ` · ${row.transferAccountName}`
+                    : ''}
+                  {type === 'INVOICE_PAYMENT' && row.invoiceLabel ? ` · ${row.invoiceLabel}` : ''}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
         {!movement && (
           <Field label="Categoria">
             <CategoryCombobox
