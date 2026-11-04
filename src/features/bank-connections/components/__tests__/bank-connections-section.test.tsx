@@ -41,6 +41,7 @@ const CONNECTION: BankConnection = {
   statusDetail: null,
   lastSyncedAt: '2026-10-30T10:00:00Z',
   consentExpiresAt: null,
+  duplicateOf: null,
   accounts: [
     {
       id: 'ba-1',
@@ -241,5 +242,33 @@ describe('BankConnectionsSection', () => {
     await user.click(screen.getByRole('button', { name: 'Remover' }))
 
     await waitFor(() => expect(deleted).toBe(true))
+  })
+
+  it('marks only the duplicate connection and removes it through the same dialog', async () => {
+    const duplicate: BankConnection = {
+      ...CONNECTION,
+      id: 'conn-2',
+      itemId: 'item-2',
+      duplicateOf: 'conn-1',
+    }
+    mockConnections([CONNECTION, duplicate])
+    let deleted: string | null = null
+    server.use(
+      http.delete('*/bank-connections/:id', ({ params }) => {
+        deleted = params.id as string
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<BankConnectionsSection />)
+
+    expect(await screen.findAllByText('Duplicada')).toHaveLength(1)
+    expect(screen.getByText(/Mesma conta de/)).toHaveTextContent('Mesma conta de Inter · 1234567-8')
+
+    await user.click(screen.getByRole('button', { name: 'Remover esta' }))
+    expect(screen.getByRole('alertdialog', { name: 'Remover conexão' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Remover' }))
+
+    await waitFor(() => expect(deleted).toBe('conn-2'))
   })
 })

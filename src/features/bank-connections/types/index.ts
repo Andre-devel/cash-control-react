@@ -24,6 +24,8 @@ export interface BankConnection {
   /** Fim do consentimento do Open Finance (ISO); nulo enquanto a Pluggy não informar. */
   consentExpiresAt: string | null
   accounts: BankConnectionAccount[]
+  /** Outra conexão do usuário com as mesmas contas na Pluggy; esta é a cópia e pode sair. */
+  duplicateOf: string | null
 }
 
 export interface BankConnectionsResponse {

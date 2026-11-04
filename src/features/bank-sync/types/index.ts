@@ -69,3 +69,11 @@ export interface BankSyncOverview {
   retentionDays: number
   connections: BankSyncConnectionSummary[]
 }
+
+/** Item que o webhook da Pluggy anunciou e nunca virou conexão no app. */
+export interface BankOrphanItem {
+  itemId: string
+  connectorName: string | null
+  /** Quando o webhook anunciou o item pela primeira vez. */
+  firstSeenAt: string
+}

@@ -35,6 +35,13 @@ function formatDateTime(instant: string): string {
   })
 }
 
+// Duas conexões pelo MeuPluggy têm o mesmo nome; o número da conta diferencia.
+function connectionName(connection: BankConnection): string {
+  const name = connection.connectorName ?? 'Banco'
+  const accountNumber = connection.accounts.find((account) => account.kind === 'BANK')?.number
+  return accountNumber ? `${name} · ${accountNumber}` : name
+}
+
 interface WidgetState {
   token: string
   updateItem?: string
@@ -79,15 +86,27 @@ export function BankConnectionsSection() {
           Conecte seu banco pelo Open Finance para buscar extrato e fatura sem baixar arquivo.
         </p>
       ) : (
-        data.connections.map((connection) => (
-          <ConnectionCard
-            key={connection.id}
-            connection={connection}
-            reconnecting={connectToken.isPending && connectToken.variables === connection.id}
-            onReconnect={() => openWidget(connection)}
-            onDelete={() => setDeleting(connection)}
-          />
-        ))
+        data.connections.map((connection) => {
+          const original = connection.duplicateOf
+            ? data.connections.find((c) => c.id === connection.duplicateOf)
+            : undefined
+          return (
+            <ConnectionCard
+              key={connection.id}
+              connection={connection}
+              duplicateOfLabel={
+                connection.duplicateOf
+                  ? original
+                    ? connectionName(original)
+                    : 'outra conexão'
+                  : null
+              }
+              reconnecting={connectToken.isPending && connectToken.variables === connection.id}
+              onReconnect={() => openWidget(connection)}
+              onDelete={() => setDeleting(connection)}
+            />
+          )
+        })
       )}
 
       {widget && (
@@ -109,12 +128,20 @@ export function BankConnectionsSection() {
 
 interface ConnectionCardProps {
   connection: BankConnection
+  /** Nome da conexão original quando esta é duplicada; nulo nas demais. */
+  duplicateOfLabel: string | null
   reconnecting: boolean
   onReconnect: () => void
   onDelete: () => void
 }
 
-function ConnectionCard({ connection, reconnecting, onReconnect, onDelete }: ConnectionCardProps) {
+function ConnectionCard({
+  connection,
+  duplicateOfLabel,
+  reconnecting,
+  onReconnect,
+  onDelete,
+}: ConnectionCardProps) {
   const refresh = useRefreshBankConnection()
   const status = connectionStatus(connection.status)
   const name = connection.connectorName ?? 'Banco'
@@ -132,6 +159,7 @@ function ConnectionCard({ connection, reconnecting, onReconnect, onDelete }: Con
             {accountNumber && <span className="font-normal text-fg-muted"> · {accountNumber}</span>}
           </span>
           <Badge kind={status.kind}>{status.label}</Badge>
+          {duplicateOfLabel && <Badge kind="pending">Duplicada</Badge>}
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {needsReconnect ? (
@@ -160,6 +188,16 @@ function ConnectionCard({ connection, reconnecting, onReconnect, onDelete }: Con
           </Button>
         </div>
       </div>
+      {duplicateOfLabel && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-surface-2 px-3 py-2">
+          <span className="min-w-0 flex-1 text-body-sm text-fg">
+            Mesma conta de <strong>{duplicateOfLabel}</strong>
+          </span>
+          <Button size="sm" variant="danger" onClick={onDelete}>
+            Remover esta
+          </Button>
+        </div>
+      )}
       {(connection.lastSyncedAt || connection.consentExpiresAt || connection.statusDetail) && (
         <p className="text-caption text-fg-muted">
           {connection.lastSyncedAt && (

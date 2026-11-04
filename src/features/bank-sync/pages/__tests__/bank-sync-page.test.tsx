@@ -112,6 +112,7 @@ beforeEach(() => {
   lastRunsUrl = null
   server.use(
     http.get('*/admin/bank-sync/overview', () => HttpResponse.json(OVERVIEW)),
+    http.get('*/admin/bank-sync/orphans', () => HttpResponse.json([])),
     http.get('*/admin/bank-sync/runs', ({ request }) => {
       lastRunsUrl = new URL(request.url)
       return HttpResponse.json({

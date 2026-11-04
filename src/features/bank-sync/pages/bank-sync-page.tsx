@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useRefreshBankConnection } from '@/features/bank-connections/hooks/use-bank-connection-mutations'
 import { connectionStatus } from '@/features/bank-connections/utils/connection-status'
+import { OrphanItemsSection } from '@/features/bank-sync/components/orphan-items-section'
 import {
   BANK_SYNC_QUERY_KEY,
   useBankSyncOverview,
@@ -136,6 +137,8 @@ export default function BankSyncPage() {
           ))}
         </div>
       )}
+
+      <OrphanItemsSection />
 
       <section aria-labelledby="bank-sync-history" className={`${CARD} min-w-0 overflow-hidden`}>
         <header className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3 md:px-5">

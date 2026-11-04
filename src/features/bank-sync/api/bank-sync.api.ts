@@ -1,5 +1,6 @@
 import { axiosInstance } from '@/services/http'
 import type {
+  BankOrphanItem,
   BankSyncOverview,
   BankSyncRunPage,
   BankSyncRunParams,
@@ -21,4 +22,13 @@ export async function getBankSyncRuns({
     params: { page, size, connectionId, outcome: outcome?.length ? outcome.join(',') : undefined },
   })
   return response.data
+}
+
+export async function getBankOrphanItems(): Promise<BankOrphanItem[]> {
+  const response = await axiosInstance.get<BankOrphanItem[]>('/admin/bank-sync/orphans')
+  return response.data
+}
+
+export async function deleteBankOrphanItem(itemId: string): Promise<void> {
+  await axiosInstance.delete(`/admin/bank-sync/orphans/${encodeURIComponent(itemId)}`)
 }
