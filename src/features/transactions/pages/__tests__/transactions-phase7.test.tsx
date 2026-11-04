@@ -11,7 +11,7 @@ import {
 import TransactionsPage from '../transactions-page'
 
 vi.mock('@/lib/toast', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn(), action: vi.fn() },
 }))
 
 vi.mock('@/lib/logger', () => ({

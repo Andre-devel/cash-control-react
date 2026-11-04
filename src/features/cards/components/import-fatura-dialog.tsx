@@ -10,6 +10,8 @@ import { Money } from '@/components/ui/money'
 import { useCards } from '@/features/cards/hooks/use-cards'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { useCategories } from '@/features/categories/hooks/use-categories'
+import { useCategorizationRuleOffer } from '@/features/categories/hooks/use-categorization-rule-offer'
+import { CreateRuleDialog } from '@/features/categories/components/categorization-rules-section'
 import {
   EditableCategoryCell,
   EditableTextCell,
@@ -204,6 +206,9 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   const { mutate: fetchFromBank, isPending: isFetchingFromBank } = useBankFaturaPreview()
   const isAnalyzing = isAnalyzingFile || isFetchingFromBank
   const { mutate: commit, isPending: isImporting } = useCommitFaturaImport()
+  const ruleOffer = useCategorizationRuleOffer(categories)
+  /** Fatura do banco em tela, para reler a prévia depois de uma regra nova. */
+  const bankBill = useRef<{ cardId: string; billId: string } | null>(null)
 
   /**
    * A prévia marca "já importada" olhando a fatura do cartão que ela mesma sugeriu. Quando
@@ -275,6 +280,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
     appliedDuplicates.current = {}
     setEdits({})
     setDescriptionEdits({})
+    bankBill.current = null
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -405,6 +411,7 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   }
 
   function handleFetchFromBank(cardId: string, billId: string) {
+    bankBill.current = { cardId, billId }
     fetchFromBank(
       { cardId, billId },
       {
@@ -414,6 +421,34 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
         },
       },
     )
+  }
+
+  /**
+   * Troca de categoria feita pelo usuário. Fora a edição, oferece a regra que faria a
+   * mesma troca sozinha da próxima vez.
+   */
+  function changeCategory(row: FaturaImportPreviewRow, categoryId: string | null) {
+    setEdits((current) => ({ ...current, [row.externalRef]: categoryId }))
+    if (categoryId === row.suggestedCategoryId) return
+    ruleOffer.offer({
+      description: row.description,
+      categoryId,
+      accountId,
+      suggestedByRule: row.suggestionSource === 'RULE',
+    })
+  }
+
+  /**
+   * Relê a prévia aberta depois de uma regra nova, para as linhas que o usuário não mexeu
+   * se reclassificarem. Edições, seleção e cartões escolhidos ficam: são por `externalRef`
+   * e por seção, que não mudam entre uma leitura e outra.
+   */
+  function refreshPreview() {
+    if (source === 'bank') {
+      if (bankBill.current) fetchFromBank(bankBill.current, { onSuccess: setPreview })
+    } else if (file) {
+      analyzeFile({ file, format }, { onSuccess: setPreview })
+    }
   }
 
   function toggleRow(row: FaturaImportPreviewRow) {
@@ -533,417 +568,426 @@ export function ImportFaturaDialog({ open, onClose }: ImportFaturaDialogProps) {
   const reviewCount = reviewRows().length
 
   return (
-    <Modal
-      title="Importar fatura"
-      subtitle={subtitle}
-      onClose={handleClose}
-      xwide
-      footer={
-        <>
-          <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancelar
-          </Button>
-          <div className="spacer" />
-          {preview ? (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleImport}
-              disabled={isImporting || selectedCount === 0 || groupsMissingCard.length > 0}
-              title={
-                groupsMissingCard.length > 0
-                  ? `Escolha o cartão da seção ${groupsMissingCard.map((g) => `****${g.cardLast4}`).join(', ')}`
-                  : undefined
-              }
-              aria-busy={isImporting}
-            >
-              {isImporting ? 'Importando…' : `Importar ${selectedCount} lançamentos`}
+    <>
+      <Modal
+        title="Importar fatura"
+        subtitle={subtitle}
+        onClose={handleClose}
+        xwide
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={handleClose}>
+              Cancelar
             </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleAnalyze}
-              disabled={isAnalyzing || !file || !accountId}
-              aria-busy={isAnalyzing}
-            >
-              {isAnalyzing ? 'Analisando…' : 'Analisar arquivo'}
-            </Button>
-          )}
-        </>
-      }
-    >
-      {preview ? (
-        <div className="col gap-4">
-          <StepLabel step={2} title="Revisar importação" />
-
-          <div className="text-body-sm text-fg-muted">
-            Fatura de <strong className="text-fg">{invoiceLabel(preview.dueDate)}</strong> · vence
-            em {formatLocalDate(preview.dueDate)}
-            {preview.totalAmount && (
-              <>
-                {' · '}total {source === 'bank' ? 'no banco' : 'no PDF'}:{' '}
-                <Money value={Number(preview.totalAmount)} />
-              </>
+            <div className="spacer" />
+            {preview ? (
+              <Button
+                type="button"
+                variant="primary"
+                onClick={handleImport}
+                disabled={isImporting || selectedCount === 0 || groupsMissingCard.length > 0}
+                title={
+                  groupsMissingCard.length > 0
+                    ? `Escolha o cartão da seção ${groupsMissingCard.map((g) => `****${g.cardLast4}`).join(', ')}`
+                    : undefined
+                }
+                aria-busy={isImporting}
+              >
+                {isImporting ? 'Importando…' : `Importar ${selectedCount} lançamentos`}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="primary"
+                onClick={handleAnalyze}
+                disabled={isAnalyzing || !file || !accountId}
+                aria-busy={isAnalyzing}
+              >
+                {isAnalyzing ? 'Analisando…' : 'Analisar arquivo'}
+              </Button>
             )}
-          </div>
+          </>
+        }
+      >
+        {preview ? (
+          <div className="col gap-4">
+            <StepLabel step={2} title="Revisar importação" />
 
-          <dl className="m-0 grid grid-cols-3 gap-2">
-            <SummaryTile value={preview.totalRows} label="linhas" />
-            <SummaryTile value={duplicateCount} label="duplicadas" tone="muted" />
-            <SummaryTile value={selectedCount} label="a importar" tone="brand" />
-          </dl>
-
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface-2 p-3">
-            <input
-              type="checkbox"
-              className="checkbox mt-0.5"
-              checked={alreadyPaid}
-              onChange={(e) => setAlreadyPaid(e.target.checked)}
-            />
-            <span className="text-body-sm">
-              <strong>Esta fatura já está paga</strong>
-              <span className="mt-0.5 block text-caption text-fg-muted">
-                Para importar um extrato antigo já quitado. A fatura entra como paga; as compras
-                ficam pendentes e o saldo da conta não é alterado. As parcelas dos próximos meses
-                continuam em aberto.
-              </span>
-            </span>
-          </label>
-
-          {source === 'bank' && preview.totalAmount === null && (
-            <div
-              role="note"
-              className="rounded-xl border border-info/30 bg-info-soft p-3 text-body-sm text-fg"
-            >
-              Fatura ainda em aberto: entram também as compras pendentes, que podem mudar de valor
-              ou ser canceladas. Quando ela fechar, busque de novo: o que não mudou aparece como já
-              importado.
-            </div>
-          )}
-
-          {preview.errors.length > 0 && (
-            <div role="alert" className="err">
-              {preview.errors.length} linha(s) não puderam ser lidas e ficarão de fora:{' '}
-              {preview.errors
-                .slice(0, 3)
-                .map((error) => `linha ${error.lineNumber} (${error.message})`)
-                .join('; ')}
-              {preview.errors.length > 3 && '…'}
-            </div>
-          )}
-
-          {groupsMissingCard.length > 0 && (
-            <div role="alert" className="err">
-              {groupsMissingCard.length === 1
-                ? `A seção do cartão final ${groupsMissingCard[0]!.cardLast4} (adicional ou virtual) não tem cartão de destino.`
-                : `As seções dos cartões finais ${groupsMissingCard.map((g) => g.cardLast4).join(', ')} não têm cartão de destino.`}{' '}
-              Escolha o cartão em &quot;Cartão da seção&quot;, mais abaixo, para poder importar.{' '}
-              <button
-                type="button"
-                onClick={() => focusCardSelect(groupsMissingCard[0]!.cardLast4)}
-                className="cursor-pointer border-0 bg-transparent p-0 font-semibold text-current underline"
-              >
-                Ir para a seção
-              </button>
-            </div>
-          )}
-
-          {pdfDifference !== null && Math.abs(pdfDifference) >= 0.01 && (
-            <div
-              role="note"
-              className="rounded-xl border border-info/30 bg-info-soft p-3 text-body-sm text-fg"
-            >
-              A soma dos lançamentos lidos (<Money value={readTotal} />) difere do total{' '}
-              {source === 'bank' ? 'do banco' : 'do PDF'} em <Money value={pdfDifference} />.
-              Costuma ser saldo anterior, juros, IOF ou encargos, que não viram lançamento; se não
-              for o caso, confira as linhas não lidas.
-            </div>
-          )}
-
-          {reviewCount > 0 && (
-            <div className="flex items-center gap-2 text-body-sm">
-              <span className="text-fg-muted">{reviewCount} sem categoria confirmada</span>
-              <button
-                type="button"
-                onClick={jumpToReview}
-                className="min-h-touch cursor-pointer border-0 bg-transparent px-1 font-semibold text-brand-text underline"
-              >
-                revisar
-              </button>
-            </div>
-          )}
-
-          {preview.groups.map((group) => (
-            <section
-              key={group.cardLast4}
-              className="flex flex-col gap-2 rounded-2xl border border-border bg-surface-1 p-3"
-            >
-              <div className="flex items-center gap-2 text-body-sm font-semibold">
-                <CreditCard size={16} className="text-fg-muted" aria-hidden="true" />
-                Seção ****{group.cardLast4}
-                <span className="font-normal text-fg-muted">
-                  · {group.rows.length} {group.rows.length === 1 ? 'linha' : 'linhas'}
-                </span>
-              </div>
-              <Field label={`Cartão da seção ****${group.cardLast4}`} required>
-                <Select
-                  aria-label={`Cartão da seção ${group.cardLast4}`}
-                  value={cardByGroup[group.cardLast4] ?? ''}
-                  onChange={(e) =>
-                    setCardByGroup((current) => ({
-                      ...current,
-                      [group.cardLast4]: e.target.value,
-                    }))
-                  }
-                >
-                  <option value="">Selecionar cartão</option>
-                  {cards.map((card) => (
-                    <option key={card.id} value={card.id}>
-                      {card.name}
-                      {card.last4Digits ? ` (****${card.last4Digits})` : ''}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-
-              {fetchingByGroup[group.cardLast4] && (
-                <div className="text-caption text-fg-muted" aria-live="polite">
-                  Verificando o que já foi importado neste cartão…
-                </div>
+            <div className="text-body-sm text-fg-muted">
+              Fatura de <strong className="text-fg">{invoiceLabel(preview.dueDate)}</strong> · vence
+              em {formatLocalDate(preview.dueDate)}
+              {preview.totalAmount && (
+                <>
+                  {' · '}total {source === 'bank' ? 'no banco' : 'no PDF'}:{' '}
+                  <Money value={Number(preview.totalAmount)} />
+                </>
               )}
+            </div>
 
+            <dl className="m-0 grid grid-cols-3 gap-2">
+              <SummaryTile value={preview.totalRows} label="linhas" />
+              <SummaryTile value={duplicateCount} label="duplicadas" tone="muted" />
+              <SummaryTile value={selectedCount} label="a importar" tone="brand" />
+            </dl>
+
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface-2 p-3">
+              <input
+                type="checkbox"
+                className="checkbox mt-0.5"
+                checked={alreadyPaid}
+                onChange={(e) => setAlreadyPaid(e.target.checked)}
+              />
+              <span className="text-body-sm">
+                <strong>Esta fatura já está paga</strong>
+                <span className="mt-0.5 block text-caption text-fg-muted">
+                  Para importar um extrato antigo já quitado. A fatura entra como paga; as compras
+                  ficam pendentes e o saldo da conta não é alterado. As parcelas dos próximos meses
+                  continuam em aberto.
+                </span>
+              </span>
+            </label>
+
+            {source === 'bank' && preview.totalAmount === null && (
               <div
-                className="tbl-wrap stack-tbl-wrap fatura-tbl-wrap"
-                style={{ maxHeight: 320, overflowY: 'auto' }}
+                role="note"
+                className="rounded-xl border border-info/30 bg-info-soft p-3 text-body-sm text-fg"
               >
-                <table className="tbl stack-tbl fatura-tbl">
-                  <thead>
-                    <tr>
-                      <th style={{ width: 36, paddingLeft: 16 }}>
-                        <input
-                          type="checkbox"
-                          className="checkbox"
-                          aria-label={`Selecionar todos do cartão ${group.cardLast4}`}
-                          checked={
-                            group.rows.filter((row) => !isDuplicate(group, row)).length > 0 &&
-                            group.rows
-                              .filter((row) => !isDuplicate(group, row))
-                              .every((row) => selected.has(row.externalRef))
-                          }
-                          onChange={() => toggleGroup(group)}
-                        />
-                      </th>
-                      <th>Data</th>
-                      <th>Descrição</th>
-                      <th>Parcela</th>
-                      <th>Categoria</th>
-                      <th className="num">Valor</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {group.rows.map((row) => (
-                      <tr
-                        key={row.externalRef}
-                        style={isDuplicate(group, row) ? { opacity: 0.55 } : undefined}
-                        data-testid={`fatura-row-${row.lineNumber}`}
-                      >
-                        <td className="cell-check" style={{ paddingLeft: 16 }}>
+                Fatura ainda em aberto: entram também as compras pendentes, que podem mudar de valor
+                ou ser canceladas. Quando ela fechar, busque de novo: o que não mudou aparece como
+                já importado.
+              </div>
+            )}
+
+            {preview.errors.length > 0 && (
+              <div role="alert" className="err">
+                {preview.errors.length} linha(s) não puderam ser lidas e ficarão de fora:{' '}
+                {preview.errors
+                  .slice(0, 3)
+                  .map((error) => `linha ${error.lineNumber} (${error.message})`)
+                  .join('; ')}
+                {preview.errors.length > 3 && '…'}
+              </div>
+            )}
+
+            {groupsMissingCard.length > 0 && (
+              <div role="alert" className="err">
+                {groupsMissingCard.length === 1
+                  ? `A seção do cartão final ${groupsMissingCard[0]!.cardLast4} (adicional ou virtual) não tem cartão de destino.`
+                  : `As seções dos cartões finais ${groupsMissingCard.map((g) => g.cardLast4).join(', ')} não têm cartão de destino.`}{' '}
+                Escolha o cartão em &quot;Cartão da seção&quot;, mais abaixo, para poder importar.{' '}
+                <button
+                  type="button"
+                  onClick={() => focusCardSelect(groupsMissingCard[0]!.cardLast4)}
+                  className="cursor-pointer border-0 bg-transparent p-0 font-semibold text-current underline"
+                >
+                  Ir para a seção
+                </button>
+              </div>
+            )}
+
+            {pdfDifference !== null && Math.abs(pdfDifference) >= 0.01 && (
+              <div
+                role="note"
+                className="rounded-xl border border-info/30 bg-info-soft p-3 text-body-sm text-fg"
+              >
+                A soma dos lançamentos lidos (<Money value={readTotal} />) difere do total{' '}
+                {source === 'bank' ? 'do banco' : 'do PDF'} em <Money value={pdfDifference} />.
+                Costuma ser saldo anterior, juros, IOF ou encargos, que não viram lançamento; se não
+                for o caso, confira as linhas não lidas.
+              </div>
+            )}
+
+            {reviewCount > 0 && (
+              <div className="flex items-center gap-2 text-body-sm">
+                <span className="text-fg-muted">{reviewCount} sem categoria confirmada</span>
+                <button
+                  type="button"
+                  onClick={jumpToReview}
+                  className="min-h-touch cursor-pointer border-0 bg-transparent px-1 font-semibold text-brand-text underline"
+                >
+                  revisar
+                </button>
+              </div>
+            )}
+
+            {preview.groups.map((group) => (
+              <section
+                key={group.cardLast4}
+                className="flex flex-col gap-2 rounded-2xl border border-border bg-surface-1 p-3"
+              >
+                <div className="flex items-center gap-2 text-body-sm font-semibold">
+                  <CreditCard size={16} className="text-fg-muted" aria-hidden="true" />
+                  Seção ****{group.cardLast4}
+                  <span className="font-normal text-fg-muted">
+                    · {group.rows.length} {group.rows.length === 1 ? 'linha' : 'linhas'}
+                  </span>
+                </div>
+                <Field label={`Cartão da seção ****${group.cardLast4}`} required>
+                  <Select
+                    aria-label={`Cartão da seção ${group.cardLast4}`}
+                    value={cardByGroup[group.cardLast4] ?? ''}
+                    onChange={(e) =>
+                      setCardByGroup((current) => ({
+                        ...current,
+                        [group.cardLast4]: e.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">Selecionar cartão</option>
+                    {cards.map((card) => (
+                      <option key={card.id} value={card.id}>
+                        {card.name}
+                        {card.last4Digits ? ` (****${card.last4Digits})` : ''}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+
+                {fetchingByGroup[group.cardLast4] && (
+                  <div className="text-caption text-fg-muted" aria-live="polite">
+                    Verificando o que já foi importado neste cartão…
+                  </div>
+                )}
+
+                <div
+                  className="tbl-wrap stack-tbl-wrap fatura-tbl-wrap"
+                  style={{ maxHeight: 320, overflowY: 'auto' }}
+                >
+                  <table className="tbl stack-tbl fatura-tbl">
+                    <thead>
+                      <tr>
+                        <th style={{ width: 36, paddingLeft: 16 }}>
                           <input
                             type="checkbox"
                             className="checkbox"
-                            aria-label={`Importar ${row.description}`}
-                            checked={selected.has(row.externalRef)}
-                            onChange={() => toggleRow(row)}
+                            aria-label={`Selecionar todos do cartão ${group.cardLast4}`}
+                            checked={
+                              group.rows.filter((row) => !isDuplicate(group, row)).length > 0 &&
+                              group.rows
+                                .filter((row) => !isDuplicate(group, row))
+                                .every((row) => selected.has(row.externalRef))
+                            }
+                            onChange={() => toggleGroup(group)}
                           />
-                        </td>
-                        <td className="cell-date">{formatLocalDate(row.date)}</td>
-                        <td className="cell-desc">
-                          <EditableTextCell
-                            value={descriptionOf(row)}
-                            label={`Descrição da linha ${row.lineNumber}`}
-                            edited={row.externalRef in descriptionEdits}
-                            original={row.description}
-                            fromMemory={
-                              !(row.externalRef in descriptionEdits) &&
-                              row.suggestedDescription !== null
-                            }
-                            onResetToOriginal={() =>
-                              setDescriptionEdits((current) => ({
-                                ...current,
-                                [row.externalRef]: row.description,
-                              }))
-                            }
-                            onChange={(description) =>
-                              setDescriptionEdits((current) => ({
-                                ...current,
-                                [row.externalRef]: description,
-                              }))
-                            }
-                          />
-                          {descriptionOf(row) !== row.description &&
-                            merchantRowsOf(row).length > 0 && (
+                        </th>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Parcela</th>
+                        <th>Categoria</th>
+                        <th className="num">Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.rows.map((row) => (
+                        <tr
+                          key={row.externalRef}
+                          style={isDuplicate(group, row) ? { opacity: 0.55 } : undefined}
+                          data-testid={`fatura-row-${row.lineNumber}`}
+                        >
+                          <td className="cell-check" style={{ paddingLeft: 16 }}>
+                            <input
+                              type="checkbox"
+                              className="checkbox"
+                              aria-label={`Importar ${row.description}`}
+                              checked={selected.has(row.externalRef)}
+                              onChange={() => toggleRow(row)}
+                            />
+                          </td>
+                          <td className="cell-date">{formatLocalDate(row.date)}</td>
+                          <td className="cell-desc">
+                            <EditableTextCell
+                              value={descriptionOf(row)}
+                              label={`Descrição da linha ${row.lineNumber}`}
+                              edited={row.externalRef in descriptionEdits}
+                              original={row.description}
+                              fromMemory={
+                                !(row.externalRef in descriptionEdits) &&
+                                row.suggestedDescription !== null
+                              }
+                              onResetToOriginal={() =>
+                                setDescriptionEdits((current) => ({
+                                  ...current,
+                                  [row.externalRef]: row.description,
+                                }))
+                              }
+                              onChange={(description) =>
+                                setDescriptionEdits((current) => ({
+                                  ...current,
+                                  [row.externalRef]: description,
+                                }))
+                              }
+                            />
+                            {descriptionOf(row) !== row.description &&
+                              merchantRowsOf(row).length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => applyDescriptionToMerchant(row)}
+                                  title={`Aplicar esta descrição às ${merchantRowsOf(row).length} outras linhas deste estabelecimento`}
+                                  className="mt-0.5 block cursor-pointer border-0 bg-transparent p-0 text-[11px] font-semibold text-brand-text"
+                                >
+                                  aplicar nome a +{merchantRowsOf(row).length} do estabelecimento
+                                </button>
+                              )}
+                            {row.refund && (
+                              <>
+                                {' '}
+                                <Badge kind="income" icon={<Undo2 aria-hidden="true" />}>
+                                  estorno
+                                </Badge>
+                              </>
+                            )}
+                            {isDuplicate(group, row) && (
+                              <>
+                                {' '}
+                                <Badge kind="muted" icon={<Copy aria-hidden="true" />}>
+                                  já importada
+                                </Badge>
+                              </>
+                            )}
+                            {!isDuplicate(group, row) && row.possibleDuplicate && (
+                              <>
+                                {' '}
+                                <span title="A fatura deste mês já tem uma cobrança que parece esta, vinda de outra origem. Marque só se for outra compra.">
+                                  <Badge kind="pending" square dot={false}>
+                                    possível duplicata
+                                  </Badge>
+                                </span>
+                              </>
+                            )}
+                          </td>
+                          <td className="cell-meta text-fg-muted">
+                            {!row.refund && row.installmentNumber && row.totalInstallments ? (
+                              <span className="rounded-[6px] bg-surface-3 px-1.5 py-[3px] font-mono text-[11px] text-fg">
+                                {`${row.installmentNumber}/${row.totalInstallments}`}
+                              </span>
+                            ) : (
+                              '—'
+                            )}
+                          </td>
+                          <td className="cell-cat">
+                            <EditableCategoryCell
+                              value={categoryIdOf(row)}
+                              label={`Categoria da linha ${row.lineNumber}`}
+                              categories={categories}
+                              fallbackName={
+                                categoryIdOf(row) === row.suggestedCategoryId
+                                  ? row.suggestedCategoryName
+                                  : null
+                              }
+                              suggestionSource={row.suggestionSource}
+                              reviewed={row.externalRef in edits}
+                              onChange={(categoryId) => changeCategory(row, categoryId)}
+                            />
+                            {categoryIdOf(row) !== null && merchantRowsOf(row).length > 0 && (
                               <button
                                 type="button"
-                                onClick={() => applyDescriptionToMerchant(row)}
-                                title={`Aplicar esta descrição às ${merchantRowsOf(row).length} outras linhas deste estabelecimento`}
+                                onClick={() => applyCategoryToMerchant(row)}
+                                title={`Aplicar esta categoria às ${merchantRowsOf(row).length} outras linhas deste estabelecimento`}
                                 className="mt-0.5 block cursor-pointer border-0 bg-transparent p-0 text-[11px] font-semibold text-brand-text"
                               >
-                                aplicar nome a +{merchantRowsOf(row).length} do estabelecimento
+                                aplicar a +{merchantRowsOf(row).length} do estabelecimento
                               </button>
                             )}
-                          {row.refund && (
-                            <>
-                              {' '}
-                              <Badge kind="income" icon={<Undo2 aria-hidden="true" />}>
-                                estorno
-                              </Badge>
-                            </>
-                          )}
-                          {isDuplicate(group, row) && (
-                            <>
-                              {' '}
-                              <Badge kind="muted" icon={<Copy aria-hidden="true" />}>
-                                já importada
-                              </Badge>
-                            </>
-                          )}
-                          {!isDuplicate(group, row) && row.possibleDuplicate && (
-                            <>
-                              {' '}
-                              <span title="A fatura deste mês já tem uma cobrança que parece esta, vinda de outra origem. Marque só se for outra compra.">
-                                <Badge kind="pending" square dot={false}>
-                                  possível duplicata
-                                </Badge>
-                              </span>
-                            </>
-                          )}
-                        </td>
-                        <td className="cell-meta text-fg-muted">
-                          {!row.refund && row.installmentNumber && row.totalInstallments ? (
-                            <span className="rounded-[6px] bg-surface-3 px-1.5 py-[3px] font-mono text-[11px] text-fg">
-                              {`${row.installmentNumber}/${row.totalInstallments}`}
-                            </span>
-                          ) : (
-                            '—'
-                          )}
-                        </td>
-                        <td className="cell-cat">
-                          <EditableCategoryCell
-                            value={categoryIdOf(row)}
-                            label={`Categoria da linha ${row.lineNumber}`}
-                            categories={categories}
-                            fallbackName={
-                              categoryIdOf(row) === row.suggestedCategoryId
-                                ? row.suggestedCategoryName
-                                : null
-                            }
-                            suggestionSource={row.suggestionSource}
-                            reviewed={row.externalRef in edits}
-                            onChange={(categoryId) =>
-                              setEdits((current) => ({ ...current, [row.externalRef]: categoryId }))
-                            }
-                          />
-                          {categoryIdOf(row) !== null && merchantRowsOf(row).length > 0 && (
-                            <button
-                              type="button"
-                              onClick={() => applyCategoryToMerchant(row)}
-                              title={`Aplicar esta categoria às ${merchantRowsOf(row).length} outras linhas deste estabelecimento`}
-                              className="mt-0.5 block cursor-pointer border-0 bg-transparent p-0 text-[11px] font-semibold text-brand-text"
-                            >
-                              aplicar a +{merchantRowsOf(row).length} do estabelecimento
-                            </button>
-                          )}
-                        </td>
-                        <td
-                          className="num cell-amount"
-                          style={row.refund ? { color: 'rgb(var(--cc-income))' } : undefined}
-                        >
-                          {/* Estorno abate a fatura: aparece com sinal, em verde. */}
-                          <Money value={row.refund ? -Number(row.amount) : Number(row.amount)} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          ))}
-        </div>
-      ) : (
-        <div className="col gap-4">
-          <StepLabel step={1} title="Conta e arquivo" />
-
-          <Field
-            label="Conta dos lançamentos"
-            required
-            hint="Onde as compras entram como transações pendentes de cartão. Só sai dessa conta quando você pagar a fatura."
-          >
-            <Select
-              aria-label="Conta dos lançamentos"
-              value={accountId}
-              onChange={(e) => setAccountId(e.target.value)}
-            >
-              <option value="">Selecionar conta</option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
-
-          {linkedCards.map((card) => (
-            <BankFaturaPicker
-              key={card.id}
-              cardId={card.id}
-              cardName={card.name}
-              disabled={isAnalyzing || !accountId}
-              loading={isFetchingFromBank}
-              onFetch={(billId) => handleFetchFromBank(card.id, billId)}
-            />
-          ))}
-
-          <Field label="Formato da fatura" required>
-            <Select
-              aria-label="Formato da fatura"
-              value={format}
-              onChange={(e) => setFormat(e.target.value as InvoiceImportFormat)}
-            >
-              {INVOICE_IMPORT_FORMATS.map((value) => (
-                <option key={value} value={value}>
-                  {INVOICE_IMPORT_FORMAT_LABELS[value]}
-                </option>
-              ))}
-            </Select>
-          </Field>
-
-          <Field
-            label="Arquivo"
-            required
-            hint="Baixe o PDF da fatura pelo app do banco. Um mesmo PDF pode cobrir o cartão titular e os adicionais."
-          >
-            <FilePicker
-              ref={fileInputRef}
-              accept=".pdf,application/pdf"
-              aria-label="Arquivo"
-              file={file}
-              onFileChange={setFile}
-              placeholder="Selecionar PDF da fatura"
-            />
-          </Field>
-
-          <div className="flex items-start gap-2 rounded-xl bg-surface-2 p-3 text-caption text-fg-muted">
-            <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
-            <span>
-              Nada é gravado nesta etapa. Você vai conferir os lançamentos de cada cartão antes de
-              confirmar, os pagamentos da fatura são descartados e os que já tiverem sido importados
-              virão desmarcados. Uma compra parcelada gera também as parcelas seguintes, nas faturas
-              dos próximos meses; as anteriores a esta fatura não são criadas.
-            </span>
+                          </td>
+                          <td
+                            className="num cell-amount"
+                            style={row.refund ? { color: 'rgb(var(--cc-income))' } : undefined}
+                          >
+                            {/* Estorno abate a fatura: aparece com sinal, em verde. */}
+                            <Money value={row.refund ? -Number(row.amount) : Number(row.amount)} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ))}
           </div>
-        </div>
-      )}
-    </Modal>
+        ) : (
+          <div className="col gap-4">
+            <StepLabel step={1} title="Conta e arquivo" />
+
+            <Field
+              label="Conta dos lançamentos"
+              required
+              hint="Onde as compras entram como transações pendentes de cartão. Só sai dessa conta quando você pagar a fatura."
+            >
+              <Select
+                aria-label="Conta dos lançamentos"
+                value={accountId}
+                onChange={(e) => setAccountId(e.target.value)}
+              >
+                <option value="">Selecionar conta</option>
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            {linkedCards.map((card) => (
+              <BankFaturaPicker
+                key={card.id}
+                cardId={card.id}
+                cardName={card.name}
+                disabled={isAnalyzing || !accountId}
+                loading={isFetchingFromBank}
+                onFetch={(billId) => handleFetchFromBank(card.id, billId)}
+              />
+            ))}
+
+            <Field label="Formato da fatura" required>
+              <Select
+                aria-label="Formato da fatura"
+                value={format}
+                onChange={(e) => setFormat(e.target.value as InvoiceImportFormat)}
+              >
+                {INVOICE_IMPORT_FORMATS.map((value) => (
+                  <option key={value} value={value}>
+                    {INVOICE_IMPORT_FORMAT_LABELS[value]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <Field
+              label="Arquivo"
+              required
+              hint="Baixe o PDF da fatura pelo app do banco. Um mesmo PDF pode cobrir o cartão titular e os adicionais."
+            >
+              <FilePicker
+                ref={fileInputRef}
+                accept=".pdf,application/pdf"
+                aria-label="Arquivo"
+                file={file}
+                onFileChange={setFile}
+                placeholder="Selecionar PDF da fatura"
+              />
+            </Field>
+
+            <div className="flex items-start gap-2 rounded-xl bg-surface-2 p-3 text-caption text-fg-muted">
+              <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <span>
+                Nada é gravado nesta etapa. Você vai conferir os lançamentos de cada cartão antes de
+                confirmar, os pagamentos da fatura são descartados e os que já tiverem sido
+                importados virão desmarcados. Uma compra parcelada gera também as parcelas
+                seguintes, nas faturas dos próximos meses; as anteriores a esta fatura não são
+                criadas.
+              </span>
+            </div>
+          </div>
+        )}
+      </Modal>
+      <CreateRuleDialog
+        open={ruleOffer.draft !== null}
+        onClose={ruleOffer.close}
+        categories={categories}
+        accounts={accounts}
+        initialValues={ruleOffer.draft}
+        onCreated={refreshPreview}
+      />
+    </>
   )
 }

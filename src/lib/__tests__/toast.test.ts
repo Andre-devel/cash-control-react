@@ -8,6 +8,7 @@ vi.mock('sonner', () => ({
     error: vi.fn(),
     warning: vi.fn(),
     info: vi.fn(),
+    message: vi.fn(),
   },
 }))
 
@@ -48,5 +49,14 @@ describe('toast', () => {
   it('calls sonner toast.info with the message', () => {
     toast.info('Note!')
     expect(sonnerToast.info).toHaveBeenCalledWith('Note!')
+  })
+
+  it('calls sonner toast.message with the action button and options', () => {
+    const onClick = vi.fn()
+    toast.action('Criar regra?', { label: 'Criar regra', onClick }, { id: 'offer' })
+    expect(sonnerToast.message).toHaveBeenCalledWith('Criar regra?', {
+      id: 'offer',
+      action: { label: 'Criar regra', onClick },
+    })
   })
 })

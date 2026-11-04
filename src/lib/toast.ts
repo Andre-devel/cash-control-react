@@ -17,4 +17,13 @@ export const toast = {
     }
   },
   info: (message: string) => sonnerToast.info(message),
+  /**
+   * Aviso com um botão de ação. Com `id`, um aviso novo substitui o anterior de mesmo id
+   * em vez de empilhar.
+   */
+  action: (
+    message: string,
+    action: { label: string; onClick: () => void },
+    options?: { id?: string; duration?: number },
+  ) => sonnerToast.message(message, { ...options, action }),
 }

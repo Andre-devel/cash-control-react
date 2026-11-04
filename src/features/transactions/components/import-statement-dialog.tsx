@@ -12,6 +12,8 @@ import { Money } from '@/components/ui/money'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import { useCreateAccount } from '@/features/accounts/hooks/use-create-account'
 import { useCategories } from '@/features/categories/hooks/use-categories'
+import { useCategorizationRuleOffer } from '@/features/categories/hooks/use-categorization-rule-offer'
+import { CreateRuleDialog } from '@/features/categories/components/categorization-rules-section'
 import {
   EditableCategoryCell,
   EditableTextCell,
@@ -147,6 +149,7 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
   )
   const { mutate: commit, isPending: isImporting } = useCommitStatementImport()
   const { mutate: createAccount, isPending: isCreatingAccount } = useCreateAccount()
+  const ruleOffer = useCategorizationRuleOffer(categories)
 
   function reset() {
     setAccountId('')
@@ -239,6 +242,33 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
   /** Valor não bate com a fatura sugerida, e o usuário ainda não decidiu o tipo. */
   function needsInvoiceReview(row: ImportPreviewRow): boolean {
     return row.invoiceAmountMismatch && edits[row.externalRef]?.type === undefined
+  }
+
+  /**
+   * Troca de categoria feita pelo usuário. Fora a edição, oferece a regra que faria a
+   * mesma troca sozinha da próxima vez.
+   */
+  function changeCategory(row: ImportPreviewRow, categoryId: string | null) {
+    editRow(row.externalRef, { categoryId })
+    if (categoryId === row.suggestedCategoryId) return
+    ruleOffer.offer({
+      description: row.description,
+      counterpartyName: row.counterpartyName,
+      categoryId,
+      accountId,
+      suggestedByRule: row.suggestionSource === 'RULE',
+    })
+  }
+
+  /**
+   * Relê a prévia aberta depois de uma regra nova, para as linhas que o usuário não mexeu
+   * se reclassificarem. Edições e seleção ficam: as duas são por `externalRef`, que não
+   * muda entre uma leitura e outra.
+   */
+  function refreshPreview() {
+    if (!accountId) return
+    if (source === 'bank') fetchFromBank(accountId, { onSuccess: setPreview })
+    else if (file) analyzeFile({ file, accountId, format }, { onSuccess: setPreview })
   }
 
   function editRow(externalRef: string, patch: RowEdit) {
@@ -452,448 +482,458 @@ export function ImportStatementDialog({ open, onClose, onReconcile }: ImportStat
   const reviewCount = reviewRows().length
 
   return (
-    <Modal
-      title="Importar extrato"
-      subtitle={subtitle}
-      onClose={handleClose}
-      xwide
-      footer={
-        <>
-          <Button type="button" variant="ghost" onClick={handleClose}>
-            Cancelar
-          </Button>
-          <div className="spacer" />
-          {preview ? (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleImport}
-              disabled={isImporting || selectedCount === 0}
-              aria-busy={isImporting}
-            >
-              {isImporting ? 'Importando…' : `Importar ${selectedCount} transações`}
+    <>
+      <Modal
+        title="Importar extrato"
+        subtitle={subtitle}
+        onClose={handleClose}
+        xwide
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={handleClose}>
+              Cancelar
             </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleAnalyze}
-              disabled={isAnalyzing || !file || !accountId}
-              aria-busy={isAnalyzing}
-            >
-              {isAnalyzing ? 'Analisando…' : 'Analisar arquivo'}
-            </Button>
-          )}
-        </>
-      }
-    >
-      {preview ? (
-        <div className="flex flex-col gap-4">
-          <div className="[display:grid] grid-cols-3 gap-1.5 md:max-w-[420px]">
-            <PreviewStat value={preview.totalRows} label="linhas lidas" />
-            <PreviewStat
-              value={preview.duplicateCount}
-              label="já importadas"
-              tone={preview.duplicateCount > 0 ? 'border-transparent bg-overdue-soft' : undefined}
-            />
-            <PreviewStat
-              value={preview.warningCount}
-              label="para revisar"
-              tone={preview.warningCount > 0 ? 'border-transparent bg-pending-soft' : undefined}
-            />
-          </div>
-
-          {preview.sourceAccountLabel && (
-            <div className="text-body-sm text-fg-muted">
-              Conta no extrato: <strong>{preview.sourceAccountLabel}</strong>
-              {preview.periodStart && preview.periodEnd && (
-                <>
-                  {' · '}Período de {formatLocalDate(preview.periodStart)} a{' '}
-                  {formatLocalDate(preview.periodEnd)}
-                </>
-              )}
-            </div>
-          )}
-
-          {source === 'bank' && preview.rows.length === 0 && (
-            <div role="status" className="rounded-lg bg-surface-2 px-3.5 py-2.5 text-body-sm">
-              Nada novo no banco desde a última importação.
-            </div>
-          )}
-
-          {preview.errors.length > 0 && (
-            <div
-              role="alert"
-              className="rounded-lg bg-overdue-soft px-3.5 py-2.5 text-body-sm text-overdue"
-            >
-              {preview.errors.length} linha(s) não puderam ser lidas e ficarão de fora:{' '}
-              {preview.errors
-                .slice(0, 3)
-                .map((error) => `linha ${error.lineNumber} (${error.message})`)
-                .join('; ')}
-              {preview.errors.length > 3 && '…'}
-            </div>
-          )}
-
-          {preview.investmentAccountMissing && (
-            <div role="note" className={WARN_NOTE_CLASS}>
-              <span>
-                {preview.rows.filter((row) => row.investment).length} aplicação(ões) ou resgate(s)
-                de investimento no extrato. Sem uma conta de investimento eles entram como
-                despesa/receita.
-              </span>
-              <div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="h-auto min-h-touch whitespace-normal py-2 text-left"
-                  onClick={handleCreateInvestmentAccount}
-                  disabled={isCreatingAccount || isAnalyzing}
-                >
-                  Criar conta &quot;Investimentos&quot; e lançar como transferência
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {preview.rows.some((row) => row.invoicePaymentUnmatched && !row.duplicate) && (
-            <div role="note" className={WARN_NOTE_CLASS}>
-              Há pagamento de fatura sem fatura correspondente no sistema (marcado com &quot;sem
-              fatura&quot;). Importe a fatura do cartão antes, ou ele entra como despesa e as
-              compras dela contam duas vezes.
-            </div>
-          )}
-
-          {preview.keepCurrentBalanceSuggested && (
-            <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-body-sm">
-              <input
-                type="checkbox"
-                className="checkbox"
-                checked={keepCurrentBalance}
-                onChange={(e) => setKeepCurrentBalance(e.target.checked)}
-              />
-              <span>
-                Manter o saldo atual da conta. O extrato tem lançamentos de antes da conta existir
-                aqui, que já estão no saldo informado; um ajuste de saldo de abertura compensa o
-                histórico importado.
-              </span>
-            </label>
-          )}
-
-          <div className="flex flex-wrap items-center justify-between gap-2 text-body-sm">
-            <span className="text-fg-muted">
-              {selectedCount} de {preview.rows.length} selecionadas
-            </span>
-            {reviewCount > 0 && (
-              <span className="flex items-center gap-2">
-                <span className="text-pending">{reviewCount} sem categoria confirmada</span>
-                <button
-                  type="button"
-                  onClick={jumpToReview}
-                  className={`min-h-touch ${LINK_CLASS}`}
-                >
-                  revisar
-                </button>
-              </span>
-            )}
-          </div>
-
-          <div
-            className="tbl-wrap stack-tbl-wrap statement-tbl-wrap"
-            // A altura acompanha a janela para que só a tabela role: com um teto fixo, em
-            // telas baixas o corpo do modal rolava junto e a página ficava com duas barras.
-            style={{ maxHeight: 'calc(100vh - 340px)', overflowY: 'auto' }}
-          >
-            <table className="tbl stack-tbl statement-tbl">
-              <thead>
-                <tr>
-                  <th className="w-9 !pl-4">
-                    <input
-                      type="checkbox"
-                      className="checkbox"
-                      aria-label="Selecionar todos"
-                      checked={allImportableSelected}
-                      ref={(el) => {
-                        if (el) el.indeterminate = selectedCount > 0 && !allImportableSelected
-                      }}
-                      onChange={toggleAll}
-                    />
-                  </th>
-                  <th>Data</th>
-                  <th>Descrição</th>
-                  <th>Histórico</th>
-                  <th>Tipo</th>
-                  <th>Forma de pagamento</th>
-                  <th>Categoria</th>
-                  <th className="num">Valor</th>
-                </tr>
-              </thead>
-              <tbody>
-                {preview.rows.map((row) => {
-                  const isSelected = selected.has(row.externalRef)
-                  return (
-                    <tr
-                      key={row.externalRef}
-                      className={row.duplicate ? 'opacity-[.55]' : undefined}
-                      data-testid={`import-row-${row.lineNumber}`}
-                    >
-                      <td className="cell-check !pl-4">
-                        <input
-                          type="checkbox"
-                          className="checkbox"
-                          aria-label={`Importar ${descriptionOf(row)}`}
-                          checked={isSelected}
-                          onChange={() => toggleRow(row)}
-                        />
-                      </td>
-                      <td className="cell-date">{formatLocalDate(row.date)}</td>
-                      <td className="cell-desc">
-                        <EditableTextCell
-                          value={descriptionOf(row)}
-                          label={`Descrição da linha ${row.lineNumber}`}
-                          edited={edits[row.externalRef]?.description !== undefined}
-                          original={row.description}
-                          fromMemory={
-                            edits[row.externalRef]?.description === undefined &&
-                            row.suggestedDescription !== null
-                          }
-                          onResetToOriginal={() =>
-                            editRow(row.externalRef, { description: row.description })
-                          }
-                          onChange={(description) => editRow(row.externalRef, { description })}
-                        />
-                        {row.counterpartyName && (
-                          <span className="mt-0.5 block truncate text-caption text-fg-muted">
-                            {counterpartyLabel(row.counterpartyName, row.outgoing)}
-                          </span>
-                        )}
-                        {descriptionOf(row) !== row.description && similarCount(row) > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => applyDescriptionToSimilar(row)}
-                            title={`Aplicar esta descrição às ${similarCount(row)} outras linhas deste estabelecimento`}
-                            className="mt-0.5 block text-caption font-semibold text-brand-text hover:underline"
-                          >
-                            aplicar nome a +{similarCount(row)} iguais
-                          </button>
-                        )}
-                        {row.duplicate && (
-                          <>
-                            {' '}
-                            <Badge kind="muted" square dot={false}>
-                              já importada
-                            </Badge>
-                          </>
-                        )}
-                        {needsInvoiceReview(row) && (
-                          <>
-                            {' '}
-                            <span
-                              title={`O valor não bate com o total da fatura ${row.invoiceLabel}. Confira e, se for o pagamento dela, troque o tipo.`}
-                            >
-                              <Badge kind="pending" square dot={false}>
-                                revisar
-                              </Badge>
-                            </span>
-                          </>
-                        )}
-                        {row.invoicePaymentUnmatched && !needsInvoiceReview(row) && (
-                          <>
-                            {' '}
-                            <span title="Nenhuma fatura com vencimento perto desta data. Importe a fatura do cartão antes.">
-                              <Badge kind="pending" square dot={false}>
-                                sem fatura
-                              </Badge>
-                            </span>
-                          </>
-                        )}
-                        {row.possibleDuplicate && (
-                          <>
-                            {' '}
-                            <span title="Já existe nesta conta um lançamento com a mesma data e o mesmo valor, vindo de outra origem. Marque só se for outro lançamento.">
-                              <Badge kind="pending" square dot={false}>
-                                possível duplicata
-                              </Badge>
-                            </span>
-                          </>
-                        )}
-                        {row.unknownHistory && (
-                          <>
-                            {' '}
-                            <Badge kind="pending" square dot={false}>
-                              revisar
-                            </Badge>
-                          </>
-                        )}
-                      </td>
-                      <td className="cell-hist font-mono text-caption text-fg-subtle">
-                        {row.rawHistory}
-                      </td>
-                      <td className="cell-type">
-                        <EditableTypeCell
-                          label={`Tipo da linha ${row.lineNumber}`}
-                          type={typeOf(row)}
-                          typeOptions={typeOptionsOf(row)}
-                          detail={detailOf(row)}
-                          target={targetOf(row)}
-                          onTypeChange={(type) => editRow(row.externalRef, { type })}
-                        />
-                      </td>
-                      <td className="cell-method">
-                        {PAYMENT_METHOD_LABELS[row.paymentMethod] ?? row.paymentMethod}
-                      </td>
-                      <td className="cell-cat">
-                        {MOVEMENT_TYPES.includes(typeOf(row)) ? (
-                          <span className="text-fg-subtle">—</span>
-                        ) : (
-                          <>
-                            <EditableCategoryCell
-                              value={categoryIdOf(row)}
-                              label={`Categoria da linha ${row.lineNumber}`}
-                              categories={categories}
-                              fallbackName={
-                                categoryIdOf(row) === row.suggestedCategoryId
-                                  ? row.suggestedCategoryName
-                                  : null
-                              }
-                              suggestionSource={row.suggestionSource}
-                              reviewed={'categoryId' in (edits[row.externalRef] ?? {})}
-                              onChange={(categoryId) => editRow(row.externalRef, { categoryId })}
-                            />
-                            {categoryIdOf(row) !== null && similarCount(row) > 0 && (
-                              <button
-                                type="button"
-                                onClick={() => applyCategoryToSimilar(row)}
-                                title={`Aplicar esta categoria às ${similarCount(row)} outras linhas deste estabelecimento`}
-                                className="mt-0.5 block text-caption font-semibold text-brand-text hover:underline"
-                              >
-                                aplicar a +{similarCount(row)} iguais
-                              </button>
-                            )}
-                          </>
-                        )}
-                      </td>
-                      <td
-                        className={`num cell-amount whitespace-nowrap ${
-                          row.outgoing ? 'text-fg' : 'text-income'
-                        }`}
-                      >
-                        <Money
-                          value={
-                            row.outgoing
-                              ? -Math.abs(Number(row.amount))
-                              : Math.abs(Number(row.amount))
-                          }
-                          signed
-                        />
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          <Field label="Conta de destino" required>
-            <Select
-              aria-label="Conta de destino"
-              value={accountId}
-              onChange={(e) => setAccountId(e.target.value)}
-            >
-              <option value="">Selecionar conta</option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
-
-          {linkedAccountIds.has(accountId) && (
-            <div className="flex flex-col items-start gap-2 rounded-lg border border-border bg-surface-2 px-3.5 py-3 text-body-sm">
-              <span>
-                Esta conta está conectada ao banco. Busque os lançamentos novos direto de lá, sem
-                arquivo, ou envie o extrato abaixo.
-              </span>
+            <div className="spacer" />
+            {preview ? (
               <Button
                 type="button"
                 variant="primary"
-                size="sm"
-                leading={<Landmark size={16} aria-hidden="true" />}
-                loading={isFetchingFromBank}
-                disabled={isAnalyzing}
-                onClick={handleFetchFromBank}
+                onClick={handleImport}
+                disabled={isImporting || selectedCount === 0}
+                aria-busy={isImporting}
               >
-                Buscar do banco
+                {isImporting ? 'Importando…' : `Importar ${selectedCount} transações`}
               </Button>
-            </div>
-          )}
-
-          <Field label="Formato do extrato" required>
-            <Select
-              aria-label="Formato do extrato"
-              value={format}
-              onChange={(e) => setFormat(e.target.value as StatementFormat)}
-            >
-              {STATEMENT_FORMATS.map((value) => (
-                <option key={value} value={value}>
-                  {STATEMENT_FORMAT_LABELS[value]}
-                </option>
-              ))}
-            </Select>
-          </Field>
-
-          <Field
-            label="Arquivo"
-            required
-            hint="Exporte o extrato da conta corrente em CSV pelo app do banco."
-          >
-            <FilePicker
-              ref={fileInputRef}
-              accept=".csv,text/csv"
-              aria-label="Arquivo"
-              file={file}
-              onFileChange={setFile}
-              placeholder="Selecionar CSV do extrato"
-            />
-          </Field>
-
-          <div className="flex items-start gap-2 rounded-lg bg-info-soft px-3.5 py-2.5 text-body-sm text-fg">
-            <Info size={16} className="mt-px shrink-0 text-info" aria-hidden="true" />
-            <span>
-              Nada é gravado nesta etapa. Você vai conferir os lançamentos classificados antes de
-              confirmar, e os que já tiverem sido importados nesta conta virão desmarcados.
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-1.5 text-body-sm text-fg-muted">
-            <span>
-              Só um Pix?{' '}
-              <button
+            ) : (
+              <Button
                 type="button"
-                onClick={() => void navigate(ROUTES.SHARE_TARGET)}
-                className={LINK_CLASS}
+                variant="primary"
+                onClick={handleAnalyze}
+                disabled={isAnalyzing || !file || !accountId}
+                aria-busy={isAnalyzing}
               >
-                Lançar comprovante Pix
-              </button>{' '}
-              (imagem ou PDF do app do banco).
-            </span>
-            {onReconcile && (
-              <span>
-                Importou extratos ou faturas antes? Pagamentos de fatura como despesa, aplicações e
-                parcelamentos partidos podem ser corrigidos em{' '}
-                <button type="button" onClick={onReconcile} className={LINK_CLASS}>
-                  Corrigir importações antigas
-                </button>
-                .
-              </span>
+                {isAnalyzing ? 'Analisando…' : 'Analisar arquivo'}
+              </Button>
             )}
+          </>
+        }
+      >
+        {preview ? (
+          <div className="flex flex-col gap-4">
+            <div className="[display:grid] grid-cols-3 gap-1.5 md:max-w-[420px]">
+              <PreviewStat value={preview.totalRows} label="linhas lidas" />
+              <PreviewStat
+                value={preview.duplicateCount}
+                label="já importadas"
+                tone={preview.duplicateCount > 0 ? 'border-transparent bg-overdue-soft' : undefined}
+              />
+              <PreviewStat
+                value={preview.warningCount}
+                label="para revisar"
+                tone={preview.warningCount > 0 ? 'border-transparent bg-pending-soft' : undefined}
+              />
+            </div>
+
+            {preview.sourceAccountLabel && (
+              <div className="text-body-sm text-fg-muted">
+                Conta no extrato: <strong>{preview.sourceAccountLabel}</strong>
+                {preview.periodStart && preview.periodEnd && (
+                  <>
+                    {' · '}Período de {formatLocalDate(preview.periodStart)} a{' '}
+                    {formatLocalDate(preview.periodEnd)}
+                  </>
+                )}
+              </div>
+            )}
+
+            {source === 'bank' && preview.rows.length === 0 && (
+              <div role="status" className="rounded-lg bg-surface-2 px-3.5 py-2.5 text-body-sm">
+                Nada novo no banco desde a última importação.
+              </div>
+            )}
+
+            {preview.errors.length > 0 && (
+              <div
+                role="alert"
+                className="rounded-lg bg-overdue-soft px-3.5 py-2.5 text-body-sm text-overdue"
+              >
+                {preview.errors.length} linha(s) não puderam ser lidas e ficarão de fora:{' '}
+                {preview.errors
+                  .slice(0, 3)
+                  .map((error) => `linha ${error.lineNumber} (${error.message})`)
+                  .join('; ')}
+                {preview.errors.length > 3 && '…'}
+              </div>
+            )}
+
+            {preview.investmentAccountMissing && (
+              <div role="note" className={WARN_NOTE_CLASS}>
+                <span>
+                  {preview.rows.filter((row) => row.investment).length} aplicação(ões) ou resgate(s)
+                  de investimento no extrato. Sem uma conta de investimento eles entram como
+                  despesa/receita.
+                </span>
+                <div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-auto min-h-touch whitespace-normal py-2 text-left"
+                    onClick={handleCreateInvestmentAccount}
+                    disabled={isCreatingAccount || isAnalyzing}
+                  >
+                    Criar conta &quot;Investimentos&quot; e lançar como transferência
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {preview.rows.some((row) => row.invoicePaymentUnmatched && !row.duplicate) && (
+              <div role="note" className={WARN_NOTE_CLASS}>
+                Há pagamento de fatura sem fatura correspondente no sistema (marcado com &quot;sem
+                fatura&quot;). Importe a fatura do cartão antes, ou ele entra como despesa e as
+                compras dela contam duas vezes.
+              </div>
+            )}
+
+            {preview.keepCurrentBalanceSuggested && (
+              <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-border bg-surface-2 px-3.5 py-2.5 text-body-sm">
+                <input
+                  type="checkbox"
+                  className="checkbox"
+                  checked={keepCurrentBalance}
+                  onChange={(e) => setKeepCurrentBalance(e.target.checked)}
+                />
+                <span>
+                  Manter o saldo atual da conta. O extrato tem lançamentos de antes da conta existir
+                  aqui, que já estão no saldo informado; um ajuste de saldo de abertura compensa o
+                  histórico importado.
+                </span>
+              </label>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-2 text-body-sm">
+              <span className="text-fg-muted">
+                {selectedCount} de {preview.rows.length} selecionadas
+              </span>
+              {reviewCount > 0 && (
+                <span className="flex items-center gap-2">
+                  <span className="text-pending">{reviewCount} sem categoria confirmada</span>
+                  <button
+                    type="button"
+                    onClick={jumpToReview}
+                    className={`min-h-touch ${LINK_CLASS}`}
+                  >
+                    revisar
+                  </button>
+                </span>
+              )}
+            </div>
+
+            <div
+              className="tbl-wrap stack-tbl-wrap statement-tbl-wrap"
+              // A altura acompanha a janela para que só a tabela role: com um teto fixo, em
+              // telas baixas o corpo do modal rolava junto e a página ficava com duas barras.
+              style={{ maxHeight: 'calc(100vh - 340px)', overflowY: 'auto' }}
+            >
+              <table className="tbl stack-tbl statement-tbl">
+                <thead>
+                  <tr>
+                    <th className="w-9 !pl-4">
+                      <input
+                        type="checkbox"
+                        className="checkbox"
+                        aria-label="Selecionar todos"
+                        checked={allImportableSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = selectedCount > 0 && !allImportableSelected
+                        }}
+                        onChange={toggleAll}
+                      />
+                    </th>
+                    <th>Data</th>
+                    <th>Descrição</th>
+                    <th>Histórico</th>
+                    <th>Tipo</th>
+                    <th>Forma de pagamento</th>
+                    <th>Categoria</th>
+                    <th className="num">Valor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.rows.map((row) => {
+                    const isSelected = selected.has(row.externalRef)
+                    return (
+                      <tr
+                        key={row.externalRef}
+                        className={row.duplicate ? 'opacity-[.55]' : undefined}
+                        data-testid={`import-row-${row.lineNumber}`}
+                      >
+                        <td className="cell-check !pl-4">
+                          <input
+                            type="checkbox"
+                            className="checkbox"
+                            aria-label={`Importar ${descriptionOf(row)}`}
+                            checked={isSelected}
+                            onChange={() => toggleRow(row)}
+                          />
+                        </td>
+                        <td className="cell-date">{formatLocalDate(row.date)}</td>
+                        <td className="cell-desc">
+                          <EditableTextCell
+                            value={descriptionOf(row)}
+                            label={`Descrição da linha ${row.lineNumber}`}
+                            edited={edits[row.externalRef]?.description !== undefined}
+                            original={row.description}
+                            fromMemory={
+                              edits[row.externalRef]?.description === undefined &&
+                              row.suggestedDescription !== null
+                            }
+                            onResetToOriginal={() =>
+                              editRow(row.externalRef, { description: row.description })
+                            }
+                            onChange={(description) => editRow(row.externalRef, { description })}
+                          />
+                          {row.counterpartyName && (
+                            <span className="mt-0.5 block truncate text-caption text-fg-muted">
+                              {counterpartyLabel(row.counterpartyName, row.outgoing)}
+                            </span>
+                          )}
+                          {descriptionOf(row) !== row.description && similarCount(row) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => applyDescriptionToSimilar(row)}
+                              title={`Aplicar esta descrição às ${similarCount(row)} outras linhas deste estabelecimento`}
+                              className="mt-0.5 block text-caption font-semibold text-brand-text hover:underline"
+                            >
+                              aplicar nome a +{similarCount(row)} iguais
+                            </button>
+                          )}
+                          {row.duplicate && (
+                            <>
+                              {' '}
+                              <Badge kind="muted" square dot={false}>
+                                já importada
+                              </Badge>
+                            </>
+                          )}
+                          {needsInvoiceReview(row) && (
+                            <>
+                              {' '}
+                              <span
+                                title={`O valor não bate com o total da fatura ${row.invoiceLabel}. Confira e, se for o pagamento dela, troque o tipo.`}
+                              >
+                                <Badge kind="pending" square dot={false}>
+                                  revisar
+                                </Badge>
+                              </span>
+                            </>
+                          )}
+                          {row.invoicePaymentUnmatched && !needsInvoiceReview(row) && (
+                            <>
+                              {' '}
+                              <span title="Nenhuma fatura com vencimento perto desta data. Importe a fatura do cartão antes.">
+                                <Badge kind="pending" square dot={false}>
+                                  sem fatura
+                                </Badge>
+                              </span>
+                            </>
+                          )}
+                          {row.possibleDuplicate && (
+                            <>
+                              {' '}
+                              <span title="Já existe nesta conta um lançamento com a mesma data e o mesmo valor, vindo de outra origem. Marque só se for outro lançamento.">
+                                <Badge kind="pending" square dot={false}>
+                                  possível duplicata
+                                </Badge>
+                              </span>
+                            </>
+                          )}
+                          {row.unknownHistory && (
+                            <>
+                              {' '}
+                              <Badge kind="pending" square dot={false}>
+                                revisar
+                              </Badge>
+                            </>
+                          )}
+                        </td>
+                        <td className="cell-hist font-mono text-caption text-fg-subtle">
+                          {row.rawHistory}
+                        </td>
+                        <td className="cell-type">
+                          <EditableTypeCell
+                            label={`Tipo da linha ${row.lineNumber}`}
+                            type={typeOf(row)}
+                            typeOptions={typeOptionsOf(row)}
+                            detail={detailOf(row)}
+                            target={targetOf(row)}
+                            onTypeChange={(type) => editRow(row.externalRef, { type })}
+                          />
+                        </td>
+                        <td className="cell-method">
+                          {PAYMENT_METHOD_LABELS[row.paymentMethod] ?? row.paymentMethod}
+                        </td>
+                        <td className="cell-cat">
+                          {MOVEMENT_TYPES.includes(typeOf(row)) ? (
+                            <span className="text-fg-subtle">—</span>
+                          ) : (
+                            <>
+                              <EditableCategoryCell
+                                value={categoryIdOf(row)}
+                                label={`Categoria da linha ${row.lineNumber}`}
+                                categories={categories}
+                                fallbackName={
+                                  categoryIdOf(row) === row.suggestedCategoryId
+                                    ? row.suggestedCategoryName
+                                    : null
+                                }
+                                suggestionSource={row.suggestionSource}
+                                reviewed={'categoryId' in (edits[row.externalRef] ?? {})}
+                                onChange={(categoryId) => changeCategory(row, categoryId)}
+                              />
+                              {categoryIdOf(row) !== null && similarCount(row) > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => applyCategoryToSimilar(row)}
+                                  title={`Aplicar esta categoria às ${similarCount(row)} outras linhas deste estabelecimento`}
+                                  className="mt-0.5 block text-caption font-semibold text-brand-text hover:underline"
+                                >
+                                  aplicar a +{similarCount(row)} iguais
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </td>
+                        <td
+                          className={`num cell-amount whitespace-nowrap ${
+                            row.outgoing ? 'text-fg' : 'text-income'
+                          }`}
+                        >
+                          <Money
+                            value={
+                              row.outgoing
+                                ? -Math.abs(Number(row.amount))
+                                : Math.abs(Number(row.amount))
+                            }
+                            signed
+                          />
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
-    </Modal>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <Field label="Conta de destino" required>
+              <Select
+                aria-label="Conta de destino"
+                value={accountId}
+                onChange={(e) => setAccountId(e.target.value)}
+              >
+                <option value="">Selecionar conta</option>
+                {accounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            {linkedAccountIds.has(accountId) && (
+              <div className="flex flex-col items-start gap-2 rounded-lg border border-border bg-surface-2 px-3.5 py-3 text-body-sm">
+                <span>
+                  Esta conta está conectada ao banco. Busque os lançamentos novos direto de lá, sem
+                  arquivo, ou envie o extrato abaixo.
+                </span>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  leading={<Landmark size={16} aria-hidden="true" />}
+                  loading={isFetchingFromBank}
+                  disabled={isAnalyzing}
+                  onClick={handleFetchFromBank}
+                >
+                  Buscar do banco
+                </Button>
+              </div>
+            )}
+
+            <Field label="Formato do extrato" required>
+              <Select
+                aria-label="Formato do extrato"
+                value={format}
+                onChange={(e) => setFormat(e.target.value as StatementFormat)}
+              >
+                {STATEMENT_FORMATS.map((value) => (
+                  <option key={value} value={value}>
+                    {STATEMENT_FORMAT_LABELS[value]}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <Field
+              label="Arquivo"
+              required
+              hint="Exporte o extrato da conta corrente em CSV pelo app do banco."
+            >
+              <FilePicker
+                ref={fileInputRef}
+                accept=".csv,text/csv"
+                aria-label="Arquivo"
+                file={file}
+                onFileChange={setFile}
+                placeholder="Selecionar CSV do extrato"
+              />
+            </Field>
+
+            <div className="flex items-start gap-2 rounded-lg bg-info-soft px-3.5 py-2.5 text-body-sm text-fg">
+              <Info size={16} className="mt-px shrink-0 text-info" aria-hidden="true" />
+              <span>
+                Nada é gravado nesta etapa. Você vai conferir os lançamentos classificados antes de
+                confirmar, e os que já tiverem sido importados nesta conta virão desmarcados.
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-1.5 text-body-sm text-fg-muted">
+              <span>
+                Só um Pix?{' '}
+                <button
+                  type="button"
+                  onClick={() => void navigate(ROUTES.SHARE_TARGET)}
+                  className={LINK_CLASS}
+                >
+                  Lançar comprovante Pix
+                </button>{' '}
+                (imagem ou PDF do app do banco).
+              </span>
+              {onReconcile && (
+                <span>
+                  Importou extratos ou faturas antes? Pagamentos de fatura como despesa, aplicações
+                  e parcelamentos partidos podem ser corrigidos em{' '}
+                  <button type="button" onClick={onReconcile} className={LINK_CLASS}>
+                    Corrigir importações antigas
+                  </button>
+                  .
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+      <CreateRuleDialog
+        open={ruleOffer.draft !== null}
+        onClose={ruleOffer.close}
+        categories={categories}
+        accounts={accounts}
+        initialValues={ruleOffer.draft}
+        onCreated={refreshPreview}
+      />
+    </>
   )
 }

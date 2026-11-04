@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Check, CheckCheck, Inbox, SkipForward, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -9,7 +10,11 @@ import { Money } from '@/components/ui/money'
 import { Select } from '@/components/ui/select'
 import { CategoryCombobox } from '@/features/categories/components/category-combobox'
 import { useCategories } from '@/features/categories/hooks/use-categories'
+import { useCategorizationRuleOffer } from '@/features/categories/hooks/use-categorization-rule-offer'
+import { CreateRuleDialog } from '@/features/categories/components/categorization-rules-section'
+import { useAccounts } from '@/features/accounts/hooks/use-accounts'
 import {
+  BANK_PENDING_QUERY_KEY,
   useBankPending,
   useConfirmAllBankPending,
   useConfirmBankPending,
@@ -56,6 +61,25 @@ export default function BankReviewPage() {
   const { data: items = [], isLoading } = useBankPending()
   const confirmAll = useConfirmAllBankPending()
   const [skipped, setSkipped] = useState<string[]>([])
+  const queryClient = useQueryClient()
+  const { data: categories = [] } = useCategories()
+  const { data: allAccounts = [] } = useAccounts()
+  const accounts = useMemo(() => allAccounts.filter((a) => !a.archivedAt), [allAccounts])
+  // Mora na página, e não no cartão: o cartão sai da tela assim que a linha é confirmada.
+  const ruleOffer = useCategorizationRuleOffer(categories)
+
+  /** Confirmada com outra categoria que não a sugerida: oferece a regra para as próximas. */
+  function handleConfirmed(item: BankPendingItem, categoryId: string | null) {
+    const { row } = item
+    if (categoryId === row.suggestedCategoryId) return
+    ruleOffer.offer({
+      description: row.description,
+      counterpartyName: row.counterpartyName,
+      categoryId,
+      accountId: item.accountId,
+      suggestedByRule: row.suggestionSource === 'RULE',
+    })
+  }
 
   // Pular só muda a ordem: o pulado volta no fim da fila.
   const queue = [
@@ -94,6 +118,7 @@ export default function BankReviewPage() {
           position={`1 de ${queue.length}`}
           canSkip={queue.length > 1}
           onSkip={() => setSkipped((ids) => [...ids.filter((id) => id !== current.id), current.id])}
+          onConfirmed={handleConfirmed}
         />
       )}
 
@@ -109,6 +134,16 @@ export default function BankReviewPage() {
           </Button>
         </div>
       )}
+
+      <CreateRuleDialog
+        open={ruleOffer.draft !== null}
+        onClose={ruleOffer.close}
+        categories={categories}
+        accounts={accounts}
+        initialValues={ruleOffer.draft}
+        // As sugestões da fila foram calculadas antes da regra existir.
+        onCreated={() => void queryClient.invalidateQueries({ queryKey: BANK_PENDING_QUERY_KEY })}
+      />
     </div>
   )
 }
@@ -118,9 +153,11 @@ interface ReviewCardProps {
   position: string
   canSkip: boolean
   onSkip: () => void
+  /** Depois de gravada, com a categoria que foi usada (`null` em transferência e fatura). */
+  onConfirmed: (item: BankPendingItem, categoryId: string | null) => void
 }
 
-function ReviewCard({ item, position, canSkip, onSkip }: ReviewCardProps) {
+function ReviewCard({ item, position, canSkip, onSkip, onConfirmed }: ReviewCardProps) {
   const { row } = item
   const { data: categories = [] } = useCategories()
   const confirm = useConfirmBankPending()
@@ -133,6 +170,7 @@ function ReviewCard({ item, position, canSkip, onSkip }: ReviewCardProps) {
   const busy = confirm.isPending || discard.isPending
 
   function handleConfirm() {
+    const categoryId = movement ? null : draft.categoryId
     confirm.mutate(
       {
         id: item.id,
@@ -145,7 +183,7 @@ function ReviewCard({ item, position, canSkip, onSkip }: ReviewCardProps) {
           amount: row.amount,
           type: draft.type,
           paymentMethod: row.paymentMethod,
-          categoryId: movement ? null : draft.categoryId,
+          categoryId,
           outgoing: row.outgoing,
           transferAccountId: draft.type === 'TRANSFER' ? row.transferAccountId : null,
           invoiceId: draft.type === 'INVOICE_PAYMENT' ? row.invoiceId : null,
@@ -153,7 +191,12 @@ function ReviewCard({ item, position, canSkip, onSkip }: ReviewCardProps) {
           counterpartyDocument: row.counterpartyDocument,
         },
       },
-      { onSuccess: (saved) => toast.success(`Gravado: ${saved.description}`) },
+      {
+        onSuccess: (saved) => {
+          toast.success(`Gravado: ${saved.description}`)
+          onConfirmed(item, categoryId)
+        },
+      },
     )
   }
 

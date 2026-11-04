@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowRight, Landmark, Plus, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -60,20 +60,47 @@ function DeleteRuleDialog({ rule, open, onClose }: DeleteRuleDialogProps) {
   )
 }
 
+const EMPTY_RULE: CreateCategorizationRuleFormValues = {
+  pattern: '',
+  categoryId: '',
+  subcategoryId: '',
+  accountId: '',
+}
+
 interface CreateRuleDialogProps {
   open: boolean
   onClose: () => void
   categories: Category[]
   accounts: Account[]
+  /**
+   * Valores com que o formulário abre. É como a correção de categoria de uma linha
+   * importada chega aqui com padrão, categoria e conta já preenchidos.
+   */
+  initialValues?: CreateCategorizationRuleFormValues | null
+  /** Depois de a regra ser gravada, antes de o diálogo fechar. */
+  onCreated?: () => void
 }
 
-function CreateRuleDialog({ open, onClose, categories, accounts }: CreateRuleDialogProps) {
+export function CreateRuleDialog({
+  open,
+  onClose,
+  categories,
+  accounts,
+  initialValues,
+  onCreated,
+}: CreateRuleDialogProps) {
   const { mutate: createRule, isPending } = useCreateCategorizationRule()
 
   const form = useForm<CreateCategorizationRuleFormValues>({
     resolver: zodResolver(createCategorizationRuleSchema),
-    defaultValues: { pattern: '', categoryId: '', subcategoryId: '', accountId: '' },
+    defaultValues: EMPTY_RULE,
   })
+
+  // Cada abertura começa do que a tela mandou: o formulário fica montado entre uma oferta
+  // e outra, então os valores padrão do `useForm` só valeriam para a primeira.
+  useEffect(() => {
+    if (open) form.reset({ ...EMPTY_RULE, ...initialValues })
+  }, [open, initialValues, form])
 
   const watchedCategoryId = form.watch('categoryId')
   const selectedCategory = categories.find((c) => c.id === watchedCategoryId)
@@ -87,14 +114,15 @@ function CreateRuleDialog({ open, onClose, categories, accounts }: CreateRuleDia
     }
     createRule(payload, {
       onSuccess: () => {
-        form.reset({ pattern: '', categoryId: '', subcategoryId: '', accountId: '' })
+        form.reset(EMPTY_RULE)
+        onCreated?.()
         onClose()
       },
     })
   }
 
   function handleClose() {
-    form.reset({ pattern: '', categoryId: '', subcategoryId: '', accountId: '' })
+    form.reset(EMPTY_RULE)
     onClose()
   }
 

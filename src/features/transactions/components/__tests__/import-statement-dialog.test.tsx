@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, waitFor, cleanup, within } from '@testing-library/react'
+import { screen, waitFor, cleanup, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
@@ -14,6 +14,7 @@ import { resetAccountsStore } from '@/test/handlers/accounts.handlers'
 import type * as StatementImportApi from '@/features/transactions/api/statement-import.api'
 import { previewStatementImport } from '@/features/transactions/api/statement-import.api'
 import type { ImportPreviewResponse, ImportPreviewRow } from '@/features/transactions/types'
+import { toast } from '@/lib/toast'
 import { ImportStatementDialog } from '../import-statement-dialog'
 
 // O XHR do jsdom trava num POST multipart com arquivo, então a prévia não pode passar
@@ -29,7 +30,7 @@ vi.mock('@/features/transactions/api/statement-import.api', async (importOrigina
 })
 
 vi.mock('@/lib/toast', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn(), action: vi.fn() },
 }))
 
 vi.mock('@/lib/logger', () => ({
@@ -847,5 +848,94 @@ describe('ImportStatementDialog — edição na prévia', () => {
       expect(await screen.findByText(/nada novo no banco/i)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /importar 0 transações/i })).toBeDisabled()
     })
+  })
+})
+
+describe('ImportStatementDialog — regra a partir da correção', () => {
+  async function pickCategory(
+    user: ReturnType<typeof userEvent.setup>,
+    lineNumber: number,
+    categoryName: string,
+  ) {
+    const label = new RegExp(`categoria da linha ${lineNumber}`, 'i')
+    await user.click(screen.getByRole('combobox', { name: label }))
+    await user.click(await screen.findByRole('option', { name: categoryName }))
+  }
+
+  /** Clica na ação "Criar regra" do último aviso de oferta. */
+  async function acceptOffer() {
+    const [, action] = vi.mocked(toast.action).mock.lastCall!
+    expect(action.label).toBe('Criar regra')
+    await act(async () => action.onClick())
+    return screen.findByRole('dialog', { name: /nova regra de categorização/i })
+  }
+
+  it('offers the rule only after the user changes a category', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+    expect(toast.action).not.toHaveBeenCalled()
+
+    await pickCategory(user, 9, 'Restaurant')
+
+    expect(toast.action).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(toast.action).mock.calls[0][0]).toBe('Tudo com «TARIFA» vai para Restaurant?')
+  })
+
+  it('does not offer a rule when the row was already categorized by one', async () => {
+    vi.mocked(previewStatementImport).mockImplementationOnce(async () =>
+      previewWithSingleRow({
+        suggestedCategoryId: 'cat-1',
+        suggestedCategoryName: 'Food',
+        suggestionSource: 'RULE',
+      }),
+    )
+    const user = userEvent.setup()
+    renderDialog()
+    await analyzeFile(user)
+    await screen.findByTestId('import-row-10')
+
+    await pickCategory(user, 10, 'Salary')
+
+    expect(toast.action).not.toHaveBeenCalled()
+  })
+
+  it('opens the rule dialog prefilled with pattern, category, subcategory and account', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+    await pickCategory(user, 9, 'Restaurant')
+
+    const dialog = within(await acceptOffer())
+
+    expect(dialog.getByPlaceholderText(/supermercado/i)).toHaveValue('TARIFA')
+    expect(dialog.getByRole('combobox', { name: 'Categoria' })).toHaveValue('cat-1')
+    await waitFor(() =>
+      expect(dialog.getByRole('combobox', { name: 'Subcategoria' })).toHaveValue('cat-3'),
+    )
+    expect(dialog.getByRole('combobox', { name: 'Conta' })).toHaveValue('account-1')
+  })
+
+  it('re-reads the open preview once the rule is created, keeping the user edits', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+    await pickCategory(user, 9, 'Restaurant')
+    expect(previewStatementImport).toHaveBeenCalledTimes(1)
+
+    const dialog = within(await acceptOffer())
+    await user.click(dialog.getByRole('button', { name: 'Criar regra' }))
+
+    await waitFor(() => expect(previewStatementImport).toHaveBeenCalledTimes(2))
+    expect(vi.mocked(previewStatementImport).mock.calls[1].slice(1)).toEqual([
+      'account-1',
+      'INTER_CSV',
+    ])
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: /nova regra/i })).not.toBeInTheDocument(),
+    )
+    expect(screen.getByRole('combobox', { name: /categoria da linha 9/i })).toHaveTextContent(
+      'Restaurant',
+    )
   })
 })

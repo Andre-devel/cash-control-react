@@ -1,15 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
 import { renderWithProviders } from '@/test/utils'
+import { toast } from '@/lib/toast'
 import BankReviewPage from '../bank-review-page'
 import type { BankPendingItem } from '@/features/bank-connections/types'
 import type { ImportPreviewRow } from '@/features/transactions/types'
 
 vi.mock('@/lib/toast', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn(), action: vi.fn() },
 }))
 
 function row(overrides: Partial<ImportPreviewRow>): ImportPreviewRow {
@@ -195,5 +196,119 @@ describe('BankReviewPage', () => {
 
     expect(await screen.findByText('Tudo revisado')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Confirmar todos/ })).not.toBeInTheDocument()
+  })
+})
+
+describe('BankReviewPage — regra a partir da correção', () => {
+  const PIX_ITEM: BankPendingItem = {
+    id: 'p-1',
+    accountId: 'account-1',
+    accountName: 'Nubank',
+    row: row({
+      description: 'PIX ENVIADO',
+      counterpartyName: 'Padaria Sao Joao Ltda',
+      suggestedDescription: null,
+    }),
+  }
+
+  function mockConfirm() {
+    server.use(
+      http.post('*/bank-pending/p-1/confirm', () =>
+        HttpResponse.json({ description: 'PIX ENVIADO', categoryName: 'Food' }),
+      ),
+    )
+  }
+
+  async function confirmWithCategory(user: ReturnType<typeof userEvent.setup>, name?: string) {
+    if (name) {
+      await user.click(await screen.findByRole('combobox', { name: /categoria/i }))
+      await user.click(await screen.findByRole('option', { name }))
+    }
+    await user.click(await screen.findByRole('button', { name: /Confirmar e próximo/ }))
+  }
+
+  it('offers the rule after confirming with a category other than the suggested one', async () => {
+    mockQueue([PIX_ITEM])
+    mockConfirm()
+    const user = userEvent.setup()
+    renderWithProviders(<BankReviewPage />)
+
+    await confirmWithCategory(user, 'Food')
+
+    await waitFor(() =>
+      expect(toast.action).toHaveBeenCalledWith(
+        'Tudo com «PADARIA SAO JOAO LTDA» vai para Food?',
+        expect.objectContaining({ label: 'Criar regra' }),
+        expect.anything(),
+      ),
+    )
+  })
+
+  it('does not offer a rule when confirming the suggestion as is', async () => {
+    mockQueue([
+      {
+        ...PIX_ITEM,
+        row: { ...PIX_ITEM.row, suggestedCategoryId: 'cat-1', suggestedCategoryName: 'Food' },
+      },
+    ])
+    mockConfirm()
+    const user = userEvent.setup()
+    renderWithProviders(<BankReviewPage />)
+
+    await confirmWithCategory(user)
+
+    await waitFor(() => expect(toast.success).toHaveBeenCalled())
+    expect(toast.action).not.toHaveBeenCalled()
+  })
+
+  it('does not offer a rule when the suggestion already came from one', async () => {
+    mockQueue([
+      {
+        ...PIX_ITEM,
+        row: {
+          ...PIX_ITEM.row,
+          suggestedCategoryId: 'cat-2',
+          suggestedCategoryName: 'Salary',
+          suggestionSource: 'RULE',
+        },
+      },
+    ])
+    mockConfirm()
+    const user = userEvent.setup()
+    renderWithProviders(<BankReviewPage />)
+
+    await confirmWithCategory(user, 'Food')
+
+    await waitFor(() => expect(toast.success).toHaveBeenCalled())
+    expect(toast.action).not.toHaveBeenCalled()
+  })
+
+  it('opens the dialog prefilled and re-reads the queue once the rule is created', async () => {
+    let listCalls = 0
+    server.use(
+      http.get('*/bank-pending', () => {
+        listCalls += 1
+        return HttpResponse.json([PIX_ITEM])
+      }),
+    )
+    mockConfirm()
+    const user = userEvent.setup()
+    renderWithProviders(<BankReviewPage />)
+
+    await confirmWithCategory(user, 'Food')
+    await waitFor(() => expect(toast.action).toHaveBeenCalled())
+    const [, action] = vi.mocked(toast.action).mock.calls[0]
+    await act(async () => action.onClick())
+
+    const dialog = within(await screen.findByRole('dialog', { name: /nova regra/i }))
+    expect(dialog.getByPlaceholderText(/supermercado/i)).toHaveValue('PADARIA SAO JOAO LTDA')
+    expect(dialog.getByRole('combobox', { name: 'Categoria' })).toHaveValue('cat-1')
+    await waitFor(() =>
+      expect(dialog.getByRole('combobox', { name: 'Conta' })).toHaveValue('account-1'),
+    )
+
+    const before = listCalls
+    await user.click(dialog.getByRole('button', { name: 'Criar regra' }))
+    await waitFor(() => expect(listCalls).toBeGreaterThan(before))
   })
 })

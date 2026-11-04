@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, waitFor, cleanup, within } from '@testing-library/react'
+import { screen, waitFor, cleanup, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
@@ -14,6 +14,7 @@ import {
 import type * as FaturaImportApi from '@/features/cards/api/fatura-import.api'
 import { previewFaturaImport } from '@/features/cards/api/fatura-import.api'
 import type { FaturaImportPreviewResponse, FaturaImportPreviewRow } from '@/features/cards/types'
+import { toast } from '@/lib/toast'
 import { ImportFaturaDialog } from '../import-fatura-dialog'
 
 // O XHR do jsdom trava num POST multipart com arquivo, então a prévia não pode passar
@@ -29,7 +30,7 @@ vi.mock('@/features/cards/api/fatura-import.api', async (importOriginal) => {
 })
 
 vi.mock('@/lib/toast', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn(), action: vi.fn() },
 }))
 
 vi.mock('@/lib/logger', () => ({
@@ -839,5 +840,30 @@ describe('ImportFaturaDialog — fetching from the bank', () => {
     await waitFor(() => expect(getLastFaturaCommit()).not.toBeNull())
     expect(getLastFaturaCommit()!.format).toBe('OPEN_FINANCE')
     expect(getLastFaturaCommit()!.rows.map((row) => row.externalRef)).toEqual(['ref-sorvete-1'])
+  })
+})
+
+describe('ImportFaturaDialog — regra a partir da correção', () => {
+  it('offers the rule on a category change, prefills it and re-reads the preview', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    await reachPreview(user)
+    expect(toast.action).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('combobox', { name: /categoria da linha 60/i }))
+    await user.click(await screen.findByRole('option', { name: 'Salary' }))
+
+    expect(toast.action).toHaveBeenCalledTimes(1)
+    const [message, action] = vi.mocked(toast.action).mock.calls[0]
+    expect(message).toBe('Tudo com «ANTHROPIC» vai para Salary?')
+    await act(async () => action.onClick())
+
+    const dialog = within(await screen.findByRole('dialog', { name: /nova regra/i }))
+    expect(dialog.getByPlaceholderText(/supermercado/i)).toHaveValue('ANTHROPIC')
+    expect(dialog.getByRole('combobox', { name: 'Categoria' })).toHaveValue('cat-2')
+
+    expect(previewFaturaImport).toHaveBeenCalledTimes(1)
+    await user.click(dialog.getByRole('button', { name: 'Criar regra' }))
+    await waitFor(() => expect(previewFaturaImport).toHaveBeenCalledTimes(2))
   })
 })

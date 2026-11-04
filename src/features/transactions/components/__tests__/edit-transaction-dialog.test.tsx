@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, waitFor, cleanup } from '@testing-library/react'
+import { act, screen, waitFor, cleanup, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '@/test/msw/server'
@@ -13,10 +13,11 @@ import {
 } from '@/test/handlers/transactions.handlers'
 import { MOCK_PAYMENT_METHODS } from '@/test/handlers/payment-methods.handlers'
 import type { Transaction } from '@/features/transactions/types'
+import { toast } from '@/lib/toast'
 import { EditTransactionDialog } from '../edit-transaction-dialog'
 
 vi.mock('@/lib/toast', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn(), info: vi.fn(), action: vi.fn() },
 }))
 
 vi.mock('@/lib/logger', () => ({
@@ -144,5 +145,68 @@ describe('EditTransactionDialog — type', () => {
     renderDialog(MOCK_TRANSACTION_1)
     await waitForPaymentMethodsLoaded()
     expect(screen.queryByRole('radio', { name: 'Reembolso' })).toBeNull()
+  })
+})
+
+describe('EditTransactionDialog — regra a partir da correção', () => {
+  const FROM_BANK: Transaction = { ...MOCK_TRANSACTION_1, counterpartyName: 'Mercado Bom Ltda' }
+
+  function mockUpdate() {
+    server.use(
+      http.put('*/transactions/:id', async ({ request }) => {
+        const sent = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json({ ...MOCK_TRANSACTION_1, ...sent })
+      }),
+    )
+  }
+
+  async function saveWithCategory(user: ReturnType<typeof userEvent.setup>, name?: string) {
+    await waitForPaymentMethodsLoaded()
+    if (name) {
+      await user.click(screen.getByRole('combobox', { name: 'Categoria' }))
+      await user.click(await screen.findByRole('option', { name }))
+    }
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    await waitFor(() => expect(toast.success).toHaveBeenCalled())
+  }
+
+  it('offers the rule after saving a bank transaction with another category', async () => {
+    mockUpdate()
+    const user = userEvent.setup()
+    renderDialog(FROM_BANK)
+
+    await saveWithCategory(user, 'Salary')
+
+    expect(toast.action).toHaveBeenCalledTimes(1)
+    const [message, action] = vi.mocked(toast.action).mock.calls[0]
+    expect(message).toBe('Tudo com «SUPERMARKET» vai para Salary?')
+
+    await act(async () => action.onClick())
+    const dialog = within(await screen.findByRole('dialog', { name: /nova regra/i }))
+    expect(dialog.getByPlaceholderText(/supermercado/i)).toHaveValue('SUPERMARKET')
+    expect(dialog.getByRole('combobox', { name: 'Categoria' })).toHaveValue('cat-2')
+    await waitFor(() =>
+      expect(dialog.getByRole('combobox', { name: 'Conta' })).toHaveValue('account-1'),
+    )
+  })
+
+  it('does not offer a rule when the category stayed the same', async () => {
+    mockUpdate()
+    const user = userEvent.setup()
+    renderDialog(FROM_BANK)
+
+    await saveWithCategory(user)
+
+    expect(toast.action).not.toHaveBeenCalled()
+  })
+
+  it('does not offer a rule for a transaction that did not come from the bank', async () => {
+    mockUpdate()
+    const user = userEvent.setup()
+    renderDialog(MOCK_TRANSACTION_1)
+
+    await saveWithCategory(user, 'Salary')
+
+    expect(toast.action).not.toHaveBeenCalled()
   })
 })
