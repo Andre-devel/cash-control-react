@@ -16,6 +16,10 @@ import { ReimbursementBadge } from '@/features/transactions/components/reimburse
 import type { Transaction } from '@/features/transactions/types'
 import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
+import {
+  CrossScopeBadge,
+  TransactionScopeBadge,
+} from '@/features/transactions/components/transaction-scope-badge'
 import '@/features/transactions/transactions.css'
 
 /** Até onde o card anda e a partir de onde soltar conta como "marcar paga". */
@@ -164,6 +168,8 @@ export const TransactionCard = memo(function TransactionCard({
               </span>
             )}
             <ReimbursementBadge transaction={transaction} />
+            <CrossScopeBadge transaction={transaction} />
+            <TransactionScopeBadge transaction={transaction} accounts={accounts} />
           </span>
         </div>
 

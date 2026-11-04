@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useScope } from '@/app/store/scope.store'
 import { Archive, ArrowLeftRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAccounts } from '@/features/accounts/hooks/use-accounts'
@@ -39,12 +40,13 @@ function AccountsSkeleton() {
 
 export default function AccountsPage() {
   const [showArchived, setShowArchived] = useState(false)
+  const scope = useScope()
   const {
     data: accounts,
     isLoading,
     isError,
     refetch,
-  } = useAccounts({ includeArchived: showArchived })
+  } = useAccounts({ includeArchived: showArchived, scope })
   const { mutate: unarchiveAccount } = useUnarchiveAccount()
 
   const [createOpen, setCreateOpen] = useState(false)

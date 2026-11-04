@@ -17,6 +17,7 @@ import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
 import '@/features/transactions/transactions.css'
 import { categoryColorCss } from '@/features/categories/utils/category-colors'
+import { TransactionScopeBadge } from '@/features/transactions/components/transaction-scope-badge'
 
 interface TransactionRowProps extends TransactionActionHandlers {
   transaction: Transaction
@@ -74,6 +75,7 @@ export const TransactionRow = memo(function TransactionRow({
                 </span>
               )}
               <ReimbursementBadge transaction={transaction} />
+              <TransactionScopeBadge transaction={transaction} accounts={accounts} />
             </span>
             <span className="text-caption text-fg-muted">
               {d.typeLabel} · {fmtDateMedium(transaction.competenceDate)}

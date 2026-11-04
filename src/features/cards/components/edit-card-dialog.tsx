@@ -16,6 +16,7 @@ import { useUpdateCard } from '@/features/cards/hooks/use-update-card'
 import type { Card } from '@/features/cards/types'
 import { setFormErrors } from '@/lib/form-errors'
 import { formatMoneyInput } from '@/lib/money'
+import { ScopeSelect } from '@/features/cards/components/card-form-fields'
 
 const BRAND_LABELS: Record<string, string> = {
   VISA: 'Visa',
@@ -42,6 +43,7 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
       creditLimit: '',
       closingDay: 1,
       dueDay: 10,
+      scope: 'PERSONAL',
     },
   })
   const { mutate: updateCard, isPending } = useUpdateCard({
@@ -57,6 +59,7 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
         creditLimit: formatMoneyInput(card.creditLimit),
         closingDay: card.closingDay,
         dueDay: card.dueDay,
+        scope: card.scope ?? 'PERSONAL',
       })
     }
   }, [card, form])
@@ -142,6 +145,10 @@ export function EditCardDialog({ card, open, onClose }: EditCardDialogProps) {
               </option>
             ))}
           </Select>
+        </Field>
+
+        <Field label="Escopo" error={form.formState.errors.scope?.message}>
+          <ScopeSelect {...form.register('scope')} />
         </Field>
 
         <Field

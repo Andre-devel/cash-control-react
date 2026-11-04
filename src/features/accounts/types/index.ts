@@ -1,9 +1,13 @@
+import type { AccountScope, ScopeFilter } from '@/app/store/scope.store'
+
 export type AccountType = 'CHECKING' | 'SAVINGS' | 'CASH' | 'INVESTMENT' | 'CREDIT' | 'OTHER'
 
 export interface Account {
   id: string
   name: string
   type: AccountType
+  /** PF ou PJ. Opcional porque respostas antigas (cache offline) não traziam o campo. */
+  scope?: AccountScope
   balance: string
   currencyCode: string
   description?: string
@@ -15,6 +19,8 @@ export interface Account {
 
 export interface ListAccountsParams {
   includeArchived?: boolean
+  /** Filtro PF / PJ; ausente traz todas. Os seletores de conta dos formulários não filtram. */
+  scope?: ScopeFilter
 }
 
 export interface CreateAccountRequest {
@@ -23,6 +29,8 @@ export interface CreateAccountRequest {
   currencyCode?: string
   initialBalance?: string
   description?: string
+  /** Ausente, a API cria como PERSONAL. */
+  scope?: AccountScope
 }
 
 export interface UpdateAccountRequest {
@@ -30,6 +38,7 @@ export interface UpdateAccountRequest {
   type: AccountType
   currencyCode?: string
   description?: string
+  scope?: AccountScope
 }
 
 export interface AdjustBalanceRequest {

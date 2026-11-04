@@ -7,6 +7,7 @@ export const updateAccountSchema = z.object({
   // Só exibida: a moeda é fixa depois da criação.
   currencyCode: z.string(),
   description: z.string().optional(),
+  scope: z.enum(['PERSONAL', 'BUSINESS']).optional(),
 })
 
 export type UpdateAccountFormValues = z.infer<typeof updateAccountSchema>

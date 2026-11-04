@@ -1,4 +1,5 @@
 import { axiosInstance } from '@/services/http'
+import { scopeParams, type ScopeFilter } from '@/app/store/scope.store'
 import type {
   DashboardOverview,
   CategoriesChart,
@@ -16,51 +17,71 @@ import type {
   Subscriptions,
 } from '@/features/dashboard/types'
 
-export async function getOverview(): Promise<DashboardOverview> {
-  const response = await axiosInstance.get<DashboardOverview>('/dashboard/overview')
+export async function getOverview(scope: ScopeFilter = 'ALL'): Promise<DashboardOverview> {
+  const response = await axiosInstance.get<DashboardOverview>('/dashboard/overview', {
+    params: scopeParams(scope),
+  })
   return response.data
 }
 
-export async function getCategoriesChart(params: CategoriesChartParams): Promise<CategoriesChart> {
+export async function getCategoriesChart(
+  params: CategoriesChartParams,
+  scope: ScopeFilter = 'ALL',
+): Promise<CategoriesChart> {
   const response = await axiosInstance.get<CategoriesChart>('/dashboard/charts/categories', {
-    params,
+    params: { ...params, ...scopeParams(scope) },
   })
   return response.data
 }
 
-export async function getMonthlyChart(months?: number): Promise<MonthlyChart> {
+export async function getMonthlyChart(
+  months?: number,
+  scope: ScopeFilter = 'ALL',
+): Promise<MonthlyChart> {
   const response = await axiosInstance.get<MonthlyChart>('/dashboard/charts/monthly', {
-    params: months !== undefined ? { months } : undefined,
+    params: { months, ...scopeParams(scope) },
   })
   return response.data
 }
 
-export async function getNetWorthChart(params: NetWorthChartParams): Promise<NetWorthChart> {
+export async function getNetWorthChart(
+  params: NetWorthChartParams,
+  scope: ScopeFilter = 'ALL',
+): Promise<NetWorthChart> {
   const response = await axiosInstance.get<NetWorthChart>('/dashboard/charts/net-worth', {
-    params,
+    params: { ...params, ...scopeParams(scope) },
   })
   return response.data
 }
 
-export async function getComparisonChart(params: ComparisonChartParams): Promise<MonthComparison> {
+export async function getComparisonChart(
+  params: ComparisonChartParams,
+  scope: ScopeFilter = 'ALL',
+): Promise<MonthComparison> {
   const response = await axiosInstance.get<MonthComparison>('/dashboard/charts/comparison', {
-    params,
+    params: { ...params, ...scopeParams(scope) },
   })
   return response.data
 }
 
-export async function getUpcomingBills(daysAhead?: number): Promise<UpcomingBillItem[]> {
+export async function getUpcomingBills(
+  daysAhead?: number,
+  scope: ScopeFilter = 'ALL',
+): Promise<UpcomingBillItem[]> {
   const response = await axiosInstance.get<UpcomingBillItem[]>(
     '/dashboard/widgets/upcoming-bills',
-    { params: daysAhead !== undefined ? { daysAhead } : undefined },
+    { params: { daysAhead, ...scopeParams(scope) } },
   )
   return response.data
 }
 
-export async function getUpcomingInvoices(daysAhead?: number): Promise<UpcomingInvoiceItem[]> {
+export async function getUpcomingInvoices(
+  daysAhead?: number,
+  scope: ScopeFilter = 'ALL',
+): Promise<UpcomingInvoiceItem[]> {
   const response = await axiosInstance.get<UpcomingInvoiceItem[]>(
     '/dashboard/widgets/upcoming-invoices',
-    { params: daysAhead !== undefined ? { daysAhead } : undefined },
+    { params: { daysAhead, ...scopeParams(scope) } },
   )
   return response.data
 }
@@ -69,30 +90,39 @@ export async function getUpcomingInvoices(daysAhead?: number): Promise<UpcomingI
 export async function getLargestExpenses(
   limit?: number,
   range?: { from: string; to: string },
+  scope: ScopeFilter = 'ALL',
 ): Promise<LargestExpenseItem[]> {
   const response = await axiosInstance.get<LargestExpenseItem[]>(
     '/dashboard/widgets/largest-expenses',
-    { params: { limit, from: range?.from, to: range?.to } },
+    { params: { limit, from: range?.from, to: range?.to, ...scopeParams(scope) } },
   )
   return response.data
 }
 
-export async function getRecentTransactions(limit?: number): Promise<RecentTransactionItem[]> {
+export async function getRecentTransactions(
+  limit?: number,
+  scope: ScopeFilter = 'ALL',
+): Promise<RecentTransactionItem[]> {
   const response = await axiosInstance.get<RecentTransactionItem[]>(
     '/dashboard/widgets/recent-transactions',
-    { params: limit !== undefined ? { limit } : undefined },
+    { params: { limit, ...scopeParams(scope) } },
   )
   return response.data
 }
 
-export async function getBalanceProjection(days: number): Promise<BalanceProjection> {
+export async function getBalanceProjection(
+  days: number,
+  scope: ScopeFilter = 'ALL',
+): Promise<BalanceProjection> {
   const response = await axiosInstance.get<BalanceProjection>('/dashboard/projection', {
-    params: { days },
+    params: { days, ...scopeParams(scope) },
   })
   return response.data
 }
 
-export async function getSubscriptions(): Promise<Subscriptions> {
-  const response = await axiosInstance.get<Subscriptions>('/dashboard/subscriptions')
+export async function getSubscriptions(scope: ScopeFilter = 'ALL'): Promise<Subscriptions> {
+  const response = await axiosInstance.get<Subscriptions>('/dashboard/subscriptions', {
+    params: scopeParams(scope),
+  })
   return response.data
 }

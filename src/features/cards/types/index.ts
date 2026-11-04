@@ -1,3 +1,5 @@
+import type { AccountScope } from '@/app/store/scope.store'
+
 export type CardBrand = 'VISA' | 'MASTERCARD' | 'ELO' | 'AMEX' | 'HIPERCARD' | 'OTHER'
 export type InvoiceStatus = 'OPEN' | 'CLOSED' | 'PAID' | 'PARTIAL' | 'OVERDUE'
 
@@ -5,6 +7,8 @@ export interface Card {
   id: string
   name: string
   brand: CardBrand
+  /** PF ou PJ. Opcional porque respostas antigas (cache offline) não traziam o campo. */
+  scope?: AccountScope
   issuer?: string
   /** Últimos 4 dígitos do cartão. É o que casa cada seção do PDF da fatura com o cartão. */
   last4Digits?: string | null
@@ -92,6 +96,8 @@ export interface CreateCardRequest {
   creditLimit: string
   closingDay: number
   dueDay: number
+  /** Ausente, a API cria como PERSONAL. */
+  scope?: AccountScope
 }
 
 export type UpdateCardRequest = CreateCardRequest

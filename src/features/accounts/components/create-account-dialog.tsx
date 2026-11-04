@@ -15,6 +15,7 @@ import {
 } from '@/features/accounts/schemas/create-account.schema'
 import { useCreateAccount } from '@/features/accounts/hooks/use-create-account'
 import { setFormErrors } from '@/lib/form-errors'
+import { ScopeSelect } from '@/features/accounts/components/account-form-fields'
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   CHECKING: 'Conta corrente',
@@ -31,6 +32,7 @@ const DEFAULT_VALUES: CreateAccountFormValues = {
   currencyCode: 'BRL',
   initialBalance: '0,00',
   description: '',
+  scope: 'PERSONAL',
 }
 
 interface CreateAccountDialogProps {
@@ -106,6 +108,10 @@ export function CreateAccountDialog({ open, onClose }: CreateAccountDialogProps)
               </option>
             ))}
           </Select>
+        </Field>
+
+        <Field label="Escopo" error={form.formState.errors.scope?.message}>
+          <ScopeSelect {...form.register('scope')} />
         </Field>
 
         <Field label="Moeda" error={form.formState.errors.currencyCode?.message}>

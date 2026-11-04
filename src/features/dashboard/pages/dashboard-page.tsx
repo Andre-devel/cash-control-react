@@ -39,6 +39,7 @@ import { SubscriptionsCard } from '@/features/dashboard/components/subscriptions
 import { MonthComparisonSection } from '@/features/dashboard/components/month-comparison-section'
 import { LargestExpensesWidget } from '@/features/dashboard/components/largest-expenses-widget'
 import { ROUTES } from '@/app/router/routes'
+import { ScopeSelector } from '@/components/layout/scope-selector'
 import { CreateTransactionDialog } from '@/features/transactions/components/create-transaction-dialog'
 
 /** Quantos meses o seletor do topo oferece (o atual e os anteriores). */
@@ -245,6 +246,8 @@ export default function DashboardPage() {
         // Celular: o que importa primeiro (patrimônio e mês), depois o que pede ação; o resto
         // vira atalho. Os gráficos ficam na tela de Análises.
         <div className="flex flex-col gap-3">
+          {/* No celular a topbar some; o filtro PF / PJ fica no topo do Início. */}
+          <ScopeSelector />
           <MonthStepper
             options={monthOptions}
             value={selectedMonth}

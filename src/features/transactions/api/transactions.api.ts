@@ -1,4 +1,5 @@
 import { axiosInstance } from '@/services/http'
+import { scopeParams, type ScopeFilter } from '@/app/store/scope.store'
 import type {
   Transaction,
   Attachment,
@@ -13,18 +14,20 @@ import type {
 
 export async function listTransactions(
   params?: ListTransactionsParams,
+  scope: ScopeFilter = 'ALL',
 ): Promise<PaginatedResponse<Transaction>> {
   const response = await axiosInstance.get<PaginatedResponse<Transaction>>('/transactions', {
-    params,
+    params: { ...params, ...scopeParams(scope) },
   })
   return response.data
 }
 
 export async function getTransactionTotals(
   params?: ListTransactionsParams,
+  scope: ScopeFilter = 'ALL',
 ): Promise<TransactionTotals> {
   const response = await axiosInstance.get<TransactionTotals>('/transactions/summary', {
-    params,
+    params: { ...params, ...scopeParams(scope) },
   })
   return response.data
 }

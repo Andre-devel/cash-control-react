@@ -16,6 +16,7 @@ import { InvoiceStatusBadge } from '@/features/invoices/components/invoice-statu
 import { canPayInvoice, dueBadge } from '@/features/invoices/utils/invoice-status'
 import { formatLocalDate } from '@/lib/format-date'
 import { ROUTES } from '@/app/router/routes'
+import { ScopeBadge } from '@/components/ui/scope-badge'
 
 /**
  * Celular, tablet (768–1279) e desktop (≥ 1280). Em `/cards` fica só o resumo do cartão
@@ -176,6 +177,7 @@ function CardPills({ cards, selectedCard, onSelectCard, onCreate }: CardPillsPro
               style={cardSwatch(card)}
             />
             <span className="text-body-sm font-semibold">{card.name}</span>
+            <ScopeBadge scope={card.scope} />
             {card.last4Digits && (
               <span className="font-mono text-[11px] text-fg-muted">•• {card.last4Digits}</span>
             )}
@@ -233,7 +235,10 @@ function CardList({ cards, selectedCard, onSelectCard, limitViews, onCreate }: C
                   style={cardSwatch(card)}
                 />
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="truncate text-body-sm font-semibold">{card.name}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="truncate text-body-sm font-semibold">{card.name}</span>
+                    <ScopeBadge scope={card.scope} />
+                  </span>
                   {card.last4Digits && (
                     <span className="font-mono text-[11px] text-fg-muted">
                       •• {card.last4Digits}

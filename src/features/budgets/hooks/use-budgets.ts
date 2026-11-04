@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useScope } from '@/app/store/scope.store'
 import { getBudgetHistory, getBudgetProgress } from '@/features/budgets/api/budgets.api'
 import { DASHBOARD_QUERY_KEY } from '@/lib/invalidate-financial-queries'
 
@@ -9,17 +10,19 @@ import { DASHBOARD_QUERY_KEY } from '@/lib/invalidate-financial-queries'
 export const BUDGETS_QUERY_KEY = [...DASHBOARD_QUERY_KEY, 'budgets'] as const
 
 export function useBudgetProgress(month: string) {
+  const scope = useScope()
   return useQuery({
-    queryKey: [...BUDGETS_QUERY_KEY, month],
-    queryFn: () => getBudgetProgress(month),
+    queryKey: [...BUDGETS_QUERY_KEY, month, scope],
+    queryFn: () => getBudgetProgress(month, scope),
     staleTime: 60_000,
   })
 }
 
 export function useBudgetHistory(months: number) {
+  const scope = useScope()
   return useQuery({
-    queryKey: [...BUDGETS_QUERY_KEY, 'history', months],
-    queryFn: () => getBudgetHistory(months),
+    queryKey: [...BUDGETS_QUERY_KEY, 'history', months, scope],
+    queryFn: () => getBudgetHistory(months, scope),
     staleTime: 60_000,
   })
 }

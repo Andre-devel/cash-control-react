@@ -1,4 +1,5 @@
 import { axiosInstance } from '@/services/http'
+import { scopeParams } from '@/app/store/scope.store'
 import type {
   Account,
   ListAccountsParams,
@@ -12,7 +13,10 @@ import type {
 } from '@/features/accounts/types'
 
 export async function listAccounts(params?: ListAccountsParams): Promise<Account[]> {
-  const response = await axiosInstance.get<Account[]>('/accounts', { params })
+  const { scope, ...rest } = params ?? {}
+  const response = await axiosInstance.get<Account[]>('/accounts', {
+    params: { ...rest, ...scopeParams(scope) },
+  })
   return response.data
 }
 

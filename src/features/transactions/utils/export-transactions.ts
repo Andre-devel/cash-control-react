@@ -1,4 +1,5 @@
 import { listTransactions } from '@/features/transactions/api/transactions.api'
+import type { ScopeFilter } from '@/app/store/scope.store'
 import { TRANSACTION_STATUS_LABELS } from '@/features/transactions/utils/transaction-status'
 import {
   TRANSACTION_TYPE_DISPLAY,
@@ -10,15 +11,21 @@ import { buildCsvBlob, csvMoney } from '@/lib/csv'
 const EXPORT_PAGE_SIZE = 500
 
 /** Busca todas as páginas que casam com os filtros, uma parcela por linha. */
-async function fetchAllTransactions(filters: ListTransactionsParams): Promise<Transaction[]> {
+async function fetchAllTransactions(
+  filters: ListTransactionsParams,
+  scope: ScopeFilter,
+): Promise<Transaction[]> {
   const rows: Transaction[] = []
   for (let page = 0; ; page++) {
-    const result = await listTransactions({
-      ...filters,
-      groupInstallments: false,
-      page,
-      size: EXPORT_PAGE_SIZE,
-    })
+    const result = await listTransactions(
+      {
+        ...filters,
+        groupInstallments: false,
+        page,
+        size: EXPORT_PAGE_SIZE,
+      },
+      scope,
+    )
     rows.push(...result.content)
     if (page + 1 >= result.totalPages) return rows
   }
@@ -31,8 +38,12 @@ function csvDate(iso: string | null): string {
   return `${day}/${month}/${year}`
 }
 
-export async function exportTransactionsCsv(filters: ListTransactionsParams): Promise<Blob> {
-  const transactions = await fetchAllTransactions(filters)
+/** `scope` é o filtro PF / PJ da tela: o CSV traz o mesmo que a lista mostra. */
+export async function exportTransactionsCsv(
+  filters: ListTransactionsParams,
+  scope: ScopeFilter = 'ALL',
+): Promise<Blob> {
+  const transactions = await fetchAllTransactions(filters, scope)
   const header = [
     'Data',
     'Data do pagamento',

@@ -15,6 +15,7 @@ import { ACCOUNT_TYPES } from '@/features/accounts/schemas/create-account.schema
 import { useUpdateAccount } from '@/features/accounts/hooks/use-update-account'
 import type { Account } from '@/features/accounts/types'
 import { setFormErrors } from '@/lib/form-errors'
+import { ScopeSelect } from '@/features/accounts/components/account-form-fields'
 
 const ACCOUNT_TYPE_LABELS: Record<string, string> = {
   CHECKING: 'Conta corrente',
@@ -39,6 +40,7 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
       type: 'CHECKING',
       currencyCode: 'BRL',
       description: '',
+      scope: 'PERSONAL',
     },
   })
   const { mutate: updateAccount, isPending } = useUpdateAccount({
@@ -52,6 +54,7 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
         type: account.type,
         currencyCode: account.currencyCode,
         description: account.description ?? '',
+        scope: account.scope ?? 'PERSONAL',
       })
     }
   }, [account, form])
@@ -113,6 +116,10 @@ export function EditAccountDialog({ account, open, onClose }: EditAccountDialogP
               </option>
             ))}
           </Select>
+        </Field>
+
+        <Field label="Escopo" error={form.formState.errors.scope?.message}>
+          <ScopeSelect {...form.register('scope')} />
         </Field>
 
         {/* A moeda é fixa depois da criação: o backend recusa a troca. */}

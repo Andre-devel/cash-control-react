@@ -13,6 +13,7 @@ import {
 } from '@/features/cards/schemas/create-card.schema'
 import { useCreateCard } from '@/features/cards/hooks/use-create-card'
 import { setFormErrors } from '@/lib/form-errors'
+import { ScopeSelect } from '@/features/cards/components/card-form-fields'
 
 const BRAND_LABELS: Record<string, string> = {
   VISA: 'Visa',
@@ -30,6 +31,7 @@ const DEFAULT_VALUES: CreateCardFormValues = {
   creditLimit: '',
   closingDay: 1,
   dueDay: 10,
+  scope: 'PERSONAL',
 }
 
 interface CreateCardDialogProps {
@@ -126,6 +128,10 @@ export function CreateCardDialog({ open, onClose }: CreateCardDialogProps) {
               </option>
             ))}
           </Select>
+        </Field>
+
+        <Field label="Escopo" error={form.formState.errors.scope?.message}>
+          <ScopeSelect {...form.register('scope')} />
         </Field>
 
         <Field

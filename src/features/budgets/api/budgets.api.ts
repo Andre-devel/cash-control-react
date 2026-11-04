@@ -1,15 +1,24 @@
 import { axiosInstance } from '@/services/http'
+import { scopeParams, type ScopeFilter } from '@/app/store/scope.store'
 import type { BudgetHistoryData, BudgetProgress, SaveBudgetRequest } from '@/features/budgets/types'
 
-export async function getBudgetProgress(month: string): Promise<BudgetProgress> {
-  const response = await axiosInstance.get<BudgetProgress>('/budgets', { params: { month } })
+export async function getBudgetProgress(
+  month: string,
+  scope: ScopeFilter = 'ALL',
+): Promise<BudgetProgress> {
+  const response = await axiosInstance.get<BudgetProgress>('/budgets', {
+    params: { month, ...scopeParams(scope) },
+  })
   return response.data
 }
 
 /** Teto × gasto por categoria nos últimos `months` meses (1 a 12), até o mês atual. */
-export async function getBudgetHistory(months: number): Promise<BudgetHistoryData> {
+export async function getBudgetHistory(
+  months: number,
+  scope: ScopeFilter = 'ALL',
+): Promise<BudgetHistoryData> {
   const response = await axiosInstance.get<BudgetHistoryData>('/budgets/history', {
-    params: { months },
+    params: { months, ...scopeParams(scope) },
   })
   return response.data
 }

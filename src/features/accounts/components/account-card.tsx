@@ -10,6 +10,7 @@ import {
   formatBalance,
 } from '@/features/accounts/utils/account-visual'
 import type { Account } from '@/features/accounts/types'
+import { ScopeBadge } from '@/components/ui/scope-badge'
 
 interface AccountCardProps {
   account: Account
@@ -84,6 +85,7 @@ export function AccountCard({
         </Link>
         <span className="flex flex-wrap items-center gap-1.5 text-caption text-fg-muted">
           {accountTypeLabel(account.type)}
+          <ScopeBadge scope={account.scope} />
           {account.currencyCode !== 'BRL' && <span>· {account.currencyCode}</span>}
           {archived && (
             <span className="inline-flex items-center gap-1">

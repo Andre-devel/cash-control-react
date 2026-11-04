@@ -1,4 +1,5 @@
 import { axiosInstance } from '@/services/http'
+import { scopeParams, type ScopeFilter } from '@/app/store/scope.store'
 import type {
   Card,
   Invoice,
@@ -10,8 +11,8 @@ import type {
   SpendingBreakdownParams,
 } from '@/features/cards/types'
 
-export async function listCards(): Promise<Card[]> {
-  const response = await axiosInstance.get<Card[]>('/cards')
+export async function listCards(scope: ScopeFilter = 'ALL'): Promise<Card[]> {
+  const response = await axiosInstance.get<Card[]>('/cards', { params: scopeParams(scope) })
   return response.data
 }
 

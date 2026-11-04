@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useScope } from '@/app/store/scope.store'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeftRight,
@@ -317,6 +318,7 @@ export default function TransactionsPage() {
 
   const { data: pageData, isLoading, isError, error, refetch } = useTransactions(filters)
   const { data: totals, isLoading: totalsLoading } = useTransactionTotals(filters)
+  const scope = useScope()
   const { data: accounts = [] } = useAccounts()
   const { data: categories = [] } = useCategories()
   const { data: paymentMethods = [] } = usePaymentMethods()
@@ -414,11 +416,11 @@ export default function TransactionsPage() {
   const [exporting, setExporting] = useState(false)
   const handleExport = useCallback(() => {
     setExporting(true)
-    exportTransactionsCsv(filters)
+    exportTransactionsCsv(filters, scope)
       .then((blob) => saveBlob(blob, `transacoes-${localIsoDate()}.csv`))
       .catch(() => toast.error('Não foi possível exportar as transações.'))
       .finally(() => setExporting(false))
-  }, [filters])
+  }, [filters, scope])
 
   const handleViewSeries = useCallback(() => void navigate(ROUTES.INSTALLMENTS), [navigate])
 

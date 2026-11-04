@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useScope } from '@/app/store/scope.store'
 import { Link } from 'react-router-dom'
 import { CreditCard, Plus, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -37,7 +38,8 @@ function CardsSkeleton() {
 export default function CardsPage() {
   const isMobile = useMediaQuery(MOBILE_QUERY)
   const isDesktop = useMediaQuery(DESKTOP_QUERY)
-  const { data: cards, isLoading, isError, refetch } = useCards()
+  const scope = useScope()
+  const { data: cards, isLoading, isError, refetch } = useCards(scope)
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const [referenceMonth, setReferenceMonth] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)

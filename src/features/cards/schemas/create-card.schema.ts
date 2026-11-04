@@ -28,6 +28,8 @@ export const createCardSchema = z.object({
     .int('Dia de vencimento deve ser um número inteiro')
     .min(1, 'Dia de vencimento deve estar entre 1 e 31')
     .max(31, 'Dia de vencimento deve estar entre 1 e 31'),
+  /** PF ("Pessoal") ou PJ ("Empresa"); ausente, a API assume PF. */
+  scope: z.enum(['PERSONAL', 'BUSINESS']).optional(),
 })
 
 export type CreateCardFormValues = z.infer<typeof createCardSchema>

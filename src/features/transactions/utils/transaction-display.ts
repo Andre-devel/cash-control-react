@@ -14,6 +14,9 @@ import {
 import { localIsoDate } from '@/lib/local-date'
 import { categoryColorCss } from '@/features/categories/utils/category-colors'
 
+/** Rótulo da transferência entre uma conta PF e uma PJ (`crossScope`). */
+export const CROSS_SCOPE_LABEL = 'Pró-labore / aporte'
+
 export const MONTH_ABBR_PT = [
   'jan',
   'fev',
@@ -88,7 +91,8 @@ export function describeTransaction(
     signedAmount: isPositive ? Math.abs(amount) : -Math.abs(amount),
     isPositive,
     isCancelled: transaction.status === 'CANCELLED',
-    typeLabel: display.label,
+    // Transferência PF ↔ PJ: o par de escopos diz o que ela é, não o tipo.
+    typeLabel: transaction.crossScope ? CROSS_SCOPE_LABEL : display.label,
     icon: display.icon,
     bubbleColor: category?.color
       ? categoryColorCss(category.color)

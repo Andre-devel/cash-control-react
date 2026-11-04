@@ -81,6 +81,11 @@ export interface Transaction {
   counterpartyName?: string | null
   /** CPF/CNPJ da contraparte, mascarado como o banco mandou, ex.: "***.123.456-**". */
   counterpartyDocument?: string | null
+  /**
+   * Transferência entre uma conta PF e uma PJ: pró-labore ou aporte. Nunca conta como receita
+   * nem despesa.
+   */
+  crossScope?: boolean
 }
 
 export interface TransactionSummary {

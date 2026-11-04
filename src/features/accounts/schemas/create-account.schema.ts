@@ -23,6 +23,8 @@ export const createAccountSchema = z.object({
   currencyCode: z.enum(['BRL', 'USD', 'EUR'], { message: 'Escolha uma moeda da lista' }),
   initialBalance: moneyField('Saldo inicial deve ser um valor decimal válido (ex: 1500,00)'),
   description: z.string().optional(),
+  /** PF ("Pessoal") ou PJ ("Empresa"); ausente, a API assume PF. */
+  scope: z.enum(['PERSONAL', 'BUSINESS']).optional(),
 })
 
 export type CreateAccountFormValues = z.infer<typeof createAccountSchema>
