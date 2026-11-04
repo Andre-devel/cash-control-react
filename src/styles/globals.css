@@ -400,6 +400,83 @@
 .topbar .spacer { flex: 1; }
 .topbar-actions { display: flex; align-items: center; gap: var(--s-2); }
 
+/* ---------- Busca global ---------- */
+.global-search { position: relative; }
+.global-search-inline { width: min(360px, 40vw); }
+.global-search-field { position: relative; display: flex; align-items: center; }
+.global-search-field .input { width: 100%; padding-left: 34px; padding-right: 56px; }
+.global-search-sheet .global-search-field .input { padding-right: 12px; }
+.global-search-icon {
+  position: absolute; left: 11px;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+.global-search-kbd {
+  position: absolute; right: 8px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 11px;
+  pointer-events: none;
+}
+.global-search-inline .global-search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: max(100%, 420px);
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  z-index: 60;
+  padding: 6px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--cc-radius-md);
+  box-shadow: var(--cc-shadow-2);
+}
+.global-search-sheet .global-search-results { margin-top: var(--s-3); }
+.global-search-results[hidden] { display: none; }
+.global-search-results ul { list-style: none; margin: 0; padding: 0; }
+.global-search-status { margin: 0; padding: 10px; color: var(--text-dim); font-size: 13px; }
+.global-search-group-label {
+  padding: 10px 10px 4px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.global-search-option {
+  display: flex; align-items: center; gap: var(--s-3);
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.global-search-option.active { background: var(--surface-2); }
+.global-search-option.see-all { margin-top: 4px; border-top: 1px solid var(--border); border-radius: 0 0 10px 10px; color: var(--accent-text); font-weight: 600; }
+.global-search-option-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.global-search-option-text .title { color: var(--text); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.global-search-option-text .sub { color: var(--text-dim); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.global-search-option-meta { display: flex; flex-direction: column; align-items: flex-end; color: var(--text-dim); font-size: 12px; flex-shrink: 0; }
+.global-search-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(max(8px, var(--cc-safe-bottom)) + 80px);
+  z-index: 39;
+  display: grid; place-items: center;
+  width: 44px; height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  background: rgb(var(--cc-surface-2) / .92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--cc-shadow-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
 .content {
   /* Bloco de contenção dos absolutos (ex.: tabelas sr-only dos gráficos): sem ele eles
      escapavam do container de rolagem e faziam a página inteira rolar junto. */

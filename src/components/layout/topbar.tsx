@@ -1,5 +1,6 @@
 import React from 'react'
 import { ChevronRight } from 'lucide-react'
+import { GlobalSearch } from '@/features/search/components/global-search'
 import { ScopeSelector } from './scope-selector'
 
 interface TopbarProps {
@@ -8,13 +9,21 @@ interface TopbarProps {
   children?: React.ReactNode
   /** Mostra o seletor PF / PJ / Tudo (ele mesmo some para quem não tem conta ou cartão PJ). */
   scopeFilter?: boolean
+  /** Campo de busca global (Ctrl+K). No celular vira a lupa flutuante, já que a topbar some. */
+  search?: boolean
 }
 
 /**
  * Topbar do tablet/desktop (breadcrumb + ações). No celular some: cada página abre com o
  * próprio título e as ações globais ficam na folha "Mais".
  */
-export function Topbar({ breadcrumb, title, children, scopeFilter = false }: TopbarProps) {
+export function Topbar({
+  breadcrumb,
+  title,
+  children,
+  scopeFilter = false,
+  search = false,
+}: TopbarProps) {
   return (
     <header className="topbar">
       {breadcrumb && breadcrumb.length > 0 ? (
@@ -30,6 +39,7 @@ export function Topbar({ breadcrumb, title, children, scopeFilter = false }: Top
         <h1>{title}</h1>
       ) : null}
       <div className="spacer" />
+      {search && <GlobalSearch />}
       {scopeFilter && <ScopeSelector />}
       {children && <div className="topbar-actions">{children}</div>}
     </header>

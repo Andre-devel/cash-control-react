@@ -23,7 +23,7 @@ export function AuthenticatedLayout() {
       </a>
       <Sidebar />
       <div className="shell">
-        <Topbar breadcrumb={label ? [label] : undefined} scopeFilter>
+        <Topbar breadcrumb={label ? [label] : undefined} scopeFilter search>
           <Button variant="ghost" size="icon" onClick={logout} aria-label="Sair" title="Sair">
             <LogOut size={16} aria-hidden="true" />
           </Button>
