@@ -1,8 +1,16 @@
 import { axiosInstance } from '@/services/http'
-import type { BudgetProgress, SaveBudgetRequest } from '@/features/budgets/types'
+import type { BudgetHistoryData, BudgetProgress, SaveBudgetRequest } from '@/features/budgets/types'
 
 export async function getBudgetProgress(month: string): Promise<BudgetProgress> {
   const response = await axiosInstance.get<BudgetProgress>('/budgets', { params: { month } })
+  return response.data
+}
+
+/** Teto × gasto por categoria nos últimos `months` meses (1 a 12), até o mês atual. */
+export async function getBudgetHistory(months: number): Promise<BudgetHistoryData> {
+  const response = await axiosInstance.get<BudgetHistoryData>('/budgets/history', {
+    params: { months },
+  })
   return response.data
 }
 

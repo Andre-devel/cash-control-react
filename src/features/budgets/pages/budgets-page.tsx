@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { BudgetBar } from '@/features/budgets/components/budget-bar'
 import { BudgetDialog, type BudgetDialogState } from '@/features/budgets/components/budget-dialog'
+import { BudgetHistory } from '@/features/budgets/components/budget-history'
 import { BudgetRow } from '@/features/budgets/components/budget-row'
 import { useBudgetProgress } from '@/features/budgets/hooks/use-budgets'
 import { pacePercent } from '@/features/budgets/utils/budget-tone'
@@ -19,10 +20,18 @@ import {
   WidgetError,
 } from '@/features/dashboard/components/panel'
 import { shiftYearMonth, toYearMonth } from '@/features/dashboard/utils'
+import { Segmented } from '@/features/investments/components/segmented'
 
 /** Meses no seletor: os 6 anteriores para conferir e os 3 seguintes para planejar. */
 const PAST_MONTHS = 6
 const FUTURE_MONTHS = 3
+
+type BudgetView = 'month' | 'history'
+
+const VIEW_OPTIONS: { id: BudgetView; label: string }[] = [
+  { id: 'month', label: 'Mês atual' },
+  { id: 'history', label: 'Histórico' },
+]
 
 function Stat({ label, value, tone = 'text-fg' }: { label: string; value: number; tone?: string }) {
   return (
@@ -38,6 +47,7 @@ export default function BudgetsPage() {
   const monthOptions = Array.from({ length: PAST_MONTHS + FUTURE_MONTHS + 1 }, (_, i) =>
     shiftYearMonth(currentKey, i - PAST_MONTHS),
   )
+  const [view, setView] = useState<BudgetView>('month')
   const [month, setMonth] = useState(currentKey)
   const [dialog, setDialog] = useState<BudgetDialogState>(null)
   const { data, isLoading, isError, refetch } = useBudgetProgress(month)
@@ -70,12 +80,20 @@ export default function BudgetsPage() {
         </div>
         <div className="spacer" />
         <div className="actions">
-          <MonthStepper
-            options={monthOptions}
-            value={month}
-            onChange={setMonth}
-            label="Mês do orçamento"
+          <Segmented
+            label="Visão do orçamento"
+            options={VIEW_OPTIONS}
+            value={view}
+            onChange={setView}
           />
+          {view === 'month' && (
+            <MonthStepper
+              options={monthOptions}
+              value={month}
+              onChange={setMonth}
+              label="Mês do orçamento"
+            />
+          )}
           <Button
             variant="primary"
             leading={<Plus size={16} aria-hidden="true" />}
@@ -88,7 +106,9 @@ export default function BudgetsPage() {
         </div>
       </div>
 
-      {isLoading ? (
+      {view === 'history' ? (
+        <BudgetHistory />
+      ) : isLoading ? (
         <div className="col gap-3" aria-busy="true" aria-label="Carregando orçamentos">
           <SkeletonBlock className="h-28" />
           <SkeletonBlock className="h-48" />

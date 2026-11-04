@@ -35,3 +35,28 @@ export interface SaveBudgetRequest {
   /** `aaaa-mm` para ajustar só aquele mês; `null` grava o teto padrão. */
   month: string | null
 }
+
+export interface BudgetHistoryCell {
+  /** `aaaa-mm` */
+  month: string
+  /** Teto vigente naquele mês; `null` quando a categoria ainda não tinha teto. */
+  budget: number | null
+  spent: number
+  /** `null` sem teto. */
+  percent: number | null
+}
+
+export interface BudgetHistoryItem {
+  categoryId: string
+  name: string
+  icon: string | null
+  color: string | null
+  /** Uma célula por mês, na ordem de `months`. */
+  cells: BudgetHistoryCell[]
+}
+
+export interface BudgetHistoryData {
+  /** `aaaa-mm`, do mais antigo ao atual. */
+  months: string[]
+  items: BudgetHistoryItem[]
+}

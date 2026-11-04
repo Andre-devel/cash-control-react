@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getBudgetProgress } from '@/features/budgets/api/budgets.api'
+import { getBudgetHistory, getBudgetProgress } from '@/features/budgets/api/budgets.api'
 import { DASHBOARD_QUERY_KEY } from '@/lib/invalidate-financial-queries'
 
 /**
@@ -12,6 +12,14 @@ export function useBudgetProgress(month: string) {
   return useQuery({
     queryKey: [...BUDGETS_QUERY_KEY, month],
     queryFn: () => getBudgetProgress(month),
+    staleTime: 60_000,
+  })
+}
+
+export function useBudgetHistory(months: number) {
+  return useQuery({
+    queryKey: [...BUDGETS_QUERY_KEY, 'history', months],
+    queryFn: () => getBudgetHistory(months),
     staleTime: 60_000,
   })
 }

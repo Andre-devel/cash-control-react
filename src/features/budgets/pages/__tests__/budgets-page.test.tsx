@@ -108,6 +108,34 @@ describe('BudgetsPage', () => {
     )
   })
 
+  it('switches to the history view, hiding the month stepper', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get('*/budgets/history', () =>
+        HttpResponse.json({
+          months: ['2026-10'],
+          items: [
+            {
+              categoryId: 'cat-rest',
+              name: 'Restaurantes',
+              icon: 'tag',
+              color: '#22c55e',
+              cells: [{ month: '2026-10', budget: 300, spent: 340, percent: 113 }],
+            },
+          ],
+        }),
+      ),
+    )
+    renderWithProviders(<BudgetsPage />)
+    await waitFor(() => expect(screen.getByText('Restaurantes')).toBeTruthy())
+
+    await user.click(screen.getByRole('tab', { name: 'Histórico' }))
+
+    expect(await screen.findByRole('table')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Próximo mês' })).toBeNull()
+    expect(screen.getByText('113% · Estourou')).toBeTruthy()
+  })
+
   it('creates a default cap, offering only categories without one', async () => {
     const user = userEvent.setup()
     renderWithProviders(<BudgetsPage />)
