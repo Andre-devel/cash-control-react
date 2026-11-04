@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react'
 /** Mesmo breakpoint do bloco `@media (max-width: 767px)` de globals.css. */
 export const MOBILE_QUERY = '(max-width: 767px)'
 
+/** Desktop do layout (`xl` do Tailwind): sidebar em vez de rail. */
+export const DESKTOP_QUERY = '(min-width: 1280px)'
+
 function matches(query: string): boolean {
   if (typeof window === 'undefined' || !window.matchMedia) return false
   return window.matchMedia(query).matches

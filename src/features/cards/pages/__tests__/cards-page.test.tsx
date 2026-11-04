@@ -67,16 +67,26 @@ describe('CardsPage — loading skeleton', () => {
   })
 })
 
-describe('CardsPage — card visuals', () => {
-  it('renders credit card visual buttons after loading', async () => {
+/** Os cartões viram botões de escolha (pílulas no tablet e celular, lista no desktop). */
+function cardButton(name: string) {
+  return within(screen.getByRole('group', { name: 'Escolher cartão' })).getByRole('button', {
+    name: new RegExp(name),
+  })
+}
+
+async function waitForCards() {
+  await screen.findByRole('group', { name: 'Escolher cartão' })
+}
+
+describe('CardsPage — escolha do cartão', () => {
+  it('renders one choice per active card after loading', async () => {
     renderWithProviders(<CardsPage />)
-    await waitFor(() => {
-      expect(screen.getByLabelText(`${MOCK_CARD_1.name} — cartão de crédito`)).toBeTruthy()
-      expect(screen.getByLabelText(`${MOCK_CARD_2.name} — cartão de crédito`)).toBeTruthy()
-    })
+    await waitForCards()
+    expect(cardButton(MOCK_CARD_1.name)).toBeTruthy()
+    expect(cardButton(MOCK_CARD_2.name)).toBeTruthy()
   })
 
-  it('renders the "Adicionar cartão" placeholder', async () => {
+  it('renders the "Adicionar cartão" choice', async () => {
     renderWithProviders(<CardsPage />)
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /adicionar cartão/i })).toBeTruthy(),
@@ -85,24 +95,18 @@ describe('CardsPage — card visuals', () => {
 
   it('first card is selected by default (aria-pressed=true)', async () => {
     renderWithProviders(<CardsPage />)
-    await waitFor(() => {
-      const btn = screen.getByLabelText(`${MOCK_CARD_1.name} — cartão de crédito`)
-      expect(btn.getAttribute('aria-pressed')).toBe('true')
-    })
+    await waitForCards()
+    expect(cardButton(MOCK_CARD_1.name).getAttribute('aria-pressed')).toBe('true')
   })
 
   it('clicking a different card selects it', async () => {
     const user = userEvent.setup()
     renderWithProviders(<CardsPage />)
-    await waitFor(() => screen.getByLabelText(`${MOCK_CARD_2.name} — cartão de crédito`))
-    await user.click(screen.getByLabelText(`${MOCK_CARD_2.name} — cartão de crédito`))
-    await waitFor(() => {
-      expect(
-        screen
-          .getByLabelText(`${MOCK_CARD_2.name} — cartão de crédito`)
-          .getAttribute('aria-pressed'),
-      ).toBe('true')
-    })
+    await waitForCards()
+    await user.click(cardButton(MOCK_CARD_2.name))
+    await waitFor(() =>
+      expect(cardButton(MOCK_CARD_2.name).getAttribute('aria-pressed')).toBe('true'),
+    )
   })
 })
 
@@ -161,7 +165,7 @@ describe('CardsPage — invoice section', () => {
     )
 
     renderWithProviders(<CardsPage />)
-    await waitFor(() => screen.getByLabelText(`${MOCK_CARD_1.name} — cartão de crédito`))
+    await waitForCards()
     // The invoice query stays disabled until referenceMonth is set, so the
     // skeleton appears a tick after the card does.
     expect(await screen.findByLabelText('Carregando fatura')).toBeTruthy()
@@ -171,7 +175,7 @@ describe('CardsPage — invoice section', () => {
 
   it('shows invoice total amount after loading', async () => {
     renderWithProviders(<CardsPage />)
-    await waitFor(() => expect(screen.getByText(/fatura — nubank/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/fatura · nubank/i)).toBeTruthy())
   })
 
   it('shows invoice charge descriptions', async () => {
@@ -220,25 +224,28 @@ describe('CardsPage — invoice section', () => {
   })
 })
 
-describe('CardsPage — card sidebar', () => {
-  it('shows "Detalhes do cartão" section', async () => {
+describe('CardsPage — limite e detalhe do cartão', () => {
+  it('shows the limit once, inside the invoice', async () => {
     renderWithProviders(<CardsPage />)
-    await waitFor(() => expect(screen.getByText(/detalhes do cartão/i)).toBeTruthy())
+    const invoice = await screen.findByRole('region', { name: 'Fatura' })
+    await waitFor(() => expect(within(invoice).getByText('Limite disponível')).toBeTruthy())
+    expect(screen.getAllByText('Limite disponível')).toHaveLength(1)
+    expect(screen.queryByText(/uso do limite/i)).toBeNull()
+    expect(screen.queryByText('Limite total')).toBeNull()
   })
 
-  it('shows card brand in details', async () => {
+  it('links to the card detail page, where it is edited and archived', async () => {
     renderWithProviders(<CardsPage />)
-    await waitFor(() => expect(screen.getByText('Visa')).toBeTruthy())
+    const link = await screen.findByRole('link', { name: 'Detalhes do cartão' })
+    expect(link.getAttribute('href')).toBe(`/cards/${MOCK_CARD_1.id}`)
   })
 
-  it('shows card brand in details (VISA)', async () => {
+  it('lists the invoice items one row each', async () => {
     renderWithProviders(<CardsPage />)
-    await waitFor(() => expect(screen.getAllByText('Visa').length).toBeGreaterThan(0))
-  })
-
-  it('shows "Uso do limite" section', async () => {
-    renderWithProviders(<CardsPage />)
-    await waitFor(() => expect(screen.getByText(/uso do limite/i)).toBeTruthy())
+    const table = await screen.findByRole('table', { name: 'Lançamentos' })
+    await waitFor(() =>
+      expect(within(table).getAllByRole('row')).toHaveLength(MOCK_INVOICE.items.length),
+    )
   })
 })
 
@@ -303,7 +310,7 @@ describe('CardsPage — create card dialog', () => {
   it('"Novo cartão" button opens create dialog', async () => {
     const user = userEvent.setup()
     renderWithProviders(<CardsPage />)
-    await waitFor(() => screen.getByRole('button', { name: /novo cartão/i }))
+    await waitForCards()
     await user.click(screen.getByRole('button', { name: /novo cartão/i }))
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeTruthy()
@@ -314,7 +321,7 @@ describe('CardsPage — create card dialog', () => {
   it('create card form → submit → new card appears in list', async () => {
     const user = userEvent.setup()
     renderWithProviders(<CardsPage />)
-    await waitFor(() => screen.getByRole('button', { name: /novo cartão/i }))
+    await waitForCards()
     await user.click(screen.getByRole('button', { name: /novo cartão/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
@@ -324,15 +331,13 @@ describe('CardsPage — create card dialog', () => {
     await user.click(screen.getByRole('button', { name: /criar cartão/i }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    await waitFor(() =>
-      expect(screen.getByLabelText(/my test card — cartão de crédito/i)).toBeTruthy(),
-    )
+    await waitFor(() => expect(cardButton('My Test Card')).toBeTruthy())
   })
 
   it('create card form shows validation error for empty name', async () => {
     const user = userEvent.setup()
     renderWithProviders(<CardsPage />)
-    await waitFor(() => screen.getByRole('button', { name: /novo cartão/i }))
+    await waitForCards()
     await user.click(screen.getByRole('button', { name: /novo cartão/i }))
     await waitFor(() => screen.getByRole('dialog'))
 
@@ -345,7 +350,7 @@ describe('CardsPage — create card dialog', () => {
   it('Cancel button closes the create dialog', async () => {
     const user = userEvent.setup()
     renderWithProviders(<CardsPage />)
-    await waitFor(() => screen.getByRole('button', { name: /novo cartão/i }))
+    await waitForCards()
     await user.click(screen.getByRole('button', { name: /novo cartão/i }))
     await waitFor(() => screen.getByRole('dialog'))
     await user.click(screen.getByRole('button', { name: /cancel/i }))
@@ -354,29 +359,12 @@ describe('CardsPage — create card dialog', () => {
 })
 
 describe('CardsPage — Phase 7 acceptance criteria', () => {
-  it('renders issuer in card details when present', async () => {
+  it('shows usagePercentage from backend in the limit bar', async () => {
     renderWithProviders(<CardsPage />)
-    await waitFor(() => expect(screen.getByText('Emissor')).toBeTruthy())
-    // O emissor também aparece impresso no cartão; aqui vale a linha de "Detalhes do cartão".
-    const details = screen.getByText('Emissor').closest('dl') as HTMLElement
-    expect(within(details).getByText(MOCK_CARD_1.issuer!)).toBeTruthy()
-  })
-
-  it('does not render issuer row when issuer is absent', async () => {
-    server.use(http.get('*/cards', () => HttpResponse.json([MOCK_CARD_2])))
-    renderWithProviders(<CardsPage />)
-    await waitFor(() => screen.getByText(/detalhes do cartão/i))
-    expect(screen.queryByText('Emissor')).toBeNull()
-  })
-
-  it('shows usagePercentage from backend in limit usage section', async () => {
-    renderWithProviders(<CardsPage />)
-    await waitFor(() => {
-      const pctEl = screen.getByText(
-        `${Math.round(parseFloat(MOCK_LIMIT_USAGE.usagePercentage!))}%`,
-      )
-      expect(pctEl).toBeTruthy()
-    })
+    const bar = await screen.findByRole('progressbar', { name: 'Limite usado' })
+    expect(bar.getAttribute('aria-valuenow')).toBe(
+      String(Math.round(parseFloat(MOCK_LIMIT_USAGE.usagePercentage!))),
+    )
   })
 
   /**
@@ -386,7 +374,7 @@ describe('CardsPage — Phase 7 acceptance criteria', () => {
    */
   it('shows both the closing and the due date of the invoice', async () => {
     renderWithProviders(<CardsPage />)
-    await waitFor(() => expect(screen.getByText(/fatura — nubank/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/fatura · nubank/i)).toBeTruthy())
     await waitFor(() => {
       const subtitle = screen.getByText(/fecha em/i)
       expect(subtitle.textContent).toMatch(/01\/05\/2026/)
@@ -400,8 +388,8 @@ describe('CardsPage — Phase 7 acceptance criteria', () => {
     await waitFor(() => screen.getAllByRole('tab'))
     const labels = screen.getAllByRole('tab').map((tab) => tab.textContent)
 
-    // Toda aba diz o mês do vencimento; a corrente acrescenta a marca "Atual".
-    expect(labels.filter((label) => /· Atual$/.test(label ?? ''))).toHaveLength(1)
+    // Toda aba diz o mês do vencimento; a corrente acrescenta a marca "atual".
+    expect(labels.filter((label) => /· atual$/.test(label ?? ''))).toHaveLength(1)
     expect(
       labels.every((label) =>
         /^(Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)/.test(label ?? ''),
@@ -409,16 +397,20 @@ describe('CardsPage — Phase 7 acceptance criteria', () => {
     ).toBe(true)
   })
 
-  it('shows closing day from card.closingDay in sidebar details', async () => {
+  it('shows closing day from card.closingDay next to the limit', async () => {
     renderWithProviders(<CardsPage />)
     await waitFor(() => {
-      expect(screen.getByText(`Dia ${MOCK_CARD_1.closingDay}`)).toBeTruthy()
+      expect(
+        screen.getByText(
+          new RegExp(`Fecha dia ${String(MOCK_CARD_1.closingDay).padStart(2, '0')}`),
+        ),
+      ).toBeTruthy()
     })
   })
 
   it('invoice close date renders correctly when closingDate present', async () => {
     renderWithProviders(<CardsPage />)
-    await waitFor(() => expect(screen.getByText(/fatura — nubank/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/fatura · nubank/i)).toBeTruthy())
     await waitFor(() => {
       // closingDate is '2026-05-01' which fmtDate converts to '01/05/2026'
       const sub = screen.getByText(/fecha em 01\/05\/2026/i)
@@ -497,5 +489,35 @@ describe('CardsPage no celular', () => {
     const second = within(group).getByRole('button', { name: new RegExp(MOCK_CARD_2.name) })
     await user.click(second)
     expect(second.getAttribute('aria-pressed')).toBe('true')
+  })
+})
+
+describe('CardsPage no desktop', () => {
+  const originalMatchMedia = window.matchMedia
+
+  beforeEach(() => {
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(min-width: 1280px)',
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia
+  })
+
+  afterEach(() => {
+    window.matchMedia = originalMatchMedia
+  })
+
+  it('lista os cartões numa coluna e a fatura ao lado, com a tabela de lançamentos', async () => {
+    renderWithProviders(<CardsPage />)
+    const list = await screen.findByRole('region', { name: 'Seus cartões' })
+    expect(within(list).getAllByRole('button', { pressed: true })).toHaveLength(1)
+    const table = await screen.findByRole('table', { name: 'Lançamentos' })
+    expect(within(table).getByRole('columnheader', { name: 'Categoria' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Fatura' })).toBeTruthy()
   })
 })

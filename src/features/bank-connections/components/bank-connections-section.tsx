@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Landmark, RefreshCw, Trash2 } from 'lucide-react'
-import { Badge, type BadgeKind } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { Select } from '@/components/ui/select'
@@ -15,21 +15,14 @@ import {
   useRegisterBankConnection,
 } from '@/features/bank-connections/hooks/use-bank-connection-mutations'
 import { toast } from '@/lib/toast'
+import {
+  connectionStatus,
+  NEEDS_RECONNECT,
+} from '@/features/bank-connections/utils/connection-status'
 import { PluggyConnectWidget } from './pluggy-connect-widget'
 import type { BankConnection, BankConnectionAccount } from '@/features/bank-connections/types'
 
 const CARD = 'rounded-xl border border-border bg-surface-1 shadow-1'
-
-const STATUS: Record<string, { label: string; kind: BadgeKind }> = {
-  UPDATED: { label: 'Atualizada', kind: 'paid' },
-  UPDATING: { label: 'Atualizando', kind: 'info' },
-  WAITING_USER_INPUT: { label: 'Aguardando você', kind: 'pending' },
-  OUTDATED: { label: 'Desatualizada', kind: 'pending' },
-  LOGIN_ERROR: { label: 'Precisa reconectar', kind: 'overdue' },
-}
-
-/** Status em que só um novo consentimento no widget resolve. */
-const NEEDS_RECONNECT = new Set(['LOGIN_ERROR', 'OUTDATED', 'WAITING_USER_INPUT'])
 
 function formatDateTime(instant: string): string {
   return new Date(instant).toLocaleString('pt-BR', {
@@ -121,7 +114,7 @@ interface ConnectionCardProps {
 
 function ConnectionCard({ connection, reconnecting, onReconnect, onDelete }: ConnectionCardProps) {
   const refresh = useRefreshBankConnection()
-  const status = STATUS[connection.status] ?? { label: connection.status, kind: 'muted' }
+  const status = connectionStatus(connection.status)
   const name = connection.connectorName ?? 'Banco'
   // Duas conexões pelo MeuPluggy têm o mesmo nome; o número da conta diferencia.
   const accountNumber = connection.accounts.find((account) => account.kind === 'BANK')?.number

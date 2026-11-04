@@ -16,6 +16,8 @@ export const ROUTES = {
   ROLES: '/admin/roles',
   ROLE_DETAIL: '/admin/roles/:roleId',
   AUDIT: '/admin/audit',
+  /** Histórico das leituras da Pluggy (ADMIN, só as conexões do próprio usuário). */
+  BANK_SYNC: '/admin/sincronizacao',
   FORBIDDEN: '/forbidden',
   ACCOUNTS: '/accounts',
   ACCOUNT_DETAIL: '/accounts/:id',

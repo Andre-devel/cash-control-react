@@ -41,6 +41,7 @@ const InvoiceDetailPage = lazy(() => import('@/features/invoices/pages/invoice-d
 const ProfilePage = lazy(() => import('@/features/profile/pages/profile-page'))
 const BankReviewPage = lazy(() => import('@/features/bank-connections/pages/bank-review-page'))
 const AuditPage = lazy(() => import('@/features/audit/pages/audit-page'))
+const BankSyncPage = lazy(() => import('@/features/bank-sync/pages/bank-sync-page'))
 const ShareTargetPage = lazy(() => import('@/features/transactions/pages/share-target-page'))
 
 function PageLoader() {
@@ -319,6 +320,19 @@ export const routeConfig: RouteObject[] = [
                     element: (
                       <Suspense fallback={<PageLoader />}>
                         <AuditPage />
+                      </Suspense>
+                    ),
+                  },
+                ],
+              },
+              {
+                element: <PermissionGuard requiredPermissions={['bank-sync:view']} />,
+                children: [
+                  {
+                    path: ROUTES.BANK_SYNC,
+                    element: (
+                      <Suspense fallback={<PageLoader />}>
+                        <BankSyncPage />
                       </Suspense>
                     ),
                   },
