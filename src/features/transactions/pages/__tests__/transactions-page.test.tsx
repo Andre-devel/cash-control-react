@@ -366,13 +366,47 @@ describe('TransactionsPage', () => {
     )
     const user = userEvent.setup()
     renderWithProviders(<TransactionsPage />)
-    const input = screen.getByRole('textbox', { name: /buscar por descrição/i })
+    const input = screen.getByRole('textbox', { name: /buscar transações/i })
 
     await user.type(input, 'hostinger')
 
     expect((input as HTMLInputElement).value).toBe('hostinger')
     await waitFor(() => expect(searches[searches.length - 1]).toBe('hostinger'))
     expect(searches.filter((s) => s !== null)).toEqual(['hostinger'])
+  })
+
+  it('a busca procura em todo o período com o cartão e, ao limpar, volta ao mês', async () => {
+    const seen: URLSearchParams[] = []
+    server.use(
+      http.get('*/transactions', ({ request }) => {
+        seen.push(new URL(request.url).searchParams)
+        return HttpResponse.json({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 20,
+        })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<TransactionsPage />)
+    await waitFor(() => expect(seen.length).toBeGreaterThan(0))
+    const monthStart = seen[seen.length - 1].get('competenceDateFrom')
+    expect(monthStart).not.toBeNull()
+    const input = screen.getByRole('textbox', { name: /buscar transações/i })
+
+    await user.type(input, 'mercado')
+    await waitFor(() => expect(seen[seen.length - 1].get('searchText')).toBe('mercado'))
+    const searching = seen[seen.length - 1]
+    expect(searching.get('competenceDateFrom')).toBeNull()
+    expect(searching.get('includeCreditCard')).toBe('true')
+
+    await user.clear(input)
+    await waitFor(() => expect(seen[seen.length - 1].get('searchText')).toBeNull())
+    const cleared = seen[seen.length - 1]
+    expect(cleared.get('competenceDateFrom')).toBe(monthStart)
+    expect(cleared.get('includeCreditCard')).not.toBe('true')
   })
 
   it('reativa uma transação cancelada pelo menu', async () => {

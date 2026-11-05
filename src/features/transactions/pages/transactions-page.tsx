@@ -23,6 +23,7 @@ import {
 import { useReactivateTransaction } from '@/features/transactions/hooks/use-reactivate-transaction'
 import { usePaymentMethods } from '@/features/transactions/hooks/use-payment-methods'
 import {
+  ALL_PERIOD,
   parsePeriod,
   periodLabel,
   periodRange,
@@ -357,8 +358,27 @@ export default function TransactionsPage() {
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev)
+          const starting = Boolean(searchText) && !prev.get('searchText')
           if (searchText) next.set('searchText', searchText)
           else next.delete('searchText')
+          // Quem busca quer achar o lançamento onde ele estiver: a busca abre todo o período e
+          // as compras no cartão, e ao limpar volta ao recorte de antes (guardado em
+          // `searchFrom`). Trocar o período durante a busca vale e não é desfeito.
+          if (starting && prev.get('period') !== ALL_PERIOD) {
+            next.set('searchFrom', prev.get('period') ?? '')
+            if (prev.get('includeCreditCard') !== 'true') next.set('searchCard', '1')
+            next.set('period', ALL_PERIOD)
+            next.set('includeCreditCard', 'true')
+          } else if (!searchText && prev.has('searchFrom')) {
+            const from = prev.get('searchFrom')
+            if (prev.get('period') === ALL_PERIOD) {
+              if (from) next.set('period', from)
+              else next.delete('period')
+            }
+            if (prev.has('searchCard')) next.delete('includeCreditCard')
+            next.delete('searchFrom')
+            next.delete('searchCard')
+          }
           next.delete('page')
           return next
         },

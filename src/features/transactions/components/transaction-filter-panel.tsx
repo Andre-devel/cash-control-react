@@ -174,8 +174,8 @@ export function TransactionSearchField({ searchText, onSearchChange }: SearchFie
         ref={inputRef}
         type="text"
         enterKeyHint="search"
-        placeholder="Buscar por descrição…"
-        aria-label="Buscar por descrição"
+        placeholder="Buscar por descrição, contato, categoria ou valor…"
+        aria-label="Buscar transações"
         className="h-full min-w-0 flex-1 border-0 bg-transparent text-[16px] text-fg outline-none placeholder:text-fg-subtle lg:text-body"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
