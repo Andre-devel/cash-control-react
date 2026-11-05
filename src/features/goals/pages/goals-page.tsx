@@ -11,7 +11,7 @@ import { useGoals } from '@/features/goals/hooks/use-goals'
 import type { SavingsGoal } from '@/features/goals/types'
 import { useHoldings } from '@/features/investments/hooks/use-investments'
 
-const GRID = 'grid gap-3 md:grid-cols-2 xl:grid-cols-3'
+const GRID = 'grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3'
 
 export default function GoalsPage() {
   const [dialog, setDialog] = useState<GoalDialogState>(null)

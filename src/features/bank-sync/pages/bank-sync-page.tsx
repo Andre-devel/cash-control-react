@@ -105,7 +105,7 @@ export default function BankSyncPage() {
       </div>
 
       {overview.isLoading ? (
-        <div className="mb-6 grid gap-4 lg:grid-cols-2" aria-busy="true">
+        <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2" aria-busy="true">
           {[1, 2].map((i) => (
             <div key={i} className={`${CARD} h-[188px] p-5`}>
               <div className={`h-4 w-40 ${pulse}`} />
@@ -122,7 +122,7 @@ export default function BankSyncPage() {
           <p>Conecte um banco pelo Perfil para ver as sincronizações aqui.</p>
         </div>
       ) : (
-        <div className="mb-6 grid gap-4 lg:grid-cols-2">
+        <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {connections.map((connection) => (
             <ConnectionHealth
               key={connection.connectionId}
