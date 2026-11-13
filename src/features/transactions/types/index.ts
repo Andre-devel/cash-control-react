@@ -137,7 +137,8 @@ export interface TransactionTotals {
 }
 
 export interface ListTransactionsParams {
-  accountId?: string
+  /** Contas do filtro; ausente ou vazio traz todas. */
+  accountIds?: string[]
   type?: TransactionType
   status?: TransactionStatus
   categoryId?: string

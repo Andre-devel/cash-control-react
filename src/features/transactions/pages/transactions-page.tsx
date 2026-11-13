@@ -50,6 +50,12 @@ import {
   buildFilterChips,
   type FilterChip,
 } from '@/features/transactions/components/transaction-filter-panel'
+import { TransactionAccountFilter } from '@/features/transactions/components/transaction-account-filter'
+import {
+  ALL_ACCOUNTS,
+  resolveAccountSelection,
+  storeAccountSelection,
+} from '@/features/transactions/utils/account-selection'
 import { CreateTransactionDialog } from '@/features/transactions/components/create-transaction-dialog'
 import { EditTransactionDialog } from '@/features/transactions/components/edit-transaction-dialog'
 import { DeleteTransactionDialog } from '@/features/transactions/components/delete-transaction-dialog'
@@ -78,10 +84,11 @@ const COMPACT_FILTERS_QUERY = '(max-width: 1279px)'
 function buildParams(
   searchParams: URLSearchParams,
   period: TransactionPeriod,
+  accountIds: string[],
 ): ListTransactionsParams {
   const get = (key: string) => searchParams.get(key) ?? undefined
   return {
-    accountId: get('accountId'),
+    accountIds: accountIds.length > 0 ? accountIds : undefined,
     type: get('type') as ListTransactionsParams['type'],
     status: get('status') as ListTransactionsParams['status'],
     categoryId: get('categoryId'),
@@ -106,14 +113,17 @@ function buildParams(
   }
 }
 
-/** O período vai à parte (`period`): as datas de competência derivam dele. */
+/**
+ * O período vai à parte (`period`): as datas de competência derivam dele. As contas vão
+ * sempre explícitas — uma `accountId` por conta, ou `accounts=all` — para a URL abrir no
+ * mesmo recorte em outro aparelho, sem depender da escolha guardada neste.
+ */
 function paramsToSearchParams(
   params: ListTransactionsParams,
   period: string | null,
-): Record<string, string> {
+): URLSearchParams {
   const out: Record<string, string> = {}
   if (period) out.period = period
-  if (params.accountId) out.accountId = params.accountId
   if (params.type) out.type = params.type
   if (params.status) out.status = params.status
   if (params.categoryId) out.categoryId = params.categoryId
@@ -125,7 +135,15 @@ function paramsToSearchParams(
   if (params.includeCreditCard && params.paymentMethod !== 'CREDIT_CARD')
     out.includeCreditCard = 'true'
   if (params.page && params.page > 0) out.page = String(params.page)
-  return out
+  return withAccounts(new URLSearchParams(out), params.accountIds ?? [])
+}
+
+function withAccounts(searchParams: URLSearchParams, accountIds: string[]): URLSearchParams {
+  searchParams.delete('accountId')
+  searchParams.delete('accounts')
+  if (accountIds.length === 0) searchParams.set('accounts', ALL_ACCOUNTS)
+  for (const id of accountIds) searchParams.append('accountId', id)
+  return searchParams
 }
 
 function groupSums(rows: Transaction[]) {
@@ -315,12 +333,30 @@ export default function TransactionsPage() {
 
   const rawPeriod = searchParams.get('period')
   const period = parsePeriod(rawPeriod)
-  const filters = buildParams(searchParams, period)
+  const { data: loadedAccounts } = useAccounts()
+  const accounts = useMemo(() => loadedAccounts ?? [], [loadedAccounts])
+  // Sem conta na URL, abre na escolha guardada ou na conta principal; até as contas
+  // carregarem a lista espera, em vez de mostrar todas e trocar logo depois.
+  const accountSelection = useMemo(
+    () => resolveAccountSelection(searchParams, loadedAccounts),
+    [searchParams, loadedAccounts],
+  )
+  const selectedAccounts = useMemo(() => accountSelection ?? [], [accountSelection])
+  const filters = buildParams(searchParams, period, selectedAccounts)
+  const ready = accountSelection !== null
 
-  const { data: pageData, isLoading, isError, error, refetch } = useTransactions(filters)
-  const { data: totals, isLoading: totalsLoading } = useTransactionTotals(filters)
+  const {
+    data: pageData,
+    isLoading: listLoading,
+    isError,
+    error,
+    refetch,
+  } = useTransactions(filters, { enabled: ready })
+  const { data: totals, isLoading: totalsLoading } = useTransactionTotals(filters, {
+    enabled: ready,
+  })
+  const isLoading = listLoading || !ready
   const scope = useScope()
-  const { data: accounts = [] } = useAccounts()
   const { data: categories = [] } = useCategories()
   const { data: paymentMethods = [] } = usePaymentMethods()
   // useCategories devolve uma árvore; quem faz lookup por id precisa da lista
@@ -403,10 +439,21 @@ export default function TransactionsPage() {
     [setSearchParams],
   )
 
-  // Limpar filtros mantém o período: ele é a "página" da lista, não um filtro.
+  // Limpar filtros mantém o período e as contas: eles dizem qual lista é, não um filtro dela.
   const handleReset = useCallback(() => {
-    setSearchParams(rawPeriod ? { period: rawPeriod } : {}, { replace: true })
-  }, [rawPeriod, setSearchParams])
+    setSearchParams(
+      withAccounts(new URLSearchParams(rawPeriod ? { period: rawPeriod } : {}), selectedAccounts),
+      { replace: true },
+    )
+  }, [rawPeriod, selectedAccounts, setSearchParams])
+
+  const handleAccountsChange = useCallback(
+    (accountIds: string[]) => {
+      storeAccountSelection(accountIds)
+      handleFiltersChange({ ...filters, accountIds, page: 0 })
+    },
+    [filters, handleFiltersChange],
+  )
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -465,7 +512,7 @@ export default function TransactionsPage() {
     return Array.from(groups.entries())
   }, [transactions])
 
-  const chips = buildFilterChips(filters, accounts, flatCategories, paymentMethods)
+  const chips = buildFilterChips(filters, flatCategories, paymentMethods)
   const correlationId = (error as { correlationId?: string } | null)?.correlationId
 
   const actionHandlers = {
@@ -482,7 +529,6 @@ export default function TransactionsPage() {
   const filterFields = (
     <TransactionFilterFields
       filters={filters}
-      accounts={accounts}
       categories={flatCategories}
       includeCancelled={filters.includeCancelled ?? false}
       onFiltersChange={handleFiltersChange}
@@ -720,6 +766,11 @@ export default function TransactionsPage() {
             className="order-1 flex flex-col gap-3 md:order-2"
           >
             <TransactionPeriodControl period={period} onPeriodChange={handlePeriodChange} />
+            <TransactionAccountFilter
+              accounts={accounts}
+              selected={selectedAccounts}
+              onChange={handleAccountsChange}
+            />
             <div className="flex items-center gap-2">
               <TransactionSearchField
                 searchText={filters.searchText}

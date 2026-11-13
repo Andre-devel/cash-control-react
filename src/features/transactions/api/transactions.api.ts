@@ -12,13 +12,30 @@ import type {
   SetReimbursementRequest,
 } from '@/features/transactions/types'
 
+/**
+ * Parâmetros da listagem como a API espera: cada conta vira um `accountId` repetido
+ * (`accountId=a&accountId=b`), que é como o Spring liga uma lista.
+ */
+function listQuery(params: ListTransactionsParams | undefined, scope: ScopeFilter) {
+  const { accountIds, ...rest } = params ?? {}
+  return {
+    params: {
+      ...rest,
+      ...scopeParams(scope),
+      accountId: accountIds?.length ? accountIds : undefined,
+    },
+    paramsSerializer: { indexes: null },
+  }
+}
+
 export async function listTransactions(
   params?: ListTransactionsParams,
   scope: ScopeFilter = 'ALL',
 ): Promise<PaginatedResponse<Transaction>> {
-  const response = await axiosInstance.get<PaginatedResponse<Transaction>>('/transactions', {
-    params: { ...params, ...scopeParams(scope) },
-  })
+  const response = await axiosInstance.get<PaginatedResponse<Transaction>>(
+    '/transactions',
+    listQuery(params, scope),
+  )
   return response.data
 }
 
@@ -26,9 +43,10 @@ export async function getTransactionTotals(
   params?: ListTransactionsParams,
   scope: ScopeFilter = 'ALL',
 ): Promise<TransactionTotals> {
-  const response = await axiosInstance.get<TransactionTotals>('/transactions/summary', {
-    params: { ...params, ...scopeParams(scope) },
-  })
+  const response = await axiosInstance.get<TransactionTotals>(
+    '/transactions/summary',
+    listQuery(params, scope),
+  )
   return response.data
 }
 

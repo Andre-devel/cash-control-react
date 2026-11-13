@@ -15,7 +15,6 @@ import {
   shiftPeriod,
   type TransactionPeriod,
 } from '@/features/transactions/utils/period'
-import type { Account } from '@/features/accounts/types'
 import type { Category } from '@/features/categories/types'
 import type {
   ListTransactionsParams,
@@ -229,7 +228,6 @@ export interface FilterChip {
 /** Um chip por filtro aplicado. O período não entra: ele é a "página" da lista, não um filtro. */
 export function buildFilterChips(
   filters: ListTransactionsParams,
-  accounts: Account[],
   categories: Category[],
   paymentMethods: PaymentMethod[],
 ): FilterChip[] {
@@ -247,10 +245,6 @@ export function buildFilterChips(
       label: `Status: ${TRANSACTION_STATUS_LABELS[filters.status]}`,
       remove: { status: undefined },
     })
-  }
-  if (filters.accountId) {
-    const name = accounts.find((a) => a.id === filters.accountId)?.name ?? 'selecionada'
-    chips.push({ key: 'account', label: `Conta: ${name}`, remove: { accountId: undefined } })
   }
   if (filters.categoryId) {
     const name = categories.find((c) => c.id === filters.categoryId)?.name ?? 'selecionada'
@@ -340,7 +334,6 @@ export function ActiveFilterChips({ chips, onRemove, scroll = false }: ActiveFil
 
 interface TransactionFilterFieldsProps {
   filters: ListTransactionsParams
-  accounts: Account[]
   /** Lista achatada (raízes + subcategorias) — ver `flattenCategories`. */
   categories: Category[]
   includeCancelled: boolean
@@ -354,7 +347,6 @@ function FieldLabel({ children }: { children: string }) {
 
 export function TransactionFilterFields({
   filters,
-  accounts,
   categories,
   includeCancelled,
   onFiltersChange,
@@ -366,23 +358,6 @@ export function TransactionFilterFields({
 
   return (
     <div className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1.5">
-        <FieldLabel>Conta</FieldLabel>
-        <Select
-          aria-label="Filtrar por conta"
-          value={filters.accountId ?? ''}
-          className={filters.accountId ? 'on !border-brand' : undefined}
-          onChange={(e) => update({ accountId: e.target.value || undefined })}
-        >
-          <option value="">Todas as contas</option>
-          {accounts.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.name}
-            </option>
-          ))}
-        </Select>
-      </label>
-
       <label className="flex flex-col gap-1.5">
         <FieldLabel>Tipo</FieldLabel>
         <Select
