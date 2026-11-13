@@ -76,9 +76,13 @@ export const TRANSACTION_TYPE_DISPLAY: Record<TransactionType, TransactionTypeDi
   },
 }
 
-/** Indica se o valor entra a favor do usuário — define o sinal e a cor exibidos. */
+/**
+ * Indica se o valor entra a favor do usuário — define o sinal e a cor exibidos.
+ * Ajuste e transferência vêm com sinal da API (a perna que entra é positiva); os
+ * demais tipos vêm sempre positivos e o tipo diz a direção.
+ */
 export function isPositiveTransaction(type: TransactionType, amount: number): boolean {
-  if (type === 'MANUAL_ADJUSTMENT') return amount >= 0
+  if (type === 'MANUAL_ADJUSTMENT' || type === 'TRANSFER') return amount >= 0
   return type === 'INCOME' || type === 'REFUND'
 }
 

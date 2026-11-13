@@ -42,6 +42,11 @@ describe('isPositiveTransaction', () => {
     expect(isPositiveTransaction('MANUAL_ADJUSTMENT', 12800.5)).toBe(true)
     expect(isPositiveTransaction('MANUAL_ADJUSTMENT', -500)).toBe(false)
   })
+
+  it('decides TRANSFER by the sign of the leg: the incoming one is positive', () => {
+    expect(isPositiveTransaction('TRANSFER', 134)).toBe(true)
+    expect(isPositiveTransaction('TRANSFER', -134)).toBe(false)
+  })
 })
 
 describe('transactionTypeColor', () => {
