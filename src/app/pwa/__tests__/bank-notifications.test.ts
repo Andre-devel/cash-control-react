@@ -6,6 +6,7 @@ import {
   type BudgetPush,
   type ConnectionPush,
   type PendingPush,
+  type RecordedPush,
 } from '../bank-notifications'
 
 const BUDGET: BudgetPush = {
@@ -125,6 +126,23 @@ describe('createBankNotifications', () => {
     await notifications.click('', connection)
 
     expect(deps.clients.openWindow).toHaveBeenCalledWith('https://app.test/profile')
+    expect(deps.fetch).not.toHaveBeenCalled()
+  })
+
+  it('tells about an invoice payment recorded without review and opens the app', async () => {
+    const { deps, notifications } = setup()
+    const recorded: RecordedPush = {
+      type: 'recorded',
+      ref: 'plg:f1',
+      title: 'Pagamento de fatura · −R$ 2.356,21',
+      body: 'Inter - PF · 2026-10 · lançado sem revisão',
+    }
+
+    expect(notificationOf(recorded)).toMatchObject({ tag: 'recorded-plg:f1', body: recorded.body })
+    expect(notificationOf(recorded).actions).toBeUndefined()
+    await notifications.click('', recorded)
+
+    expect(deps.clients.openWindow).toHaveBeenCalledWith('https://app.test/')
     expect(deps.fetch).not.toHaveBeenCalled()
   })
 

@@ -43,7 +43,22 @@ export interface ConnectionPush {
   body: string
 }
 
-export type BankPush = PendingPush | SummaryPush | BudgetPush | TestPush | ConnectionPush
+/** Pagamento de fatura que o servidor gravou sem revisão; só avisa, tocar abre o app. */
+export interface RecordedPush {
+  type: 'recorded'
+  /** Chave do lançamento no banco: uma notificação por lançamento. */
+  ref: string
+  title: string
+  body: string
+}
+
+export type BankPush =
+  | PendingPush
+  | SummaryPush
+  | BudgetPush
+  | TestPush
+  | ConnectionPush
+  | RecordedPush
 
 /** `actions` e `renotify` existem no Chrome, mas não na lib DOM do TypeScript. */
 export interface BankNotificationOptions {
@@ -90,6 +105,9 @@ export function notificationOf(data: BankPush): BankNotificationOptions {
   if (data.type === 'budget') {
     // Uma por categoria: o aviso de 100% substitui o de 80%.
     return { body: data.body, icon: ICON, tag: `budget-${data.categoryId}`, renotify: true, data }
+  }
+  if (data.type === 'recorded') {
+    return { body: data.body, icon: ICON, tag: `recorded-${data.ref}`, data }
   }
   if (data.type === 'connection') {
     // Uma por conexão: o aviso do dia seguinte substitui o anterior.
@@ -169,14 +187,15 @@ export function createBankNotifications(deps: BankNotificationDeps) {
     show: (data: BankPush) => deps.showNotification(data.title, notificationOf(data)),
     /**
      * Botão Confirmar grava sem abrir o app; o resto (Revisar, tocar no corpo) abre a fila.
-     * O alerta de orçamento abre a página de orçamentos; o de conexão, o Perfil; o teste, o app.
+     * O alerta de orçamento abre a página de orçamentos; o de conexão, o Perfil; o teste e o
+     * pagamento gravado sem revisão, o app.
      */
     click: (action: string, data: BankPush | undefined) =>
       data?.type === 'budget'
         ? openPath(BUDGETS_PATH)
         : data?.type === 'connection'
           ? openPath(PROFILE_PATH)
-          : data?.type === 'test'
+          : data?.type === 'test' || data?.type === 'recorded'
             ? openPath(HOME_PATH)
             : action === 'confirm' && data?.type === 'pending'
               ? confirm(data)

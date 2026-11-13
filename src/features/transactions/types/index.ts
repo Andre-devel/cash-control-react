@@ -259,7 +259,7 @@ export interface ImportPreviewRow {
   invoiceId: string | null
   /** Cartão e mês da fatura, ex.: "Inter - PF · 2026-09". */
   invoiceLabel: string | null
-  /** A descrição indica pagamento de fatura, mas o valor não bate com o total da sugerida. */
+  /** A descrição indica pagamento de fatura, mas o valor passa do que falta pagar na sugerida. */
   invoiceAmountMismatch: boolean
   /** Faturas que esta linha de saída pode pagar, as de vencimento mais próximo primeiro. */
   invoiceOptions: ImportInvoiceOption[]
