@@ -123,8 +123,8 @@ export function TransactionTotals({
         sub={countLabel(totals?.expenseCount ?? 0)}
         loading={loading}
       />
-      {/* Pagamento de fatura fica fora do resultado: as compras do cartão já contam em
-          despesas. Ele aparece à parte porque mesmo assim tira dinheiro da conta. */}
+      {/* Sem as compras do cartão, o resultado é o que saiu da conta e a fatura entra nele.
+          Com elas nas despesas, a fatura fica fora para não contar em dobro. */}
       <TotalCard
         icon={Receipt}
         iconClass="text-info"
@@ -133,7 +133,11 @@ export function TransactionTotals({
         onClick={toggle('INVOICE_PAYMENT')}
         value={-Math.abs(invoicePayments)}
         valueClass="text-fg"
-        sub={`${countLabel(totals?.invoicePaymentCount ?? 0)} · fora do resultado`}
+        sub={
+          totals?.invoicePaymentInNet === false
+            ? `${countLabel(totals.invoicePaymentCount)} · fora do resultado`
+            : countLabel(totals?.invoicePaymentCount ?? 0)
+        }
         loading={loading}
       />
       <TotalCard

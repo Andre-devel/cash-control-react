@@ -365,6 +365,8 @@ export const transactionsHandlers = [
     const income = total(['INCOME', 'REFUND'])
     const expense = total(['EXPENSE'])
     const invoice = total(['INVOICE_PAYMENT'])
+    const invoicePaymentInNet =
+      new URL(request.url).searchParams.get('includeCreditCard') === 'false'
     return HttpResponse.json({
       incomeAmount: income.amount.toFixed(2),
       incomeCount: income.count,
@@ -372,7 +374,12 @@ export const transactionsHandlers = [
       expenseCount: expense.count,
       invoicePaymentAmount: invoice.amount.toFixed(2),
       invoicePaymentCount: invoice.count,
-      netAmount: (income.amount - expense.amount).toFixed(2),
+      netAmount: (
+        income.amount -
+        expense.amount -
+        (invoicePaymentInNet ? Math.abs(invoice.amount) : 0)
+      ).toFixed(2),
+      invoicePaymentInNet,
     })
   }),
 

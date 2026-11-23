@@ -130,10 +130,15 @@ export interface TransactionTotals {
   incomeCount: number
   expenseAmount: string
   expenseCount: number
-  /** Pagamentos de fatura: tiram dinheiro da conta, mas as compras já contam em despesas. */
+  /** Pagamentos de fatura, negativos (saem da conta). */
   invoicePaymentAmount: string
   invoicePaymentCount: number
   netAmount: string
+  /**
+   * true quando o resultado desconta a fatura: as compras do cartão estão fora do filtro e o
+   * resultado é o que saiu da conta. Com elas nas despesas, a fatura fica de fora.
+   */
+  invoicePaymentInNet: boolean
 }
 
 export interface ListTransactionsParams {

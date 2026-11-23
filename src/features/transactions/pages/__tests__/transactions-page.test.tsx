@@ -303,19 +303,44 @@ describe('TransactionsPage', () => {
           incomeCount: 12,
           expenseAmount: '25136.62',
           expenseCount: 40,
-          invoicePaymentAmount: '3235.79',
+          invoicePaymentAmount: '-3235.79',
           invoicePaymentCount: 1,
-          netAmount: '-10213.51',
+          netAmount: '-13449.30',
+          invoicePaymentInNet: true,
         }),
       ),
     )
     const { container } = renderWithProviders(<TransactionsPage />)
     await waitFor(() => expect(container.textContent).toContain('14.923,11'))
     expect(container.textContent).toContain('25.136,62')
-    // Pagamento de fatura ganhou cartão próprio nos totais, fora do resultado.
+    // Sem as compras do cartão, a fatura paga entra no resultado: é o que saiu da conta.
     const invoiceCard = screen.getByText('Pag. de fatura').parentElement!
     expect(invoiceCard.textContent).toMatch(/3\.235,79/)
-    expect(invoiceCard.textContent).toMatch(/fora do resultado/i)
+    expect(invoiceCard.textContent).not.toMatch(/fora do resultado/i)
+    expect(screen.getByText('Resultado líquido').parentElement!.textContent).toMatch(/13\.449,30/)
+  })
+
+  it('com as compras do cartão nas despesas, a fatura fica fora do resultado', async () => {
+    server.use(
+      http.get('*/transactions/summary', () =>
+        HttpResponse.json({
+          incomeAmount: '100.00',
+          incomeCount: 1,
+          expenseAmount: '40.00',
+          expenseCount: 2,
+          invoicePaymentAmount: '-30.00',
+          invoicePaymentCount: 1,
+          netAmount: '60.00',
+          invoicePaymentInNet: false,
+        }),
+      ),
+    )
+    renderWithProviders(<TransactionsPage />)
+    await waitFor(() =>
+      expect(screen.getByText('Pag. de fatura').parentElement!.textContent).toMatch(
+        /fora do resultado/i,
+      ),
+    )
   })
 
   it('manda o mês atual como período e navega para o mês anterior', async () => {
